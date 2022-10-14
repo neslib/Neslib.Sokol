@@ -1,0 +1,624 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{8808E909-FEA9-4895-A1D6-2268DFD903F4}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Clear\Clear.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Triangle\Triangle.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Quad\Quad.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="BufferOffsets\BufferOffsets.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Cube\Cube.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Audio\Audio.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="NonInterleaved\NonInterleaved.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="TexCube\TexCube.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Tex3D\Tex3D.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DynTex\DynTex.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ArrayTex\ArrayTex.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Blend\Blend.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Mipmap\Mipmap.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Instancing\Instancing.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="OffScreen\OffScreen.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="CubeMapRT\CubeMapRT.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Mrt\Mrt.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Sdf\Sdf.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Sgl\Sgl.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="SglPoints\SglPoints.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="SglLines\SglLines.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="SglContext\SglContext.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="BasicU\BasisU.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DebugText\DebugText.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DebugTextFormat\DebugTextFormat.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DebugTextContext\DebugTextContext.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DebugTextUserFont\DebugTextUserFont.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="glTF\glTF.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FontStash\FontStash.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="LoadPng\LoadPng.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MrtPixelFormats\MrtPixelFormats.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="PLMpeg\PLMpeg.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="PrimTypes\PrimTypes.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Shadows\Shadows.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Shapes\Shapes.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ShapesTransform\ShapesTransform.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="UniformTypes\UniformTypes.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="UVWrap\UVWrap.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Drop\Drop.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ImGui\ImGui.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Events\Events.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Icon\Icon.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ImGuiHighDpi\ImGuiHighDpi.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ImGuiPerf\ImGuiPerf.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ImGuiUserCallback\ImGuiUserCallback.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ModPlay\ModPlay.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="OzzAnim\OzzAnim.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="OzzSkin\OzzSkin.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="PixelFormats\PixelFormats.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Restart\Restart.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="Clear">
+        <MSBuild Projects="Clear\Clear.dproj"/>
+    </Target>
+    <Target Name="Clear:Clean">
+        <MSBuild Projects="Clear\Clear.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Clear:Make">
+        <MSBuild Projects="Clear\Clear.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Triangle">
+        <MSBuild Projects="Triangle\Triangle.dproj"/>
+    </Target>
+    <Target Name="Triangle:Clean">
+        <MSBuild Projects="Triangle\Triangle.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Triangle:Make">
+        <MSBuild Projects="Triangle\Triangle.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Quad">
+        <MSBuild Projects="Quad\Quad.dproj"/>
+    </Target>
+    <Target Name="Quad:Clean">
+        <MSBuild Projects="Quad\Quad.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Quad:Make">
+        <MSBuild Projects="Quad\Quad.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="BufferOffsets">
+        <MSBuild Projects="BufferOffsets\BufferOffsets.dproj"/>
+    </Target>
+    <Target Name="BufferOffsets:Clean">
+        <MSBuild Projects="BufferOffsets\BufferOffsets.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BufferOffsets:Make">
+        <MSBuild Projects="BufferOffsets\BufferOffsets.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Cube">
+        <MSBuild Projects="Cube\Cube.dproj"/>
+    </Target>
+    <Target Name="Cube:Clean">
+        <MSBuild Projects="Cube\Cube.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Cube:Make">
+        <MSBuild Projects="Cube\Cube.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Audio">
+        <MSBuild Projects="Audio\Audio.dproj"/>
+    </Target>
+    <Target Name="Audio:Clean">
+        <MSBuild Projects="Audio\Audio.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Audio:Make">
+        <MSBuild Projects="Audio\Audio.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="NonInterleaved">
+        <MSBuild Projects="NonInterleaved\NonInterleaved.dproj"/>
+    </Target>
+    <Target Name="NonInterleaved:Clean">
+        <MSBuild Projects="NonInterleaved\NonInterleaved.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NonInterleaved:Make">
+        <MSBuild Projects="NonInterleaved\NonInterleaved.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TexCube">
+        <MSBuild Projects="TexCube\TexCube.dproj"/>
+    </Target>
+    <Target Name="TexCube:Clean">
+        <MSBuild Projects="TexCube\TexCube.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TexCube:Make">
+        <MSBuild Projects="TexCube\TexCube.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Tex3D">
+        <MSBuild Projects="Tex3D\Tex3D.dproj"/>
+    </Target>
+    <Target Name="Tex3D:Clean">
+        <MSBuild Projects="Tex3D\Tex3D.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Tex3D:Make">
+        <MSBuild Projects="Tex3D\Tex3D.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DynTex">
+        <MSBuild Projects="DynTex\DynTex.dproj"/>
+    </Target>
+    <Target Name="DynTex:Clean">
+        <MSBuild Projects="DynTex\DynTex.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DynTex:Make">
+        <MSBuild Projects="DynTex\DynTex.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ArrayTex">
+        <MSBuild Projects="ArrayTex\ArrayTex.dproj"/>
+    </Target>
+    <Target Name="ArrayTex:Clean">
+        <MSBuild Projects="ArrayTex\ArrayTex.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ArrayTex:Make">
+        <MSBuild Projects="ArrayTex\ArrayTex.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Blend">
+        <MSBuild Projects="Blend\Blend.dproj"/>
+    </Target>
+    <Target Name="Blend:Clean">
+        <MSBuild Projects="Blend\Blend.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Blend:Make">
+        <MSBuild Projects="Blend\Blend.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Mipmap">
+        <MSBuild Projects="Mipmap\Mipmap.dproj"/>
+    </Target>
+    <Target Name="Mipmap:Clean">
+        <MSBuild Projects="Mipmap\Mipmap.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Mipmap:Make">
+        <MSBuild Projects="Mipmap\Mipmap.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Instancing">
+        <MSBuild Projects="Instancing\Instancing.dproj"/>
+    </Target>
+    <Target Name="Instancing:Clean">
+        <MSBuild Projects="Instancing\Instancing.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Instancing:Make">
+        <MSBuild Projects="Instancing\Instancing.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OffScreen">
+        <MSBuild Projects="OffScreen\OffScreen.dproj"/>
+    </Target>
+    <Target Name="OffScreen:Clean">
+        <MSBuild Projects="OffScreen\OffScreen.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OffScreen:Make">
+        <MSBuild Projects="OffScreen\OffScreen.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CubeMapRT">
+        <MSBuild Projects="CubeMapRT\CubeMapRT.dproj"/>
+    </Target>
+    <Target Name="CubeMapRT:Clean">
+        <MSBuild Projects="CubeMapRT\CubeMapRT.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CubeMapRT:Make">
+        <MSBuild Projects="CubeMapRT\CubeMapRT.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Mrt">
+        <MSBuild Projects="Mrt\Mrt.dproj"/>
+    </Target>
+    <Target Name="Mrt:Clean">
+        <MSBuild Projects="Mrt\Mrt.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Mrt:Make">
+        <MSBuild Projects="Mrt\Mrt.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Sdf">
+        <MSBuild Projects="Sdf\Sdf.dproj"/>
+    </Target>
+    <Target Name="Sdf:Clean">
+        <MSBuild Projects="Sdf\Sdf.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Sdf:Make">
+        <MSBuild Projects="Sdf\Sdf.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Sgl">
+        <MSBuild Projects="Sgl\Sgl.dproj"/>
+    </Target>
+    <Target Name="Sgl:Clean">
+        <MSBuild Projects="Sgl\Sgl.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Sgl:Make">
+        <MSBuild Projects="Sgl\Sgl.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SglPoints">
+        <MSBuild Projects="SglPoints\SglPoints.dproj"/>
+    </Target>
+    <Target Name="SglPoints:Clean">
+        <MSBuild Projects="SglPoints\SglPoints.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SglPoints:Make">
+        <MSBuild Projects="SglPoints\SglPoints.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SglLines">
+        <MSBuild Projects="SglLines\SglLines.dproj"/>
+    </Target>
+    <Target Name="SglLines:Clean">
+        <MSBuild Projects="SglLines\SglLines.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SglLines:Make">
+        <MSBuild Projects="SglLines\SglLines.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SglContext">
+        <MSBuild Projects="SglContext\SglContext.dproj"/>
+    </Target>
+    <Target Name="SglContext:Clean">
+        <MSBuild Projects="SglContext\SglContext.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SglContext:Make">
+        <MSBuild Projects="SglContext\SglContext.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="BasisU">
+        <MSBuild Projects="BasicU\BasisU.dproj"/>
+    </Target>
+    <Target Name="BasisU:Clean">
+        <MSBuild Projects="BasicU\BasisU.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BasisU:Make">
+        <MSBuild Projects="BasicU\BasisU.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DebugText">
+        <MSBuild Projects="DebugText\DebugText.dproj"/>
+    </Target>
+    <Target Name="DebugText:Clean">
+        <MSBuild Projects="DebugText\DebugText.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DebugText:Make">
+        <MSBuild Projects="DebugText\DebugText.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DebugTextFormat">
+        <MSBuild Projects="DebugTextFormat\DebugTextFormat.dproj"/>
+    </Target>
+    <Target Name="DebugTextFormat:Clean">
+        <MSBuild Projects="DebugTextFormat\DebugTextFormat.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DebugTextFormat:Make">
+        <MSBuild Projects="DebugTextFormat\DebugTextFormat.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DebugTextContext">
+        <MSBuild Projects="DebugTextContext\DebugTextContext.dproj"/>
+    </Target>
+    <Target Name="DebugTextContext:Clean">
+        <MSBuild Projects="DebugTextContext\DebugTextContext.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DebugTextContext:Make">
+        <MSBuild Projects="DebugTextContext\DebugTextContext.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DebugTextUserFont">
+        <MSBuild Projects="DebugTextUserFont\DebugTextUserFont.dproj"/>
+    </Target>
+    <Target Name="DebugTextUserFont:Clean">
+        <MSBuild Projects="DebugTextUserFont\DebugTextUserFont.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DebugTextUserFont:Make">
+        <MSBuild Projects="DebugTextUserFont\DebugTextUserFont.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="glTF">
+        <MSBuild Projects="glTF\glTF.dproj"/>
+    </Target>
+    <Target Name="glTF:Clean">
+        <MSBuild Projects="glTF\glTF.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="glTF:Make">
+        <MSBuild Projects="glTF\glTF.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FontStash">
+        <MSBuild Projects="FontStash\FontStash.dproj"/>
+    </Target>
+    <Target Name="FontStash:Clean">
+        <MSBuild Projects="FontStash\FontStash.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FontStash:Make">
+        <MSBuild Projects="FontStash\FontStash.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LoadPng">
+        <MSBuild Projects="LoadPng\LoadPng.dproj"/>
+    </Target>
+    <Target Name="LoadPng:Clean">
+        <MSBuild Projects="LoadPng\LoadPng.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LoadPng:Make">
+        <MSBuild Projects="LoadPng\LoadPng.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MrtPixelFormats">
+        <MSBuild Projects="MrtPixelFormats\MrtPixelFormats.dproj"/>
+    </Target>
+    <Target Name="MrtPixelFormats:Clean">
+        <MSBuild Projects="MrtPixelFormats\MrtPixelFormats.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MrtPixelFormats:Make">
+        <MSBuild Projects="MrtPixelFormats\MrtPixelFormats.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PLMpeg">
+        <MSBuild Projects="PLMpeg\PLMpeg.dproj"/>
+    </Target>
+    <Target Name="PLMpeg:Clean">
+        <MSBuild Projects="PLMpeg\PLMpeg.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PLMpeg:Make">
+        <MSBuild Projects="PLMpeg\PLMpeg.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PrimTypes">
+        <MSBuild Projects="PrimTypes\PrimTypes.dproj"/>
+    </Target>
+    <Target Name="PrimTypes:Clean">
+        <MSBuild Projects="PrimTypes\PrimTypes.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PrimTypes:Make">
+        <MSBuild Projects="PrimTypes\PrimTypes.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Shadows">
+        <MSBuild Projects="Shadows\Shadows.dproj"/>
+    </Target>
+    <Target Name="Shadows:Clean">
+        <MSBuild Projects="Shadows\Shadows.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Shadows:Make">
+        <MSBuild Projects="Shadows\Shadows.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Shapes">
+        <MSBuild Projects="Shapes\Shapes.dproj"/>
+    </Target>
+    <Target Name="Shapes:Clean">
+        <MSBuild Projects="Shapes\Shapes.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Shapes:Make">
+        <MSBuild Projects="Shapes\Shapes.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ShapesTransform">
+        <MSBuild Projects="ShapesTransform\ShapesTransform.dproj"/>
+    </Target>
+    <Target Name="ShapesTransform:Clean">
+        <MSBuild Projects="ShapesTransform\ShapesTransform.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ShapesTransform:Make">
+        <MSBuild Projects="ShapesTransform\ShapesTransform.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="UniformTypes">
+        <MSBuild Projects="UniformTypes\UniformTypes.dproj"/>
+    </Target>
+    <Target Name="UniformTypes:Clean">
+        <MSBuild Projects="UniformTypes\UniformTypes.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UniformTypes:Make">
+        <MSBuild Projects="UniformTypes\UniformTypes.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="UVWrap">
+        <MSBuild Projects="UVWrap\UVWrap.dproj"/>
+    </Target>
+    <Target Name="UVWrap:Clean">
+        <MSBuild Projects="UVWrap\UVWrap.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UVWrap:Make">
+        <MSBuild Projects="UVWrap\UVWrap.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Drop">
+        <MSBuild Projects="Drop\Drop.dproj"/>
+    </Target>
+    <Target Name="Drop:Clean">
+        <MSBuild Projects="Drop\Drop.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Drop:Make">
+        <MSBuild Projects="Drop\Drop.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ImGui">
+        <MSBuild Projects="ImGui\ImGui.dproj"/>
+    </Target>
+    <Target Name="ImGui:Clean">
+        <MSBuild Projects="ImGui\ImGui.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ImGui:Make">
+        <MSBuild Projects="ImGui\ImGui.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Events">
+        <MSBuild Projects="Events\Events.dproj"/>
+    </Target>
+    <Target Name="Events:Clean">
+        <MSBuild Projects="Events\Events.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Events:Make">
+        <MSBuild Projects="Events\Events.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Icon">
+        <MSBuild Projects="Icon\Icon.dproj"/>
+    </Target>
+    <Target Name="Icon:Clean">
+        <MSBuild Projects="Icon\Icon.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Icon:Make">
+        <MSBuild Projects="Icon\Icon.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ImGuiHighDpi">
+        <MSBuild Projects="ImGuiHighDpi\ImGuiHighDpi.dproj"/>
+    </Target>
+    <Target Name="ImGuiHighDpi:Clean">
+        <MSBuild Projects="ImGuiHighDpi\ImGuiHighDpi.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ImGuiHighDpi:Make">
+        <MSBuild Projects="ImGuiHighDpi\ImGuiHighDpi.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ImGuiPerf">
+        <MSBuild Projects="ImGuiPerf\ImGuiPerf.dproj"/>
+    </Target>
+    <Target Name="ImGuiPerf:Clean">
+        <MSBuild Projects="ImGuiPerf\ImGuiPerf.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ImGuiPerf:Make">
+        <MSBuild Projects="ImGuiPerf\ImGuiPerf.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ImGuiUserCallback">
+        <MSBuild Projects="ImGuiUserCallback\ImGuiUserCallback.dproj"/>
+    </Target>
+    <Target Name="ImGuiUserCallback:Clean">
+        <MSBuild Projects="ImGuiUserCallback\ImGuiUserCallback.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ImGuiUserCallback:Make">
+        <MSBuild Projects="ImGuiUserCallback\ImGuiUserCallback.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ModPlay">
+        <MSBuild Projects="ModPlay\ModPlay.dproj"/>
+    </Target>
+    <Target Name="ModPlay:Clean">
+        <MSBuild Projects="ModPlay\ModPlay.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ModPlay:Make">
+        <MSBuild Projects="ModPlay\ModPlay.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OzzAnim">
+        <MSBuild Projects="OzzAnim\OzzAnim.dproj"/>
+    </Target>
+    <Target Name="OzzAnim:Clean">
+        <MSBuild Projects="OzzAnim\OzzAnim.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OzzAnim:Make">
+        <MSBuild Projects="OzzAnim\OzzAnim.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OzzSkin">
+        <MSBuild Projects="OzzSkin\OzzSkin.dproj"/>
+    </Target>
+    <Target Name="OzzSkin:Clean">
+        <MSBuild Projects="OzzSkin\OzzSkin.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OzzSkin:Make">
+        <MSBuild Projects="OzzSkin\OzzSkin.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PixelFormats">
+        <MSBuild Projects="PixelFormats\PixelFormats.dproj"/>
+    </Target>
+    <Target Name="PixelFormats:Clean">
+        <MSBuild Projects="PixelFormats\PixelFormats.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PixelFormats:Make">
+        <MSBuild Projects="PixelFormats\PixelFormats.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Restart">
+        <MSBuild Projects="Restart\Restart.dproj"/>
+    </Target>
+    <Target Name="Restart:Clean">
+        <MSBuild Projects="Restart\Restart.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Restart:Make">
+        <MSBuild Projects="Restart\Restart.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="Clear;Triangle;Quad;BufferOffsets;Cube;Audio;NonInterleaved;TexCube;Tex3D;DynTex;ArrayTex;Blend;Mipmap;Instancing;OffScreen;CubeMapRT;Mrt;Sdf;Sgl;SglPoints;SglLines;SglContext;BasisU;DebugText;DebugTextFormat;DebugTextContext;DebugTextUserFont;glTF;FontStash;LoadPng;MrtPixelFormats;PLMpeg;PrimTypes;Shadows;Shapes;ShapesTransform;UniformTypes;UVWrap;Drop;ImGui;Events;Icon;ImGuiHighDpi;ImGuiPerf;ImGuiUserCallback;ModPlay;OzzAnim;OzzSkin;PixelFormats;Restart"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="Clear:Clean;Triangle:Clean;Quad:Clean;BufferOffsets:Clean;Cube:Clean;Audio:Clean;NonInterleaved:Clean;TexCube:Clean;Tex3D:Clean;DynTex:Clean;ArrayTex:Clean;Blend:Clean;Mipmap:Clean;Instancing:Clean;OffScreen:Clean;CubeMapRT:Clean;Mrt:Clean;Sdf:Clean;Sgl:Clean;SglPoints:Clean;SglLines:Clean;SglContext:Clean;BasisU:Clean;DebugText:Clean;DebugTextFormat:Clean;DebugTextContext:Clean;DebugTextUserFont:Clean;glTF:Clean;FontStash:Clean;LoadPng:Clean;MrtPixelFormats:Clean;PLMpeg:Clean;PrimTypes:Clean;Shadows:Clean;Shapes:Clean;ShapesTransform:Clean;UniformTypes:Clean;UVWrap:Clean;Drop:Clean;ImGui:Clean;Events:Clean;Icon:Clean;ImGuiHighDpi:Clean;ImGuiPerf:Clean;ImGuiUserCallback:Clean;ModPlay:Clean;OzzAnim:Clean;OzzSkin:Clean;PixelFormats:Clean;Restart:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="Clear:Make;Triangle:Make;Quad:Make;BufferOffsets:Make;Cube:Make;Audio:Make;NonInterleaved:Make;TexCube:Make;Tex3D:Make;DynTex:Make;ArrayTex:Make;Blend:Make;Mipmap:Make;Instancing:Make;OffScreen:Make;CubeMapRT:Make;Mrt:Make;Sdf:Make;Sgl:Make;SglPoints:Make;SglLines:Make;SglContext:Make;BasisU:Make;DebugText:Make;DebugTextFormat:Make;DebugTextContext:Make;DebugTextUserFont:Make;glTF:Make;FontStash:Make;LoadPng:Make;MrtPixelFormats:Make;PLMpeg:Make;PrimTypes:Make;Shadows:Make;Shapes:Make;ShapesTransform:Make;UniformTypes:Make;UVWrap:Make;Drop:Make;ImGui:Make;Events:Make;Icon:Make;ImGuiHighDpi:Make;ImGuiPerf:Make;ImGuiUserCallback:Make;ModPlay:Make;OzzAnim:Make;OzzSkin:Make;PixelFormats:Make;Restart:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

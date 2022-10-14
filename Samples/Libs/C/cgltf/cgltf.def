@@ -1,0 +1,13 @@
+LIBRARY cgltf
+EXPORTS
+; **** cgltf.h
+  cgltf_parse
+  cgltf_load_buffers
+  cgltf_load_buffer_base64
+  cgltf_validate
+  cgltf_free
+  cgltf_node_transform_local
+  cgltf_node_transform_world
+  cgltf_accessor_read_float
+  cgltf_accessor_read_index
+  cgltf_copy_extras_json

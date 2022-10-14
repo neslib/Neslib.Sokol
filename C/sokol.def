@@ -1,0 +1,37 @@
+LIBRARY sokol
+EXPORTS
+; **** sokol_basisu.h
+  sbasisu_setup
+  sbasisu_shutdown
+  sbasisu_make_image
+  sbasisu_transcode
+  sbasisu_free
+  sbasisu_pixelformat
+; **** fontstash.h
+  fonsCreateInternal
+  fonsDeleteInternal
+  fonsSetErrorCallback
+  fonsGetAtlasSize
+  fonsExpandAtlas
+  fonsResetAtlas
+  fonsGetFontByName
+  fonsAddFallbackFont
+  fonsPushState
+  fonsPopState
+  fonsClearState
+  fonsSetSize
+  fonsSetColor
+  fonsSetSpacing
+  fonsSetBlur
+  fonsSetAlign
+  fonsSetFont
+  fonsDrawText
+  fonsTextBounds
+  fonsLineBounds
+  fonsVertMetrics
+  fonsTextIterInit
+  fonsTextIterNext
+  fonsGetTextureData
+  fonsValidateTexture
+  fonsDrawDebug
+  fonsAddFontMem

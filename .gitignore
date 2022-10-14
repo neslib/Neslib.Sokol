@@ -1,0 +1,40 @@
+#OS X meta data
+._*
+#ignore thumbnails created by windows
+Thumbs.db
+#ignore Delphi build directories
+Android/
+Android64/
+iOSDevice/
+iOSDevice32/
+iOSDevice64/
+iOSSimulator/
+LaunchScreen.TemplateiOS/
+OSX32/
+OSX64/
+Win32/
+Win64/
+#ignore Delphi build files
+*.obj
+*.exe
+*.stat
+*.rsm
+*.tvsconfig
+*.delphilsp.json
+!Tools/sokol-shdc.exe
+*.dcu
+*.map
+*.deployproj
+#ignore Delphi temp and backup files
+*.~*
+#ignore Delphi local files
+*.dsk
+*.dproj.local
+*.identcache
+*.groupproj.local
+#ignore temporary help files
+HtmlHelp/
+Html/
+*.class
+#include shader tool
+!Tools/sokol-shdc.exe

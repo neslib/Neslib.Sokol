@@ -1,0 +1,81 @@
+{
+  "EnumFlags": {
+    "TImGuiTableFlags": {
+      "Borders": "BordersInner + BordersOuter",
+      "SizingStretchProp": "[TImGuiTableFlag.SizingFixedFit, TImGuiTableFlag.SizingFixedSame]"
+    }
+  },
+  "Types": {
+    "bool(*)(void* data,int idx,const char** out_text)": {
+      "Name": "TImGuiItemsGetter",
+      "Value": "function(const AData: Pointer; const AIdx: Integer; out AOutText: PUTF8Char): Boolean; cdecl;"
+    },
+    "ImVector_const_charPtr*": {
+      "Name": "PImVectorPChar",
+      "Value": "^TImVectorPChar"
+    },
+    "int(*)(void const*,void const*)": {
+      "Name": "TImGuiCompareFunc",
+      "Value": "function(const ALeft, ARight: Pointer): Integer; cdecl;"
+    },
+    "float(*)(void* data,int idx)": {
+      "Name": "TImGuiValuesGetter",
+      "Value": "function(const AData: Pointer; const AIdx: Integer): Pointer; cdecl;"
+    }
+  },
+  "StructMembers": {
+    "TImFontBuilderIO": {
+      "FontBuilderBuild": "function(const AAtlas: PImFontAtlas): Boolean; cdecl;"
+    },
+    "TImGuiSettingsHandler": {
+      "ClearAllFn": "procedure(const ACtx: PImGuiContext; const AHandler: PImGuiSettingsHandler); cdecl;",
+      "ReadInitFn": "procedure(const ACtx: PImGuiContext; const AHandler: PImGuiSettingsHandler); cdecl;",
+      "ReadOpenFn": "function(const ACtx: PImGuiContext; const AHandler: PImGuiSettingsHandler; const AName: PUTF8Char): Pointer; cdecl;",
+      "ReadLineFn": "procedure(const ACtx: PImGuiContext; const AHandler: PImGuiSettingsHandler; const AEntry: Pointer; const AName: PUTF8Char); cdecl;",
+      "ApplyAllFn": "procedure(const ACtx: PImGuiContext; const AHandler: PImGuiSettingsHandler); cdecl;",
+      "WriteAllFn": "procedure(const ACtx: PImGuiContext; const AHandler: PImGuiSettingsHandler; out AOutBuf: TImGuiTextBuffer); cdecl;"
+    },
+    "TImGuiStoragePair": {
+      "": "record case byte of 0: (ValI: Integer); 1: (ValF: Single); 2: (ValP: Pointer); end;"
+    },
+    "TImGuiStyleMod": {
+      "": "record case byte of 0: (BackupInt: array [0..1] of Integer); 1: (BackupFloat: array [0..1] of Single); end;"
+    },
+    "TImGuiInputEvent": {
+      "": "record case byte of 0: (MousePos: TImGuiInputEventMousePos); 1: (MouseWheel: TImGuiInputEventMouseWheel); 2: (MouseButton: TImGuiInputEventMouseButton); 3: (MouseViewport: TImGuiInputEventMouseViewport); 4: (Key: TImGuiInputEventKey); 5: (Text: TImGuiInputEventText); 6: (AppFocused: TImGuiInputEventAppFocused); end;"
+    },
+    "TImGuiPlatformIO": {
+      "PlatformCreateWindow": "procedure(const AVP: PImGuiViewport); cdecl;",
+      "PlatformDestroyWindow": "procedure(const AVP: PImGuiViewport); cdecl;",
+      "PlatformShowWindow": "procedure(const AVP: PImGuiViewport); cdecl;",
+      "PlatformSetWindowPos": "procedure(const AVP: PImGuiViewport; const APos: TVector2); cdecl;",
+      "PlatformGetWindowPos": "function(const AVP: PImGuiViewport): TVector2; cdecl;",
+      "PlatformSetWindowSize": "procedure(const AVP: PImGuiViewport; const ASize: TVector2); cdecl;",
+      "PlatformGetWindowSize": "function(const AVP: PImGuiViewport): TVector2; cdecl;",
+      "PlatformSetWindowFocus": "procedure(const AVP: PImGuiViewport); cdecl;",
+      "PlatformGetWindowFocus": "function(const AVP: PImGuiViewport): Boolean; cdecl;",
+      "PlatformGetWindowMinimized": "function(const AVP: PImGuiViewport): Boolean; cdecl;",
+      "PlatformSetWindowTitle": "procedure(const AVP: PImGuiViewport; const AStr: PUTF8Char); cdecl;",
+      "PlatformSetWindowAlpha": "procedure(const AVP: PImGuiViewport; const AAlpha: Single); cdecl;",
+      "PlatformUpdateWindow": "procedure(const AVP: PImGuiViewport); cdecl;",
+      "PlatformRenderWindow": "procedure(const AVP: PImGuiViewport; const ARenderArg: Pointer); cdecl;",
+      "PlatformSwapBuffers": "procedure(const AVP: PImGuiViewport; const ARenderArg: Pointer); cdecl;",
+      "PlatformGetWindowDpiScale": "function(const AVP: PImGuiViewport): Single; cdecl;",
+      "PlatformOnChangedViewport": "procedure(const AVP: PImGuiViewport); cdecl;",
+      "PlatformCreateVkSurface": "function(const AVP: PImGuiViewport; const AVKInst: UInt64; const AVKAllocators: Pointer; const AOutVKSurface: PUInt64): Single; cdecl;",
+      "RendererCreateWindow": "procedure(const AVP: PImGuiViewport); cdecl;",
+      "RendererDestroyWindow": "procedure(const AVP: PImGuiViewport); cdecl;",
+      "RendererSetWindowSize": "procedure(const AVP: PImGuiViewport; const ASize: TVector2); cdecl;",
+      "RendererRenderWindow": "procedure(const AVP: PImGuiViewport; const ARenderArg: Pointer); cdecl;",
+      "RendererSwapBuffers": "procedure(const AVP: PImGuiViewport; const ARenderArg: Pointer); cdecl;",
+    },
+     "TImGuiIO": {
+      "GetClipboardTextFn": "function(const AUserData: Pointer): PUTF8Char; cdecl;",
+      "SetClipboardTextFn": "procedure(const AUserData: Pointer; const AText: PUTF8Char); cdecl;",
+      "SetPlatformImeDataFn": "procedure(const AViewport: PImGuiViewport; const AData: PImGuiPlatformImeData); cdecl;",
+    },
+      "TImGuiColorMod": {
+        "BackupValue": "TAlphaColorF;"
+    }
+  }  
+}

@@ -1,0 +1,1 @@
+This directory contains only those header files from the "..\sokol" directory (and subdirectories) that we want to translate with Chet so we can access them from Delphi.

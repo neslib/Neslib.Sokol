@@ -1,0 +1,406 @@
+{
+  "ImDrawList_AddImage": [  
+    { 
+      "intf": "procedure AddImage(const AUserTextureId: TImTextureID; const APMin: TVector2; const APMax: TVector2; const ACol: UInt32 = 4294967295); overload; inline;",
+      "impl": "_ImDrawList_AddImage(@Self, _ImTextureID(AUserTextureId), _ImVec2(APMin), _ImVec2(APMax), _ImVec2(TVector2.Zero), _ImVec2(TVector2.One), ACol);"
+    }
+  ],
+  "ImDrawList_AddImageQuad": [  
+    { 
+      "intf": "procedure AddImageQuad(const AUserTextureId: TImTextureID; const AP1: TVector2; const AP2: TVector2; const AP3: TVector2; const AP4: TVector2; const ACol: UInt32 = 4294967295); overload; inline;",
+      "impl": "_ImDrawList_AddImageQuad(@Self, _ImTextureID(AUserTextureId), _ImVec2(AP1), _ImVec2(AP2), _ImVec2(AP3), _ImVec2(AP4), _ImVec2(TVector2.Zero), _ImVec2(TVector2.UnitX), _ImVec2(TVector2.One), _ImVec2(TVector2.UnitY), ACol);"
+    }
+  ],
+  "ImFontAtlas_AddCustomRectFontGlyph": [  
+    { 
+      "intf": "function AddCustomRectFontGlyph(const AFont: PImFont; const AId: WideChar; const AWidth: Integer; const AHeight: Integer; const AAdvanceX: Single): Integer; overload; inline;",
+      "impl": "Result := _ImFontAtlas_AddCustomRectFontGlyph(@Self, Pointer(AFont), Word(AId), AWidth, AHeight, AAdvanceX, _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igBeginChild_Str": [  
+    { 
+      "intf": "class function BeginChild(const AStrId: PUTF8Char; const ABorder: Boolean = False; const AFlags: TImGuiWindowFlags = []): Boolean; overload; static; inline;",
+      "impl": "Result := _igBeginChild_Str(Pointer(AStrId), _ImVec2(TVector2.Zero), ABorder, Cardinal(AFlags));"
+    }
+  ],
+  "igBeginChild_ID": [  
+    { 
+      "intf": "class function BeginChild(const AId: TImGuiID; const ABorder: Boolean = False; const AFlags: TImGuiWindowFlags = []): Boolean; overload; static; inline;",
+      "impl": "Result := _igBeginChild_ID(_ImGuiID(AId), _ImVec2(TVector2.Zero), ABorder, Cardinal(AFlags));"
+    }
+  ],
+  "igBeginListBox": [  
+    { 
+      "intf": "class function BeginListBox(const ALabel: PUTF8Char): Boolean; overload; static; inline;",
+      "impl": "Result := _igBeginListBox(Pointer(ALabel), _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igBeginTable": [  
+    { 
+      "intf": "class function BeginTable(const AStrId: PUTF8Char; const AColumn: Integer; const AFlags: TImGuiTableFlags = []; const AInnerWidth: Single = 0.0): Boolean; overload; static; inline;",
+      "impl": "Result := _igBeginTable(Pointer(AStrId), AColumn, Cardinal(AFlags), _ImVec2(TVector2.Zero), AInnerWidth);"
+    },
+    { 
+      "intf": "class function BeginTable(const AStrId: PUTF8Char; const AColumn: Integer; const AOuterSize: TVector2; const AFlags: TImGuiTableFlags = []; const AInnerWidth: Single = 0.0): Boolean; overload; static; inline;",
+      "impl": "Result := _igBeginTable(Pointer(AStrId), AColumn, Cardinal(AFlags), _ImVec2(AOuterSize), AInnerWidth);"
+    }
+  ],
+  "igBeginTableEx": [  
+    { 
+      "intf": "class function BeginTableEx(const AName: PUTF8Char; const AId: TImGuiID; const AColumnsCount: Integer; const AFlags: TImGuiTableFlags = []; const AInnerWidth: Single = 0.0): Boolean; overload; static; inline;",
+      "impl": "Result := _igBeginTableEx(Pointer(AName), _ImGuiID(AId), AColumnsCount, Cardinal(AFlags), _ImVec2(TVector2.Zero), AInnerWidth);"
+    },
+    { 
+      "intf": "class function BeginTableEx(const AName: PUTF8Char; const AId: TImGuiID; const AColumnsCount: Integer; const AOuterSize: TVector2; const AFlags: TImGuiTableFlags = []; const AInnerWidth: Single = 0.0): Boolean; overload; static; inline;",
+      "impl": "Result := _igBeginTableEx(Pointer(AName), _ImGuiID(AId), AColumnsCount, Cardinal(AFlags), _ImVec2(AOuterSize), AInnerWidth);"
+    }
+  ],
+  "igButton": [  
+    { 
+      "intf": "class function Button(const ALabel: PUTF8Char): Boolean; overload; static; inline;",
+      "impl": "Result := _igButton(Pointer(ALabel), _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igButtonEx": [  
+    { 
+      "intf": "class function ButtonEx(const ALabel: PUTF8Char; const AFlags: TImGuiButtonFlags = []): Boolean; overload; static; inline;",
+      "impl": "Result := _igButtonEx(Pointer(ALabel), _ImVec2(TVector2.Zero), Cardinal(AFlags));"
+    }
+  ],
+  "igColorButton": [  
+    { 
+      "intf": "class function ColorButton(const ADescId: PUTF8Char; const ACol: TAlphaColorF; const AFlags: TImGuiColorEditFlags = []): Boolean; overload; static; inline;",
+      "impl": "Result := _igColorButton(Pointer(ADescId), _ImVec4(ACol), Cardinal(AFlags), _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igDockSpace": [  
+    { 
+      "intf": "class function DockSpace(const AId: TImGuiID; const AFlags: TImGuiDockNodeFlags = []; const AWindowClass: PImGuiWindowClass = nil): TImGuiID; overload; static; inline;",
+      "impl": "Result := TImGuiID(_igDockSpace(_ImGuiID(AId), _ImVec2(TVector2.Zero), Cardinal(AFlags), Pointer(AWindowClass)));"
+    }
+  ],
+  "igImage": [  
+    { 
+      "intf": "class procedure Image(const AUserTextureId: TImTextureID; const ASize: TVector2; const AUv0: TVector2; const AUv1: TVector2); overload; static; inline;",
+      "impl": "_igImage(_ImTextureID(AUserTextureId), _ImVec2(ASize), _ImVec2(AUv0), _ImVec2(AUv1), _ImVec4(TVector4.One), _ImVec4(TVector4.Zero));"
+    },
+    { 
+      "intf": "class procedure Image(const AUserTextureId: TImTextureID; const ASize: TVector2; const ATintCol: TAlphaColorF; const ABorderCol: TAlphaColorF); overload; static; inline;",
+      "impl": "_igImage(_ImTextureID(AUserTextureId), _ImVec2(ASize), _ImVec2(TVector2.Zero), _ImVec2(TVector2.One), _ImVec4(ATintCol), _ImVec4(ABorderCol));"
+    },
+    { 
+      "intf": "class procedure Image(const AUserTextureId: TImTextureID; const ASize: TVector2); overload; static; inline;",
+      "impl": "_igImage(_ImTextureID(AUserTextureId), _ImVec2(ASize), _ImVec2(TVector2.Zero), _ImVec2(TVector2.One), _ImVec4(TVector4.One), _ImVec4(TVector4.Zero));"
+    }
+  ],
+  "igImageButton": [  
+    { 
+      "intf": "class function ImageButton(const AUserTextureId: TImTextureID; const ASize: TVector2; const AUv0: TVector2; const AUv1: TVector2; const AFramePadding: Integer = -1): Boolean; overload; static; inline;",
+      "impl": "Result := _igImageButton(_ImTextureID(AUserTextureId), _ImVec2(ASize), _ImVec2(AUv0), _ImVec2(AUv1), AFramePadding, _ImVec4(TVector4.Zero), _ImVec4(TVector4.One));"
+    },
+    { 
+      "intf": "class function ImageButton(const AUserTextureId: TImTextureID; const ASize: TVector2; const ABgCol: TAlphaColorF; const ATintCol: TAlphaColorF; const AFramePadding: Integer = -1): Boolean; overload; static; inline;",
+      "impl": "Result := _igImageButton(_ImTextureID(AUserTextureId), _ImVec2(ASize), _ImVec2(TVector2.Zero), _ImVec2(TVector2.One), AFramePadding, _ImVec4(ABgCol), _ImVec4(ATintCol));"
+    },
+    { 
+      "intf": "class function ImageButton(const AUserTextureId: TImTextureID; const ASize: TVector2; const AFramePadding: Integer = -1): Boolean; overload; static; inline;",
+      "impl": "Result := _igImageButton(_ImTextureID(AUserTextureId), _ImVec2(ASize), _ImVec2(TVector2.Zero), _ImVec2(TVector2.One), AFramePadding, _ImVec4(TVector4.Zero), _ImVec4(TVector4.One));"
+    }
+  ],
+  "igInputTextMultiline": [
+    { 
+      "intf": "*class function InputTextMultiline(const ALabel: PUTF8Char; const AText: TImGuiText; const ASize: TVector2; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; static; inline;",
+      "impl": "AText.Validate;\r\n  Result := _igInputTextMultiline(Pointer(ALabel), Pointer(AText.FBuffer), Length(AText.FBuffer), _ImVec2(ASize), Cardinal(AFlags) or _ImGuiInputTextFlags_CallbackResize, __ImGuiInputTextCallback, @AText);",
+    },
+    { 
+      "intf": "class function InputTextMultiline(const ALabel: PUTF8Char; const AText: TImGuiText; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; static; inline;",
+      "impl": "AText.Validate;\r\n  Result := _igInputTextMultiline(Pointer(ALabel), Pointer(AText.FBuffer), Length(AText.FBuffer), _ImVec2(TVector2.Zero), Cardinal(AFlags) or _ImGuiInputTextFlags_CallbackResize, __ImGuiInputTextCallback, @AText);",
+    },
+  ],
+  "igPlotHistogram_FloatPtr": [  
+    { 
+      "intf": "*class procedure PlotHistogram(const ALabel: PUTF8Char; const AValues: PSingle; const AValuesCount: Integer; const AValuesOffset: Integer; const AOverlayText: PUTF8Char; const AScaleMin: Single; const AScaleMax: Single; const AGraphSize: TVector2; const AStride: Integer = SizeOf(Single)); overload; static; inline;",
+      "impl": "_igPlotHistogram_FloatPtr(Pointer(ALabel), Pointer(AValues), AValuesCount, AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(AGraphSize), AStride);"
+    },
+    { 
+      "intf": "class procedure PlotHistogram(const ALabel: PUTF8Char; const AValues: PSingle; const AValuesCount: Integer; const AValuesOffset: Integer = 0; const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle; const AScaleMax: Single = MaxSingle; const AStride: Integer = SizeOf(Single)); overload; static; inline;",
+      "impl": "_igPlotHistogram_FloatPtr(Pointer(ALabel), Pointer(AValues), AValuesCount, AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(TVector2.Zero), AStride);"
+    },
+    { 
+      "intf": "class procedure PlotHistogram(const ALabel: PUTF8Char; const AValues: TArray<Single>; const AValuesOffset: Integer; const AOverlayText: PUTF8Char; const AScaleMin: Single; const AScaleMax: Single; const AGraphSize: TVector2; const AStride: Integer = SizeOf(Single)); overload; static; inline;",
+      "impl": "_igPlotHistogram_FloatPtr(Pointer(ALabel), Pointer(AValues), Length(AValues), AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(AGraphSize), AStride);"
+    },
+    { 
+      "intf": "class procedure PlotHistogram(const ALabel: PUTF8Char; const AValues: TArray<Single>; const AValuesOffset: Integer = 0; const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle; const AScaleMax: Single = MaxSingle; const AStride: Integer = SizeOf(Single)); overload; static; inline;",
+      "impl": "_igPlotHistogram_FloatPtr(Pointer(ALabel), Pointer(AValues), Length(AValues), AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(TVector2.Zero), AStride);"
+    }
+  ],
+  "igPlotHistogram_FnFloatPtr": [  
+    { 
+      "intf": "class procedure PlotHistogram(const ALabel: PUTF8Char; const AValuesGetter: TImGuiValuesGetter; const AData: Pointer; const AValuesCount: Integer; const AValuesOffset: Integer = 0; const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle; const AScaleMax: Single = MaxSingle); overload; static; inline;",
+      "impl": "_igPlotHistogram_FnFloatPtr(Pointer(ALabel), _ImGuiValuesGetter(AValuesGetter), Pointer(AData), AValuesCount, AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igPlotLines_FloatPtr": [  
+    { 
+      "intf": "*class procedure PlotLines(const ALabel: PUTF8Char; const AValues: PSingle; const AValuesCount: Integer; const AValuesOffset: Integer; const AOverlayText: PUTF8Char; const AScaleMin: Single; const AScaleMax: Single; const AGraphSize: TVector2; const AStride: Integer = SizeOf(Single)); overload; static; inline;",
+      "impl": "_igPlotLines_FloatPtr(Pointer(ALabel), Pointer(AValues), AValuesCount, AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(AGraphSize), AStride);"
+    },
+    { 
+      "intf": "class procedure PlotLines(const ALabel: PUTF8Char; const AValues: PSingle; const AValuesCount: Integer; const AValuesOffset: Integer = 0; const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle; const AScaleMax: Single = MaxSingle; const AStride: Integer = SizeOf(Single)); overload; static; inline;",
+      "impl": "_igPlotLines_FloatPtr(Pointer(ALabel), Pointer(AValues), AValuesCount, AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(TVector2.Zero), AStride);"
+    },
+    { 
+      "intf": "*class procedure PlotLines(const ALabel: PUTF8Char; const AValues: TArray<Single>; const AValuesOffset: Integer; const AOverlayText: PUTF8Char; const AScaleMin: Single; const AScaleMax: Single; const AGraphSize: TVector2; const AStride: Integer = SizeOf(Single)); overload; static; inline;",
+      "impl": "_igPlotLines_FloatPtr(Pointer(ALabel), Pointer(AValues), Length(AValues), AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(AGraphSize), AStride);"
+    },
+    { 
+      "intf": "class procedure PlotLines(const ALabel: PUTF8Char; const AValues: TArray<Single>; const AValuesOffset: Integer = 0; const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle; const AScaleMax: Single = MaxSingle; const AStride: Integer = SizeOf(Single)); overload; static; inline;",
+      "impl": "_igPlotLines_FloatPtr(Pointer(ALabel), Pointer(AValues), Length(AValues), AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(TVector2.Zero), AStride);"
+    }
+  ],
+  "igPlotLines_FnFloatPtr": [  
+    { 
+      "intf": "class procedure PlotLines(const ALabel: PUTF8Char; const AValuesGetter: TImGuiValuesGetter; const AData: Pointer; const AValuesCount: Integer; const AValuesOffset: Integer = 0; const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle; const AScaleMax: Single = MaxSingle); overload; static; inline;",
+      "impl": "_igPlotLines_FnFloatPtr(Pointer(ALabel), _ImGuiValuesGetter(AValuesGetter), Pointer(AData), AValuesCount, AValuesOffset, Pointer(AOverlayText), AScaleMin, AScaleMax, _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igProgressBar": [  
+    { 
+      "intf": "class procedure ProgressBar(const AFraction: Single; const AOverlay: PUTF8Char = nil); overload; static; inline;",
+      "impl": "_igProgressBar(AFraction, _ImVec2(Vector2(-MinSingle, 0)), Pointer(AOverlay));"
+    }
+  ],
+  "igRenderTextClipped": [  
+    { 
+      "intf": "class procedure RenderTextClipped(const APosMin: TVector2; const APosMax: TVector2; const AText: PUTF8Char; const ATextEnd: PUTF8Char; const ATextSizeIfKnown: PVector2; const AClipRect: PImRect = nil); overload; static; inline;",
+      "impl": "_igRenderTextClipped(_ImVec2(APosMin), _ImVec2(APosMax), Pointer(AText), Pointer(ATextEnd), Pointer(ATextSizeIfKnown), _ImVec2(TVector2.Zero), Pointer(AClipRect));"
+    }
+  ],
+  "igRenderTextClippedEx": [  
+    { 
+      "intf": "class procedure RenderTextClippedEx(const ADrawList: PImDrawList; const APosMin: TVector2; const APosMax: TVector2; const AText: PUTF8Char; const ATextEnd: PUTF8Char; const ATextSizeIfKnown: PVector2; const AClipRect: PImRect = nil); overload; static; inline;",
+      "impl": "_igRenderTextClippedEx(Pointer(ADrawList), _ImVec2(APosMin), _ImVec2(APosMax), Pointer(AText), Pointer(ATextEnd), Pointer(ATextSizeIfKnown), _ImVec2(TVector2.Zero), Pointer(AClipRect));"
+    }
+  ],
+  "igSelectable_Bool": [  
+    { 
+      "intf": "class function Selectable(const ALabel: PUTF8Char; const ASelected: Boolean = False; const AFlags: TImGuiSelectableFlags = []): Boolean; overload; static; inline;",
+      "impl": "Result := _igSelectable_Bool(Pointer(ALabel), ASelected, Cardinal(AFlags), _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igSelectable_BoolPtr": [  
+    { 
+      "intf": "class function Selectable(const ALabel: PUTF8Char; const APSelected: PBoolean; const AFlags: TImGuiSelectableFlags = []): Boolean; overload; static; inline;",
+      "impl": "Result := _igSelectable_BoolPtr(Pointer(ALabel), Pointer(APSelected), Cardinal(AFlags), _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igSetNextWindowPos": [  
+    { 
+      "intf": "class procedure SetNextWindowPos(const APos: TVector2; const ACond: TImGuiCond = TImGuiCond.None); overload; static; inline;",
+      "impl": "_igSetNextWindowPos(_ImVec2(APos), _ImGuiCond(ACond), _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "ImRect_ImRect_Vec4": [
+    {
+      "intf": "*class function Create(const ARect: TRectF): PImRect; overload; static; inline;",
+      "impl": "Result := PImRect(_ImRect_ImRect_Vec4(_ImVec4(ARect)));",
+    }
+  ],
+  "ImRect_ToVec4": [
+    { 
+      "intf": "*function ToRectF: TRectF; inline;",
+      "impl": "_ImRect_ToVec4(@Result, @Self);",
+    }
+  ],
+  "igColorConvertFloat4ToU32": [
+    { 
+      "intf": "*class function ColorConvertToU32(const AIn: TAlphaColorF): UInt32; static; inline;",
+      "impl": "Result := _igColorConvertFloat4ToU32(_ImVec4(AIn));",
+    }
+  ],
+  "igColorConvertU32ToFloat4": [
+    { 
+      "intf": "*class function ColorConvertFromU32(const AIn: UInt32): TAlphaColorF; static; inline;",
+      "impl": "_igColorConvertU32ToFloat4(@Result, AIn);",
+    }
+  ],
+  "ImGuiTextBuffer_appendf": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "ImGuiTextBuffer_appendfv": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "ImGuiTextBuffer_c_str": [
+    { 
+      "intf": "function ToString: String; inline;",
+      "impl": "Result := String(UTF8String(_ImGuiTextBuffer_c_str(@Self)));",
+    },
+    { 
+      "intf": "function ToUTF8String: UTF8String; inline;",
+      "impl": "Result := UTF8String(_ImGuiTextBuffer_c_str(@Self));",
+    }
+  ],
+  "ImGuiTabBar_GetTabName": [
+    { 
+      "intf": "*function GetTabName(const ATab: PImGuiTabItem): String; inline;",
+      "impl": "Result := String(UTF8String(_ImGuiTabBar_GetTabName(@Self, Pointer(ATab))));",
+    }
+  ],
+  "ImGuiWindowSettings_GetName": [
+    { 
+      "intf": "*function GetName: String; inline;",
+      "impl": "Result := String(UTF8String(_ImGuiWindowSettings_GetName(@Self)));",
+    }
+  ],
+  "igBulletTextV": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "igDebugLogV": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "igGetClipboardText": [
+    { 
+      "intf": "*class function GetClipboardText: String; static; inline;",
+      "impl": "Result := String(UTF8String(_igGetClipboardText()));",
+    }
+  ],
+  "igGetKeyName": [
+    { 
+      "intf": "*class function GetKeyName(const AKey: TImGuiKey): String; static; inline;",
+      "impl": "Result := String(UTF8String(_igGetKeyName(_ImGuiKey(AKey))));",
+    }
+  ],
+  "igGetNavInputName": [
+    { 
+      "intf": "*class function GetNavInputName(const AN: TImGuiNavInput): String; static; inline;",
+      "impl": "Result := String(UTF8String(_igGetNavInputName(_ImGuiNavInput(AN))));",
+    }
+  ],
+  "igGetStyleColorName": [
+    { 
+      "intf": "*class function GetStyleColorName(const AIdx: TImGuiCol): String; static; inline;",
+      "impl": "Result := String(UTF8String(_igGetStyleColorName(_ImGuiCol(AIdx))));",
+    }
+  ],
+  "igGetStyleColorVec4": [
+    { 
+      "intf": "*class function GetStyleColor(const AIdx: TImGuiCol): PAlphaColorF; static; inline;",
+      "impl": "Result := Pointer(_igGetStyleColorVec4(_ImGuiCol(AIdx)));",
+    }
+  ],
+  "igGetVersion": [
+    { 
+      "intf": "*class function GetVersion: String; static; inline;",
+      "impl": "Result := String(UTF8String(_igGetVersion()));",
+    }
+  ],
+  "igImFormatStringToTempBufferV": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "igImFormatStringV": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "igInputText": [
+    { 
+      "intf": "*class function InputText(const ALabel: PUTF8Char; const AText: TImGuiText; const AFlags: TImGuiInputTextFlags = []): Boolean; static; inline;",
+      "impl": "AText.Validate;\r\n  Result := _igInputText(Pointer(ALabel), Pointer(AText.FBuffer), Length(AText.FBuffer), Cardinal(AFlags) or _ImGuiInputTextFlags_CallbackResize, __ImGuiInputTextCallback, @AText);",
+    }
+  ],
+  "igInputTextEx": [
+    { 
+      "intf": "*class function InputTextEx(const ALabel: PUTF8Char; const AHint: PUTF8Char; const AText: TImGuiText; const ASizeArg: TVector2; const AFlags: TImGuiInputTextFlags = []): Boolean; static; inline;",
+      "impl": "AText.Validate;\r\n  Result := _igInputTextEx(Pointer(ALabel), Pointer(AHint), Pointer(AText.FBuffer), Length(AText.FBuffer), _ImVec2(ASizeArg), Cardinal(AFlags) or _ImGuiInputTextFlags_CallbackResize, __ImGuiInputTextCallback, @AText);",
+    }
+  ],
+  "igInputTextWithHint": [
+    { 
+      "intf": "*class function InputTextWithHint(const ALabel: PUTF8Char; const AHint: PUTF8Char; const AText: TImGuiText; const AFlags: TImGuiInputTextFlags = []): Boolean; static; inline;",
+      "impl": "AText.Validate;\r\n  Result := _igInputTextWithHint(Pointer(ALabel), Pointer(AHint), Pointer(AText.FBuffer), Length(AText.FBuffer), Cardinal(AFlags) or _ImGuiInputTextFlags_CallbackResize, __ImGuiInputTextCallback, @AText);",
+    }
+  ],
+  "igLabelTextV": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "igLogTextV": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "igSaveIniSettingsToMemory": [
+    { 
+      "intf": "*class function SaveIniSettingsToMemory(const AOutIniSize: PNativeUInt = nil): String; static; inline;",
+      "impl": "Result := String(UTF8String(_igSaveIniSettingsToMemory(Pointer(AOutIniSize))));",
+    }
+  ],
+  "igTableGetColumnName_Int": [
+    { 
+      "intf": "*class function TableGetColumnName(const AColumnN: Integer = -1): String; overload; static; inline;",
+      "impl": "Result := String(UTF8String(_igTableGetColumnName_Int(AColumnN)));",
+    }
+  ],
+  "igTableGetColumnName_TablePtr": [
+    { 
+      "intf": "*class function TableGetColumnName(const ATable: PImGuiTable; const AColumnN: Integer): String; overload; static; inline;",
+      "impl": "Result := String(UTF8String(_igTableGetColumnName_TablePtr(Pointer(ATable), AColumnN)));",
+    }
+  ],
+  "igTextV": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "igTextWrappedV": [
+    { 
+      "intf": "*",
+      "impl": "*",
+    }
+  ],
+  "igColorEdit3": [
+    { 
+      "intf": "*class function ColorEdit3(const ALabel: PUTF8Char; var AColor: TAlphaColorF; const AFlags: TImGuiColorEditFlags = []): Boolean; static; inline;",
+      "impl": "Result := _igColorEdit3(Pointer(ALabel), @AColor, Cardinal(AFlags));",
+    }
+  ],
+  "igColorEdit4": [
+    { 
+      "intf": "*class function ColorEdit4(const ALabel: PUTF8Char; var AColor: TAlphaColorF; const AFlags: TImGuiColorEditFlags = []): Boolean; static; inline;",
+      "impl": "Result := _igColorEdit4(Pointer(ALabel), @AColor, Cardinal(AFlags));",
+    }
+  ],
+  "igColorPicker3": [
+    { 
+      "intf": "*class function ColorPicker3(const ALabel: PUTF8Char; var AColor: TAlphaColorF; const AFlags: TImGuiColorEditFlags = []): Boolean; static; inline;",
+      "impl": "Result := _igColorPicker3(Pointer(ALabel), @AColor, Cardinal(AFlags));",
+    }
+  ],
+  "igColorPicker4": [
+    { 
+      "intf": "*class function ColorPicker4(const ALabel: PUTF8Char; var AColor: TAlphaColorF; const AFlags: TImGuiColorEditFlags = []; const ARefCol: PAlphaColorF = nil): Boolean; static; inline;",
+      "impl": "Result := _igColorPicker4(Pointer(ALabel), @AColor, Cardinal(AFlags), Pointer(ARefCol));",
+    }
+  ],
+}
