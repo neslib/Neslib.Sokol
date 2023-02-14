@@ -917,6 +917,8 @@ errmsg_t sokol_t::gen(const args_t& args, const input_t& inp,
 
     std::string root, ext;
     pystring::os::path::splitext(root, ext, args.output);
+    root = pystring::os::path::basename(root);
+
     L("unit {};\n", root);
 
     errmsg_t err;
