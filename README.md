@@ -1,6 +1,6 @@
 # Neslib.Sokol
 
-Simple libraries for creating cross-platform applications with Delphi without the VLC or FMX frameworks.
+Simple libraries for creating cross-platform applications with Delphi without the VCL or FMX frameworks.
 
 These are language bindings and OOP-style wrappers of the excellent [sokol C libraries](https://github.com/floooh/sokol) by [Andre Weissflog](https://github.com/floooh).
 
