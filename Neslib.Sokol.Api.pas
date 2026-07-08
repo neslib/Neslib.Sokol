@@ -31,7 +31,6 @@ const
 
 const
   _CIMGUI_DEFINE_ENUMS_AND_STRUCTS = 1;
-  _IMGUI_HAS_DOCK = 1;
   _FONS_INVALID = -1;
   _STBTT_MACSTYLE_DONTCARE = 0;
   _STBTT_MACSTYLE_BOLD = 1;
@@ -42,7 +41,9 @@ const
   _SOKOL_APP_INCLUDED = (1);
   _SOKOL_ARGS_INCLUDED = (1);
   _SOKOL_AUDIO_INCLUDED = (1);
+  _SOKOL_LOG_INCLUDED = (1);
   _SOKOL_TIME_INCLUDED = (1);
+  _SOKOL_APP_IMGUI_INCLUDED = (1);
   _SOKOL_COLOR_INCLUDED = (1);
   _SG_ALICE_BLUE_RGBA32 = $F0F8FFFF;
   _SG_ANTIQUE_WHITE_RGBA32 = $FAEBD7FF;
@@ -193,1290 +194,13 @@ const
   _SOKOL_DEBUGTEXT_INCLUDED = (1);
   _SDTX_MAX_FONTS = (8);
   _SOKOL_FONTSTASH_INCLUDED = (1);
+  _SOKOL_FRAMEBUFFER_INCLUDED = (1);
   _SOKOL_GFX_IMGUI_INCLUDED = (1);
-  _SG_IMGUI_STRBUF_LEN = (96);
-  _SG_IMGUI_MAX_FRAMECAPTURE_ITEMS = (4096);
   _SOKOL_GL_INCLUDED = (1);
   _SOKOL_IMGUI_INCLUDED = (1);
+  _SOKOL_LETTERBOX_INCLUDED = (1);
   _SOKOL_MEMTRACK_INCLUDED = (1);
-
-type
-  _ImGuiWindowFlags_ = Integer;
-  _PImGuiWindowFlags_ = ^_ImGuiWindowFlags_;
-
-const
-  _ImGuiWindowFlags_None = 0;
-  _ImGuiWindowFlags_NoTitleBar = 1;
-  _ImGuiWindowFlags_NoResize = 2;
-  _ImGuiWindowFlags_NoMove = 4;
-  _ImGuiWindowFlags_NoScrollbar = 8;
-  _ImGuiWindowFlags_NoScrollWithMouse = 16;
-  _ImGuiWindowFlags_NoCollapse = 32;
-  _ImGuiWindowFlags_AlwaysAutoResize = 64;
-  _ImGuiWindowFlags_NoBackground = 128;
-  _ImGuiWindowFlags_NoSavedSettings = 256;
-  _ImGuiWindowFlags_NoMouseInputs = 512;
-  _ImGuiWindowFlags_MenuBar = 1024;
-  _ImGuiWindowFlags_HorizontalScrollbar = 2048;
-  _ImGuiWindowFlags_NoFocusOnAppearing = 4096;
-  _ImGuiWindowFlags_NoBringToFrontOnFocus = 8192;
-  _ImGuiWindowFlags_AlwaysVerticalScrollbar = 16384;
-  _ImGuiWindowFlags_AlwaysHorizontalScrollbar = 32768;
-  _ImGuiWindowFlags_AlwaysUseWindowPadding = 65536;
-  _ImGuiWindowFlags_NoNavInputs = 262144;
-  _ImGuiWindowFlags_NoNavFocus = 524288;
-  _ImGuiWindowFlags_UnsavedDocument = 1048576;
-  _ImGuiWindowFlags_NoDocking = 2097152;
-  _ImGuiWindowFlags_NoNav = 786432;
-  _ImGuiWindowFlags_NoDecoration = 43;
-  _ImGuiWindowFlags_NoInputs = 786944;
-  _ImGuiWindowFlags_NavFlattened = 8388608;
-  _ImGuiWindowFlags_ChildWindow = 16777216;
-  _ImGuiWindowFlags_Tooltip = 33554432;
-  _ImGuiWindowFlags_Popup = 67108864;
-  _ImGuiWindowFlags_Modal = 134217728;
-  _ImGuiWindowFlags_ChildMenu = 268435456;
-  _ImGuiWindowFlags_DockNodeHost = 536870912;
-
-type
-  _ImGuiInputTextFlags_ = Integer;
-  _PImGuiInputTextFlags_ = ^_ImGuiInputTextFlags_;
-
-const
-  _ImGuiInputTextFlags_None = 0;
-  _ImGuiInputTextFlags_CharsDecimal = 1;
-  _ImGuiInputTextFlags_CharsHexadecimal = 2;
-  _ImGuiInputTextFlags_CharsUppercase = 4;
-  _ImGuiInputTextFlags_CharsNoBlank = 8;
-  _ImGuiInputTextFlags_AutoSelectAll = 16;
-  _ImGuiInputTextFlags_EnterReturnsTrue = 32;
-  _ImGuiInputTextFlags_CallbackCompletion = 64;
-  _ImGuiInputTextFlags_CallbackHistory = 128;
-  _ImGuiInputTextFlags_CallbackAlways = 256;
-  _ImGuiInputTextFlags_CallbackCharFilter = 512;
-  _ImGuiInputTextFlags_AllowTabInput = 1024;
-  _ImGuiInputTextFlags_CtrlEnterForNewLine = 2048;
-  _ImGuiInputTextFlags_NoHorizontalScroll = 4096;
-  _ImGuiInputTextFlags_AlwaysOverwrite = 8192;
-  _ImGuiInputTextFlags_ReadOnly = 16384;
-  _ImGuiInputTextFlags_Password = 32768;
-  _ImGuiInputTextFlags_NoUndoRedo = 65536;
-  _ImGuiInputTextFlags_CharsScientific = 131072;
-  _ImGuiInputTextFlags_CallbackResize = 262144;
-  _ImGuiInputTextFlags_CallbackEdit = 524288;
-
-type
-  _ImGuiTreeNodeFlags_ = Integer;
-  _PImGuiTreeNodeFlags_ = ^_ImGuiTreeNodeFlags_;
-
-const
-  _ImGuiTreeNodeFlags_None = 0;
-  _ImGuiTreeNodeFlags_Selected = 1;
-  _ImGuiTreeNodeFlags_Framed = 2;
-  _ImGuiTreeNodeFlags_AllowItemOverlap = 4;
-  _ImGuiTreeNodeFlags_NoTreePushOnOpen = 8;
-  _ImGuiTreeNodeFlags_NoAutoOpenOnLog = 16;
-  _ImGuiTreeNodeFlags_DefaultOpen = 32;
-  _ImGuiTreeNodeFlags_OpenOnDoubleClick = 64;
-  _ImGuiTreeNodeFlags_OpenOnArrow = 128;
-  _ImGuiTreeNodeFlags_Leaf = 256;
-  _ImGuiTreeNodeFlags_Bullet = 512;
-  _ImGuiTreeNodeFlags_FramePadding = 1024;
-  _ImGuiTreeNodeFlags_SpanAvailWidth = 2048;
-  _ImGuiTreeNodeFlags_SpanFullWidth = 4096;
-  _ImGuiTreeNodeFlags_NavLeftJumpsBackHere = 8192;
-  _ImGuiTreeNodeFlags_CollapsingHeader = 26;
-
-type
-  _ImGuiPopupFlags_ = Integer;
-  _PImGuiPopupFlags_ = ^_ImGuiPopupFlags_;
-
-const
-  _ImGuiPopupFlags_None = 0;
-  _ImGuiPopupFlags_MouseButtonLeft = 0;
-  _ImGuiPopupFlags_MouseButtonRight = 1;
-  _ImGuiPopupFlags_MouseButtonMiddle = 2;
-  _ImGuiPopupFlags_MouseButtonMask_ = 31;
-  _ImGuiPopupFlags_MouseButtonDefault_ = 1;
-  _ImGuiPopupFlags_NoOpenOverExistingPopup = 32;
-  _ImGuiPopupFlags_NoOpenOverItems = 64;
-  _ImGuiPopupFlags_AnyPopupId = 128;
-  _ImGuiPopupFlags_AnyPopupLevel = 256;
-  _ImGuiPopupFlags_AnyPopup = 384;
-
-type
-  _ImGuiSelectableFlags_ = Integer;
-  _PImGuiSelectableFlags_ = ^_ImGuiSelectableFlags_;
-
-const
-  _ImGuiSelectableFlags_None = 0;
-  _ImGuiSelectableFlags_DontClosePopups = 1;
-  _ImGuiSelectableFlags_SpanAllColumns = 2;
-  _ImGuiSelectableFlags_AllowDoubleClick = 4;
-  _ImGuiSelectableFlags_Disabled = 8;
-  _ImGuiSelectableFlags_AllowItemOverlap = 16;
-
-type
-  _ImGuiComboFlags_ = Integer;
-  _PImGuiComboFlags_ = ^_ImGuiComboFlags_;
-
-const
-  _ImGuiComboFlags_None = 0;
-  _ImGuiComboFlags_PopupAlignLeft = 1;
-  _ImGuiComboFlags_HeightSmall = 2;
-  _ImGuiComboFlags_HeightRegular = 4;
-  _ImGuiComboFlags_HeightLarge = 8;
-  _ImGuiComboFlags_HeightLargest = 16;
-  _ImGuiComboFlags_NoArrowButton = 32;
-  _ImGuiComboFlags_NoPreview = 64;
-  _ImGuiComboFlags_HeightMask_ = 30;
-
-type
-  _ImGuiTabBarFlags_ = Integer;
-  _PImGuiTabBarFlags_ = ^_ImGuiTabBarFlags_;
-
-const
-  _ImGuiTabBarFlags_None = 0;
-  _ImGuiTabBarFlags_Reorderable = 1;
-  _ImGuiTabBarFlags_AutoSelectNewTabs = 2;
-  _ImGuiTabBarFlags_TabListPopupButton = 4;
-  _ImGuiTabBarFlags_NoCloseWithMiddleMouseButton = 8;
-  _ImGuiTabBarFlags_NoTabListScrollingButtons = 16;
-  _ImGuiTabBarFlags_NoTooltip = 32;
-  _ImGuiTabBarFlags_FittingPolicyResizeDown = 64;
-  _ImGuiTabBarFlags_FittingPolicyScroll = 128;
-  _ImGuiTabBarFlags_FittingPolicyMask_ = 192;
-  _ImGuiTabBarFlags_FittingPolicyDefault_ = 64;
-
-type
-  _ImGuiTabItemFlags_ = Integer;
-  _PImGuiTabItemFlags_ = ^_ImGuiTabItemFlags_;
-
-const
-  _ImGuiTabItemFlags_None = 0;
-  _ImGuiTabItemFlags_UnsavedDocument = 1;
-  _ImGuiTabItemFlags_SetSelected = 2;
-  _ImGuiTabItemFlags_NoCloseWithMiddleMouseButton = 4;
-  _ImGuiTabItemFlags_NoPushId = 8;
-  _ImGuiTabItemFlags_NoTooltip = 16;
-  _ImGuiTabItemFlags_NoReorder = 32;
-  _ImGuiTabItemFlags_Leading = 64;
-  _ImGuiTabItemFlags_Trailing = 128;
-
-type
-  _ImGuiTableFlags_ = Integer;
-  _PImGuiTableFlags_ = ^_ImGuiTableFlags_;
-
-const
-  _ImGuiTableFlags_None = 0;
-  _ImGuiTableFlags_Resizable = 1;
-  _ImGuiTableFlags_Reorderable = 2;
-  _ImGuiTableFlags_Hideable = 4;
-  _ImGuiTableFlags_Sortable = 8;
-  _ImGuiTableFlags_NoSavedSettings = 16;
-  _ImGuiTableFlags_ContextMenuInBody = 32;
-  _ImGuiTableFlags_RowBg = 64;
-  _ImGuiTableFlags_BordersInnerH = 128;
-  _ImGuiTableFlags_BordersOuterH = 256;
-  _ImGuiTableFlags_BordersInnerV = 512;
-  _ImGuiTableFlags_BordersOuterV = 1024;
-  _ImGuiTableFlags_BordersH = 384;
-  _ImGuiTableFlags_BordersV = 1536;
-  _ImGuiTableFlags_BordersInner = 640;
-  _ImGuiTableFlags_BordersOuter = 1280;
-  _ImGuiTableFlags_Borders = 1920;
-  _ImGuiTableFlags_NoBordersInBody = 2048;
-  _ImGuiTableFlags_NoBordersInBodyUntilResize = 4096;
-  _ImGuiTableFlags_SizingFixedFit = 8192;
-  _ImGuiTableFlags_SizingFixedSame = 16384;
-  _ImGuiTableFlags_SizingStretchProp = 24576;
-  _ImGuiTableFlags_SizingStretchSame = 32768;
-  _ImGuiTableFlags_NoHostExtendX = 65536;
-  _ImGuiTableFlags_NoHostExtendY = 131072;
-  _ImGuiTableFlags_NoKeepColumnsVisible = 262144;
-  _ImGuiTableFlags_PreciseWidths = 524288;
-  _ImGuiTableFlags_NoClip = 1048576;
-  _ImGuiTableFlags_PadOuterX = 2097152;
-  _ImGuiTableFlags_NoPadOuterX = 4194304;
-  _ImGuiTableFlags_NoPadInnerX = 8388608;
-  _ImGuiTableFlags_ScrollX = 16777216;
-  _ImGuiTableFlags_ScrollY = 33554432;
-  _ImGuiTableFlags_SortMulti = 67108864;
-  _ImGuiTableFlags_SortTristate = 134217728;
-  _ImGuiTableFlags_SizingMask_ = 57344;
-
-type
-  _ImGuiTableColumnFlags_ = Integer;
-  _PImGuiTableColumnFlags_ = ^_ImGuiTableColumnFlags_;
-
-const
-  _ImGuiTableColumnFlags_None = 0;
-  _ImGuiTableColumnFlags_Disabled = 1;
-  _ImGuiTableColumnFlags_DefaultHide = 2;
-  _ImGuiTableColumnFlags_DefaultSort = 4;
-  _ImGuiTableColumnFlags_WidthStretch = 8;
-  _ImGuiTableColumnFlags_WidthFixed = 16;
-  _ImGuiTableColumnFlags_NoResize = 32;
-  _ImGuiTableColumnFlags_NoReorder = 64;
-  _ImGuiTableColumnFlags_NoHide = 128;
-  _ImGuiTableColumnFlags_NoClip = 256;
-  _ImGuiTableColumnFlags_NoSort = 512;
-  _ImGuiTableColumnFlags_NoSortAscending = 1024;
-  _ImGuiTableColumnFlags_NoSortDescending = 2048;
-  _ImGuiTableColumnFlags_NoHeaderLabel = 4096;
-  _ImGuiTableColumnFlags_NoHeaderWidth = 8192;
-  _ImGuiTableColumnFlags_PreferSortAscending = 16384;
-  _ImGuiTableColumnFlags_PreferSortDescending = 32768;
-  _ImGuiTableColumnFlags_IndentEnable = 65536;
-  _ImGuiTableColumnFlags_IndentDisable = 131072;
-  _ImGuiTableColumnFlags_IsEnabled = 16777216;
-  _ImGuiTableColumnFlags_IsVisible = 33554432;
-  _ImGuiTableColumnFlags_IsSorted = 67108864;
-  _ImGuiTableColumnFlags_IsHovered = 134217728;
-  _ImGuiTableColumnFlags_WidthMask_ = 24;
-  _ImGuiTableColumnFlags_IndentMask_ = 196608;
-  _ImGuiTableColumnFlags_StatusMask_ = 251658240;
-  _ImGuiTableColumnFlags_NoDirectResize_ = 1073741824;
-
-type
-  _ImGuiTableRowFlags_ = Integer;
-  _PImGuiTableRowFlags_ = ^_ImGuiTableRowFlags_;
-
-const
-  _ImGuiTableRowFlags_None = 0;
-  _ImGuiTableRowFlags_Headers = 1;
-
-type
-  _ImGuiTableBgTarget_ = Integer;
-  _PImGuiTableBgTarget_ = ^_ImGuiTableBgTarget_;
-
-const
-  _ImGuiTableBgTarget_None = 0;
-  _ImGuiTableBgTarget_RowBg0 = 1;
-  _ImGuiTableBgTarget_RowBg1 = 2;
-  _ImGuiTableBgTarget_CellBg = 3;
-
-type
-  _ImGuiFocusedFlags_ = Integer;
-  _PImGuiFocusedFlags_ = ^_ImGuiFocusedFlags_;
-
-const
-  _ImGuiFocusedFlags_None = 0;
-  _ImGuiFocusedFlags_ChildWindows = 1;
-  _ImGuiFocusedFlags_RootWindow = 2;
-  _ImGuiFocusedFlags_AnyWindow = 4;
-  _ImGuiFocusedFlags_NoPopupHierarchy = 8;
-  _ImGuiFocusedFlags_DockHierarchy = 16;
-  _ImGuiFocusedFlags_RootAndChildWindows = 3;
-
-type
-  _ImGuiHoveredFlags_ = Integer;
-  _PImGuiHoveredFlags_ = ^_ImGuiHoveredFlags_;
-
-const
-  _ImGuiHoveredFlags_None = 0;
-  _ImGuiHoveredFlags_ChildWindows = 1;
-  _ImGuiHoveredFlags_RootWindow = 2;
-  _ImGuiHoveredFlags_AnyWindow = 4;
-  _ImGuiHoveredFlags_NoPopupHierarchy = 8;
-  _ImGuiHoveredFlags_DockHierarchy = 16;
-  _ImGuiHoveredFlags_AllowWhenBlockedByPopup = 32;
-  _ImGuiHoveredFlags_AllowWhenBlockedByActiveItem = 128;
-  _ImGuiHoveredFlags_AllowWhenOverlapped = 256;
-  _ImGuiHoveredFlags_AllowWhenDisabled = 512;
-  _ImGuiHoveredFlags_NoNavOverride = 1024;
-  _ImGuiHoveredFlags_RectOnly = 416;
-  _ImGuiHoveredFlags_RootAndChildWindows = 3;
-
-type
-  _ImGuiDockNodeFlags_ = Integer;
-  _PImGuiDockNodeFlags_ = ^_ImGuiDockNodeFlags_;
-
-const
-  _ImGuiDockNodeFlags_None = 0;
-  _ImGuiDockNodeFlags_KeepAliveOnly = 1;
-  _ImGuiDockNodeFlags_NoDockingInCentralNode = 4;
-  _ImGuiDockNodeFlags_PassthruCentralNode = 8;
-  _ImGuiDockNodeFlags_NoSplit = 16;
-  _ImGuiDockNodeFlags_NoResize = 32;
-  _ImGuiDockNodeFlags_AutoHideTabBar = 64;
-
-type
-  _ImGuiDragDropFlags_ = Integer;
-  _PImGuiDragDropFlags_ = ^_ImGuiDragDropFlags_;
-
-const
-  _ImGuiDragDropFlags_None = 0;
-  _ImGuiDragDropFlags_SourceNoPreviewTooltip = 1;
-  _ImGuiDragDropFlags_SourceNoDisableHover = 2;
-  _ImGuiDragDropFlags_SourceNoHoldToOpenOthers = 4;
-  _ImGuiDragDropFlags_SourceAllowNullID = 8;
-  _ImGuiDragDropFlags_SourceExtern = 16;
-  _ImGuiDragDropFlags_SourceAutoExpirePayload = 32;
-  _ImGuiDragDropFlags_AcceptBeforeDelivery = 1024;
-  _ImGuiDragDropFlags_AcceptNoDrawDefaultRect = 2048;
-  _ImGuiDragDropFlags_AcceptNoPreviewTooltip = 4096;
-  _ImGuiDragDropFlags_AcceptPeekOnly = 3072;
-
-type
-  _ImGuiDataType_ = Integer;
-  _PImGuiDataType_ = ^_ImGuiDataType_;
-
-const
-  _ImGuiDataType_S8 = 0;
-  _ImGuiDataType_U8 = 1;
-  _ImGuiDataType_S16 = 2;
-  _ImGuiDataType_U16 = 3;
-  _ImGuiDataType_S32 = 4;
-  _ImGuiDataType_U32 = 5;
-  _ImGuiDataType_S64 = 6;
-  _ImGuiDataType_U64 = 7;
-  _ImGuiDataType_Float = 8;
-  _ImGuiDataType_Double = 9;
-  _ImGuiDataType_COUNT = 10;
-
-type
-  _ImGuiDir_ = Integer;
-  _PImGuiDir_ = ^_ImGuiDir_;
-
-const
-  _ImGuiDir_None = -1;
-  _ImGuiDir_Left = 0;
-  _ImGuiDir_Right = 1;
-  _ImGuiDir_Up = 2;
-  _ImGuiDir_Down = 3;
-  _ImGuiDir_COUNT = 4;
-
-type
-  _ImGuiSortDirection_ = Integer;
-  _PImGuiSortDirection_ = ^_ImGuiSortDirection_;
-
-const
-  _ImGuiSortDirection_None = 0;
-  _ImGuiSortDirection_Ascending = 1;
-  _ImGuiSortDirection_Descending = 2;
-
-type
-  _ImGuiKey_ = Integer;
-  _PImGuiKey_ = ^_ImGuiKey_;
-
-const
-  _ImGuiKey_None = 0;
-  _ImGuiKey_Tab = 512;
-  _ImGuiKey_LeftArrow = 513;
-  _ImGuiKey_RightArrow = 514;
-  _ImGuiKey_UpArrow = 515;
-  _ImGuiKey_DownArrow = 516;
-  _ImGuiKey_PageUp = 517;
-  _ImGuiKey_PageDown = 518;
-  _ImGuiKey_Home = 519;
-  _ImGuiKey_End = 520;
-  _ImGuiKey_Insert = 521;
-  _ImGuiKey_Delete = 522;
-  _ImGuiKey_Backspace = 523;
-  _ImGuiKey_Space = 524;
-  _ImGuiKey_Enter = 525;
-  _ImGuiKey_Escape = 526;
-  _ImGuiKey_LeftCtrl = 527;
-  _ImGuiKey_LeftShift = 528;
-  _ImGuiKey_LeftAlt = 529;
-  _ImGuiKey_LeftSuper = 530;
-  _ImGuiKey_RightCtrl = 531;
-  _ImGuiKey_RightShift = 532;
-  _ImGuiKey_RightAlt = 533;
-  _ImGuiKey_RightSuper = 534;
-  _ImGuiKey_Menu = 535;
-  _ImGuiKey_0 = 536;
-  _ImGuiKey_1 = 537;
-  _ImGuiKey_2 = 538;
-  _ImGuiKey_3 = 539;
-  _ImGuiKey_4 = 540;
-  _ImGuiKey_5 = 541;
-  _ImGuiKey_6 = 542;
-  _ImGuiKey_7 = 543;
-  _ImGuiKey_8 = 544;
-  _ImGuiKey_9 = 545;
-  _ImGuiKey_A = 546;
-  _ImGuiKey_B = 547;
-  _ImGuiKey_C = 548;
-  _ImGuiKey_D = 549;
-  _ImGuiKey_E = 550;
-  _ImGuiKey_F = 551;
-  _ImGuiKey_G = 552;
-  _ImGuiKey_H = 553;
-  _ImGuiKey_I = 554;
-  _ImGuiKey_J = 555;
-  _ImGuiKey_K = 556;
-  _ImGuiKey_L = 557;
-  _ImGuiKey_M = 558;
-  _ImGuiKey_N = 559;
-  _ImGuiKey_O = 560;
-  _ImGuiKey_P = 561;
-  _ImGuiKey_Q = 562;
-  _ImGuiKey_R = 563;
-  _ImGuiKey_S = 564;
-  _ImGuiKey_T = 565;
-  _ImGuiKey_U = 566;
-  _ImGuiKey_V = 567;
-  _ImGuiKey_W = 568;
-  _ImGuiKey_X = 569;
-  _ImGuiKey_Y = 570;
-  _ImGuiKey_Z = 571;
-  _ImGuiKey_F1 = 572;
-  _ImGuiKey_F2 = 573;
-  _ImGuiKey_F3 = 574;
-  _ImGuiKey_F4 = 575;
-  _ImGuiKey_F5 = 576;
-  _ImGuiKey_F6 = 577;
-  _ImGuiKey_F7 = 578;
-  _ImGuiKey_F8 = 579;
-  _ImGuiKey_F9 = 580;
-  _ImGuiKey_F10 = 581;
-  _ImGuiKey_F11 = 582;
-  _ImGuiKey_F12 = 583;
-  _ImGuiKey_Apostrophe = 584;
-  _ImGuiKey_Comma = 585;
-  _ImGuiKey_Minus = 586;
-  _ImGuiKey_Period = 587;
-  _ImGuiKey_Slash = 588;
-  _ImGuiKey_Semicolon = 589;
-  _ImGuiKey_Equal = 590;
-  _ImGuiKey_LeftBracket = 591;
-  _ImGuiKey_Backslash = 592;
-  _ImGuiKey_RightBracket = 593;
-  _ImGuiKey_GraveAccent = 594;
-  _ImGuiKey_CapsLock = 595;
-  _ImGuiKey_ScrollLock = 596;
-  _ImGuiKey_NumLock = 597;
-  _ImGuiKey_PrintScreen = 598;
-  _ImGuiKey_Pause = 599;
-  _ImGuiKey_Keypad0 = 600;
-  _ImGuiKey_Keypad1 = 601;
-  _ImGuiKey_Keypad2 = 602;
-  _ImGuiKey_Keypad3 = 603;
-  _ImGuiKey_Keypad4 = 604;
-  _ImGuiKey_Keypad5 = 605;
-  _ImGuiKey_Keypad6 = 606;
-  _ImGuiKey_Keypad7 = 607;
-  _ImGuiKey_Keypad8 = 608;
-  _ImGuiKey_Keypad9 = 609;
-  _ImGuiKey_KeypadDecimal = 610;
-  _ImGuiKey_KeypadDivide = 611;
-  _ImGuiKey_KeypadMultiply = 612;
-  _ImGuiKey_KeypadSubtract = 613;
-  _ImGuiKey_KeypadAdd = 614;
-  _ImGuiKey_KeypadEnter = 615;
-  _ImGuiKey_KeypadEqual = 616;
-  _ImGuiKey_GamepadStart = 617;
-  _ImGuiKey_GamepadBack = 618;
-  _ImGuiKey_GamepadFaceUp = 619;
-  _ImGuiKey_GamepadFaceDown = 620;
-  _ImGuiKey_GamepadFaceLeft = 621;
-  _ImGuiKey_GamepadFaceRight = 622;
-  _ImGuiKey_GamepadDpadUp = 623;
-  _ImGuiKey_GamepadDpadDown = 624;
-  _ImGuiKey_GamepadDpadLeft = 625;
-  _ImGuiKey_GamepadDpadRight = 626;
-  _ImGuiKey_GamepadL1 = 627;
-  _ImGuiKey_GamepadR1 = 628;
-  _ImGuiKey_GamepadL2 = 629;
-  _ImGuiKey_GamepadR2 = 630;
-  _ImGuiKey_GamepadL3 = 631;
-  _ImGuiKey_GamepadR3 = 632;
-  _ImGuiKey_GamepadLStickUp = 633;
-  _ImGuiKey_GamepadLStickDown = 634;
-  _ImGuiKey_GamepadLStickLeft = 635;
-  _ImGuiKey_GamepadLStickRight = 636;
-  _ImGuiKey_GamepadRStickUp = 637;
-  _ImGuiKey_GamepadRStickDown = 638;
-  _ImGuiKey_GamepadRStickLeft = 639;
-  _ImGuiKey_GamepadRStickRight = 640;
-  _ImGuiKey_ModCtrl = 641;
-  _ImGuiKey_ModShift = 642;
-  _ImGuiKey_ModAlt = 643;
-  _ImGuiKey_ModSuper = 644;
-  _ImGuiKey_COUNT = 645;
-  _ImGuiKey_NamedKey_BEGIN = 512;
-  _ImGuiKey_NamedKey_END = 645;
-  _ImGuiKey_NamedKey_COUNT = 133;
-  _ImGuiKey_KeysData_SIZE = 645;
-  _ImGuiKey_KeysData_OFFSET = 0;
-
-type
-  _ImGuiModFlags_ = Integer;
-  _PImGuiModFlags_ = ^_ImGuiModFlags_;
-
-const
-  _ImGuiModFlags_None = 0;
-  _ImGuiModFlags_Ctrl = 1;
-  _ImGuiModFlags_Shift = 2;
-  _ImGuiModFlags_Alt = 4;
-  _ImGuiModFlags_Super = 8;
-
-type
-  _ImGuiNavInput_ = Integer;
-  _PImGuiNavInput_ = ^_ImGuiNavInput_;
-
-const
-  _ImGuiNavInput_Activate = 0;
-  _ImGuiNavInput_Cancel = 1;
-  _ImGuiNavInput_Input = 2;
-  _ImGuiNavInput_Menu = 3;
-  _ImGuiNavInput_DpadLeft = 4;
-  _ImGuiNavInput_DpadRight = 5;
-  _ImGuiNavInput_DpadUp = 6;
-  _ImGuiNavInput_DpadDown = 7;
-  _ImGuiNavInput_LStickLeft = 8;
-  _ImGuiNavInput_LStickRight = 9;
-  _ImGuiNavInput_LStickUp = 10;
-  _ImGuiNavInput_LStickDown = 11;
-  _ImGuiNavInput_FocusPrev = 12;
-  _ImGuiNavInput_FocusNext = 13;
-  _ImGuiNavInput_TweakSlow = 14;
-  _ImGuiNavInput_TweakFast = 15;
-  _ImGuiNavInput_KeyLeft_ = 16;
-  _ImGuiNavInput_KeyRight_ = 17;
-  _ImGuiNavInput_KeyUp_ = 18;
-  _ImGuiNavInput_KeyDown_ = 19;
-  _ImGuiNavInput_COUNT = 20;
-
-type
-  _ImGuiConfigFlags_ = Integer;
-  _PImGuiConfigFlags_ = ^_ImGuiConfigFlags_;
-
-const
-  _ImGuiConfigFlags_None = 0;
-  _ImGuiConfigFlags_NavEnableKeyboard = 1;
-  _ImGuiConfigFlags_NavEnableGamepad = 2;
-  _ImGuiConfigFlags_NavEnableSetMousePos = 4;
-  _ImGuiConfigFlags_NavNoCaptureKeyboard = 8;
-  _ImGuiConfigFlags_NoMouse = 16;
-  _ImGuiConfigFlags_NoMouseCursorChange = 32;
-  _ImGuiConfigFlags_DockingEnable = 64;
-  _ImGuiConfigFlags_ViewportsEnable = 1024;
-  _ImGuiConfigFlags_DpiEnableScaleViewports = 16384;
-  _ImGuiConfigFlags_DpiEnableScaleFonts = 32768;
-  _ImGuiConfigFlags_IsSRGB = 1048576;
-  _ImGuiConfigFlags_IsTouchScreen = 2097152;
-
-type
-  _ImGuiBackendFlags_ = Integer;
-  _PImGuiBackendFlags_ = ^_ImGuiBackendFlags_;
-
-const
-  _ImGuiBackendFlags_None = 0;
-  _ImGuiBackendFlags_HasGamepad = 1;
-  _ImGuiBackendFlags_HasMouseCursors = 2;
-  _ImGuiBackendFlags_HasSetMousePos = 4;
-  _ImGuiBackendFlags_RendererHasVtxOffset = 8;
-  _ImGuiBackendFlags_PlatformHasViewports = 1024;
-  _ImGuiBackendFlags_HasMouseHoveredViewport = 2048;
-  _ImGuiBackendFlags_RendererHasViewports = 4096;
-
-type
-  _ImGuiCol_ = Integer;
-  _PImGuiCol_ = ^_ImGuiCol_;
-
-const
-  _ImGuiCol_Text = 0;
-  _ImGuiCol_TextDisabled = 1;
-  _ImGuiCol_WindowBg = 2;
-  _ImGuiCol_ChildBg = 3;
-  _ImGuiCol_PopupBg = 4;
-  _ImGuiCol_Border = 5;
-  _ImGuiCol_BorderShadow = 6;
-  _ImGuiCol_FrameBg = 7;
-  _ImGuiCol_FrameBgHovered = 8;
-  _ImGuiCol_FrameBgActive = 9;
-  _ImGuiCol_TitleBg = 10;
-  _ImGuiCol_TitleBgActive = 11;
-  _ImGuiCol_TitleBgCollapsed = 12;
-  _ImGuiCol_MenuBarBg = 13;
-  _ImGuiCol_ScrollbarBg = 14;
-  _ImGuiCol_ScrollbarGrab = 15;
-  _ImGuiCol_ScrollbarGrabHovered = 16;
-  _ImGuiCol_ScrollbarGrabActive = 17;
-  _ImGuiCol_CheckMark = 18;
-  _ImGuiCol_SliderGrab = 19;
-  _ImGuiCol_SliderGrabActive = 20;
-  _ImGuiCol_Button = 21;
-  _ImGuiCol_ButtonHovered = 22;
-  _ImGuiCol_ButtonActive = 23;
-  _ImGuiCol_Header = 24;
-  _ImGuiCol_HeaderHovered = 25;
-  _ImGuiCol_HeaderActive = 26;
-  _ImGuiCol_Separator = 27;
-  _ImGuiCol_SeparatorHovered = 28;
-  _ImGuiCol_SeparatorActive = 29;
-  _ImGuiCol_ResizeGrip = 30;
-  _ImGuiCol_ResizeGripHovered = 31;
-  _ImGuiCol_ResizeGripActive = 32;
-  _ImGuiCol_Tab = 33;
-  _ImGuiCol_TabHovered = 34;
-  _ImGuiCol_TabActive = 35;
-  _ImGuiCol_TabUnfocused = 36;
-  _ImGuiCol_TabUnfocusedActive = 37;
-  _ImGuiCol_DockingPreview = 38;
-  _ImGuiCol_DockingEmptyBg = 39;
-  _ImGuiCol_PlotLines = 40;
-  _ImGuiCol_PlotLinesHovered = 41;
-  _ImGuiCol_PlotHistogram = 42;
-  _ImGuiCol_PlotHistogramHovered = 43;
-  _ImGuiCol_TableHeaderBg = 44;
-  _ImGuiCol_TableBorderStrong = 45;
-  _ImGuiCol_TableBorderLight = 46;
-  _ImGuiCol_TableRowBg = 47;
-  _ImGuiCol_TableRowBgAlt = 48;
-  _ImGuiCol_TextSelectedBg = 49;
-  _ImGuiCol_DragDropTarget = 50;
-  _ImGuiCol_NavHighlight = 51;
-  _ImGuiCol_NavWindowingHighlight = 52;
-  _ImGuiCol_NavWindowingDimBg = 53;
-  _ImGuiCol_ModalWindowDimBg = 54;
-  _ImGuiCol_COUNT = 55;
-
-type
-  _ImGuiStyleVar_ = Integer;
-  _PImGuiStyleVar_ = ^_ImGuiStyleVar_;
-
-const
-  _ImGuiStyleVar_Alpha = 0;
-  _ImGuiStyleVar_DisabledAlpha = 1;
-  _ImGuiStyleVar_WindowPadding = 2;
-  _ImGuiStyleVar_WindowRounding = 3;
-  _ImGuiStyleVar_WindowBorderSize = 4;
-  _ImGuiStyleVar_WindowMinSize = 5;
-  _ImGuiStyleVar_WindowTitleAlign = 6;
-  _ImGuiStyleVar_ChildRounding = 7;
-  _ImGuiStyleVar_ChildBorderSize = 8;
-  _ImGuiStyleVar_PopupRounding = 9;
-  _ImGuiStyleVar_PopupBorderSize = 10;
-  _ImGuiStyleVar_FramePadding = 11;
-  _ImGuiStyleVar_FrameRounding = 12;
-  _ImGuiStyleVar_FrameBorderSize = 13;
-  _ImGuiStyleVar_ItemSpacing = 14;
-  _ImGuiStyleVar_ItemInnerSpacing = 15;
-  _ImGuiStyleVar_IndentSpacing = 16;
-  _ImGuiStyleVar_CellPadding = 17;
-  _ImGuiStyleVar_ScrollbarSize = 18;
-  _ImGuiStyleVar_ScrollbarRounding = 19;
-  _ImGuiStyleVar_GrabMinSize = 20;
-  _ImGuiStyleVar_GrabRounding = 21;
-  _ImGuiStyleVar_TabRounding = 22;
-  _ImGuiStyleVar_ButtonTextAlign = 23;
-  _ImGuiStyleVar_SelectableTextAlign = 24;
-  _ImGuiStyleVar_COUNT = 25;
-
-type
-  _ImGuiButtonFlags_ = Integer;
-  _PImGuiButtonFlags_ = ^_ImGuiButtonFlags_;
-
-const
-  _ImGuiButtonFlags_None = 0;
-  _ImGuiButtonFlags_MouseButtonLeft = 1;
-  _ImGuiButtonFlags_MouseButtonRight = 2;
-  _ImGuiButtonFlags_MouseButtonMiddle = 4;
-  _ImGuiButtonFlags_MouseButtonMask_ = 7;
-  _ImGuiButtonFlags_MouseButtonDefault_ = 1;
-
-type
-  _ImGuiColorEditFlags_ = Integer;
-  _PImGuiColorEditFlags_ = ^_ImGuiColorEditFlags_;
-
-const
-  _ImGuiColorEditFlags_None = 0;
-  _ImGuiColorEditFlags_NoAlpha = 2;
-  _ImGuiColorEditFlags_NoPicker = 4;
-  _ImGuiColorEditFlags_NoOptions = 8;
-  _ImGuiColorEditFlags_NoSmallPreview = 16;
-  _ImGuiColorEditFlags_NoInputs = 32;
-  _ImGuiColorEditFlags_NoTooltip = 64;
-  _ImGuiColorEditFlags_NoLabel = 128;
-  _ImGuiColorEditFlags_NoSidePreview = 256;
-  _ImGuiColorEditFlags_NoDragDrop = 512;
-  _ImGuiColorEditFlags_NoBorder = 1024;
-  _ImGuiColorEditFlags_AlphaBar = 65536;
-  _ImGuiColorEditFlags_AlphaPreview = 131072;
-  _ImGuiColorEditFlags_AlphaPreviewHalf = 262144;
-  _ImGuiColorEditFlags_HDR = 524288;
-  _ImGuiColorEditFlags_DisplayRGB = 1048576;
-  _ImGuiColorEditFlags_DisplayHSV = 2097152;
-  _ImGuiColorEditFlags_DisplayHex = 4194304;
-  _ImGuiColorEditFlags_Uint8 = 8388608;
-  _ImGuiColorEditFlags_Float = 16777216;
-  _ImGuiColorEditFlags_PickerHueBar = 33554432;
-  _ImGuiColorEditFlags_PickerHueWheel = 67108864;
-  _ImGuiColorEditFlags_InputRGB = 134217728;
-  _ImGuiColorEditFlags_InputHSV = 268435456;
-  _ImGuiColorEditFlags_DefaultOptions_ = 177209344;
-  _ImGuiColorEditFlags_DisplayMask_ = 7340032;
-  _ImGuiColorEditFlags_DataTypeMask_ = 25165824;
-  _ImGuiColorEditFlags_PickerMask_ = 100663296;
-  _ImGuiColorEditFlags_InputMask_ = 402653184;
-
-type
-  _ImGuiSliderFlags_ = Integer;
-  _PImGuiSliderFlags_ = ^_ImGuiSliderFlags_;
-
-const
-  _ImGuiSliderFlags_None = 0;
-  _ImGuiSliderFlags_AlwaysClamp = 16;
-  _ImGuiSliderFlags_Logarithmic = 32;
-  _ImGuiSliderFlags_NoRoundToFormat = 64;
-  _ImGuiSliderFlags_NoInput = 128;
-  _ImGuiSliderFlags_InvalidMask_ = 1879048207;
-
-type
-  _ImGuiMouseButton_ = Integer;
-  _PImGuiMouseButton_ = ^_ImGuiMouseButton_;
-
-const
-  _ImGuiMouseButton_Left = 0;
-  _ImGuiMouseButton_Right = 1;
-  _ImGuiMouseButton_Middle = 2;
-  _ImGuiMouseButton_COUNT = 5;
-
-type
-  _ImGuiMouseCursor_ = Integer;
-  _PImGuiMouseCursor_ = ^_ImGuiMouseCursor_;
-
-const
-  _ImGuiMouseCursor_None = -1;
-  _ImGuiMouseCursor_Arrow = 0;
-  _ImGuiMouseCursor_TextInput = 1;
-  _ImGuiMouseCursor_ResizeAll = 2;
-  _ImGuiMouseCursor_ResizeNS = 3;
-  _ImGuiMouseCursor_ResizeEW = 4;
-  _ImGuiMouseCursor_ResizeNESW = 5;
-  _ImGuiMouseCursor_ResizeNWSE = 6;
-  _ImGuiMouseCursor_Hand = 7;
-  _ImGuiMouseCursor_NotAllowed = 8;
-  _ImGuiMouseCursor_COUNT = 9;
-
-type
-  _ImGuiCond_ = Integer;
-  _PImGuiCond_ = ^_ImGuiCond_;
-
-const
-  _ImGuiCond_None = 0;
-  _ImGuiCond_Always = 1;
-  _ImGuiCond_Once = 2;
-  _ImGuiCond_FirstUseEver = 4;
-  _ImGuiCond_Appearing = 8;
-
-type
-  _ImDrawFlags_ = Integer;
-  _PImDrawFlags_ = ^_ImDrawFlags_;
-
-const
-  _ImDrawFlags_None = 0;
-  _ImDrawFlags_Closed = 1;
-  _ImDrawFlags_RoundCornersTopLeft = 16;
-  _ImDrawFlags_RoundCornersTopRight = 32;
-  _ImDrawFlags_RoundCornersBottomLeft = 64;
-  _ImDrawFlags_RoundCornersBottomRight = 128;
-  _ImDrawFlags_RoundCornersNone = 256;
-  _ImDrawFlags_RoundCornersTop = 48;
-  _ImDrawFlags_RoundCornersBottom = 192;
-  _ImDrawFlags_RoundCornersLeft = 80;
-  _ImDrawFlags_RoundCornersRight = 160;
-  _ImDrawFlags_RoundCornersAll = 240;
-  _ImDrawFlags_RoundCornersDefault_ = 240;
-  _ImDrawFlags_RoundCornersMask_ = 496;
-
-type
-  _ImDrawListFlags_ = Integer;
-  _PImDrawListFlags_ = ^_ImDrawListFlags_;
-
-const
-  _ImDrawListFlags_None = 0;
-  _ImDrawListFlags_AntiAliasedLines = 1;
-  _ImDrawListFlags_AntiAliasedLinesUseTex = 2;
-  _ImDrawListFlags_AntiAliasedFill = 4;
-  _ImDrawListFlags_AllowVtxOffset = 8;
-
-type
-  _ImFontAtlasFlags_ = Integer;
-  _PImFontAtlasFlags_ = ^_ImFontAtlasFlags_;
-
-const
-  _ImFontAtlasFlags_None = 0;
-  _ImFontAtlasFlags_NoPowerOfTwoHeight = 1;
-  _ImFontAtlasFlags_NoMouseCursors = 2;
-  _ImFontAtlasFlags_NoBakedLines = 4;
-
-type
-  _ImGuiViewportFlags_ = Integer;
-  _PImGuiViewportFlags_ = ^_ImGuiViewportFlags_;
-
-const
-  _ImGuiViewportFlags_None = 0;
-  _ImGuiViewportFlags_IsPlatformWindow = 1;
-  _ImGuiViewportFlags_IsPlatformMonitor = 2;
-  _ImGuiViewportFlags_OwnedByApp = 4;
-  _ImGuiViewportFlags_NoDecoration = 8;
-  _ImGuiViewportFlags_NoTaskBarIcon = 16;
-  _ImGuiViewportFlags_NoFocusOnAppearing = 32;
-  _ImGuiViewportFlags_NoFocusOnClick = 64;
-  _ImGuiViewportFlags_NoInputs = 128;
-  _ImGuiViewportFlags_NoRendererClear = 256;
-  _ImGuiViewportFlags_TopMost = 512;
-  _ImGuiViewportFlags_Minimized = 1024;
-  _ImGuiViewportFlags_NoAutoMerge = 2048;
-  _ImGuiViewportFlags_CanHostOtherWindows = 4096;
-
-type
-  _ImGuiItemFlags_ = Integer;
-  _PImGuiItemFlags_ = ^_ImGuiItemFlags_;
-
-const
-  _ImGuiItemFlags_None = 0;
-  _ImGuiItemFlags_NoTabStop = 1;
-  _ImGuiItemFlags_ButtonRepeat = 2;
-  _ImGuiItemFlags_Disabled = 4;
-  _ImGuiItemFlags_NoNav = 8;
-  _ImGuiItemFlags_NoNavDefaultFocus = 16;
-  _ImGuiItemFlags_SelectableDontClosePopup = 32;
-  _ImGuiItemFlags_MixedValue = 64;
-  _ImGuiItemFlags_ReadOnly = 128;
-  _ImGuiItemFlags_Inputable = 256;
-
-type
-  _ImGuiItemStatusFlags_ = Integer;
-  _PImGuiItemStatusFlags_ = ^_ImGuiItemStatusFlags_;
-
-const
-  _ImGuiItemStatusFlags_None = 0;
-  _ImGuiItemStatusFlags_HoveredRect = 1;
-  _ImGuiItemStatusFlags_HasDisplayRect = 2;
-  _ImGuiItemStatusFlags_Edited = 4;
-  _ImGuiItemStatusFlags_ToggledSelection = 8;
-  _ImGuiItemStatusFlags_ToggledOpen = 16;
-  _ImGuiItemStatusFlags_HasDeactivated = 32;
-  _ImGuiItemStatusFlags_Deactivated = 64;
-  _ImGuiItemStatusFlags_HoveredWindow = 128;
-  _ImGuiItemStatusFlags_FocusedByTabbing = 256;
-
-type
-  _ImGuiInputTextFlagsPrivate_ = Integer;
-  _PImGuiInputTextFlagsPrivate_ = ^_ImGuiInputTextFlagsPrivate_;
-
-const
-  _ImGuiInputTextFlags_Multiline = 67108864;
-  _ImGuiInputTextFlags_NoMarkEdited = 134217728;
-  _ImGuiInputTextFlags_MergedItem = 268435456;
-
-type
-  _ImGuiButtonFlagsPrivate_ = Integer;
-  _PImGuiButtonFlagsPrivate_ = ^_ImGuiButtonFlagsPrivate_;
-
-const
-  _ImGuiButtonFlags_PressedOnClick = 16;
-  _ImGuiButtonFlags_PressedOnClickRelease = 32;
-  _ImGuiButtonFlags_PressedOnClickReleaseAnywhere = 64;
-  _ImGuiButtonFlags_PressedOnRelease = 128;
-  _ImGuiButtonFlags_PressedOnDoubleClick = 256;
-  _ImGuiButtonFlags_PressedOnDragDropHold = 512;
-  _ImGuiButtonFlags_Repeat = 1024;
-  _ImGuiButtonFlags_FlattenChildren = 2048;
-  _ImGuiButtonFlags_AllowItemOverlap = 4096;
-  _ImGuiButtonFlags_DontClosePopups = 8192;
-  _ImGuiButtonFlags_AlignTextBaseLine = 32768;
-  _ImGuiButtonFlags_NoKeyModifiers = 65536;
-  _ImGuiButtonFlags_NoHoldingActiveId = 131072;
-  _ImGuiButtonFlags_NoNavFocus = 262144;
-  _ImGuiButtonFlags_NoHoveredOnFocus = 524288;
-  _ImGuiButtonFlags_PressedOnMask_ = 1008;
-  _ImGuiButtonFlags_PressedOnDefault_ = 32;
-
-type
-  _ImGuiComboFlagsPrivate_ = Integer;
-  _PImGuiComboFlagsPrivate_ = ^_ImGuiComboFlagsPrivate_;
-
-const
-  _ImGuiComboFlags_CustomPreview = 1048576;
-
-type
-  _ImGuiSliderFlagsPrivate_ = Integer;
-  _PImGuiSliderFlagsPrivate_ = ^_ImGuiSliderFlagsPrivate_;
-
-const
-  _ImGuiSliderFlags_Vertical = 1048576;
-  _ImGuiSliderFlags_ReadOnly = 2097152;
-
-type
-  _ImGuiSelectableFlagsPrivate_ = Integer;
-  _PImGuiSelectableFlagsPrivate_ = ^_ImGuiSelectableFlagsPrivate_;
-
-const
-  _ImGuiSelectableFlags_NoHoldingActiveID = 1048576;
-  _ImGuiSelectableFlags_SelectOnNav = 2097152;
-  _ImGuiSelectableFlags_SelectOnClick = 4194304;
-  _ImGuiSelectableFlags_SelectOnRelease = 8388608;
-  _ImGuiSelectableFlags_SpanAvailWidth = 16777216;
-  _ImGuiSelectableFlags_DrawHoveredWhenHeld = 33554432;
-  _ImGuiSelectableFlags_SetNavIdOnHover = 67108864;
-  _ImGuiSelectableFlags_NoPadWithHalfSpacing = 134217728;
-
-type
-  _ImGuiTreeNodeFlagsPrivate_ = Integer;
-  _PImGuiTreeNodeFlagsPrivate_ = ^_ImGuiTreeNodeFlagsPrivate_;
-
-const
-  _ImGuiTreeNodeFlags_ClipLabelForTrailingButton = 1048576;
-
-type
-  _ImGuiSeparatorFlags_ = Integer;
-  _PImGuiSeparatorFlags_ = ^_ImGuiSeparatorFlags_;
-
-const
-  _ImGuiSeparatorFlags_None = 0;
-  _ImGuiSeparatorFlags_Horizontal = 1;
-  _ImGuiSeparatorFlags_Vertical = 2;
-  _ImGuiSeparatorFlags_SpanAllColumns = 4;
-
-type
-  _ImGuiTextFlags_ = Integer;
-  _PImGuiTextFlags_ = ^_ImGuiTextFlags_;
-
-const
-  _ImGuiTextFlags_None = 0;
-  _ImGuiTextFlags_NoWidthForLargeClippedText = 1;
-
-type
-  _ImGuiTooltipFlags_ = Integer;
-  _PImGuiTooltipFlags_ = ^_ImGuiTooltipFlags_;
-
-const
-  _ImGuiTooltipFlags_None = 0;
-  _ImGuiTooltipFlags_OverridePreviousTooltip = 1;
-
-type
-  _ImGuiLayoutType_ = Integer;
-  _PImGuiLayoutType_ = ^_ImGuiLayoutType_;
-
-const
-  _ImGuiLayoutType_Horizontal = 0;
-  _ImGuiLayoutType_Vertical = 1;
-
-type
-  _ImGuiLogType = Integer;
-  _PImGuiLogType = ^_ImGuiLogType;
-
-const
-  _ImGuiLogType_None = 0;
-  _ImGuiLogType_TTY = 1;
-  _ImGuiLogType_File = 2;
-  _ImGuiLogType_Buffer = 3;
-  _ImGuiLogType_Clipboard = 4;
-
-type
-  _ImGuiAxis = Integer;
-  _PImGuiAxis = ^_ImGuiAxis;
-
-const
-  _ImGuiAxis_None = -1;
-  _ImGuiAxis_X = 0;
-  _ImGuiAxis_Y = 1;
-
-type
-  _ImGuiPlotType = Integer;
-  _PImGuiPlotType = ^_ImGuiPlotType;
-
-const
-  _ImGuiPlotType_Lines = 0;
-  _ImGuiPlotType_Histogram = 1;
-
-type
-  _ImGuiPopupPositionPolicy = Integer;
-  _PImGuiPopupPositionPolicy = ^_ImGuiPopupPositionPolicy;
-
-const
-  _ImGuiPopupPositionPolicy_Default = 0;
-  _ImGuiPopupPositionPolicy_ComboBox = 1;
-  _ImGuiPopupPositionPolicy_Tooltip = 2;
-
-type
-  _ImGuiDataTypePrivate_ = Integer;
-  _PImGuiDataTypePrivate_ = ^_ImGuiDataTypePrivate_;
-
-const
-  _ImGuiDataType_String = 11;
-  _ImGuiDataType_Pointer = 12;
-  _ImGuiDataType_ID = 13;
-
-type
-  _ImGuiNextWindowDataFlags_ = Integer;
-  _PImGuiNextWindowDataFlags_ = ^_ImGuiNextWindowDataFlags_;
-
-const
-  _ImGuiNextWindowDataFlags_None = 0;
-  _ImGuiNextWindowDataFlags_HasPos = 1;
-  _ImGuiNextWindowDataFlags_HasSize = 2;
-  _ImGuiNextWindowDataFlags_HasContentSize = 4;
-  _ImGuiNextWindowDataFlags_HasCollapsed = 8;
-  _ImGuiNextWindowDataFlags_HasSizeConstraint = 16;
-  _ImGuiNextWindowDataFlags_HasFocus = 32;
-  _ImGuiNextWindowDataFlags_HasBgAlpha = 64;
-  _ImGuiNextWindowDataFlags_HasScroll = 128;
-  _ImGuiNextWindowDataFlags_HasViewport = 256;
-  _ImGuiNextWindowDataFlags_HasDock = 512;
-  _ImGuiNextWindowDataFlags_HasWindowClass = 1024;
-
-type
-  _ImGuiNextItemDataFlags_ = Integer;
-  _PImGuiNextItemDataFlags_ = ^_ImGuiNextItemDataFlags_;
-
-const
-  _ImGuiNextItemDataFlags_None = 0;
-  _ImGuiNextItemDataFlags_HasWidth = 1;
-  _ImGuiNextItemDataFlags_HasOpen = 2;
-
-type
-  _ImGuiKeyPrivate_ = Integer;
-  _PImGuiKeyPrivate_ = ^_ImGuiKeyPrivate_;
-
-const
-  _ImGuiKey_LegacyNativeKey_BEGIN = 0;
-  _ImGuiKey_LegacyNativeKey_END = 512;
-  _ImGuiKey_Gamepad_BEGIN = 617;
-  _ImGuiKey_Gamepad_END = 641;
-
-type
-  _ImGuiInputEventType = Integer;
-  _PImGuiInputEventType = ^_ImGuiInputEventType;
-
-const
-  _ImGuiInputEventType_None = 0;
-  _ImGuiInputEventType_MousePos = 1;
-  _ImGuiInputEventType_MouseWheel = 2;
-  _ImGuiInputEventType_MouseButton = 3;
-  _ImGuiInputEventType_MouseViewport = 4;
-  _ImGuiInputEventType_Key = 5;
-  _ImGuiInputEventType_Text = 6;
-  _ImGuiInputEventType_Focus = 7;
-  _ImGuiInputEventType_COUNT = 8;
-
-type
-  _ImGuiInputSource = Integer;
-  _PImGuiInputSource = ^_ImGuiInputSource;
-
-const
-  _ImGuiInputSource_None = 0;
-  _ImGuiInputSource_Mouse = 1;
-  _ImGuiInputSource_Keyboard = 2;
-  _ImGuiInputSource_Gamepad = 3;
-  _ImGuiInputSource_Clipboard = 4;
-  _ImGuiInputSource_Nav = 5;
-  _ImGuiInputSource_COUNT = 6;
-
-type
-  _ImGuiNavReadMode = Integer;
-  _PImGuiNavReadMode = ^_ImGuiNavReadMode;
-
-const
-  _ImGuiNavReadMode_Down = 0;
-  _ImGuiNavReadMode_Pressed = 1;
-  _ImGuiNavReadMode_Released = 2;
-  _ImGuiNavReadMode_Repeat = 3;
-  _ImGuiNavReadMode_RepeatSlow = 4;
-  _ImGuiNavReadMode_RepeatFast = 5;
-
-type
-  _ImGuiActivateFlags_ = Integer;
-  _PImGuiActivateFlags_ = ^_ImGuiActivateFlags_;
-
-const
-  _ImGuiActivateFlags_None = 0;
-  _ImGuiActivateFlags_PreferInput = 1;
-  _ImGuiActivateFlags_PreferTweak = 2;
-  _ImGuiActivateFlags_TryToPreserveState = 4;
-
-type
-  _ImGuiScrollFlags_ = Integer;
-  _PImGuiScrollFlags_ = ^_ImGuiScrollFlags_;
-
-const
-  _ImGuiScrollFlags_None = 0;
-  _ImGuiScrollFlags_KeepVisibleEdgeX = 1;
-  _ImGuiScrollFlags_KeepVisibleEdgeY = 2;
-  _ImGuiScrollFlags_KeepVisibleCenterX = 4;
-  _ImGuiScrollFlags_KeepVisibleCenterY = 8;
-  _ImGuiScrollFlags_AlwaysCenterX = 16;
-  _ImGuiScrollFlags_AlwaysCenterY = 32;
-  _ImGuiScrollFlags_NoScrollParent = 64;
-  _ImGuiScrollFlags_MaskX_ = 21;
-  _ImGuiScrollFlags_MaskY_ = 42;
-
-type
-  _ImGuiNavHighlightFlags_ = Integer;
-  _PImGuiNavHighlightFlags_ = ^_ImGuiNavHighlightFlags_;
-
-const
-  _ImGuiNavHighlightFlags_None = 0;
-  _ImGuiNavHighlightFlags_TypeDefault = 1;
-  _ImGuiNavHighlightFlags_TypeThin = 2;
-  _ImGuiNavHighlightFlags_AlwaysDraw = 4;
-  _ImGuiNavHighlightFlags_NoRounding = 8;
-
-type
-  _ImGuiNavDirSourceFlags_ = Integer;
-  _PImGuiNavDirSourceFlags_ = ^_ImGuiNavDirSourceFlags_;
-
-const
-  _ImGuiNavDirSourceFlags_None = 0;
-  _ImGuiNavDirSourceFlags_RawKeyboard = 1;
-  _ImGuiNavDirSourceFlags_Keyboard = 2;
-  _ImGuiNavDirSourceFlags_PadDPad = 4;
-  _ImGuiNavDirSourceFlags_PadLStick = 8;
-
-type
-  _ImGuiNavMoveFlags_ = Integer;
-  _PImGuiNavMoveFlags_ = ^_ImGuiNavMoveFlags_;
-
-const
-  _ImGuiNavMoveFlags_None = 0;
-  _ImGuiNavMoveFlags_LoopX = 1;
-  _ImGuiNavMoveFlags_LoopY = 2;
-  _ImGuiNavMoveFlags_WrapX = 4;
-  _ImGuiNavMoveFlags_WrapY = 8;
-  _ImGuiNavMoveFlags_AllowCurrentNavId = 16;
-  _ImGuiNavMoveFlags_AlsoScoreVisibleSet = 32;
-  _ImGuiNavMoveFlags_ScrollToEdgeY = 64;
-  _ImGuiNavMoveFlags_Forwarded = 128;
-  _ImGuiNavMoveFlags_DebugNoResult = 256;
-  _ImGuiNavMoveFlags_FocusApi = 512;
-  _ImGuiNavMoveFlags_Tabbing = 1024;
-  _ImGuiNavMoveFlags_Activate = 2048;
-  _ImGuiNavMoveFlags_DontSetNavHighlight = 4096;
-
-type
-  _ImGuiNavLayer = Integer;
-  _PImGuiNavLayer = ^_ImGuiNavLayer;
-
-const
-  _ImGuiNavLayer_Main = 0;
-  _ImGuiNavLayer_Menu = 1;
-  _ImGuiNavLayer_COUNT = 2;
-
-type
-  _ImGuiOldColumnFlags_ = Integer;
-  _PImGuiOldColumnFlags_ = ^_ImGuiOldColumnFlags_;
-
-const
-  _ImGuiOldColumnFlags_None = 0;
-  _ImGuiOldColumnFlags_NoBorder = 1;
-  _ImGuiOldColumnFlags_NoResize = 2;
-  _ImGuiOldColumnFlags_NoPreserveWidths = 4;
-  _ImGuiOldColumnFlags_NoForceWithinWindow = 8;
-  _ImGuiOldColumnFlags_GrowParentContentsSize = 16;
-
-type
-  _ImGuiDockNodeFlagsPrivate_ = Integer;
-  _PImGuiDockNodeFlagsPrivate_ = ^_ImGuiDockNodeFlagsPrivate_;
-
-const
-  _ImGuiDockNodeFlags_DockSpace = 1024;
-  _ImGuiDockNodeFlags_CentralNode = 2048;
-  _ImGuiDockNodeFlags_NoTabBar = 4096;
-  _ImGuiDockNodeFlags_HiddenTabBar = 8192;
-  _ImGuiDockNodeFlags_NoWindowMenuButton = 16384;
-  _ImGuiDockNodeFlags_NoCloseButton = 32768;
-  _ImGuiDockNodeFlags_NoDocking = 65536;
-  _ImGuiDockNodeFlags_NoDockingSplitMe = 131072;
-  _ImGuiDockNodeFlags_NoDockingSplitOther = 262144;
-  _ImGuiDockNodeFlags_NoDockingOverMe = 524288;
-  _ImGuiDockNodeFlags_NoDockingOverOther = 1048576;
-  _ImGuiDockNodeFlags_NoDockingOverEmpty = 2097152;
-  _ImGuiDockNodeFlags_NoResizeX = 4194304;
-  _ImGuiDockNodeFlags_NoResizeY = 8388608;
-  _ImGuiDockNodeFlags_SharedFlagsInheritMask_ = -1;
-  _ImGuiDockNodeFlags_NoResizeFlagsMask_ = 12582944;
-  _ImGuiDockNodeFlags_LocalFlagsMask_ = 12713072;
-  _ImGuiDockNodeFlags_LocalFlagsTransferMask_ = 12712048;
-  _ImGuiDockNodeFlags_SavedFlagsMask_ = 12712992;
-
-type
-  _ImGuiDataAuthority_ = Integer;
-  _PImGuiDataAuthority_ = ^_ImGuiDataAuthority_;
-
-const
-  _ImGuiDataAuthority_Auto = 0;
-  _ImGuiDataAuthority_DockNode = 1;
-  _ImGuiDataAuthority_Window = 2;
-
-type
-  _ImGuiDockNodeState = Integer;
-  _PImGuiDockNodeState = ^_ImGuiDockNodeState;
-
-const
-  _ImGuiDockNodeState_Unknown = 0;
-  _ImGuiDockNodeState_HostWindowHiddenBecauseSingleWindow = 1;
-  _ImGuiDockNodeState_HostWindowHiddenBecauseWindowsAreResizing = 2;
-  _ImGuiDockNodeState_HostWindowVisible = 3;
-
-type
-  _ImGuiWindowDockStyleCol = Integer;
-  _PImGuiWindowDockStyleCol = ^_ImGuiWindowDockStyleCol;
-
-const
-  _ImGuiWindowDockStyleCol_Text = 0;
-  _ImGuiWindowDockStyleCol_Tab = 1;
-  _ImGuiWindowDockStyleCol_TabHovered = 2;
-  _ImGuiWindowDockStyleCol_TabActive = 3;
-  _ImGuiWindowDockStyleCol_TabUnfocused = 4;
-  _ImGuiWindowDockStyleCol_TabUnfocusedActive = 5;
-  _ImGuiWindowDockStyleCol_COUNT = 6;
-
-type
-  _ImGuiDebugLogFlags_ = Integer;
-  _PImGuiDebugLogFlags_ = ^_ImGuiDebugLogFlags_;
-
-const
-  _ImGuiDebugLogFlags_None = 0;
-  _ImGuiDebugLogFlags_EventActiveId = 1;
-  _ImGuiDebugLogFlags_EventFocus = 2;
-  _ImGuiDebugLogFlags_EventPopup = 4;
-  _ImGuiDebugLogFlags_EventNav = 8;
-  _ImGuiDebugLogFlags_EventIO = 16;
-  _ImGuiDebugLogFlags_EventDocking = 32;
-  _ImGuiDebugLogFlags_EventViewport = 64;
-  _ImGuiDebugLogFlags_EventMask_ = 127;
-  _ImGuiDebugLogFlags_OutputToTTY = 1024;
-
-type
-  _ImGuiContextHookType = Integer;
-  _PImGuiContextHookType = ^_ImGuiContextHookType;
-
-const
-  _ImGuiContextHookType_NewFramePre = 0;
-  _ImGuiContextHookType_NewFramePost = 1;
-  _ImGuiContextHookType_EndFramePre = 2;
-  _ImGuiContextHookType_EndFramePost = 3;
-  _ImGuiContextHookType_RenderPre = 4;
-  _ImGuiContextHookType_RenderPost = 5;
-  _ImGuiContextHookType_Shutdown = 6;
-  _ImGuiContextHookType_PendingRemoval_ = 7;
-
-type
-  _ImGuiTabBarFlagsPrivate_ = Integer;
-  _PImGuiTabBarFlagsPrivate_ = ^_ImGuiTabBarFlagsPrivate_;
-
-const
-  _ImGuiTabBarFlags_DockNode = 1048576;
-  _ImGuiTabBarFlags_IsFocused = 2097152;
-  _ImGuiTabBarFlags_SaveSettings = 4194304;
-
-type
-  _ImGuiTabItemFlagsPrivate_ = Integer;
-  _PImGuiTabItemFlagsPrivate_ = ^_ImGuiTabItemFlagsPrivate_;
-
-const
-  _ImGuiTabItemFlags_SectionMask_ = 192;
-  _ImGuiTabItemFlags_NoCloseButton = 1048576;
-  _ImGuiTabItemFlags_Button = 2097152;
-  _ImGuiTabItemFlags_Unsorted = 4194304;
-  _ImGuiTabItemFlags_Preview = 8388608;
+  _SOKOL_SPINE_INCLUDED = (1);
 
 type
   _FONSflags = Integer;
@@ -1576,30 +300,34 @@ const
 
 const
   _SG_INVALID_ID = 0;
-  _SG_NUM_SHADER_STAGES = 2;
   _SG_NUM_INFLIGHT_FRAMES = 2;
-  _SG_MAX_COLOR_ATTACHMENTS = 4;
-  _SG_MAX_SHADERSTAGE_BUFFERS = 8;
-  _SG_MAX_SHADERSTAGE_IMAGES = 12;
-  _SG_MAX_SHADERSTAGE_UBS = 4;
-  _SG_MAX_UB_MEMBERS = 16;
+  _SG_MAX_COLOR_ATTACHMENTS = 8;
+  _SG_MAX_UNIFORMBLOCK_MEMBERS = 16;
   _SG_MAX_VERTEX_ATTRIBUTES = 16;
   _SG_MAX_MIPMAPS = 16;
-  _SG_MAX_TEXTUREARRAY_LAYERS = 128;
+  _SG_MAX_VERTEXBUFFER_BINDSLOTS = 8;
+  _SG_MAX_UNIFORMBLOCK_BINDSLOTS = 8;
+  _SG_MAX_VIEW_BINDSLOTS = 32;
+  _SG_MAX_SAMPLER_BINDSLOTS = 12;
+  _SG_MAX_TEXTURE_SAMPLER_PAIRS = 32;
+  _SG_MAX_PORTABLE_COLOR_ATTACHMENTS = 4;
+  _SG_MAX_PORTABLE_TEXTURE_BINDINGS_PER_STAGE = 16;
+  _SG_MAX_PORTABLE_STORAGEBUFFER_BINDINGS_PER_STAGE = 8;
+  _SG_MAX_PORTABLE_STORAGEIMAGE_BINDINGS_PER_STAGE = 4;
 
 type
   _sg_backend = Integer;
   _Psg_backend = ^_sg_backend;
 
 const
-  _SG_BACKEND_GLCORE33 = 0;
-  _SG_BACKEND_GLES2 = 1;
-  _SG_BACKEND_GLES3 = 2;
-  _SG_BACKEND_D3D11 = 3;
-  _SG_BACKEND_METAL_IOS = 4;
-  _SG_BACKEND_METAL_MACOS = 5;
-  _SG_BACKEND_METAL_SIMULATOR = 6;
-  _SG_BACKEND_WGPU = 7;
+  _SG_BACKEND_GLCORE = 0;
+  _SG_BACKEND_GLES3 = 1;
+  _SG_BACKEND_D3D11 = 2;
+  _SG_BACKEND_METAL_IOS = 3;
+  _SG_BACKEND_METAL_MACOS = 4;
+  _SG_BACKEND_METAL_SIMULATOR = 5;
+  _SG_BACKEND_WGPU = 6;
+  _SG_BACKEND_VULKAN = 7;
   _SG_BACKEND_DUMMY = 8;
 
 type
@@ -1631,45 +359,52 @@ const
   _SG_PIXELFORMAT_RG16SI = 21;
   _SG_PIXELFORMAT_RG16F = 22;
   _SG_PIXELFORMAT_RGBA8 = 23;
-  _SG_PIXELFORMAT_RGBA8SN = 24;
-  _SG_PIXELFORMAT_RGBA8UI = 25;
-  _SG_PIXELFORMAT_RGBA8SI = 26;
-  _SG_PIXELFORMAT_BGRA8 = 27;
-  _SG_PIXELFORMAT_RGB10A2 = 28;
-  _SG_PIXELFORMAT_RG11B10F = 29;
-  _SG_PIXELFORMAT_RG32UI = 30;
-  _SG_PIXELFORMAT_RG32SI = 31;
-  _SG_PIXELFORMAT_RG32F = 32;
-  _SG_PIXELFORMAT_RGBA16 = 33;
-  _SG_PIXELFORMAT_RGBA16SN = 34;
-  _SG_PIXELFORMAT_RGBA16UI = 35;
-  _SG_PIXELFORMAT_RGBA16SI = 36;
-  _SG_PIXELFORMAT_RGBA16F = 37;
-  _SG_PIXELFORMAT_RGBA32UI = 38;
-  _SG_PIXELFORMAT_RGBA32SI = 39;
-  _SG_PIXELFORMAT_RGBA32F = 40;
-  _SG_PIXELFORMAT_DEPTH = 41;
-  _SG_PIXELFORMAT_DEPTH_STENCIL = 42;
-  _SG_PIXELFORMAT_BC1_RGBA = 43;
-  _SG_PIXELFORMAT_BC2_RGBA = 44;
-  _SG_PIXELFORMAT_BC3_RGBA = 45;
-  _SG_PIXELFORMAT_BC4_R = 46;
-  _SG_PIXELFORMAT_BC4_RSN = 47;
-  _SG_PIXELFORMAT_BC5_RG = 48;
-  _SG_PIXELFORMAT_BC5_RGSN = 49;
-  _SG_PIXELFORMAT_BC6H_RGBF = 50;
-  _SG_PIXELFORMAT_BC6H_RGBUF = 51;
-  _SG_PIXELFORMAT_BC7_RGBA = 52;
-  _SG_PIXELFORMAT_PVRTC_RGB_2BPP = 53;
-  _SG_PIXELFORMAT_PVRTC_RGB_4BPP = 54;
-  _SG_PIXELFORMAT_PVRTC_RGBA_2BPP = 55;
-  _SG_PIXELFORMAT_PVRTC_RGBA_4BPP = 56;
-  _SG_PIXELFORMAT_ETC2_RGB8 = 57;
-  _SG_PIXELFORMAT_ETC2_RGB8A1 = 58;
-  _SG_PIXELFORMAT_ETC2_RGBA8 = 59;
-  _SG_PIXELFORMAT_ETC2_RG11 = 60;
-  _SG_PIXELFORMAT_ETC2_RG11SN = 61;
-  __SG_PIXELFORMAT_NUM = 62;
+  _SG_PIXELFORMAT_SRGB8A8 = 24;
+  _SG_PIXELFORMAT_RGBA8SN = 25;
+  _SG_PIXELFORMAT_RGBA8UI = 26;
+  _SG_PIXELFORMAT_RGBA8SI = 27;
+  _SG_PIXELFORMAT_BGRA8 = 28;
+  _SG_PIXELFORMAT_SBGR8A8 = 29;
+  _SG_PIXELFORMAT_RGB10A2 = 30;
+  _SG_PIXELFORMAT_RG11B10F = 31;
+  _SG_PIXELFORMAT_RGB9E5 = 32;
+  _SG_PIXELFORMAT_RG32UI = 33;
+  _SG_PIXELFORMAT_RG32SI = 34;
+  _SG_PIXELFORMAT_RG32F = 35;
+  _SG_PIXELFORMAT_RGBA16 = 36;
+  _SG_PIXELFORMAT_RGBA16SN = 37;
+  _SG_PIXELFORMAT_RGBA16UI = 38;
+  _SG_PIXELFORMAT_RGBA16SI = 39;
+  _SG_PIXELFORMAT_RGBA16F = 40;
+  _SG_PIXELFORMAT_RGBA32UI = 41;
+  _SG_PIXELFORMAT_RGBA32SI = 42;
+  _SG_PIXELFORMAT_RGBA32F = 43;
+  _SG_PIXELFORMAT_DEPTH = 44;
+  _SG_PIXELFORMAT_DEPTH_STENCIL = 45;
+  _SG_PIXELFORMAT_BC1_RGBA = 46;
+  _SG_PIXELFORMAT_BC2_RGBA = 47;
+  _SG_PIXELFORMAT_BC3_RGBA = 48;
+  _SG_PIXELFORMAT_BC3_SRGBA = 49;
+  _SG_PIXELFORMAT_BC4_R = 50;
+  _SG_PIXELFORMAT_BC4_RSN = 51;
+  _SG_PIXELFORMAT_BC5_RG = 52;
+  _SG_PIXELFORMAT_BC5_RGSN = 53;
+  _SG_PIXELFORMAT_BC6H_RGBF = 54;
+  _SG_PIXELFORMAT_BC6H_RGBUF = 55;
+  _SG_PIXELFORMAT_BC7_RGBA = 56;
+  _SG_PIXELFORMAT_BC7_SRGBA = 57;
+  _SG_PIXELFORMAT_ETC2_RGB8 = 58;
+  _SG_PIXELFORMAT_ETC2_SRGB8 = 59;
+  _SG_PIXELFORMAT_ETC2_RGB8A1 = 60;
+  _SG_PIXELFORMAT_ETC2_RGBA8 = 61;
+  _SG_PIXELFORMAT_ETC2_SRGB8A8 = 62;
+  _SG_PIXELFORMAT_EAC_R11 = 63;
+  _SG_PIXELFORMAT_EAC_R11SN = 64;
+  _SG_PIXELFORMAT_EAC_RG11 = 65;
+  _SG_PIXELFORMAT_EAC_RG11SN = 66;
+  _SG_PIXELFORMAT_ASTC_4x4_RGBA = 67;
+  _SG_PIXELFORMAT_ASTC_4x4_SRGBA = 68;
+  __SG_PIXELFORMAT_NUM = 69;
   __SG_PIXELFORMAT_FORCE_U32 = 2147483647;
 
 type
@@ -1683,29 +418,6 @@ const
   _SG_RESOURCESTATE_FAILED = 3;
   _SG_RESOURCESTATE_INVALID = 4;
   __SG_RESOURCESTATE_FORCE_U32 = 2147483647;
-
-type
-  _sg_usage = Integer;
-  _Psg_usage = ^_sg_usage;
-
-const
-  __SG_USAGE_DEFAULT = 0;
-  _SG_USAGE_IMMUTABLE = 1;
-  _SG_USAGE_DYNAMIC = 2;
-  _SG_USAGE_STREAM = 3;
-  __SG_USAGE_NUM = 4;
-  __SG_USAGE_FORCE_U32 = 2147483647;
-
-type
-  _sg_buffer_type = Integer;
-  _Psg_buffer_type = ^_sg_buffer_type;
-
-const
-  __SG_BUFFERTYPE_DEFAULT = 0;
-  _SG_BUFFERTYPE_VERTEXBUFFER = 1;
-  _SG_BUFFERTYPE_INDEXBUFFER = 2;
-  __SG_BUFFERTYPE_NUM = 3;
-  __SG_BUFFERTYPE_FORCE_U32 = 2147483647;
 
 type
   _sg_index_type = Integer;
@@ -1733,37 +445,30 @@ const
   __SG_IMAGETYPE_FORCE_U32 = 2147483647;
 
 type
+  _sg_image_sample_type = Integer;
+  _Psg_image_sample_type = ^_sg_image_sample_type;
+
+const
+  __SG_IMAGESAMPLETYPE_DEFAULT = 0;
+  _SG_IMAGESAMPLETYPE_FLOAT = 1;
+  _SG_IMAGESAMPLETYPE_DEPTH = 2;
+  _SG_IMAGESAMPLETYPE_SINT = 3;
+  _SG_IMAGESAMPLETYPE_UINT = 4;
+  _SG_IMAGESAMPLETYPE_UNFILTERABLE_FLOAT = 5;
+  __SG_IMAGESAMPLETYPE_NUM = 6;
+  __SG_IMAGESAMPLETYPE_FORCE_U32 = 2147483647;
+
+type
   _sg_sampler_type = Integer;
   _Psg_sampler_type = ^_sg_sampler_type;
 
 const
   __SG_SAMPLERTYPE_DEFAULT = 0;
-  _SG_SAMPLERTYPE_FLOAT = 1;
-  _SG_SAMPLERTYPE_SINT = 2;
-  _SG_SAMPLERTYPE_UINT = 3;
-
-type
-  _sg_cube_face = Integer;
-  _Psg_cube_face = ^_sg_cube_face;
-
-const
-  _SG_CUBEFACE_POS_X = 0;
-  _SG_CUBEFACE_NEG_X = 1;
-  _SG_CUBEFACE_POS_Y = 2;
-  _SG_CUBEFACE_NEG_Y = 3;
-  _SG_CUBEFACE_POS_Z = 4;
-  _SG_CUBEFACE_NEG_Z = 5;
-  _SG_CUBEFACE_NUM = 6;
-  __SG_CUBEFACE_FORCE_U32 = 2147483647;
-
-type
-  _sg_shader_stage = Integer;
-  _Psg_shader_stage = ^_sg_shader_stage;
-
-const
-  _SG_SHADERSTAGE_VS = 0;
-  _SG_SHADERSTAGE_FS = 1;
-  __SG_SHADERSTAGE_FORCE_U32 = 2147483647;
+  _SG_SAMPLERTYPE_FILTERING = 1;
+  _SG_SAMPLERTYPE_NONFILTERING = 2;
+  _SG_SAMPLERTYPE_COMPARISON = 3;
+  __SG_SAMPLERTYPE_NUM = 4;
+  __SG_SAMPLERTYPE_FORCE_U32 = 5;
 
 type
   _sg_primitive_type = Integer;
@@ -1787,11 +492,7 @@ const
   __SG_FILTER_DEFAULT = 0;
   _SG_FILTER_NEAREST = 1;
   _SG_FILTER_LINEAR = 2;
-  _SG_FILTER_NEAREST_MIPMAP_NEAREST = 3;
-  _SG_FILTER_NEAREST_MIPMAP_LINEAR = 4;
-  _SG_FILTER_LINEAR_MIPMAP_NEAREST = 5;
-  _SG_FILTER_LINEAR_MIPMAP_LINEAR = 6;
-  __SG_FILTER_NUM = 7;
+  __SG_FILTER_NUM = 3;
   __SG_FILTER_FORCE_U32 = 2147483647;
 
 type
@@ -1829,18 +530,31 @@ const
   _SG_VERTEXFORMAT_FLOAT2 = 2;
   _SG_VERTEXFORMAT_FLOAT3 = 3;
   _SG_VERTEXFORMAT_FLOAT4 = 4;
-  _SG_VERTEXFORMAT_BYTE4 = 5;
-  _SG_VERTEXFORMAT_BYTE4N = 6;
-  _SG_VERTEXFORMAT_UBYTE4 = 7;
-  _SG_VERTEXFORMAT_UBYTE4N = 8;
-  _SG_VERTEXFORMAT_SHORT2 = 9;
-  _SG_VERTEXFORMAT_SHORT2N = 10;
-  _SG_VERTEXFORMAT_USHORT2N = 11;
-  _SG_VERTEXFORMAT_SHORT4 = 12;
-  _SG_VERTEXFORMAT_SHORT4N = 13;
-  _SG_VERTEXFORMAT_USHORT4N = 14;
-  _SG_VERTEXFORMAT_UINT10_N2 = 15;
-  __SG_VERTEXFORMAT_NUM = 16;
+  _SG_VERTEXFORMAT_INT = 5;
+  _SG_VERTEXFORMAT_INT2 = 6;
+  _SG_VERTEXFORMAT_INT3 = 7;
+  _SG_VERTEXFORMAT_INT4 = 8;
+  _SG_VERTEXFORMAT_UINT = 9;
+  _SG_VERTEXFORMAT_UINT2 = 10;
+  _SG_VERTEXFORMAT_UINT3 = 11;
+  _SG_VERTEXFORMAT_UINT4 = 12;
+  _SG_VERTEXFORMAT_BYTE4 = 13;
+  _SG_VERTEXFORMAT_BYTE4N = 14;
+  _SG_VERTEXFORMAT_UBYTE4 = 15;
+  _SG_VERTEXFORMAT_UBYTE4N = 16;
+  _SG_VERTEXFORMAT_SHORT2 = 17;
+  _SG_VERTEXFORMAT_SHORT2N = 18;
+  _SG_VERTEXFORMAT_USHORT2 = 19;
+  _SG_VERTEXFORMAT_USHORT2N = 20;
+  _SG_VERTEXFORMAT_SHORT4 = 21;
+  _SG_VERTEXFORMAT_SHORT4N = 22;
+  _SG_VERTEXFORMAT_USHORT4 = 23;
+  _SG_VERTEXFORMAT_USHORT4N = 24;
+  _SG_VERTEXFORMAT_INT10_N2 = 25;
+  _SG_VERTEXFORMAT_UINT10_N2 = 26;
+  _SG_VERTEXFORMAT_HALF2 = 27;
+  _SG_VERTEXFORMAT_HALF4 = 28;
+  __SG_VERTEXFORMAT_NUM = 29;
   __SG_VERTEXFORMAT_FORCE_U32 = 2147483647;
 
 type
@@ -1961,7 +675,11 @@ const
   _SG_BLENDFACTOR_ONE_MINUS_BLEND_COLOR = 13;
   _SG_BLENDFACTOR_BLEND_ALPHA = 14;
   _SG_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA = 15;
-  __SG_BLENDFACTOR_NUM = 16;
+  _SG_BLENDFACTOR_SRC1_COLOR = 16;
+  _SG_BLENDFACTOR_ONE_MINUS_SRC1_COLOR = 17;
+  _SG_BLENDFACTOR_SRC1_ALPHA = 18;
+  _SG_BLENDFACTOR_ONE_MINUS_SRC1_ALPHA = 19;
+  __SG_BLENDFACTOR_NUM = 20;
   __SG_BLENDFACTOR_FORCE_U32 = 2147483647;
 
 type
@@ -1973,7 +691,9 @@ const
   _SG_BLENDOP_ADD = 1;
   _SG_BLENDOP_SUBTRACT = 2;
   _SG_BLENDOP_REVERSE_SUBTRACT = 3;
-  __SG_BLENDOP_NUM = 4;
+  _SG_BLENDOP_MIN = 4;
+  _SG_BLENDOP_MAX = 5;
+  __SG_BLENDOP_NUM = 6;
   __SG_BLENDOP_FORCE_U32 = 2147483647;
 
 type
@@ -2001,16 +721,548 @@ const
   __SG_COLORMASK_FORCE_U32 = 2147483647;
 
 type
-  _sg_action = Integer;
-  _Psg_action = ^_sg_action;
+  _sg_load_action = Integer;
+  _Psg_load_action = ^_sg_load_action;
 
 const
-  __SG_ACTION_DEFAULT = 0;
-  _SG_ACTION_CLEAR = 1;
-  _SG_ACTION_LOAD = 2;
-  _SG_ACTION_DONTCARE = 3;
-  __SG_ACTION_NUM = 4;
-  __SG_ACTION_FORCE_U32 = 2147483647;
+  __SG_LOADACTION_DEFAULT = 0;
+  _SG_LOADACTION_CLEAR = 1;
+  _SG_LOADACTION_LOAD = 2;
+  _SG_LOADACTION_DONTCARE = 3;
+  __SG_LOADACTION_FORCE_U32 = 2147483647;
+
+type
+  _sg_store_action = Integer;
+  _Psg_store_action = ^_sg_store_action;
+
+const
+  __SG_STOREACTION_DEFAULT = 0;
+  _SG_STOREACTION_STORE = 1;
+  _SG_STOREACTION_DONTCARE = 2;
+  __SG_STOREACTION_FORCE_U32 = 2147483647;
+
+type
+  _sg_view_type = Integer;
+  _Psg_view_type = ^_sg_view_type;
+
+const
+  _SG_VIEWTYPE_INVALID = 0;
+  _SG_VIEWTYPE_STORAGEBUFFER = 1;
+  _SG_VIEWTYPE_STORAGEIMAGE = 2;
+  _SG_VIEWTYPE_TEXTURE = 3;
+  _SG_VIEWTYPE_COLORATTACHMENT = 4;
+  _SG_VIEWTYPE_RESOLVEATTACHMENT = 5;
+  _SG_VIEWTYPE_DEPTHSTENCILATTACHMENT = 6;
+  __SG_VIEWTYPE_FORCE_U32 = 2147483647;
+
+type
+  _sg_shader_stage = Integer;
+  _Psg_shader_stage = ^_sg_shader_stage;
+
+const
+  _SG_SHADERSTAGE_NONE = 0;
+  _SG_SHADERSTAGE_VERTEX = 1;
+  _SG_SHADERSTAGE_FRAGMENT = 2;
+  _SG_SHADERSTAGE_COMPUTE = 3;
+  __SG_SHADERSTAGE_FORCE_U32 = 2147483647;
+
+type
+  _sg_shader_attr_base_type = Integer;
+  _Psg_shader_attr_base_type = ^_sg_shader_attr_base_type;
+
+const
+  _SG_SHADERATTRBASETYPE_UNDEFINED = 0;
+  _SG_SHADERATTRBASETYPE_FLOAT = 1;
+  _SG_SHADERATTRBASETYPE_SINT = 2;
+  _SG_SHADERATTRBASETYPE_UINT = 3;
+  __SG_SHADERATTRBASETYPE_FORCE_U32 = 2147483647;
+
+type
+  _sg_log_item = Integer;
+  _Psg_log_item = ^_sg_log_item;
+
+const
+  _SG_LOGITEM_OK = 0;
+  _SG_LOGITEM_MALLOC_FAILED = 1;
+  _SG_LOGITEM_GL_TEXTURE_FORMAT_NOT_SUPPORTED = 2;
+  _SG_LOGITEM_GL_3D_TEXTURES_NOT_SUPPORTED = 3;
+  _SG_LOGITEM_GL_ARRAY_TEXTURES_NOT_SUPPORTED = 4;
+  _SG_LOGITEM_GL_STORAGEBUFFER_GLSL_BINDING_OUT_OF_RANGE = 5;
+  _SG_LOGITEM_GL_STORAGEIMAGE_GLSL_BINDING_OUT_OF_RANGE = 6;
+  _SG_LOGITEM_GL_SHADER_COMPILATION_FAILED = 7;
+  _SG_LOGITEM_GL_SHADER_LINKING_FAILED = 8;
+  _SG_LOGITEM_GL_VERTEX_ATTRIBUTE_NOT_FOUND_IN_SHADER = 9;
+  _SG_LOGITEM_GL_UNIFORMBLOCK_NAME_NOT_FOUND_IN_SHADER = 10;
+  _SG_LOGITEM_GL_IMAGE_SAMPLER_NAME_NOT_FOUND_IN_SHADER = 11;
+  _SG_LOGITEM_GL_FRAMEBUFFER_STATUS_UNDEFINED = 12;
+  _SG_LOGITEM_GL_FRAMEBUFFER_STATUS_INCOMPLETE_ATTACHMENT = 13;
+  _SG_LOGITEM_GL_FRAMEBUFFER_STATUS_INCOMPLETE_MISSING_ATTACHMENT = 14;
+  _SG_LOGITEM_GL_FRAMEBUFFER_STATUS_UNSUPPORTED = 15;
+  _SG_LOGITEM_GL_FRAMEBUFFER_STATUS_INCOMPLETE_MULTISAMPLE = 16;
+  _SG_LOGITEM_GL_FRAMEBUFFER_STATUS_UNKNOWN = 17;
+  _SG_LOGITEM_D3D11_FEATURE_LEVEL_0_DETECTED = 18;
+  _SG_LOGITEM_D3D11_CREATE_BUFFER_FAILED = 19;
+  _SG_LOGITEM_D3D11_CREATE_BUFFER_SRV_FAILED = 20;
+  _SG_LOGITEM_D3D11_CREATE_BUFFER_UAV_FAILED = 21;
+  _SG_LOGITEM_D3D11_CREATE_DEPTH_TEXTURE_UNSUPPORTED_PIXEL_FORMAT = 22;
+  _SG_LOGITEM_D3D11_CREATE_DEPTH_TEXTURE_FAILED = 23;
+  _SG_LOGITEM_D3D11_CREATE_2D_TEXTURE_UNSUPPORTED_PIXEL_FORMAT = 24;
+  _SG_LOGITEM_D3D11_CREATE_2D_TEXTURE_FAILED = 25;
+  _SG_LOGITEM_D3D11_CREATE_2D_SRV_FAILED = 26;
+  _SG_LOGITEM_D3D11_CREATE_3D_TEXTURE_UNSUPPORTED_PIXEL_FORMAT = 27;
+  _SG_LOGITEM_D3D11_CREATE_3D_TEXTURE_FAILED = 28;
+  _SG_LOGITEM_D3D11_CREATE_3D_SRV_FAILED = 29;
+  _SG_LOGITEM_D3D11_CREATE_MSAA_TEXTURE_FAILED = 30;
+  _SG_LOGITEM_D3D11_CREATE_SAMPLER_STATE_FAILED = 31;
+  _SG_LOGITEM_D3D11_UNIFORMBLOCK_HLSL_REGISTER_B_OUT_OF_RANGE = 32;
+  _SG_LOGITEM_D3D11_STORAGEBUFFER_HLSL_REGISTER_T_OUT_OF_RANGE = 33;
+  _SG_LOGITEM_D3D11_STORAGEBUFFER_HLSL_REGISTER_U_OUT_OF_RANGE = 34;
+  _SG_LOGITEM_D3D11_IMAGE_HLSL_REGISTER_T_OUT_OF_RANGE = 35;
+  _SG_LOGITEM_D3D11_STORAGEIMAGE_HLSL_REGISTER_U_OUT_OF_RANGE = 36;
+  _SG_LOGITEM_D3D11_SAMPLER_HLSL_REGISTER_S_OUT_OF_RANGE = 37;
+  _SG_LOGITEM_D3D11_LOAD_D3DCOMPILER_47_DLL_FAILED = 38;
+  _SG_LOGITEM_D3D11_SHADER_COMPILATION_FAILED = 39;
+  _SG_LOGITEM_D3D11_SHADER_COMPILATION_OUTPUT = 40;
+  _SG_LOGITEM_D3D11_CREATE_CONSTANT_BUFFER_FAILED = 41;
+  _SG_LOGITEM_D3D11_CREATE_INPUT_LAYOUT_FAILED = 42;
+  _SG_LOGITEM_D3D11_CREATE_RASTERIZER_STATE_FAILED = 43;
+  _SG_LOGITEM_D3D11_CREATE_DEPTH_STENCIL_STATE_FAILED = 44;
+  _SG_LOGITEM_D3D11_CREATE_BLEND_STATE_FAILED = 45;
+  _SG_LOGITEM_D3D11_CREATE_RTV_FAILED = 46;
+  _SG_LOGITEM_D3D11_CREATE_DSV_FAILED = 47;
+  _SG_LOGITEM_D3D11_CREATE_UAV_FAILED = 48;
+  _SG_LOGITEM_D3D11_MAP_FOR_UPDATE_BUFFER_FAILED = 49;
+  _SG_LOGITEM_D3D11_MAP_FOR_APPEND_BUFFER_FAILED = 50;
+  _SG_LOGITEM_D3D11_MAP_FOR_UPDATE_IMAGE_FAILED = 51;
+  _SG_LOGITEM_METAL_CREATE_BUFFER_FAILED = 52;
+  _SG_LOGITEM_METAL_TEXTURE_FORMAT_NOT_SUPPORTED = 53;
+  _SG_LOGITEM_METAL_CREATE_TEXTURE_FAILED = 54;
+  _SG_LOGITEM_METAL_CREATE_SAMPLER_FAILED = 55;
+  _SG_LOGITEM_METAL_SHADER_COMPILATION_FAILED = 56;
+  _SG_LOGITEM_METAL_SHADER_CREATION_FAILED = 57;
+  _SG_LOGITEM_METAL_SHADER_COMPILATION_OUTPUT = 58;
+  _SG_LOGITEM_METAL_SHADER_ENTRY_NOT_FOUND = 59;
+  _SG_LOGITEM_METAL_UNIFORMBLOCK_MSL_BUFFER_SLOT_OUT_OF_RANGE = 60;
+  _SG_LOGITEM_METAL_STORAGEBUFFER_MSL_BUFFER_SLOT_OUT_OF_RANGE = 61;
+  _SG_LOGITEM_METAL_STORAGEIMAGE_MSL_TEXTURE_SLOT_OUT_OF_RANGE = 62;
+  _SG_LOGITEM_METAL_IMAGE_MSL_TEXTURE_SLOT_OUT_OF_RANGE = 63;
+  _SG_LOGITEM_METAL_SAMPLER_MSL_SAMPLER_SLOT_OUT_OF_RANGE = 64;
+  _SG_LOGITEM_METAL_CREATE_CPS_FAILED = 65;
+  _SG_LOGITEM_METAL_CREATE_CPS_OUTPUT = 66;
+  _SG_LOGITEM_METAL_CREATE_RPS_FAILED = 67;
+  _SG_LOGITEM_METAL_CREATE_RPS_OUTPUT = 68;
+  _SG_LOGITEM_METAL_CREATE_DSS_FAILED = 69;
+  _SG_LOGITEM_WGPU_BINDGROUPS_POOL_EXHAUSTED = 70;
+  _SG_LOGITEM_WGPU_BINDGROUPSCACHE_SIZE_GREATER_ONE = 71;
+  _SG_LOGITEM_WGPU_BINDGROUPSCACHE_SIZE_POW2 = 72;
+  _SG_LOGITEM_WGPU_CREATEBINDGROUP_FAILED = 73;
+  _SG_LOGITEM_WGPU_CREATE_BUFFER_FAILED = 74;
+  _SG_LOGITEM_WGPU_CREATE_TEXTURE_FAILED = 75;
+  _SG_LOGITEM_WGPU_CREATE_TEXTURE_VIEW_FAILED = 76;
+  _SG_LOGITEM_WGPU_CREATE_SAMPLER_FAILED = 77;
+  _SG_LOGITEM_WGPU_CREATE_SHADER_MODULE_FAILED = 78;
+  _SG_LOGITEM_WGPU_SHADER_CREATE_BINDGROUP_LAYOUT_FAILED = 79;
+  _SG_LOGITEM_WGPU_UNIFORMBLOCK_WGSL_GROUP0_BINDING_OUT_OF_RANGE = 80;
+  _SG_LOGITEM_WGPU_TEXTURE_WGSL_GROUP1_BINDING_OUT_OF_RANGE = 81;
+  _SG_LOGITEM_WGPU_STORAGEBUFFER_WGSL_GROUP1_BINDING_OUT_OF_RANGE = 82;
+  _SG_LOGITEM_WGPU_STORAGEIMAGE_WGSL_GROUP1_BINDING_OUT_OF_RANGE = 83;
+  _SG_LOGITEM_WGPU_SAMPLER_WGSL_GROUP1_BINDING_OUT_OF_RANGE = 84;
+  _SG_LOGITEM_WGPU_CREATE_PIPELINE_LAYOUT_FAILED = 85;
+  _SG_LOGITEM_WGPU_CREATE_RENDER_PIPELINE_FAILED = 86;
+  _SG_LOGITEM_WGPU_CREATE_COMPUTE_PIPELINE_FAILED = 87;
+  _SG_LOGITEM_VULKAN_REQUIRED_EXTENSION_FUNCTION_MISSING = 88;
+  _SG_LOGITEM_VULKAN_ALLOC_DEVICE_MEMORY_NO_SUITABLE_MEMORY_TYPE = 89;
+  _SG_LOGITEM_VULKAN_ALLOCATE_MEMORY_FAILED = 90;
+  _SG_LOGITEM_VULKAN_ALLOC_BUFFER_DEVICE_MEMORY_FAILED = 91;
+  _SG_LOGITEM_VULKAN_ALLOC_IMAGE_DEVICE_MEMORY_FAILED = 92;
+  _SG_LOGITEM_VULKAN_DELETE_QUEUE_EXHAUSTED = 93;
+  _SG_LOGITEM_VULKAN_STAGING_CREATE_BUFFER_FAILED = 94;
+  _SG_LOGITEM_VULKAN_STAGING_ALLOCATE_MEMORY_FAILED = 95;
+  _SG_LOGITEM_VULKAN_STAGING_BIND_BUFFER_MEMORY_FAILED = 96;
+  _SG_LOGITEM_VULKAN_STAGING_STREAM_BUFFER_OVERFLOW = 97;
+  _SG_LOGITEM_VULKAN_CREATE_SHARED_BUFFER_FAILED = 98;
+  _SG_LOGITEM_VULKAN_ALLOCATE_SHARED_BUFFER_MEMORY_FAILED = 99;
+  _SG_LOGITEM_VULKAN_BIND_SHARED_BUFFER_MEMORY_FAILED = 100;
+  _SG_LOGITEM_VULKAN_MAP_SHARED_BUFFER_MEMORY_FAILED = 101;
+  _SG_LOGITEM_VULKAN_CREATE_BUFFER_FAILED = 102;
+  _SG_LOGITEM_VULKAN_BIND_BUFFER_MEMORY_FAILED = 103;
+  _SG_LOGITEM_VULKAN_CREATE_IMAGE_FAILED = 104;
+  _SG_LOGITEM_VULKAN_BIND_IMAGE_MEMORY_FAILED = 105;
+  _SG_LOGITEM_VULKAN_CREATE_SHADER_MODULE_FAILED = 106;
+  _SG_LOGITEM_VULKAN_UNIFORMBLOCK_SPIRV_SET0_BINDING_OUT_OF_RANGE = 107;
+  _SG_LOGITEM_VULKAN_TEXTURE_SPIRV_SET1_BINDING_OUT_OF_RANGE = 108;
+  _SG_LOGITEM_VULKAN_STORAGEBUFFER_SPIRV_SET1_BINDING_OUT_OF_RANGE = 109;
+  _SG_LOGITEM_VULKAN_STORAGEIMAGE_SPIRV_SET1_BINDING_OUT_OF_RANGE = 110;
+  _SG_LOGITEM_VULKAN_SAMPLER_SPIRV_SET1_BINDING_OUT_OF_RANGE = 111;
+  _SG_LOGITEM_VULKAN_CREATE_DESCRIPTOR_SET_LAYOUT_FAILED = 112;
+  _SG_LOGITEM_VULKAN_SHADER_UNIFORM_DESCRIPTOR_SET_SIZE_VS_CACHE_SIZE = 113;
+  _SG_LOGITEM_VULKAN_CREATE_PIPELINE_LAYOUT_FAILED = 114;
+  _SG_LOGITEM_VULKAN_CREATE_GRAPHICS_PIPELINE_FAILED = 115;
+  _SG_LOGITEM_VULKAN_CREATE_COMPUTE_PIPELINE_FAILED = 116;
+  _SG_LOGITEM_VULKAN_CREATE_IMAGE_VIEW_FAILED = 117;
+  _SG_LOGITEM_VULKAN_VIEW_MAX_DESCRIPTOR_SIZE = 118;
+  _SG_LOGITEM_VULKAN_CREATE_SAMPLER_FAILED = 119;
+  _SG_LOGITEM_VULKAN_SAMPLER_MAX_DESCRIPTOR_SIZE = 120;
+  _SG_LOGITEM_VULKAN_WAIT_FOR_FENCE_FAILED = 121;
+  _SG_LOGITEM_VULKAN_UNIFORM_BUFFER_OVERFLOW = 122;
+  _SG_LOGITEM_VULKAN_DESCRIPTOR_BUFFER_OVERFLOW = 123;
+  _SG_LOGITEM_IDENTICAL_COMMIT_LISTENER = 124;
+  _SG_LOGITEM_COMMIT_LISTENER_ARRAY_FULL = 125;
+  _SG_LOGITEM_TRACE_HOOKS_NOT_ENABLED = 126;
+  _SG_LOGITEM_DEALLOC_BUFFER_INVALID_STATE = 127;
+  _SG_LOGITEM_DEALLOC_IMAGE_INVALID_STATE = 128;
+  _SG_LOGITEM_DEALLOC_SAMPLER_INVALID_STATE = 129;
+  _SG_LOGITEM_DEALLOC_SHADER_INVALID_STATE = 130;
+  _SG_LOGITEM_DEALLOC_PIPELINE_INVALID_STATE = 131;
+  _SG_LOGITEM_DEALLOC_VIEW_INVALID_STATE = 132;
+  _SG_LOGITEM_INIT_BUFFER_INVALID_STATE = 133;
+  _SG_LOGITEM_INIT_IMAGE_INVALID_STATE = 134;
+  _SG_LOGITEM_INIT_SAMPLER_INVALID_STATE = 135;
+  _SG_LOGITEM_INIT_SHADER_INVALID_STATE = 136;
+  _SG_LOGITEM_INIT_PIPELINE_INVALID_STATE = 137;
+  _SG_LOGITEM_INIT_VIEW_INVALID_STATE = 138;
+  _SG_LOGITEM_UNINIT_BUFFER_INVALID_STATE = 139;
+  _SG_LOGITEM_UNINIT_IMAGE_INVALID_STATE = 140;
+  _SG_LOGITEM_UNINIT_SAMPLER_INVALID_STATE = 141;
+  _SG_LOGITEM_UNINIT_SHADER_INVALID_STATE = 142;
+  _SG_LOGITEM_UNINIT_PIPELINE_INVALID_STATE = 143;
+  _SG_LOGITEM_UNINIT_VIEW_INVALID_STATE = 144;
+  _SG_LOGITEM_FAIL_BUFFER_INVALID_STATE = 145;
+  _SG_LOGITEM_FAIL_IMAGE_INVALID_STATE = 146;
+  _SG_LOGITEM_FAIL_SAMPLER_INVALID_STATE = 147;
+  _SG_LOGITEM_FAIL_SHADER_INVALID_STATE = 148;
+  _SG_LOGITEM_FAIL_PIPELINE_INVALID_STATE = 149;
+  _SG_LOGITEM_FAIL_VIEW_INVALID_STATE = 150;
+  _SG_LOGITEM_BUFFER_POOL_EXHAUSTED = 151;
+  _SG_LOGITEM_IMAGE_POOL_EXHAUSTED = 152;
+  _SG_LOGITEM_SAMPLER_POOL_EXHAUSTED = 153;
+  _SG_LOGITEM_SHADER_POOL_EXHAUSTED = 154;
+  _SG_LOGITEM_PIPELINE_POOL_EXHAUSTED = 155;
+  _SG_LOGITEM_VIEW_POOL_EXHAUSTED = 156;
+  _SG_LOGITEM_BEGINPASS_TOO_MANY_COLOR_ATTACHMENTS = 157;
+  _SG_LOGITEM_BEGINPASS_TOO_MANY_RESOLVE_ATTACHMENTS = 158;
+  _SG_LOGITEM_BEGINPASS_ATTACHMENTS_ALIVE = 159;
+  _SG_LOGITEM_DRAW_WITHOUT_BINDINGS = 160;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_VERTEXSTAGE_TEXTURES = 161;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_FRAGMENTSTAGE_TEXTURES = 162;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_COMPUTESTAGE_TEXTURES = 163;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_VERTEXSTAGE_STORAGEBUFFERS = 164;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_FRAGMENTSTAGE_STORAGEBUFFERS = 165;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_COMPUTESTAGE_STORAGEBUFFERS = 166;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_VERTEXSTAGE_STORAGEIMAGES = 167;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_FRAGMENTSTAGE_STORAGEIMAGES = 168;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_COMPUTESTAGE_STORAGEIMAGES = 169;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_VERTEXSTAGE_TEXTURESAMPLERPAIRS = 170;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_FRAGMENTSTAGE_TEXTURESAMPLERPAIRS = 171;
+  _SG_LOGITEM_SHADERDESC_TOO_MANY_COMPUTESTAGE_TEXTURESAMPLERPAIRS = 172;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_CANARY = 173;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_IMMUTABLE_DYNAMIC_STREAM = 174;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_SEPARATE_BUFFER_TYPES = 175;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_EXPECT_NONZERO_SIZE = 176;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_EXPECT_MATCHING_DATA_SIZE = 177;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_EXPECT_ZERO_DATA_SIZE = 178;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_EXPECT_NO_DATA = 179;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_EXPECT_DATA = 180;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_STORAGEBUFFER_SUPPORTED = 181;
+  _SG_LOGITEM_VALIDATE_BUFFERDESC_STORAGEBUFFER_SIZE_MULTIPLE_4 = 182;
+  _SG_LOGITEM_VALIDATE_IMAGEDATA_NODATA = 183;
+  _SG_LOGITEM_VALIDATE_IMAGEDATA_DATA_SIZE = 184;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_CANARY = 185;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_IMMUTABLE_DYNAMIC_STREAM = 186;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_COLOR_DEPTH_STENCIL = 187;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_IMAGETYPE_2D_NUMSLICES = 188;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_IMAGETYPE_CUBE_NUMSLICES = 189;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_IMAGETYPE_ARRAY_NUMSLICES = 190;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_IMAGETYPE_3D_NUMSLICES = 191;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_NUMSLICES = 192;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_WIDTH = 193;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_HEIGHT = 194;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_NONRT_PIXELFORMAT = 195;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_MSAA_BUT_NO_ATTACHMENT = 196;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_DEPTH_3D_IMAGE = 197;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_EXPECT_IMMUTABLE = 198;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_EXPECT_NO_DATA = 199;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_PIXELFORMAT = 200;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_RESOLVE_EXPECT_NO_MSAA = 201;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_NO_MSAA_SUPPORT = 202;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_MSAA_NUM_MIPMAPS = 203;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_MSAA_3D_IMAGE = 204;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_MSAA_CUBE_IMAGE = 205;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_ATTACHMENT_MSAA_ARRAY_IMAGE = 206;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_STORAGEIMAGE_PIXELFORMAT = 207;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_STORAGEIMAGE_EXPECT_NO_MSAA = 208;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_INJECTED_NO_DATA = 209;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_DYNAMIC_NO_DATA = 210;
+  _SG_LOGITEM_VALIDATE_IMAGEDESC_COMPRESSED_IMMUTABLE = 211;
+  _SG_LOGITEM_VALIDATE_SAMPLERDESC_CANARY = 212;
+  _SG_LOGITEM_VALIDATE_SAMPLERDESC_ANISTROPIC_REQUIRES_LINEAR_FILTERING = 213;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_CANARY = 214;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VERTEX_SOURCE = 215;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_FRAGMENT_SOURCE = 216;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_COMPUTE_SOURCE = 217;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VERTEX_SOURCE_OR_BYTECODE = 218;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_FRAGMENT_SOURCE_OR_BYTECODE = 219;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_COMPUTE_SOURCE_OR_BYTECODE = 220;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_INVALID_SHADER_COMBO = 221;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_NO_BYTECODE_SIZE = 222;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_METAL_THREADS_PER_THREADGROUP_INITIALIZED = 223;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_METAL_THREADS_PER_THREADGROUP_MULTIPLE_32 = 224;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_NO_CONT_MEMBERS = 225;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_SIZE_IS_ZERO = 226;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_METAL_BUFFER_SLOT_COLLISION = 227;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_HLSL_REGISTER_B_COLLISION = 228;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_WGSL_GROUP0_BINDING_COLLISION = 229;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_SPIRV_SET0_BINDING_COLLISION = 230;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_NO_MEMBERS = 231;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_UNIFORM_GLSL_NAME = 232;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_SIZE_MISMATCH = 233;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_ARRAY_COUNT = 234;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_UNIFORMBLOCK_STD140_ARRAY_TYPE = 235;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEBUFFER_METAL_BUFFER_SLOT_COLLISION = 236;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEBUFFER_HLSL_REGISTER_T_COLLISION = 237;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEBUFFER_HLSL_REGISTER_U_COLLISION = 238;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEBUFFER_GLSL_BINDING_COLLISION = 239;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEBUFFER_WGSL_GROUP1_BINDING_COLLISION = 240;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEBUFFER_SPIRV_SET1_BINDING_COLLISION = 241;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEIMAGE_EXPECT_COMPUTE_STAGE = 242;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEIMAGE_METAL_TEXTURE_SLOT_COLLISION = 243;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEIMAGE_HLSL_REGISTER_U_COLLISION = 244;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEIMAGE_GLSL_BINDING_COLLISION = 245;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEIMAGE_WGSL_GROUP1_BINDING_COLLISION = 246;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_STORAGEIMAGE_SPIRV_SET1_BINDING_COLLISION = 247;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_TEXTURE_METAL_TEXTURE_SLOT_COLLISION = 248;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_TEXTURE_HLSL_REGISTER_T_COLLISION = 249;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_TEXTURE_WGSL_GROUP1_BINDING_COLLISION = 250;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_VIEW_TEXTURE_SPIRV_SET1_BINDING_COLLISION = 251;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_SAMPLER_METAL_SAMPLER_SLOT_COLLISION = 252;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_SAMPLER_HLSL_REGISTER_S_COLLISION = 253;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_SAMPLER_WGSL_GROUP1_BINDING_COLLISION = 254;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_SAMPLER_SPIRV_SET1_BINDING_COLLISION = 255;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_TEXTURE_SAMPLER_PAIR_VIEW_SLOT_OUT_OF_RANGE = 256;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_TEXTURE_SAMPLER_PAIR_SAMPLER_SLOT_OUT_OF_RANGE = 257;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_TEXTURE_SAMPLER_PAIR_TEXTURE_STAGE_MISMATCH = 258;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_TEXTURE_SAMPLER_PAIR_EXPECT_TEXTURE_VIEW = 259;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_TEXTURE_SAMPLER_PAIR_SAMPLER_STAGE_MISMATCH = 260;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_TEXTURE_SAMPLER_PAIR_GLSL_NAME = 261;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_NONFILTERING_SAMPLER_REQUIRED = 262;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_COMPARISON_SAMPLER_REQUIRED = 263;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_TEXVIEW_NOT_REFERENCED_BY_TEXTURE_SAMPLER_PAIRS = 264;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_SAMPLER_NOT_REFERENCED_BY_TEXTURE_SAMPLER_PAIRS = 265;
+  _SG_LOGITEM_VALIDATE_SHADERDESC_ATTR_STRING_TOO_LONG = 266;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_CANARY = 267;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_SHADER = 268;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_COMPUTE_SHADER_EXPECTED = 269;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_NO_COMPUTE_SHADER_EXPECTED = 270;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_NO_CONT_ATTRS = 271;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_ATTR_BASETYPE_MISMATCH = 272;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_ATTR_VERTEXFORMAT_INT10_N2_NOT_SUPPORTED = 273;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_LAYOUT_STRIDE4 = 274;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_ATTR_SEMANTICS = 275;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_SHADER_READONLY_STORAGEBUFFERS = 276;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_BLENDOP_MINMAX_REQUIRES_BLENDFACTOR_ONE = 277;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_DUAL_SOURCE_BLENDING_NOT_SUPPORTED = 278;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_DEPTH_FORMAT_NONE_BUT_DEPTH_WRITE_ENABLED = 279;
+  _SG_LOGITEM_VALIDATE_PIPELINEDESC_DEPTH_FORMAT_NONE_COMPARE_FUNC_MISMATCH = 280;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_CANARY = 281;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_UNIQUE_VIEWTYPE = 282;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_ANY_VIEWTYPE = 283;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_RESOURCE_ALIVE = 284;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_RESOURCE_FAILED = 285;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_STORAGEBUFFER_OFFSET_VS_BUFFER_SIZE = 286;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_STORAGEBUFFER_OFFSET_MULTIPLE_256 = 287;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_STORAGEBUFFER_USAGE = 288;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_STORAGEIMAGE_USAGE = 289;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_COLORATTACHMENT_USAGE = 290;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_RESOLVEATTACHMENT_USAGE = 291;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_DEPTHSTENCILATTACHMENT_USAGE = 292;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_IMAGE_MIPLEVEL = 293;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_IMAGE_2D_SLICE = 294;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_IMAGE_CUBEMAP_SLICE = 295;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_IMAGE_ARRAY_SLICE = 296;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_IMAGE_3D_SLICE = 297;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_TEXTURE_EXPECT_NO_MSAA = 298;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_TEXTURE_MIPLEVELS = 299;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_TEXTURE_2D_SLICES = 300;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_TEXTURE_CUBEMAP_SLICES = 301;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_TEXTURE_ARRAY_SLICES = 302;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_TEXTURE_3D_SLICES = 303;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_STORAGEIMAGE_PIXELFORMAT = 304;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_COLORATTACHMENT_PIXELFORMAT = 305;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_DEPTHSTENCILATTACHMENT_PIXELFORMAT = 306;
+  _SG_LOGITEM_VALIDATE_VIEWDESC_RESOLVEATTACHMENT_SAMPLECOUNT = 307;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_CANARY = 308;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COMPUTEPASS_EXPECT_NO_ATTACHMENTS = 309;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_WIDTH = 310;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_WIDTH_NOTSET = 311;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_HEIGHT = 312;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_HEIGHT_NOTSET = 313;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_SAMPLECOUNT = 314;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_SAMPLECOUNT_NOTSET = 315;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_COLORFORMAT = 316;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_COLORFORMAT_NOTSET = 317;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_EXPECT_DEPTHFORMAT_NOTSET = 318;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_METAL_EXPECT_CURRENTDRAWABLE = 319;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_METAL_EXPECT_CURRENTDRAWABLE_NOTSET = 320;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_METAL_EXPECT_DEPTHSTENCILTEXTURE = 321;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_METAL_EXPECT_DEPTHSTENCILTEXTURE_NOTSET = 322;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_METAL_EXPECT_MSAACOLORTEXTURE = 323;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_METAL_EXPECT_MSAACOLORTEXTURE_NOTSET = 324;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_D3D11_EXPECT_RENDERVIEW = 325;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_D3D11_EXPECT_RENDERVIEW_NOTSET = 326;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_D3D11_EXPECT_RESOLVEVIEW = 327;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_D3D11_EXPECT_RESOLVEVIEW_NOTSET = 328;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_D3D11_EXPECT_DEPTHSTENCILVIEW = 329;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_D3D11_EXPECT_DEPTHSTENCILVIEW_NOTSET = 330;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_WGPU_EXPECT_RENDERVIEW = 331;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_WGPU_EXPECT_RENDERVIEW_NOTSET = 332;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_WGPU_EXPECT_RESOLVEVIEW = 333;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_WGPU_EXPECT_RESOLVEVIEW_NOTSET = 334;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_WGPU_EXPECT_DEPTHSTENCILVIEW = 335;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_WGPU_EXPECT_DEPTHSTENCILVIEW_NOTSET = 336;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_GL_EXPECT_FRAMEBUFFER_NOTSET = 337;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RENDERIMAGE = 338;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RENDERIMAGE_NOTSET = 339;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RENDERVIEW = 340;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RENDERVIEW_NOTSET = 341;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_DEPTHSTENCILIMAGE = 342;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_DEPTHSTENCILIMAGE_NOTSET = 343;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_DEPTHSTENCILVIEW = 344;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_DEPTHSTENCILVIEW_NOTSET = 345;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RESOLVEIMAGE = 346;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RESOLVEIMAGE_NOTSET = 347;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RESOLVEVIEW = 348;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RESOLVEVIEW_NOTSET = 349;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RENDERFINISHEDSEMAPHORE = 350;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_RENDERFINISHEDSEMAPHORE_NOTSET = 351;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_PRESENTCOMPLETESEMAPHORE = 352;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_SWAPCHAIN_VULKAN_EXPECT_PRESENTCOMPLETESEMAPHORE_NOTSET = 353;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEWS_CONTINUOUS = 354;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEW_ALIVE = 355;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEW_VALID = 356;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEW_TYPE = 357;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEW_IMAGE_ALIVE = 358;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEW_IMAGE_VALID = 359;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEW_SIZES = 360;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEW_SAMPLECOUNT = 361;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_COLORATTACHMENTVIEW_SAMPLECOUNTS_EQUAL = 362;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_RESOLVEATTACHMENTVIEW_NO_COLORATTACHMENTVIEW = 363;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_RESOLVEATTACHMENTVIEW_ALIVE = 364;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_RESOLVEATTACHMENTVIEW_VALID = 365;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_RESOLVEATTACHMENTVIEW_TYPE = 366;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_RESOLVEATTACHMENTVIEW_IMAGE_ALIVE = 367;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_RESOLVEATTACHMENTVIEW_IMAGE_VALID = 368;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_RESOLVEATTACHMENTVIEW_SIZES = 369;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_DEPTHSTENCILATTACHMENTVIEWS_CONTINUOUS = 370;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_DEPTHSTENCILATTACHMENTVIEW_ALIVE = 371;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_DEPTHSTENCILATTACHMENTVIEW_VALID = 372;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_DEPTHSTENCILATTACHMENTVIEW_TYPE = 373;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_DEPTHSTENCILATTACHMENTVIEW_IMAGE_ALIVE = 374;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_DEPTHSTENCILATTACHMENTVIEW_IMAGE_VALID = 375;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_DEPTHSTENCILATTACHMENTVIEW_SIZES = 376;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_DEPTHSTENCILATTACHMENTVIEW_SAMPLECOUNT = 377;
+  _SG_LOGITEM_VALIDATE_BEGINPASS_ATTACHMENTS_EXPECTED = 378;
+  _SG_LOGITEM_VALIDATE_AVP_RENDERPASS_EXPECTED = 379;
+  _SG_LOGITEM_VALIDATE_ASR_RENDERPASS_EXPECTED = 380;
+  _SG_LOGITEM_VALIDATE_APIP_PIPELINE_VALID_ID = 381;
+  _SG_LOGITEM_VALIDATE_APIP_PIPELINE_EXISTS = 382;
+  _SG_LOGITEM_VALIDATE_APIP_PIPELINE_VALID = 383;
+  _SG_LOGITEM_VALIDATE_APIP_PASS_EXPECTED = 384;
+  _SG_LOGITEM_VALIDATE_APIP_PIPELINE_SHADER_ALIVE = 385;
+  _SG_LOGITEM_VALIDATE_APIP_PIPELINE_SHADER_VALID = 386;
+  _SG_LOGITEM_VALIDATE_APIP_COMPUTEPASS_EXPECTED = 387;
+  _SG_LOGITEM_VALIDATE_APIP_RENDERPASS_EXPECTED = 388;
+  _SG_LOGITEM_VALIDATE_APIP_SWAPCHAIN_COLOR_COUNT = 389;
+  _SG_LOGITEM_VALIDATE_APIP_SWAPCHAIN_COLOR_FORMAT = 390;
+  _SG_LOGITEM_VALIDATE_APIP_SWAPCHAIN_DEPTH_FORMAT = 391;
+  _SG_LOGITEM_VALIDATE_APIP_SWAPCHAIN_SAMPLE_COUNT = 392;
+  _SG_LOGITEM_VALIDATE_APIP_ATTACHMENTS_ALIVE = 393;
+  _SG_LOGITEM_VALIDATE_APIP_COLORATTACHMENTS_COUNT = 394;
+  _SG_LOGITEM_VALIDATE_APIP_COLORATTACHMENTS_VIEW_VALID = 395;
+  _SG_LOGITEM_VALIDATE_APIP_COLORATTACHMENTS_IMAGE_VALID = 396;
+  _SG_LOGITEM_VALIDATE_APIP_COLORATTACHMENTS_FORMAT = 397;
+  _SG_LOGITEM_VALIDATE_APIP_DEPTHSTENCILATTACHMENT_VIEW_VALID = 398;
+  _SG_LOGITEM_VALIDATE_APIP_DEPTHSTENCILATTACHMENT_IMAGE_VALID = 399;
+  _SG_LOGITEM_VALIDATE_APIP_DEPTHSTENCILATTACHMENT_FORMAT = 400;
+  _SG_LOGITEM_VALIDATE_APIP_ATTACHMENT_SAMPLE_COUNT = 401;
+  _SG_LOGITEM_VALIDATE_ABND_PASS_EXPECTED = 402;
+  _SG_LOGITEM_VALIDATE_ABND_EMPTY_BINDINGS = 403;
+  _SG_LOGITEM_VALIDATE_ABND_NO_PIPELINE = 404;
+  _SG_LOGITEM_VALIDATE_ABND_PIPELINE_ALIVE = 405;
+  _SG_LOGITEM_VALIDATE_ABND_PIPELINE_VALID = 406;
+  _SG_LOGITEM_VALIDATE_ABND_PIPELINE_SHADER_ALIVE = 407;
+  _SG_LOGITEM_VALIDATE_ABND_PIPELINE_SHADER_VALID = 408;
+  _SG_LOGITEM_VALIDATE_ABND_COMPUTE_EXPECTED_NO_VBUFS = 409;
+  _SG_LOGITEM_VALIDATE_ABND_COMPUTE_EXPECTED_NO_IBUF = 410;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECTED_VBUF = 411;
+  _SG_LOGITEM_VALIDATE_ABND_VBUF_ALIVE = 412;
+  _SG_LOGITEM_VALIDATE_ABND_VBUF_USAGE = 413;
+  _SG_LOGITEM_VALIDATE_ABND_VBUF_OVERFLOW = 414;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECTED_NO_IBUF = 415;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECTED_IBUF = 416;
+  _SG_LOGITEM_VALIDATE_ABND_IBUF_ALIVE = 417;
+  _SG_LOGITEM_VALIDATE_ABND_IBUF_USAGE = 418;
+  _SG_LOGITEM_VALIDATE_ABND_IBUF_OVERFLOW = 419;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECTED_VIEW_BINDING = 420;
+  _SG_LOGITEM_VALIDATE_ABND_VIEW_ALIVE = 421;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECT_TEXVIEW = 422;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECT_SBVIEW = 423;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECT_SIMGVIEW = 424;
+  _SG_LOGITEM_VALIDATE_ABND_TEXVIEW_IMAGETYPE_MISMATCH = 425;
+  _SG_LOGITEM_VALIDATE_ABND_TEXVIEW_EXPECTED_MULTISAMPLED_IMAGE = 426;
+  _SG_LOGITEM_VALIDATE_ABND_TEXVIEW_EXPECTED_NON_MULTISAMPLED_IMAGE = 427;
+  _SG_LOGITEM_VALIDATE_ABND_TEXVIEW_EXPECTED_FILTERABLE_IMAGE = 428;
+  _SG_LOGITEM_VALIDATE_ABND_TEXVIEW_EXPECTED_DEPTH_IMAGE = 429;
+  _SG_LOGITEM_VALIDATE_ABND_SBVIEW_READWRITE_IMMUTABLE = 430;
+  _SG_LOGITEM_VALIDATE_ABND_SIMGVIEW_COMPUTE_PASS_EXPECTED = 431;
+  _SG_LOGITEM_VALIDATE_ABND_SIMGVIEW_IMAGETYPE_MISMATCH = 432;
+  _SG_LOGITEM_VALIDATE_ABND_SIMGVIEW_ACCESSFORMAT = 433;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECTED_SAMPLER_BINDING = 434;
+  _SG_LOGITEM_VALIDATE_ABND_UNEXPECTED_SAMPLER_COMPARE_NEVER = 435;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECTED_SAMPLER_COMPARE_NEVER = 436;
+  _SG_LOGITEM_VALIDATE_ABND_EXPECTED_NONFILTERING_SAMPLER = 437;
+  _SG_LOGITEM_VALIDATE_ABND_SAMPLER_ALIVE = 438;
+  _SG_LOGITEM_VALIDATE_ABND_SAMPLER_VALID = 439;
+  _SG_LOGITEM_VALIDATE_ABND_TEXTURE_BINDING_VS_DEPTHSTENCIL_ATTACHMENT = 440;
+  _SG_LOGITEM_VALIDATE_ABND_TEXTURE_BINDING_VS_COLOR_ATTACHMENT = 441;
+  _SG_LOGITEM_VALIDATE_ABND_TEXTURE_BINDING_VS_RESOLVE_ATTACHMENT = 442;
+  _SG_LOGITEM_VALIDATE_ABND_TEXTURE_VS_STORAGEIMAGE_BINDING = 443;
+  _SG_LOGITEM_VALIDATE_AU_PASS_EXPECTED = 444;
+  _SG_LOGITEM_VALIDATE_AU_NO_PIPELINE = 445;
+  _SG_LOGITEM_VALIDATE_AU_PIPELINE_ALIVE = 446;
+  _SG_LOGITEM_VALIDATE_AU_PIPELINE_VALID = 447;
+  _SG_LOGITEM_VALIDATE_AU_PIPELINE_SHADER_ALIVE = 448;
+  _SG_LOGITEM_VALIDATE_AU_PIPELINE_SHADER_VALID = 449;
+  _SG_LOGITEM_VALIDATE_AU_NO_UNIFORMBLOCK_AT_SLOT = 450;
+  _SG_LOGITEM_VALIDATE_AU_SIZE = 451;
+  _SG_LOGITEM_VALIDATE_DRAW_RENDERPASS_EXPECTED = 452;
+  _SG_LOGITEM_VALIDATE_DRAW_BASEELEMENT_GE_ZERO = 453;
+  _SG_LOGITEM_VALIDATE_DRAW_NUMELEMENTS_GE_ZERO = 454;
+  _SG_LOGITEM_VALIDATE_DRAW_NUMINSTANCES_GE_ZERO = 455;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_RENDERPASS_EXPECTED = 456;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_BASEELEMENT_GE_ZERO = 457;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_NUMELEMENTS_GE_ZERO = 458;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_NUMINSTANCES_GE_ZERO = 459;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_BASEINSTANCE_GE_ZERO = 460;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_BASEVERTEX_VS_INDEXED = 461;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_BASEINSTANCE_VS_INSTANCED = 462;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_BASEVERTEX_NOT_SUPPORTED = 463;
+  _SG_LOGITEM_VALIDATE_DRAW_EX_BASEINSTANCE_NOT_SUPPORTED = 464;
+  _SG_LOGITEM_VALIDATE_DRAW_REQUIRED_BINDINGS_OR_UNIFORMS_MISSING = 465;
+  _SG_LOGITEM_VALIDATE_DISPATCH_COMPUTEPASS_EXPECTED = 466;
+  _SG_LOGITEM_VALIDATE_DISPATCH_NUMGROUPSX = 467;
+  _SG_LOGITEM_VALIDATE_DISPATCH_NUMGROUPSY = 468;
+  _SG_LOGITEM_VALIDATE_DISPATCH_NUMGROUPSZ = 469;
+  _SG_LOGITEM_VALIDATE_DISPATCH_REQUIRED_BINDINGS_OR_UNIFORMS_MISSING = 470;
+  _SG_LOGITEM_VALIDATE_UPDATEBUF_USAGE = 471;
+  _SG_LOGITEM_VALIDATE_UPDATEBUF_SIZE = 472;
+  _SG_LOGITEM_VALIDATE_UPDATEBUF_ONCE = 473;
+  _SG_LOGITEM_VALIDATE_UPDATEBUF_APPEND = 474;
+  _SG_LOGITEM_VALIDATE_APPENDBUF_USAGE = 475;
+  _SG_LOGITEM_VALIDATE_APPENDBUF_SIZE = 476;
+  _SG_LOGITEM_VALIDATE_APPENDBUF_UPDATE = 477;
+  _SG_LOGITEM_VALIDATE_UPDIMG_USAGE = 478;
+  _SG_LOGITEM_VALIDATE_UPDIMG_ONCE = 479;
+  _SG_LOGITEM_VALIDATION_FAILED = 480;
 
 const
   _SAPP_MAX_TOUCHPOINTS = 8;
@@ -2176,6 +1428,7 @@ const
   _SAPP_KEYCODE_RIGHT_ALT = 346;
   _SAPP_KEYCODE_RIGHT_SUPER = 347;
   _SAPP_KEYCODE_MENU = 348;
+  __SAPP_KEYCODE_FORCE_U32 = 2147483647;
 
 type
   _sapp_android_tooltype = Integer;
@@ -2186,6 +1439,7 @@ const
   _SAPP_ANDROIDTOOLTYPE_FINGER = 1;
   _SAPP_ANDROIDTOOLTYPE_STYLUS = 2;
   _SAPP_ANDROIDTOOLTYPE_MOUSE = 3;
+  __SAPP_ANDROIDTOOLTYPE_FORCE_U32 = 2147483647;
 
 type
   _sapp_mousebutton = Integer;
@@ -2196,6 +1450,7 @@ const
   _SAPP_MOUSEBUTTON_RIGHT = 1;
   _SAPP_MOUSEBUTTON_MIDDLE = 2;
   _SAPP_MOUSEBUTTON_INVALID = 256;
+  __SAPP_MOUSEBUTTON_FORCE_U32 = 2147483647;
 
 const
   _SAPP_MODIFIER_SHIFT = 1;
@@ -2207,6 +1462,167 @@ const
   _SAPP_MODIFIER_MMB = 1024;
 
 type
+  _sapp_log_item = Integer;
+  _Psapp_log_item = ^_sapp_log_item;
+
+const
+  _SAPP_LOGITEM_OK = 0;
+  _SAPP_LOGITEM_MALLOC_FAILED = 1;
+  _SAPP_LOGITEM_SWAPCHAIN_DEPTHFORMAT_INVALID = 2;
+  _SAPP_LOGITEM_MACOS_INVALID_NSOPENGL_PROFILE = 3;
+  _SAPP_LOGITEM_METAL_CREATE_SWAPCHAIN_DEPTH_TEXTURE_FAILED = 4;
+  _SAPP_LOGITEM_METAL_CREATE_SWAPCHAIN_MSAA_TEXTURE_FAILED = 5;
+  _SAPP_LOGITEM_WIN32_LOAD_OPENGL32_DLL_FAILED = 6;
+  _SAPP_LOGITEM_WIN32_CREATE_HELPER_WINDOW_FAILED = 7;
+  _SAPP_LOGITEM_WIN32_HELPER_WINDOW_GETDC_FAILED = 8;
+  _SAPP_LOGITEM_WIN32_DUMMY_CONTEXT_SET_PIXELFORMAT_FAILED = 9;
+  _SAPP_LOGITEM_WIN32_CREATE_DUMMY_CONTEXT_FAILED = 10;
+  _SAPP_LOGITEM_WIN32_DUMMY_CONTEXT_MAKE_CURRENT_FAILED = 11;
+  _SAPP_LOGITEM_WIN32_GET_PIXELFORMAT_ATTRIB_FAILED = 12;
+  _SAPP_LOGITEM_WIN32_WGL_FIND_PIXELFORMAT_FAILED = 13;
+  _SAPP_LOGITEM_WIN32_WGL_DESCRIBE_PIXELFORMAT_FAILED = 14;
+  _SAPP_LOGITEM_WIN32_WGL_SET_PIXELFORMAT_FAILED = 15;
+  _SAPP_LOGITEM_WIN32_WGL_ARB_CREATE_CONTEXT_REQUIRED = 16;
+  _SAPP_LOGITEM_WIN32_WGL_ARB_CREATE_CONTEXT_PROFILE_REQUIRED = 17;
+  _SAPP_LOGITEM_WIN32_WGL_OPENGL_VERSION_NOT_SUPPORTED = 18;
+  _SAPP_LOGITEM_WIN32_WGL_OPENGL_PROFILE_NOT_SUPPORTED = 19;
+  _SAPP_LOGITEM_WIN32_WGL_INCOMPATIBLE_DEVICE_CONTEXT = 20;
+  _SAPP_LOGITEM_WIN32_WGL_CREATE_CONTEXT_ATTRIBS_FAILED_OTHER = 21;
+  _SAPP_LOGITEM_WIN32_D3D11_CREATE_DEVICE_AND_SWAPCHAIN_WITH_DEBUG_FAILED = 22;
+  _SAPP_LOGITEM_WIN32_D3D11_GET_IDXGIFACTORY_FAILED = 23;
+  _SAPP_LOGITEM_WIN32_D3D11_GET_IDXGIADAPTER_FAILED = 24;
+  _SAPP_LOGITEM_WIN32_D3D11_QUERY_INTERFACE_IDXGIDEVICE1_FAILED = 25;
+  _SAPP_LOGITEM_WIN32_REGISTER_RAW_INPUT_DEVICES_FAILED_MOUSE_LOCK = 26;
+  _SAPP_LOGITEM_WIN32_REGISTER_RAW_INPUT_DEVICES_FAILED_MOUSE_UNLOCK = 27;
+  _SAPP_LOGITEM_WIN32_GET_RAW_INPUT_DATA_FAILED = 28;
+  _SAPP_LOGITEM_WIN32_DESTROYICON_FOR_CURSOR_FAILED = 29;
+  _SAPP_LOGITEM_LINUX_GLX_LOAD_LIBGL_FAILED = 30;
+  _SAPP_LOGITEM_LINUX_GLX_LOAD_ENTRY_POINTS_FAILED = 31;
+  _SAPP_LOGITEM_LINUX_GLX_EXTENSION_NOT_FOUND = 32;
+  _SAPP_LOGITEM_LINUX_GLX_QUERY_VERSION_FAILED = 33;
+  _SAPP_LOGITEM_LINUX_GLX_VERSION_TOO_LOW = 34;
+  _SAPP_LOGITEM_LINUX_GLX_NO_GLXFBCONFIGS = 35;
+  _SAPP_LOGITEM_LINUX_GLX_NO_SUITABLE_GLXFBCONFIG = 36;
+  _SAPP_LOGITEM_LINUX_GLX_GET_VISUAL_FROM_FBCONFIG_FAILED = 37;
+  _SAPP_LOGITEM_LINUX_GLX_REQUIRED_EXTENSIONS_MISSING = 38;
+  _SAPP_LOGITEM_LINUX_GLX_CREATE_CONTEXT_FAILED = 39;
+  _SAPP_LOGITEM_LINUX_GLX_CREATE_WINDOW_FAILED = 40;
+  _SAPP_LOGITEM_LINUX_X11_CREATE_WINDOW_FAILED = 41;
+  _SAPP_LOGITEM_LINUX_EGL_BIND_OPENGL_API_FAILED = 42;
+  _SAPP_LOGITEM_LINUX_EGL_BIND_OPENGL_ES_API_FAILED = 43;
+  _SAPP_LOGITEM_LINUX_EGL_GET_DISPLAY_FAILED = 44;
+  _SAPP_LOGITEM_LINUX_EGL_INITIALIZE_FAILED = 45;
+  _SAPP_LOGITEM_LINUX_EGL_NO_CONFIGS = 46;
+  _SAPP_LOGITEM_LINUX_EGL_NO_NATIVE_VISUAL = 47;
+  _SAPP_LOGITEM_LINUX_EGL_GET_VISUAL_INFO_FAILED = 48;
+  _SAPP_LOGITEM_LINUX_EGL_CREATE_WINDOW_SURFACE_FAILED = 49;
+  _SAPP_LOGITEM_LINUX_EGL_CREATE_CONTEXT_FAILED = 50;
+  _SAPP_LOGITEM_LINUX_EGL_MAKE_CURRENT_FAILED = 51;
+  _SAPP_LOGITEM_LINUX_X11_OPEN_DISPLAY_FAILED = 52;
+  _SAPP_LOGITEM_LINUX_X11_QUERY_SYSTEM_DPI_FAILED = 53;
+  _SAPP_LOGITEM_LINUX_X11_DROPPED_FILE_URI_WRONG_SCHEME = 54;
+  _SAPP_LOGITEM_LINUX_X11_FAILED_TO_BECOME_OWNER_OF_CLIPBOARD = 55;
+  _SAPP_LOGITEM_ANDROID_UNSUPPORTED_INPUT_EVENT_INPUT_CB = 56;
+  _SAPP_LOGITEM_ANDROID_UNSUPPORTED_INPUT_EVENT_MAIN_CB = 57;
+  _SAPP_LOGITEM_ANDROID_READ_MSG_FAILED = 58;
+  _SAPP_LOGITEM_ANDROID_WRITE_MSG_FAILED = 59;
+  _SAPP_LOGITEM_ANDROID_MSG_CREATE = 60;
+  _SAPP_LOGITEM_ANDROID_MSG_RESUME = 61;
+  _SAPP_LOGITEM_ANDROID_MSG_PAUSE = 62;
+  _SAPP_LOGITEM_ANDROID_MSG_FOCUS = 63;
+  _SAPP_LOGITEM_ANDROID_MSG_NO_FOCUS = 64;
+  _SAPP_LOGITEM_ANDROID_MSG_SET_NATIVE_WINDOW = 65;
+  _SAPP_LOGITEM_ANDROID_MSG_SET_INPUT_QUEUE = 66;
+  _SAPP_LOGITEM_ANDROID_MSG_DESTROY = 67;
+  _SAPP_LOGITEM_ANDROID_UNKNOWN_MSG = 68;
+  _SAPP_LOGITEM_ANDROID_LOOP_THREAD_STARTED = 69;
+  _SAPP_LOGITEM_ANDROID_LOOP_THREAD_DONE = 70;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONSTART = 71;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONRESUME = 72;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONSAVEINSTANCESTATE = 73;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONWINDOWFOCUSCHANGED = 74;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONPAUSE = 75;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONSTOP = 76;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONNATIVEWINDOWCREATED = 77;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONNATIVEWINDOWDESTROYED = 78;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONINPUTQUEUECREATED = 79;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONINPUTQUEUEDESTROYED = 80;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONCONFIGURATIONCHANGED = 81;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONLOWMEMORY = 82;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONDESTROY = 83;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_DONE = 84;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_ONCREATE = 85;
+  _SAPP_LOGITEM_ANDROID_CREATE_THREAD_PIPE_FAILED = 86;
+  _SAPP_LOGITEM_ANDROID_NATIVE_ACTIVITY_CREATE_SUCCESS = 87;
+  _SAPP_LOGITEM_ANDROID_CHOREOGRAPHER_ENABLED = 88;
+  _SAPP_LOGITEM_ANDROID_CHOREOGRAPHER_UNAVAILABLE = 89;
+  _SAPP_LOGITEM_WGPU_DEVICE_LOST = 90;
+  _SAPP_LOGITEM_WGPU_DEVICE_LOG = 91;
+  _SAPP_LOGITEM_WGPU_DEVICE_UNCAPTURED_ERROR = 92;
+  _SAPP_LOGITEM_WGPU_SWAPCHAIN_CREATE_SURFACE_FAILED = 93;
+  _SAPP_LOGITEM_WGPU_SWAPCHAIN_SURFACE_GET_CAPABILITIES_FAILED = 94;
+  _SAPP_LOGITEM_WGPU_SWAPCHAIN_CREATE_DEPTH_STENCIL_TEXTURE_FAILED = 95;
+  _SAPP_LOGITEM_WGPU_SWAPCHAIN_CREATE_DEPTH_STENCIL_VIEW_FAILED = 96;
+  _SAPP_LOGITEM_WGPU_SWAPCHAIN_CREATE_MSAA_TEXTURE_FAILED = 97;
+  _SAPP_LOGITEM_WGPU_SWAPCHAIN_CREATE_MSAA_VIEW_FAILED = 98;
+  _SAPP_LOGITEM_WGPU_SWAPCHAIN_GETCURRENTTEXTURE_FAILED = 99;
+  _SAPP_LOGITEM_WGPU_REQUEST_DEVICE_STATUS_ERROR = 100;
+  _SAPP_LOGITEM_WGPU_REQUEST_DEVICE_STATUS_UNKNOWN = 101;
+  _SAPP_LOGITEM_WGPU_REQUEST_ADAPTER_STATUS_UNAVAILABLE = 102;
+  _SAPP_LOGITEM_WGPU_REQUEST_ADAPTER_STATUS_ERROR = 103;
+  _SAPP_LOGITEM_WGPU_REQUEST_ADAPTER_STATUS_UNKNOWN = 104;
+  _SAPP_LOGITEM_WGPU_CREATE_INSTANCE_FAILED = 105;
+  _SAPP_LOGITEM_VULKAN_REQUIRED_INSTANCE_EXTENSION_FUNCTION_MISSING = 106;
+  _SAPP_LOGITEM_VULKAN_ALLOC_DEVICE_MEMORY_NO_SUITABLE_MEMORY_TYPE = 107;
+  _SAPP_LOGITEM_VULKAN_ALLOCATE_MEMORY_FAILED = 108;
+  _SAPP_LOGITEM_VULKAN_CREATE_INSTANCE_FAILED = 109;
+  _SAPP_LOGITEM_VULKAN_ENUMERATE_PHYSICAL_DEVICES_FAILED = 110;
+  _SAPP_LOGITEM_VULKAN_NO_PHYSICAL_DEVICES_FOUND = 111;
+  _SAPP_LOGITEM_VULKAN_NO_SUITABLE_PHYSICAL_DEVICE_FOUND = 112;
+  _SAPP_LOGITEM_VULKAN_CREATE_DEVICE_FAILED_EXTENSION_NOT_PRESENT = 113;
+  _SAPP_LOGITEM_VULKAN_CREATE_DEVICE_FAILED_FEATURE_NOT_PRESENT = 114;
+  _SAPP_LOGITEM_VULKAN_CREATE_DEVICE_FAILED_INITIALIZATION_FAILED = 115;
+  _SAPP_LOGITEM_VULKAN_CREATE_DEVICE_FAILED_OTHER = 116;
+  _SAPP_LOGITEM_VULKAN_CREATE_SURFACE_FAILED = 117;
+  _SAPP_LOGITEM_VULKAN_CREATE_SWAPCHAIN_FAILED = 118;
+  _SAPP_LOGITEM_VULKAN_SWAPCHAIN_CREATE_IMAGE_VIEW_FAILED = 119;
+  _SAPP_LOGITEM_VULKAN_SWAPCHAIN_CREATE_IMAGE_FAILED = 120;
+  _SAPP_LOGITEM_VULKAN_SWAPCHAIN_ALLOC_IMAGE_DEVICE_MEMORY_FAILED = 121;
+  _SAPP_LOGITEM_VULKAN_SWAPCHAIN_BIND_IMAGE_MEMORY_FAILED = 122;
+  _SAPP_LOGITEM_VULKAN_ACQUIRE_NEXT_IMAGE_FAILED = 123;
+  _SAPP_LOGITEM_VULKAN_QUEUE_PRESENT_FAILED = 124;
+  _SAPP_LOGITEM_IMAGE_DATA_SIZE_MISMATCH = 125;
+  _SAPP_LOGITEM_DROPPED_FILE_PATH_TOO_LONG = 126;
+  _SAPP_LOGITEM_CLIPBOARD_STRING_TOO_BIG = 127;
+  __SAPP_LOGITEM_FORCE_U32 = 2147483647;
+
+type
+  _sapp_pixel_format = Integer;
+  _Psapp_pixel_format = ^_sapp_pixel_format;
+
+const
+  __SAPP_PIXELFORMAT_DEFAULT = 0;
+  _SAPP_PIXELFORMAT_NONE = 1;
+  _SAPP_PIXELFORMAT_RGBA8 = 2;
+  _SAPP_PIXELFORMAT_SRGB8A8 = 3;
+  _SAPP_PIXELFORMAT_BGRA8 = 4;
+  _SAPP_PIXELFORMAT_SBGR8A8 = 5;
+  _SAPP_PIXELFORMAT_RGBA16F = 6;
+  _SAPP_PIXELFORMAT_DEPTH = 7;
+  _SAPP_PIXELFORMAT_DEPTH_STENCIL = 8;
+  __SAPP_PIXELFORMAT_FORCE_U32 = 2147483647;
+
+type
+  _sapp_composite_mode = Integer;
+  _Psapp_composite_mode = ^_sapp_composite_mode;
+
+const
+  __SAPP_COMPOSITEMODE_DEFAULT = 0;
+  _SAPP_COMPOSITEMODE_OPAQUE = 1;
+  _SAPP_COMPOSITEMODE_PREMULTIPLIED = 2;
+  __SAPP_COMPOSITEMODE_FORCE_U32 = 2147483647;
+
+type
   _sapp_html5_fetch_error = Integer;
   _Psapp_html5_fetch_error = ^_sapp_html5_fetch_error;
 
@@ -2214,6 +1630,7 @@ const
   _SAPP_HTML5_FETCH_ERROR_NO_ERROR = 0;
   _SAPP_HTML5_FETCH_ERROR_BUFFER_TOO_SMALL = 1;
   _SAPP_HTML5_FETCH_ERROR_OTHER = 2;
+  __SAPP_HTML5_FORCE_U32 = 2147483647;
 
 type
   _sapp_mouse_cursor = Integer;
@@ -2231,257 +1648,202 @@ const
   _SAPP_MOUSECURSOR_RESIZE_NESW = 8;
   _SAPP_MOUSECURSOR_RESIZE_ALL = 9;
   _SAPP_MOUSECURSOR_NOT_ALLOWED = 10;
-  __SAPP_MOUSECURSOR_NUM = 11;
+  _SAPP_MOUSECURSOR_CUSTOM_0 = 11;
+  _SAPP_MOUSECURSOR_CUSTOM_1 = 12;
+  _SAPP_MOUSECURSOR_CUSTOM_2 = 13;
+  _SAPP_MOUSECURSOR_CUSTOM_3 = 14;
+  _SAPP_MOUSECURSOR_CUSTOM_4 = 15;
+  _SAPP_MOUSECURSOR_CUSTOM_5 = 16;
+  _SAPP_MOUSECURSOR_CUSTOM_6 = 17;
+  _SAPP_MOUSECURSOR_CUSTOM_7 = 18;
+  _SAPP_MOUSECURSOR_CUSTOM_8 = 19;
+  _SAPP_MOUSECURSOR_CUSTOM_9 = 20;
+  _SAPP_MOUSECURSOR_CUSTOM_10 = 21;
+  _SAPP_MOUSECURSOR_CUSTOM_11 = 22;
+  _SAPP_MOUSECURSOR_CUSTOM_12 = 23;
+  _SAPP_MOUSECURSOR_CUSTOM_13 = 24;
+  _SAPP_MOUSECURSOR_CUSTOM_14 = 25;
+  _SAPP_MOUSECURSOR_CUSTOM_15 = 26;
+  __SAPP_MOUSECURSOR_NUM = 27;
+  __SAPP_MOUSECURSOR_FORCE_U32 = 2147483647;
 
 type
-  _sg_imgui_cmd_t = Integer;
-  _Psg_imgui_cmd_t = ^_sg_imgui_cmd_t;
+  _saudio_log_item = Integer;
+  _Psaudio_log_item = ^_saudio_log_item;
 
 const
-  _SG_IMGUI_CMD_INVALID = 0;
-  _SG_IMGUI_CMD_RESET_STATE_CACHE = 1;
-  _SG_IMGUI_CMD_MAKE_BUFFER = 2;
-  _SG_IMGUI_CMD_MAKE_IMAGE = 3;
-  _SG_IMGUI_CMD_MAKE_SHADER = 4;
-  _SG_IMGUI_CMD_MAKE_PIPELINE = 5;
-  _SG_IMGUI_CMD_MAKE_PASS = 6;
-  _SG_IMGUI_CMD_DESTROY_BUFFER = 7;
-  _SG_IMGUI_CMD_DESTROY_IMAGE = 8;
-  _SG_IMGUI_CMD_DESTROY_SHADER = 9;
-  _SG_IMGUI_CMD_DESTROY_PIPELINE = 10;
-  _SG_IMGUI_CMD_DESTROY_PASS = 11;
-  _SG_IMGUI_CMD_UPDATE_BUFFER = 12;
-  _SG_IMGUI_CMD_UPDATE_IMAGE = 13;
-  _SG_IMGUI_CMD_APPEND_BUFFER = 14;
-  _SG_IMGUI_CMD_BEGIN_DEFAULT_PASS = 15;
-  _SG_IMGUI_CMD_BEGIN_PASS = 16;
-  _SG_IMGUI_CMD_APPLY_VIEWPORT = 17;
-  _SG_IMGUI_CMD_APPLY_SCISSOR_RECT = 18;
-  _SG_IMGUI_CMD_APPLY_PIPELINE = 19;
-  _SG_IMGUI_CMD_APPLY_BINDINGS = 20;
-  _SG_IMGUI_CMD_APPLY_UNIFORMS = 21;
-  _SG_IMGUI_CMD_DRAW = 22;
-  _SG_IMGUI_CMD_END_PASS = 23;
-  _SG_IMGUI_CMD_COMMIT = 24;
-  _SG_IMGUI_CMD_ALLOC_BUFFER = 25;
-  _SG_IMGUI_CMD_ALLOC_IMAGE = 26;
-  _SG_IMGUI_CMD_ALLOC_SHADER = 27;
-  _SG_IMGUI_CMD_ALLOC_PIPELINE = 28;
-  _SG_IMGUI_CMD_ALLOC_PASS = 29;
-  _SG_IMGUI_CMD_DEALLOC_BUFFER = 30;
-  _SG_IMGUI_CMD_DEALLOC_IMAGE = 31;
-  _SG_IMGUI_CMD_DEALLOC_SHADER = 32;
-  _SG_IMGUI_CMD_DEALLOC_PIPELINE = 33;
-  _SG_IMGUI_CMD_DEALLOC_PASS = 34;
-  _SG_IMGUI_CMD_INIT_BUFFER = 35;
-  _SG_IMGUI_CMD_INIT_IMAGE = 36;
-  _SG_IMGUI_CMD_INIT_SHADER = 37;
-  _SG_IMGUI_CMD_INIT_PIPELINE = 38;
-  _SG_IMGUI_CMD_INIT_PASS = 39;
-  _SG_IMGUI_CMD_UNINIT_BUFFER = 40;
-  _SG_IMGUI_CMD_UNINIT_IMAGE = 41;
-  _SG_IMGUI_CMD_UNINIT_SHADER = 42;
-  _SG_IMGUI_CMD_UNINIT_PIPELINE = 43;
-  _SG_IMGUI_CMD_UNINIT_PASS = 44;
-  _SG_IMGUI_CMD_FAIL_BUFFER = 45;
-  _SG_IMGUI_CMD_FAIL_IMAGE = 46;
-  _SG_IMGUI_CMD_FAIL_SHADER = 47;
-  _SG_IMGUI_CMD_FAIL_PIPELINE = 48;
-  _SG_IMGUI_CMD_FAIL_PASS = 49;
-  _SG_IMGUI_CMD_PUSH_DEBUG_GROUP = 50;
-  _SG_IMGUI_CMD_POP_DEBUG_GROUP = 51;
-  _SG_IMGUI_CMD_ERR_BUFFER_POOL_EXHAUSTED = 52;
-  _SG_IMGUI_CMD_ERR_IMAGE_POOL_EXHAUSTED = 53;
-  _SG_IMGUI_CMD_ERR_SHADER_POOL_EXHAUSTED = 54;
-  _SG_IMGUI_CMD_ERR_PIPELINE_POOL_EXHAUSTED = 55;
-  _SG_IMGUI_CMD_ERR_PASS_POOL_EXHAUSTED = 56;
-  _SG_IMGUI_CMD_ERR_CONTEXT_MISMATCH = 57;
-  _SG_IMGUI_CMD_ERR_PASS_INVALID = 58;
-  _SG_IMGUI_CMD_ERR_DRAW_INVALID = 59;
-  _SG_IMGUI_CMD_ERR_BINDINGS_INVALID = 60;
+  _SAUDIO_LOGITEM_OK = 0;
+  _SAUDIO_LOGITEM_MALLOC_FAILED = 1;
+  _SAUDIO_LOGITEM_ALSA_SND_PCM_OPEN_FAILED = 2;
+  _SAUDIO_LOGITEM_ALSA_FLOAT_SAMPLES_NOT_SUPPORTED = 3;
+  _SAUDIO_LOGITEM_ALSA_REQUESTED_BUFFER_SIZE_NOT_SUPPORTED = 4;
+  _SAUDIO_LOGITEM_ALSA_REQUESTED_CHANNEL_COUNT_NOT_SUPPORTED = 5;
+  _SAUDIO_LOGITEM_ALSA_SND_PCM_HW_PARAMS_SET_RATE_NEAR_FAILED = 6;
+  _SAUDIO_LOGITEM_ALSA_SND_PCM_HW_PARAMS_FAILED = 7;
+  _SAUDIO_LOGITEM_ALSA_PTHREAD_CREATE_FAILED = 8;
+  _SAUDIO_LOGITEM_WASAPI_CREATE_EVENT_FAILED = 9;
+  _SAUDIO_LOGITEM_WASAPI_CREATE_DEVICE_ENUMERATOR_FAILED = 10;
+  _SAUDIO_LOGITEM_WASAPI_GET_DEFAULT_AUDIO_ENDPOINT_FAILED = 11;
+  _SAUDIO_LOGITEM_WASAPI_DEVICE_ACTIVATE_FAILED = 12;
+  _SAUDIO_LOGITEM_WASAPI_AUDIO_CLIENT_INITIALIZE_FAILED = 13;
+  _SAUDIO_LOGITEM_WASAPI_AUDIO_CLIENT_GET_BUFFER_SIZE_FAILED = 14;
+  _SAUDIO_LOGITEM_WASAPI_AUDIO_CLIENT_GET_SERVICE_FAILED = 15;
+  _SAUDIO_LOGITEM_WASAPI_AUDIO_CLIENT_SET_EVENT_HANDLE_FAILED = 16;
+  _SAUDIO_LOGITEM_WASAPI_CREATE_THREAD_FAILED = 17;
+  _SAUDIO_LOGITEM_AAUDIO_STREAMBUILDER_OPEN_STREAM_FAILED = 18;
+  _SAUDIO_LOGITEM_AAUDIO_PTHREAD_CREATE_FAILED = 19;
+  _SAUDIO_LOGITEM_AAUDIO_RESTARTING_STREAM_AFTER_ERROR = 20;
+  _SAUDIO_LOGITEM_USING_AAUDIO_BACKEND = 21;
+  _SAUDIO_LOGITEM_AAUDIO_CREATE_STREAMBUILDER_FAILED = 22;
+  _SAUDIO_LOGITEM_COREAUDIO_NEW_OUTPUT_FAILED = 23;
+  _SAUDIO_LOGITEM_COREAUDIO_ALLOCATE_BUFFER_FAILED = 24;
+  _SAUDIO_LOGITEM_COREAUDIO_START_FAILED = 25;
+  _SAUDIO_LOGITEM_BACKEND_BUFFER_SIZE_ISNT_MULTIPLE_OF_PACKET_SIZE = 26;
+  _SAUDIO_LOGITEM_VITA_SCEAUDIO_OPEN_FAILED = 27;
+  _SAUDIO_LOGITEM_VITA_PTHREAD_CREATE_FAILED = 28;
+  _SAUDIO_LOGITEM_N3DS_NDSP_OPEN_FAILED = 29;
 
 type
-  _sgl_error_t = Integer;
-  _Psgl_error_t = ^_sgl_error_t;
+  _saudio_n3ds_ndspinterptype = Integer;
+  _Psaudio_n3ds_ndspinterptype = ^_saudio_n3ds_ndspinterptype;
 
 const
-  _SGL_NO_ERROR = 0;
-  _SGL_ERROR_VERTICES_FULL = 1;
-  _SGL_ERROR_UNIFORMS_FULL = 2;
-  _SGL_ERROR_COMMANDS_FULL = 3;
-  _SGL_ERROR_STACK_OVERFLOW = 4;
-  _SGL_ERROR_STACK_UNDERFLOW = 5;
-  _SGL_ERROR_NO_CONTEXT = 6;
+  _SAUDIO_N3DS_DSP_INTERP_POLYPHASE = 0;
+  _SAUDIO_N3DS_DSP_INTERP_LINEAR = 1;
+  _SAUDIO_N3DS_DSP_INTERP_NONE = 2;
+
+type
+  _sdtx_log_item_t = Integer;
+  _Psdtx_log_item_t = ^_sdtx_log_item_t;
+
+const
+  _SDTX_LOGITEM_OK = 0;
+  _SDTX_LOGITEM_MALLOC_FAILED = 1;
+  _SDTX_LOGITEM_ADD_COMMIT_LISTENER_FAILED = 2;
+  _SDTX_LOGITEM_COMMAND_BUFFER_FULL = 3;
+  _SDTX_LOGITEM_CONTEXT_POOL_EXHAUSTED = 4;
+  _SDTX_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT = 5;
+
+const
+  _SFB_INVALID_ID = 0;
+
+type
+  _sfb_resource_state = Integer;
+  _Psfb_resource_state = ^_sfb_resource_state;
+
+const
+  _SFB_RESOURCESTATE_INITIAL = 0;
+  _SFB_RESOURCESTATE_ALLOC = 1;
+  _SFB_RESOURCESTATE_VALID = 2;
+  _SFB_RESOURCESTATE_FAILED = 3;
+  _SFB_RESOURCESTATE_INVALID = 4;
+  __SFB_RESOURCESTATE_FORCE_U32 = 2147483647;
+
+type
+  _sfb_format = Integer;
+  _Psfb_format = ^_sfb_format;
+
+const
+  __SFB_FORMAT_DEFAULT = 0;
+  _SFB_FORMAT_RGBA8 = 1;
+  _SFB_FORMAT_PALETTE8 = 2;
+  __SFB_FORMAT_FORCE_U32 = 2147483647;
+
+type
+  _sgl_log_item_t = Integer;
+  _Psgl_log_item_t = ^_sgl_log_item_t;
+
+const
+  _SGL_LOGITEM_OK = 0;
+  _SGL_LOGITEM_MALLOC_FAILED = 1;
+  _SGL_LOGITEM_MAKE_PIPELINE_FAILED = 2;
+  _SGL_LOGITEM_PIPELINE_POOL_EXHAUSTED = 3;
+  _SGL_LOGITEM_ADD_COMMIT_LISTENER_FAILED = 4;
+  _SGL_LOGITEM_CONTEXT_POOL_EXHAUSTED = 5;
+  _SGL_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT = 6;
+
+type
+  _simgui_log_item_t = Integer;
+  _Psimgui_log_item_t = ^_simgui_log_item_t;
+
+const
+  _SIMGUI_LOGITEM_OK = 0;
+  _SIMGUI_LOGITEM_MALLOC_FAILED = 1;
+  _SIMGUI_LOGITEM_BUFFER_OVERFLOW = 2;
+
+type
+  _slbx_anchor = Integer;
+  _Pslbx_anchor = ^_slbx_anchor;
+
+const
+  _SLBX_ANCHOR_CENTER = 0;
+  _SLBX_ANCHOR_TOP = 1;
+  _SLBX_ANCHOR_BOTTOM = 2;
+  _SLBX_ANCHOR_LEFT = 3;
+  _SLBX_ANCHOR_RIGHT = 4;
+  __SLBX_ANCHOR_FORCE_U32 = 2147483647;
+
+const
+  _SSPINE_INVALID_ID = 0;
+  _SSPINE_MAX_SKINSET_SKINS = 32;
+  _SSPINE_MAX_STRING_SIZE = 61;
+
+type
+  _sspine_resource_state = Integer;
+  _Psspine_resource_state = ^_sspine_resource_state;
+
+const
+  _SSPINE_RESOURCESTATE_INITIAL = 0;
+  _SSPINE_RESOURCESTATE_ALLOC = 1;
+  _SSPINE_RESOURCESTATE_VALID = 2;
+  _SSPINE_RESOURCESTATE_FAILED = 3;
+  _SSPINE_RESOURCESTATE_INVALID = 4;
+  __SSPINE_RESOURCESTATE_FORCE_U32 = 2147483647;
+
+type
+  _sspine_log_item = Integer;
+  _Psspine_log_item = ^_sspine_log_item;
+
+const
+  _SSPINE_LOGITEM_OK = 0;
+  _SSPINE_LOGITEM_MALLOC_FAILED = 1;
+  _SSPINE_LOGITEM_CONTEXT_POOL_EXHAUSTED = 2;
+  _SSPINE_LOGITEM_ATLAS_POOL_EXHAUSTED = 3;
+  _SSPINE_LOGITEM_SKELETON_POOL_EXHAUSTED = 4;
+  _SSPINE_LOGITEM_SKINSET_POOL_EXHAUSTED = 5;
+  _SSPINE_LOGITEM_INSTANCE_POOL_EXHAUSTED = 6;
+  _SSPINE_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT = 7;
+  _SSPINE_LOGITEM_ATLAS_DESC_NO_DATA = 8;
+  _SSPINE_LOGITEM_SPINE_ATLAS_CREATION_FAILED = 9;
+  _SSPINE_LOGITEM_SG_ALLOC_IMAGE_FAILED = 10;
+  _SSPINE_LOGITEM_SG_ALLOC_VIEW_FAILED = 11;
+  _SSPINE_LOGITEM_SG_ALLOC_SAMPLER_FAILED = 12;
+  _SSPINE_LOGITEM_SKELETON_DESC_NO_DATA = 13;
+  _SSPINE_LOGITEM_SKELETON_DESC_NO_ATLAS = 14;
+  _SSPINE_LOGITEM_SKELETON_ATLAS_NOT_VALID = 15;
+  _SSPINE_LOGITEM_CREATE_SKELETON_DATA_FROM_JSON_FAILED = 16;
+  _SSPINE_LOGITEM_CREATE_SKELETON_DATA_FROM_BINARY_FAILED = 17;
+  _SSPINE_LOGITEM_SKINSET_DESC_NO_SKELETON = 18;
+  _SSPINE_LOGITEM_SKINSET_SKELETON_NOT_VALID = 19;
+  _SSPINE_LOGITEM_SKINSET_INVALID_SKIN_HANDLE = 20;
+  _SSPINE_LOGITEM_INSTANCE_DESC_NO_SKELETON = 21;
+  _SSPINE_LOGITEM_INSTANCE_SKELETON_NOT_VALID = 22;
+  _SSPINE_LOGITEM_INSTANCE_ATLAS_NOT_VALID = 23;
+  _SSPINE_LOGITEM_SPINE_SKELETON_CREATION_FAILED = 24;
+  _SSPINE_LOGITEM_SPINE_ANIMATIONSTATE_CREATION_FAILED = 25;
+  _SSPINE_LOGITEM_SPINE_SKELETONCLIPPING_CREATION_FAILED = 26;
+  _SSPINE_LOGITEM_COMMAND_BUFFER_FULL = 27;
+  _SSPINE_LOGITEM_VERTEX_BUFFER_FULL = 28;
+  _SSPINE_LOGITEM_INDEX_BUFFER_FULL = 29;
+  _SSPINE_LOGITEM_STRING_TRUNCATED = 30;
+  _SSPINE_LOGITEM_ADD_COMMIT_LISTENER_FAILED = 31;
 
 type
   // Forward declarations
   PPUTF8Char = ^PUTF8Char;
-  PPByte = ^PByte;
-  PUInt8 = ^UInt8;
   PUInt64 = ^UInt64;
-  PNativeUInt = ^NativeUInt;
   _PFONSfont = Pointer;
   _PPFONSfont = ^_PFONSfont;
-  _PImVector_const_charPtr = ^_ImVector_const_charPtr;
-  _PImVec2 = ^_ImVec2;
-  _PImVec4 = ^_ImVec4;
-  _PImGuiStyle = ^_ImGuiStyle;
-  _PImGuiKeyData = ^_ImGuiKeyData;
-  _PImVector_ImWchar = ^_ImVector_ImWchar;
-  _PImGuiIO = ^_ImGuiIO;
-  _PImGuiInputTextCallbackData = ^_ImGuiInputTextCallbackData;
-  _PImGuiSizeCallbackData = ^_ImGuiSizeCallbackData;
-  _PImGuiWindowClass = ^_ImGuiWindowClass;
-  _PImGuiPayload = ^_ImGuiPayload;
-  _PImGuiTableColumnSortSpecs = ^_ImGuiTableColumnSortSpecs;
-  _PImGuiTableSortSpecs = ^_ImGuiTableSortSpecs;
-  _PImGuiOnceUponAFrame = ^_ImGuiOnceUponAFrame;
-  _PImGuiTextRange = ^_ImGuiTextRange;
-  _PImVector_ImGuiTextRange = ^_ImVector_ImGuiTextRange;
-  _PImGuiTextFilter = ^_ImGuiTextFilter;
-  _PImVector_char = ^_ImVector_char;
-  _PImGuiTextBuffer = ^_ImGuiTextBuffer;
-  _PImGuiStoragePair = ^_ImGuiStoragePair;
-  _PImVector_ImGuiStoragePair = ^_ImVector_ImGuiStoragePair;
-  _PImGuiStorage = ^_ImGuiStorage;
-  _PImGuiListClipper = ^_ImGuiListClipper;
-  _PImColor = ^_ImColor;
-  _PImDrawCmd = ^_ImDrawCmd;
-  _PImDrawVert = ^_ImDrawVert;
-  _PImDrawCmdHeader = ^_ImDrawCmdHeader;
-  _PImVector_ImDrawCmd = ^_ImVector_ImDrawCmd;
-  _PImVector_ImDrawIdx = ^_ImVector_ImDrawIdx;
-  _PImDrawChannel = ^_ImDrawChannel;
-  _PImVector_ImDrawChannel = ^_ImVector_ImDrawChannel;
-  _PImDrawListSplitter = ^_ImDrawListSplitter;
-  _PImVector_ImDrawVert = ^_ImVector_ImDrawVert;
-  _PImVector_ImVec4 = ^_ImVector_ImVec4;
-  _PImVector_ImTextureID = ^_ImVector_ImTextureID;
-  _PImVector_ImVec2 = ^_ImVector_ImVec2;
-  _PImDrawList = ^_ImDrawList;
-  _PPImDrawList = ^_PImDrawList;
-  _PImDrawData = ^_ImDrawData;
-  _PImFontConfig = ^_ImFontConfig;
-  _PImFontGlyph = ^_ImFontGlyph;
-  _PImVector_ImU32 = ^_ImVector_ImU32;
-  _PImFontGlyphRangesBuilder = ^_ImFontGlyphRangesBuilder;
-  _PImFontAtlasCustomRect = ^_ImFontAtlasCustomRect;
-  _PImVector_ImFontPtr = ^_ImVector_ImFontPtr;
-  _PImVector_ImFontAtlasCustomRect = ^_ImVector_ImFontAtlasCustomRect;
-  _PImVector_ImFontConfig = ^_ImVector_ImFontConfig;
-  _PImFontAtlas = ^_ImFontAtlas;
-  _PImVector_float = ^_ImVector_float;
-  _PImVector_ImFontGlyph = ^_ImVector_ImFontGlyph;
-  _PImFont = ^_ImFont;
-  _PPImFont = ^_PImFont;
-  _PImGuiViewport = ^_ImGuiViewport;
-  _PPImGuiViewport = ^_PImGuiViewport;
-  _PImVector_ImGuiPlatformMonitor = ^_ImVector_ImGuiPlatformMonitor;
-  _PImVector_ImGuiViewportPtr = ^_ImVector_ImGuiViewportPtr;
-  _PImGuiPlatformIO = ^_ImGuiPlatformIO;
-  _PImGuiPlatformMonitor = ^_ImGuiPlatformMonitor;
-  _PImGuiPlatformImeData = ^_ImGuiPlatformImeData;
-  _PStbUndoRecord = ^_StbUndoRecord;
-  _PStbUndoState = ^_StbUndoState;
-  _PSTB_TexteditState = ^_STB_TexteditState;
-  _PStbTexteditRow = ^_StbTexteditRow;
-  _PImVec1 = ^_ImVec1;
-  _PImVec2ih = ^_ImVec2ih;
-  _PImRect = ^_ImRect;
-  _PImBitVector = ^_ImBitVector;
-  _PImDrawListSharedData = ^_ImDrawListSharedData;
-  _PImVector_ImDrawListPtr = ^_ImVector_ImDrawListPtr;
-  _PImDrawDataBuilder = ^_ImDrawDataBuilder;
-  _PImGuiDataTypeTempStorage = ^_ImGuiDataTypeTempStorage;
-  _PImGuiDataTypeInfo = ^_ImGuiDataTypeInfo;
-  _PImGuiColorMod = ^_ImGuiColorMod;
-  _PImGuiStyleMod = ^_ImGuiStyleMod;
-  _PImGuiComboPreviewData = ^_ImGuiComboPreviewData;
-  _PImGuiGroupData = ^_ImGuiGroupData;
-  _PImGuiMenuColumns = ^_ImGuiMenuColumns;
-  _PImGuiInputTextState = ^_ImGuiInputTextState;
-  _PImGuiPopupData = ^_ImGuiPopupData;
-  _PImGuiNextWindowData = ^_ImGuiNextWindowData;
-  _PImGuiNextItemData = ^_ImGuiNextItemData;
-  _PImGuiLastItemData = ^_ImGuiLastItemData;
-  _PImGuiStackSizes = ^_ImGuiStackSizes;
-  _PImGuiWindowStackData = ^_ImGuiWindowStackData;
-  _PImGuiShrinkWidthItem = ^_ImGuiShrinkWidthItem;
-  _PImGuiPtrOrIndex = ^_ImGuiPtrOrIndex;
-  _PImBitArray_ImGuiKey_NamedKey_COUNT__lessImGuiKey_NamedKey_BEGIN = ^_ImBitArray_ImGuiKey_NamedKey_COUNT__lessImGuiKey_NamedKey_BEGIN;
-  _PImGuiInputEventMousePos = ^_ImGuiInputEventMousePos;
-  _PImGuiInputEventMouseWheel = ^_ImGuiInputEventMouseWheel;
-  _PImGuiInputEventMouseButton = ^_ImGuiInputEventMouseButton;
-  _PImGuiInputEventMouseViewport = ^_ImGuiInputEventMouseViewport;
-  _PImGuiInputEventKey = ^_ImGuiInputEventKey;
-  _PImGuiInputEventText = ^_ImGuiInputEventText;
-  _PImGuiInputEventAppFocused = ^_ImGuiInputEventAppFocused;
-  _PImGuiInputEvent = ^_ImGuiInputEvent;
-  _PImGuiListClipperRange = ^_ImGuiListClipperRange;
-  _PImVector_ImGuiListClipperRange = ^_ImVector_ImGuiListClipperRange;
-  _PImGuiListClipperData = ^_ImGuiListClipperData;
-  _PImGuiNavItemData = ^_ImGuiNavItemData;
-  _PImGuiOldColumnData = ^_ImGuiOldColumnData;
-  _PImVector_ImGuiOldColumnData = ^_ImVector_ImGuiOldColumnData;
-  _PImGuiOldColumns = ^_ImGuiOldColumns;
-  _PImVector_ImGuiWindowPtr = ^_ImVector_ImGuiWindowPtr;
-  _PImGuiDockNode = ^_ImGuiDockNode;
-  _PImGuiWindowDockStyle = ^_ImGuiWindowDockStyle;
-  _PImVector_ImGuiDockRequest = ^_ImVector_ImGuiDockRequest;
-  _PImVector_ImGuiDockNodeSettings = ^_ImVector_ImGuiDockNodeSettings;
-  _PImGuiDockContext = ^_ImGuiDockContext;
-  _PImGuiViewportP = ^_ImGuiViewportP;
-  _PPImGuiViewportP = ^_PImGuiViewportP;
-  _PImGuiWindowSettings = ^_ImGuiWindowSettings;
-  _PImGuiSettingsHandler = ^_ImGuiSettingsHandler;
-  _PImGuiMetricsConfig = ^_ImGuiMetricsConfig;
-  _PImGuiStackLevelInfo = ^_ImGuiStackLevelInfo;
-  _PImVector_ImGuiStackLevelInfo = ^_ImVector_ImGuiStackLevelInfo;
-  _PImGuiStackTool = ^_ImGuiStackTool;
-  _PImGuiContextHook = ^_ImGuiContextHook;
-  _PImVector_ImGuiInputEvent = ^_ImVector_ImGuiInputEvent;
-  _PImVector_ImGuiWindowStackData = ^_ImVector_ImGuiWindowStackData;
-  _PImVector_ImGuiColorMod = ^_ImVector_ImGuiColorMod;
-  _PImVector_ImGuiStyleMod = ^_ImVector_ImGuiStyleMod;
-  _PImVector_ImGuiID = ^_ImVector_ImGuiID;
-  _PImVector_ImGuiItemFlags = ^_ImVector_ImGuiItemFlags;
-  _PImVector_ImGuiGroupData = ^_ImVector_ImGuiGroupData;
-  _PImVector_ImGuiPopupData = ^_ImVector_ImGuiPopupData;
-  _PImVector_ImGuiViewportPPtr = ^_ImVector_ImGuiViewportPPtr;
-  _PImVector_unsigned_char = ^_ImVector_unsigned_char;
-  _PImVector_ImGuiListClipperData = ^_ImVector_ImGuiListClipperData;
-  _PImVector_ImGuiTableTempData = ^_ImVector_ImGuiTableTempData;
-  _PImVector_ImGuiTable = ^_ImVector_ImGuiTable;
-  _PImPool_ImGuiTable = ^_ImPool_ImGuiTable;
-  _PImVector_ImGuiTabBar = ^_ImVector_ImGuiTabBar;
-  _PImPool_ImGuiTabBar = ^_ImPool_ImGuiTabBar;
-  _PImVector_ImGuiPtrOrIndex = ^_ImVector_ImGuiPtrOrIndex;
-  _PImVector_ImGuiShrinkWidthItem = ^_ImVector_ImGuiShrinkWidthItem;
-  _PImVector_ImGuiSettingsHandler = ^_ImVector_ImGuiSettingsHandler;
-  _PImChunkStream_ImGuiWindowSettings = ^_ImChunkStream_ImGuiWindowSettings;
-  _PImChunkStream_ImGuiTableSettings = ^_ImChunkStream_ImGuiTableSettings;
-  _PImVector_ImGuiContextHook = ^_ImVector_ImGuiContextHook;
-  _PImGuiContext = ^_ImGuiContext;
-  _PImGuiWindowTempData = ^_ImGuiWindowTempData;
-  _PImVector_ImGuiOldColumns = ^_ImVector_ImGuiOldColumns;
-  _PImGuiWindow = ^_ImGuiWindow;
-  _PPImGuiWindow = ^_PImGuiWindow;
-  _PImGuiTabItem = ^_ImGuiTabItem;
-  _PImVector_ImGuiTabItem = ^_ImVector_ImGuiTabItem;
-  _PImGuiTabBar = ^_ImGuiTabBar;
-  _PImGuiTableColumn = ^_ImGuiTableColumn;
-  _PImGuiTableCellData = ^_ImGuiTableCellData;
-  _PImGuiTableInstanceData = ^_ImGuiTableInstanceData;
-  _PImSpan_ImGuiTableColumn = ^_ImSpan_ImGuiTableColumn;
-  _PImSpan_ImGuiTableColumnIdx = ^_ImSpan_ImGuiTableColumnIdx;
-  _PImSpan_ImGuiTableCellData = ^_ImSpan_ImGuiTableCellData;
-  _PImVector_ImGuiTableInstanceData = ^_ImVector_ImGuiTableInstanceData;
-  _PImVector_ImGuiTableColumnSortSpecs = ^_ImVector_ImGuiTableColumnSortSpecs;
-  _PImGuiTable = ^_ImGuiTable;
-  _PImGuiTableTempData = ^_ImGuiTableTempData;
-  _PImGuiTableColumnSettings = ^_ImGuiTableColumnSettings;
-  _PImGuiTableSettings = ^_ImGuiTableSettings;
-  _PImFontBuilderIO = ^_ImFontBuilderIO;
   _PFONSparams = ^_FONSparams;
   _PFONSquad = ^_FONSquad;
   _PFONStextIter = ^_FONStextIter;
@@ -2497,10 +1859,10 @@ type
   _Pstbtt__bitmap = ^_stbtt__bitmap;
   _Psg_buffer = ^_sg_buffer;
   _Psg_image = ^_sg_image;
+  _Psg_sampler = ^_sg_sampler;
   _Psg_shader = ^_sg_shader;
   _Psg_pipeline = ^_sg_pipeline;
-  _Psg_pass = ^_sg_pass;
-  _Psg_context = ^_sg_context;
+  _Psg_view = ^_sg_view;
   _Psg_range = ^_sg_range;
   _Psg_color = ^_sg_color;
   _Psg_pixelformat_info = ^_sg_pixelformat_info;
@@ -2510,54 +1872,147 @@ type
   _Psg_depth_attachment_action = ^_sg_depth_attachment_action;
   _Psg_stencil_attachment_action = ^_sg_stencil_attachment_action;
   _Psg_pass_action = ^_sg_pass_action;
+  _Psg_metal_swapchain = ^_sg_metal_swapchain;
+  _Psg_d3d11_swapchain = ^_sg_d3d11_swapchain;
+  _Psg_wgpu_swapchain = ^_sg_wgpu_swapchain;
+  _Psg_vulkan_swapchain = ^_sg_vulkan_swapchain;
+  _Psg_gl_swapchain = ^_sg_gl_swapchain;
+  _Psg_swapchain = ^_sg_swapchain;
+  _Psg_attachments = ^_sg_attachments;
+  _Psg_pass = ^_sg_pass;
   _Psg_bindings = ^_sg_bindings;
+  _Psg_buffer_usage = ^_sg_buffer_usage;
   _Psg_buffer_desc = ^_sg_buffer_desc;
+  _Psg_image_usage = ^_sg_image_usage;
   _Psg_image_data = ^_sg_image_data;
   _Psg_image_desc = ^_sg_image_desc;
-  _Psg_shader_attr_desc = ^_sg_shader_attr_desc;
-  _Psg_shader_uniform_desc = ^_sg_shader_uniform_desc;
-  _Psg_shader_uniform_block_desc = ^_sg_shader_uniform_block_desc;
-  _Psg_shader_image_desc = ^_sg_shader_image_desc;
-  _Psg_shader_stage_desc = ^_sg_shader_stage_desc;
+  _Psg_sampler_desc = ^_sg_sampler_desc;
+  _Psg_shader_function = ^_sg_shader_function;
+  _Psg_shader_vertex_attr = ^_sg_shader_vertex_attr;
+  _Psg_glsl_shader_uniform = ^_sg_glsl_shader_uniform;
+  _Psg_shader_uniform_block = ^_sg_shader_uniform_block;
+  _Psg_shader_texture_view = ^_sg_shader_texture_view;
+  _Psg_shader_storage_buffer_view = ^_sg_shader_storage_buffer_view;
+  _Psg_shader_storage_image_view = ^_sg_shader_storage_image_view;
+  _Psg_shader_view = ^_sg_shader_view;
+  _Psg_shader_sampler = ^_sg_shader_sampler;
+  _Psg_shader_texture_sampler_pair = ^_sg_shader_texture_sampler_pair;
+  _Psg_mtl_shader_threads_per_threadgroup = ^_sg_mtl_shader_threads_per_threadgroup;
   _Psg_shader_desc = ^_sg_shader_desc;
-  _Psg_buffer_layout_desc = ^_sg_buffer_layout_desc;
-  _Psg_vertex_attr_desc = ^_sg_vertex_attr_desc;
-  _Psg_layout_desc = ^_sg_layout_desc;
+  _Psg_vertex_buffer_layout_state = ^_sg_vertex_buffer_layout_state;
+  _Psg_vertex_attr_state = ^_sg_vertex_attr_state;
+  _Psg_vertex_layout_state = ^_sg_vertex_layout_state;
   _Psg_stencil_face_state = ^_sg_stencil_face_state;
   _Psg_stencil_state = ^_sg_stencil_state;
   _Psg_depth_state = ^_sg_depth_state;
   _Psg_blend_state = ^_sg_blend_state;
-  _Psg_color_state = ^_sg_color_state;
+  _Psg_color_target_state = ^_sg_color_target_state;
   _Psg_pipeline_desc = ^_sg_pipeline_desc;
-  _Psg_pass_attachment_desc = ^_sg_pass_attachment_desc;
-  _Psg_pass_desc = ^_sg_pass_desc;
+  _Psg_buffer_view_desc = ^_sg_buffer_view_desc;
+  _Psg_image_view_desc = ^_sg_image_view_desc;
+  _Psg_texture_view_range = ^_sg_texture_view_range;
+  _Psg_texture_view_desc = ^_sg_texture_view_desc;
+  _Psg_view_desc = ^_sg_view_desc;
   _Psg_trace_hooks = ^_sg_trace_hooks;
   _Psg_slot_info = ^_sg_slot_info;
   _Psg_buffer_info = ^_sg_buffer_info;
   _Psg_image_info = ^_sg_image_info;
+  _Psg_sampler_info = ^_sg_sampler_info;
   _Psg_shader_info = ^_sg_shader_info;
   _Psg_pipeline_info = ^_sg_pipeline_info;
-  _Psg_pass_info = ^_sg_pass_info;
-  _Psg_gl_context_desc = ^_sg_gl_context_desc;
-  _Psg_metal_context_desc = ^_sg_metal_context_desc;
-  _Psg_d3d11_context_desc = ^_sg_d3d11_context_desc;
-  _Psg_wgpu_context_desc = ^_sg_wgpu_context_desc;
-  _Psg_context_desc = ^_sg_context_desc;
+  _Psg_view_info = ^_sg_view_info;
+  _Psg_frame_stats_gl = ^_sg_frame_stats_gl;
+  _Psg_frame_stats_d3d11_pass = ^_sg_frame_stats_d3d11_pass;
+  _Psg_frame_stats_d3d11_pipeline = ^_sg_frame_stats_d3d11_pipeline;
+  _Psg_frame_stats_d3d11_bindings = ^_sg_frame_stats_d3d11_bindings;
+  _Psg_frame_stats_d3d11_uniforms = ^_sg_frame_stats_d3d11_uniforms;
+  _Psg_frame_stats_d3d11_draw = ^_sg_frame_stats_d3d11_draw;
+  _Psg_frame_stats_d3d11 = ^_sg_frame_stats_d3d11;
+  _Psg_frame_stats_metal_idpool = ^_sg_frame_stats_metal_idpool;
+  _Psg_frame_stats_metal_pipeline = ^_sg_frame_stats_metal_pipeline;
+  _Psg_frame_stats_metal_bindings = ^_sg_frame_stats_metal_bindings;
+  _Psg_frame_stats_metal_uniforms = ^_sg_frame_stats_metal_uniforms;
+  _Psg_frame_stats_metal = ^_sg_frame_stats_metal;
+  _Psg_frame_stats_wgpu_uniforms = ^_sg_frame_stats_wgpu_uniforms;
+  _Psg_frame_stats_wgpu_bindings = ^_sg_frame_stats_wgpu_bindings;
+  _Psg_frame_stats_wgpu = ^_sg_frame_stats_wgpu;
+  _Psg_frame_stats_vk = ^_sg_frame_stats_vk;
+  _Psg_frame_resource_stats = ^_sg_frame_resource_stats;
+  _Psg_total_resource_stats = ^_sg_total_resource_stats;
+  _Psg_total_stats = ^_sg_total_stats;
+  _Psg_frame_stats = ^_sg_frame_stats;
+  _Psg_stats = ^_sg_stats;
+  _Psg_environment_defaults = ^_sg_environment_defaults;
+  _Psg_metal_environment = ^_sg_metal_environment;
+  _Psg_d3d11_environment = ^_sg_d3d11_environment;
+  _Psg_wgpu_environment = ^_sg_wgpu_environment;
+  _Psg_vulkan_environment = ^_sg_vulkan_environment;
+  _Psg_environment = ^_sg_environment;
+  _Psg_commit_listener = ^_sg_commit_listener;
   _Psg_allocator = ^_sg_allocator;
+  _Psg_logger = ^_sg_logger;
+  _Psg_d3d11_desc = ^_sg_d3d11_desc;
+  _Psg_metal_desc = ^_sg_metal_desc;
+  _Psg_wgpu_desc = ^_sg_wgpu_desc;
+  _Psg_vulkan_desc = ^_sg_vulkan_desc;
   _Psg_desc = ^_sg_desc;
+  _Psg_d3d11_buffer_info = ^_sg_d3d11_buffer_info;
+  _Psg_d3d11_image_info = ^_sg_d3d11_image_info;
+  _Psg_d3d11_sampler_info = ^_sg_d3d11_sampler_info;
+  _Psg_d3d11_shader_info = ^_sg_d3d11_shader_info;
+  _Psg_d3d11_pipeline_info = ^_sg_d3d11_pipeline_info;
+  _Psg_d3d11_view_info = ^_sg_d3d11_view_info;
+  _Psg_mtl_buffer_info = ^_sg_mtl_buffer_info;
+  _Psg_mtl_image_info = ^_sg_mtl_image_info;
+  _Psg_mtl_sampler_info = ^_sg_mtl_sampler_info;
+  _Psg_mtl_shader_info = ^_sg_mtl_shader_info;
+  _Psg_mtl_pipeline_info = ^_sg_mtl_pipeline_info;
+  _Psg_wgpu_buffer_info = ^_sg_wgpu_buffer_info;
+  _Psg_wgpu_image_info = ^_sg_wgpu_image_info;
+  _Psg_wgpu_sampler_info = ^_sg_wgpu_sampler_info;
+  _Psg_wgpu_shader_info = ^_sg_wgpu_shader_info;
+  _Psg_wgpu_pipeline_info = ^_sg_wgpu_pipeline_info;
+  _Psg_wgpu_view_info = ^_sg_wgpu_view_info;
+  _Psg_gl_buffer_info = ^_sg_gl_buffer_info;
+  _Psg_gl_image_info = ^_sg_gl_image_info;
+  _Psg_gl_sampler_info = ^_sg_gl_sampler_info;
+  _Psg_gl_shader_info = ^_sg_gl_shader_info;
+  _Psg_gl_view_info = ^_sg_gl_view_info;
   _Psapp_touchpoint = ^_sapp_touchpoint;
   _Psapp_event = ^_sapp_event;
   _Psapp_range = ^_sapp_range;
   _Psapp_image_desc = ^_sapp_image_desc;
   _Psapp_icon_desc = ^_sapp_icon_desc;
   _Psapp_allocator = ^_sapp_allocator;
+  _Psapp_environment_defaults = ^_sapp_environment_defaults;
+  _Psapp_metal_environment = ^_sapp_metal_environment;
+  _Psapp_d3d11_environment = ^_sapp_d3d11_environment;
+  _Psapp_wgpu_environment = ^_sapp_wgpu_environment;
+  _Psapp_vulkan_environment = ^_sapp_vulkan_environment;
+  _Psapp_environment = ^_sapp_environment;
+  _Psapp_metal_swapchain = ^_sapp_metal_swapchain;
+  _Psapp_d3d11_swapchain = ^_sapp_d3d11_swapchain;
+  _Psapp_wgpu_swapchain = ^_sapp_wgpu_swapchain;
+  _Psapp_vulkan_swapchain = ^_sapp_vulkan_swapchain;
+  _Psapp_gl_swapchain = ^_sapp_gl_swapchain;
+  _Psapp_swapchain = ^_sapp_swapchain;
+  _Psapp_logger = ^_sapp_logger;
+  _Psapp_gl_desc = ^_sapp_gl_desc;
+  _Psapp_win32_desc = ^_sapp_win32_desc;
+  _Psapp_html5_desc = ^_sapp_html5_desc;
+  _Psapp_ios_desc = ^_sapp_ios_desc;
+  _Psapp_metal_desc = ^_sapp_metal_desc;
   _Psapp_desc = ^_sapp_desc;
   _Psapp_html5_fetch_response = ^_sapp_html5_fetch_response;
   _Psapp_html5_fetch_request = ^_sapp_html5_fetch_request;
   _Psargs_allocator = ^_sargs_allocator;
   _Psargs_desc = ^_sargs_desc;
+  _Psaudio_logger = ^_saudio_logger;
   _Psaudio_allocator = ^_saudio_allocator;
+  _Psaudio_n3ds_desc = ^_saudio_n3ds_desc;
+  _Psaudio_win32_desc = ^_saudio_win32_desc;
   _Psaudio_desc = ^_saudio_desc;
+  _Psdtx_logger_t = ^_sdtx_logger_t;
   _Psdtx_context = ^_sdtx_context;
   _Psdtx_range = ^_sdtx_range;
   _Psdtx_font_desc_t = ^_sdtx_font_desc_t;
@@ -2566,79 +2021,35 @@ type
   _Psdtx_desc_t = ^_sdtx_desc_t;
   _Psfons_allocator_t = ^_sfons_allocator_t;
   _Psfons_desc_t = ^_sfons_desc_t;
-  _Psg_imgui_str_t = ^_sg_imgui_str_t;
-  _Psg_imgui_buffer_t = ^_sg_imgui_buffer_t;
-  _Psg_imgui_image_t = ^_sg_imgui_image_t;
-  _Psg_imgui_shader_t = ^_sg_imgui_shader_t;
-  _Psg_imgui_pipeline_t = ^_sg_imgui_pipeline_t;
-  _Psg_imgui_pass_t = ^_sg_imgui_pass_t;
-  _Psg_imgui_buffers_t = ^_sg_imgui_buffers_t;
-  _Psg_imgui_images_t = ^_sg_imgui_images_t;
-  _Psg_imgui_shaders_t = ^_sg_imgui_shaders_t;
-  _Psg_imgui_pipelines_t = ^_sg_imgui_pipelines_t;
-  _Psg_imgui_passes_t = ^_sg_imgui_passes_t;
-  _Psg_imgui_args_make_buffer_t = ^_sg_imgui_args_make_buffer_t;
-  _Psg_imgui_args_make_image_t = ^_sg_imgui_args_make_image_t;
-  _Psg_imgui_args_make_shader_t = ^_sg_imgui_args_make_shader_t;
-  _Psg_imgui_args_make_pipeline_t = ^_sg_imgui_args_make_pipeline_t;
-  _Psg_imgui_args_make_pass_t = ^_sg_imgui_args_make_pass_t;
-  _Psg_imgui_args_destroy_buffer_t = ^_sg_imgui_args_destroy_buffer_t;
-  _Psg_imgui_args_destroy_image_t = ^_sg_imgui_args_destroy_image_t;
-  _Psg_imgui_args_destroy_shader_t = ^_sg_imgui_args_destroy_shader_t;
-  _Psg_imgui_args_destroy_pipeline_t = ^_sg_imgui_args_destroy_pipeline_t;
-  _Psg_imgui_args_destroy_pass_t = ^_sg_imgui_args_destroy_pass_t;
-  _Psg_imgui_args_update_buffer_t = ^_sg_imgui_args_update_buffer_t;
-  _Psg_imgui_args_update_image_t = ^_sg_imgui_args_update_image_t;
-  _Psg_imgui_args_append_buffer_t = ^_sg_imgui_args_append_buffer_t;
-  _Psg_imgui_args_begin_default_pass_t = ^_sg_imgui_args_begin_default_pass_t;
-  _Psg_imgui_args_begin_pass_t = ^_sg_imgui_args_begin_pass_t;
-  _Psg_imgui_args_apply_viewport_t = ^_sg_imgui_args_apply_viewport_t;
-  _Psg_imgui_args_apply_scissor_rect_t = ^_sg_imgui_args_apply_scissor_rect_t;
-  _Psg_imgui_args_apply_pipeline_t = ^_sg_imgui_args_apply_pipeline_t;
-  _Psg_imgui_args_apply_bindings_t = ^_sg_imgui_args_apply_bindings_t;
-  _Psg_imgui_args_apply_uniforms_t = ^_sg_imgui_args_apply_uniforms_t;
-  _Psg_imgui_args_draw_t = ^_sg_imgui_args_draw_t;
-  _Psg_imgui_args_alloc_buffer_t = ^_sg_imgui_args_alloc_buffer_t;
-  _Psg_imgui_args_alloc_image_t = ^_sg_imgui_args_alloc_image_t;
-  _Psg_imgui_args_alloc_shader_t = ^_sg_imgui_args_alloc_shader_t;
-  _Psg_imgui_args_alloc_pipeline_t = ^_sg_imgui_args_alloc_pipeline_t;
-  _Psg_imgui_args_alloc_pass_t = ^_sg_imgui_args_alloc_pass_t;
-  _Psg_imgui_args_dealloc_buffer_t = ^_sg_imgui_args_dealloc_buffer_t;
-  _Psg_imgui_args_dealloc_image_t = ^_sg_imgui_args_dealloc_image_t;
-  _Psg_imgui_args_dealloc_shader_t = ^_sg_imgui_args_dealloc_shader_t;
-  _Psg_imgui_args_dealloc_pipeline_t = ^_sg_imgui_args_dealloc_pipeline_t;
-  _Psg_imgui_args_dealloc_pass_t = ^_sg_imgui_args_dealloc_pass_t;
-  _Psg_imgui_args_init_buffer_t = ^_sg_imgui_args_init_buffer_t;
-  _Psg_imgui_args_init_image_t = ^_sg_imgui_args_init_image_t;
-  _Psg_imgui_args_init_shader_t = ^_sg_imgui_args_init_shader_t;
-  _Psg_imgui_args_init_pipeline_t = ^_sg_imgui_args_init_pipeline_t;
-  _Psg_imgui_args_init_pass_t = ^_sg_imgui_args_init_pass_t;
-  _Psg_imgui_args_uninit_buffer_t = ^_sg_imgui_args_uninit_buffer_t;
-  _Psg_imgui_args_uninit_image_t = ^_sg_imgui_args_uninit_image_t;
-  _Psg_imgui_args_uninit_shader_t = ^_sg_imgui_args_uninit_shader_t;
-  _Psg_imgui_args_uninit_pipeline_t = ^_sg_imgui_args_uninit_pipeline_t;
-  _Psg_imgui_args_uninit_pass_t = ^_sg_imgui_args_uninit_pass_t;
-  _Psg_imgui_args_fail_buffer_t = ^_sg_imgui_args_fail_buffer_t;
-  _Psg_imgui_args_fail_image_t = ^_sg_imgui_args_fail_image_t;
-  _Psg_imgui_args_fail_shader_t = ^_sg_imgui_args_fail_shader_t;
-  _Psg_imgui_args_fail_pipeline_t = ^_sg_imgui_args_fail_pipeline_t;
-  _Psg_imgui_args_fail_pass_t = ^_sg_imgui_args_fail_pass_t;
-  _Psg_imgui_args_push_debug_group_t = ^_sg_imgui_args_push_debug_group_t;
-  _Psg_imgui_capture_item_t = ^_sg_imgui_capture_item_t;
-  _Psg_imgui_capture_bucket_t = ^_sg_imgui_capture_bucket_t;
-  _Psg_imgui_capture_t = ^_sg_imgui_capture_t;
-  _Psg_imgui_caps_t = ^_sg_imgui_caps_t;
-  _Psg_imgui_allocator_t = ^_sg_imgui_allocator_t;
-  _Psg_imgui_desc_t = ^_sg_imgui_desc_t;
-  _Psg_imgui_t = ^_sg_imgui_t;
+  _Psfb_framebuffer = ^_sfb_framebuffer;
+  _Psfb_rect = ^_sfb_rect;
+  _Psfb_render_pass_desc = ^_sfb_render_pass_desc;
+  _Psfb_framebuffer_desc = ^_sfb_framebuffer_desc;
+  _Psfb_resize_desc = ^_sfb_resize_desc;
+  _Psfb_update_desc = ^_sfb_update_desc;
+  _Psfb_render_desc = ^_sfb_render_desc;
+  _Psfb_texture_info = ^_sfb_texture_info;
+  _Psfb_framebuffer_info = ^_sfb_framebuffer_info;
+  _Psfb_allocator = ^_sfb_allocator;
+  _Psfb_logger = ^_sfb_logger;
+  _Psfb_desc = ^_sfb_desc;
+  _Psgimgui_allocator_t = ^_sgimgui_allocator_t;
+  _Psgimgui_desc_t = ^_sgimgui_desc_t;
+  _Psgl_logger_t = ^_sgl_logger_t;
   _Psgl_pipeline = ^_sgl_pipeline;
   _Psgl_context = ^_sgl_context;
+  _Psgl_error_t = ^_sgl_error_t;
   _Psgl_context_desc_t = ^_sgl_context_desc_t;
   _Psgl_allocator_t = ^_sgl_allocator_t;
   _Psgl_desc_t = ^_sgl_desc_t;
   _Psimgui_allocator_t = ^_simgui_allocator_t;
+  _Psimgui_logger_t = ^_simgui_logger_t;
   _Psimgui_desc_t = ^_simgui_desc_t;
   _Psimgui_frame_desc_t = ^_simgui_frame_desc_t;
+  _Psimgui_font_tex_desc_t = ^_simgui_font_tex_desc_t;
+  _Pslbx_border = ^_slbx_border;
+  _Pslbx_letterbox_desc = ^_slbx_letterbox_desc;
+  _Pslbx_viewport = ^_slbx_viewport;
   _Psmemtrack_info_t = ^_smemtrack_info_t;
   _Psshape_range = ^_sshape_range;
   _Psshape_mat4_t = ^_sshape_mat4_t;
@@ -2653,2062 +2064,44 @@ type
   _Psshape_sphere_t = ^_sshape_sphere_t;
   _Psshape_cylinder_t = ^_sshape_cylinder_t;
   _Psshape_torus_t = ^_sshape_torus_t;
-
-  _ImU64 = UInt64;
-  _PImU64 = ^_ImU64;
-  _PImGuiDockRequest = Pointer;
-  _PPImGuiDockRequest = ^_PImGuiDockRequest;
-  _PImGuiDockNodeSettings = Pointer;
-  _PPImGuiDockNodeSettings = ^_PImGuiDockNodeSettings;
-  _PImGuiTableColumnsSettings = Pointer;
-  _PPImGuiTableColumnsSettings = ^_PImGuiTableColumnsSettings;
-
-  _ImVector_const_charPtr = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: PPUTF8Char;
-  end;
-
-  _ImGuiCol = Integer;
-  _ImGuiCond = Integer;
-  _ImGuiDataType = Integer;
-  _ImGuiDir = Integer;
-  _PImGuiDir = ^_ImGuiDir;
-  _ImGuiKey = Integer;
-  _ImGuiNavInput = Integer;
-  _ImGuiMouseButton = Integer;
-  _ImGuiMouseCursor = Integer;
-  _ImGuiSortDirection = Integer;
-  _ImGuiStyleVar = Integer;
-  _ImGuiTableBgTarget = Integer;
-  _ImDrawFlags = Integer;
-  _ImDrawListFlags = Integer;
-  _ImFontAtlasFlags = Integer;
-  _ImGuiBackendFlags = Integer;
-  _ImGuiButtonFlags = Integer;
-  _ImGuiColorEditFlags = Integer;
-  _ImGuiConfigFlags = Integer;
-  _ImGuiComboFlags = Integer;
-  _ImGuiDockNodeFlags = Integer;
-  _ImGuiDragDropFlags = Integer;
-  _ImGuiFocusedFlags = Integer;
-  _ImGuiHoveredFlags = Integer;
-  _ImGuiInputTextFlags = Integer;
-  _ImGuiModFlags = Integer;
-  _ImGuiPopupFlags = Integer;
-  _ImGuiSelectableFlags = Integer;
-  _ImGuiSliderFlags = Integer;
-  _ImGuiTabBarFlags = Integer;
-  _ImGuiTabItemFlags = Integer;
-  _ImGuiTableFlags = Integer;
-  _ImGuiTableColumnFlags = Integer;
-  _ImGuiTableRowFlags = Integer;
-  _ImGuiTreeNodeFlags = Integer;
-  _ImGuiViewportFlags = Integer;
-  _ImGuiWindowFlags = Integer;
-  _ImTextureID = Pointer;
-  _PImTextureID = ^_ImTextureID;
-  _ImDrawIdx = Word;
-  _PImDrawIdx = ^_ImDrawIdx;
-  _ImGuiID = Cardinal;
-  _PImGuiID = ^_ImGuiID;
-  _ImS8 = UTF8Char;
-  _ImU8 = Byte;
-  _ImS16 = Smallint;
-  _ImU16 = Word;
-  _ImS32 = Integer;
-  _ImU32 = Cardinal;
-  _PImU32 = ^_ImU32;
-  _ImS64 = Int64;
-  _PImS64 = ^_ImS64;
-  _ImWchar16 = Word;
-  _ImWchar32 = Cardinal;
-  _ImWchar = _ImWchar16;
-  _PImWchar = ^_ImWchar;
-
-  _ImGuiInputTextCallback = function(data: _PImGuiInputTextCallbackData): Integer; cdecl;
-
-  _ImGuiSizeCallback = procedure(data: _PImGuiSizeCallbackData); cdecl;
-
-  _ImGuiMemAllocFunc = function(sz: NativeUInt; user_data: Pointer): Pointer; cdecl;
-  _PImGuiMemAllocFunc = ^_ImGuiMemAllocFunc;
-
-  _ImGuiMemFreeFunc = procedure(ptr: Pointer; user_data: Pointer); cdecl;
-  _PImGuiMemFreeFunc = ^_ImGuiMemFreeFunc;
-
-  _ImVec2 = record
-    x: Single;
-    y: Single;
-  end;
-
-  _ImVec4 = record
-    x: Single;
-    y: Single;
-    z: Single;
-    w: Single;
-  end;
-
-  _ImGuiStyle = record
-    Alpha: Single;
-    DisabledAlpha: Single;
-    WindowPadding: _ImVec2;
-    WindowRounding: Single;
-    WindowBorderSize: Single;
-    WindowMinSize: _ImVec2;
-    WindowTitleAlign: _ImVec2;
-    WindowMenuButtonPosition: _ImGuiDir;
-    ChildRounding: Single;
-    ChildBorderSize: Single;
-    PopupRounding: Single;
-    PopupBorderSize: Single;
-    FramePadding: _ImVec2;
-    FrameRounding: Single;
-    FrameBorderSize: Single;
-    ItemSpacing: _ImVec2;
-    ItemInnerSpacing: _ImVec2;
-    CellPadding: _ImVec2;
-    TouchExtraPadding: _ImVec2;
-    IndentSpacing: Single;
-    ColumnsMinSpacing: Single;
-    ScrollbarSize: Single;
-    ScrollbarRounding: Single;
-    GrabMinSize: Single;
-    GrabRounding: Single;
-    LogSliderDeadzone: Single;
-    TabRounding: Single;
-    TabBorderSize: Single;
-    TabMinWidthForCloseButton: Single;
-    ColorButtonPosition: _ImGuiDir;
-    ButtonTextAlign: _ImVec2;
-    SelectableTextAlign: _ImVec2;
-    DisplayWindowPadding: _ImVec2;
-    DisplaySafeAreaPadding: _ImVec2;
-    MouseCursorScale: Single;
-    AntiAliasedLines: Boolean;
-    AntiAliasedLinesUseTex: Boolean;
-    AntiAliasedFill: Boolean;
-    CurveTessellationTol: Single;
-    CircleTessellationMaxError: Single;
-    Colors: array [0..54] of _ImVec4;
-  end;
-
-  _ImGuiKeyData = record
-    Down: Boolean;
-    DownDuration: Single;
-    DownDurationPrev: Single;
-    AnalogValue: Single;
-  end;
-
-  _ImVector_ImWchar = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImWchar;
-  end;
-
-  _ImGuiIO = record
-    ConfigFlags: _ImGuiConfigFlags;
-    BackendFlags: _ImGuiBackendFlags;
-    DisplaySize: _ImVec2;
-    DeltaTime: Single;
-    IniSavingRate: Single;
-    IniFilename: PUTF8Char;
-    LogFilename: PUTF8Char;
-    MouseDoubleClickTime: Single;
-    MouseDoubleClickMaxDist: Single;
-    MouseDragThreshold: Single;
-    KeyRepeatDelay: Single;
-    KeyRepeatRate: Single;
-    UserData: Pointer;
-    Fonts: _PImFontAtlas;
-    FontGlobalScale: Single;
-    FontAllowUserScaling: Boolean;
-    FontDefault: _PImFont;
-    DisplayFramebufferScale: _ImVec2;
-    ConfigDockingNoSplit: Boolean;
-    ConfigDockingWithShift: Boolean;
-    ConfigDockingAlwaysTabBar: Boolean;
-    ConfigDockingTransparentPayload: Boolean;
-    ConfigViewportsNoAutoMerge: Boolean;
-    ConfigViewportsNoTaskBarIcon: Boolean;
-    ConfigViewportsNoDecoration: Boolean;
-    ConfigViewportsNoDefaultParent: Boolean;
-    MouseDrawCursor: Boolean;
-    ConfigMacOSXBehaviors: Boolean;
-    ConfigInputTrickleEventQueue: Boolean;
-    ConfigInputTextCursorBlink: Boolean;
-    ConfigDragClickToInputText: Boolean;
-    ConfigWindowsResizeFromEdges: Boolean;
-    ConfigWindowsMoveFromTitleBarOnly: Boolean;
-    ConfigMemoryCompactTimer: Single;
-    BackendPlatformName: PUTF8Char;
-    BackendRendererName: PUTF8Char;
-    BackendPlatformUserData: Pointer;
-    BackendRendererUserData: Pointer;
-    BackendLanguageUserData: Pointer;
-    GetClipboardTextFn: function(user_data: Pointer): PUTF8Char; cdecl;
-    SetClipboardTextFn: procedure(user_data: Pointer; const text: PUTF8Char); cdecl;
-    ClipboardUserData: Pointer;
-    SetPlatformImeDataFn: procedure(viewport: _PImGuiViewport; data: _PImGuiPlatformImeData); cdecl;
-    _UnusedPadding: Pointer;
-    WantCaptureMouse: Boolean;
-    WantCaptureKeyboard: Boolean;
-    WantTextInput: Boolean;
-    WantSetMousePos: Boolean;
-    WantSaveIniSettings: Boolean;
-    NavActive: Boolean;
-    NavVisible: Boolean;
-    Framerate: Single;
-    MetricsRenderVertices: Integer;
-    MetricsRenderIndices: Integer;
-    MetricsRenderWindows: Integer;
-    MetricsActiveWindows: Integer;
-    MetricsActiveAllocations: Integer;
-    MouseDelta: _ImVec2;
-    KeyMap: array [0..644] of Integer;
-    KeysDown: array [0..644] of Boolean;
-    MousePos: _ImVec2;
-    MouseDown: array [0..4] of Boolean;
-    MouseWheel: Single;
-    MouseWheelH: Single;
-    MouseHoveredViewport: _ImGuiID;
-    KeyCtrl: Boolean;
-    KeyShift: Boolean;
-    KeyAlt: Boolean;
-    KeySuper: Boolean;
-    NavInputs: array [0..19] of Single;
-    KeyMods: _ImGuiModFlags;
-    KeysData: array [0..644] of _ImGuiKeyData;
-    WantCaptureMouseUnlessPopupClose: Boolean;
-    MousePosPrev: _ImVec2;
-    MouseClickedPos: array [0..4] of _ImVec2;
-    MouseClickedTime: array [0..4] of Double;
-    MouseClicked: array [0..4] of Boolean;
-    MouseDoubleClicked: array [0..4] of Boolean;
-    MouseClickedCount: array [0..4] of _ImU16;
-    MouseClickedLastCount: array [0..4] of _ImU16;
-    MouseReleased: array [0..4] of Boolean;
-    MouseDownOwned: array [0..4] of Boolean;
-    MouseDownOwnedUnlessPopupClose: array [0..4] of Boolean;
-    MouseDownDuration: array [0..4] of Single;
-    MouseDownDurationPrev: array [0..4] of Single;
-    MouseDragMaxDistanceAbs: array [0..4] of _ImVec2;
-    MouseDragMaxDistanceSqr: array [0..4] of Single;
-    NavInputsDownDuration: array [0..19] of Single;
-    NavInputsDownDurationPrev: array [0..19] of Single;
-    PenPressure: Single;
-    AppFocusLost: Boolean;
-    AppAcceptingEvents: Boolean;
-    BackendUsingLegacyKeyArrays: _ImS8;
-    BackendUsingLegacyNavInputArray: Boolean;
-    InputQueueSurrogate: _ImWchar16;
-    InputQueueCharacters: _ImVector_ImWchar;
-  end;
-
-  _ImGuiInputTextCallbackData = record
-    EventFlag: _ImGuiInputTextFlags;
-    Flags: _ImGuiInputTextFlags;
-    UserData: Pointer;
-    EventChar: _ImWchar;
-    EventKey: _ImGuiKey;
-    Buf: PUTF8Char;
-    BufTextLen: Integer;
-    BufSize: Integer;
-    BufDirty: Boolean;
-    CursorPos: Integer;
-    SelectionStart: Integer;
-    SelectionEnd: Integer;
-  end;
-
-  _ImGuiSizeCallbackData = record
-    UserData: Pointer;
-    Pos: _ImVec2;
-    CurrentSize: _ImVec2;
-    DesiredSize: _ImVec2;
-  end;
-
-  _ImGuiWindowClass = record
-    ClassId: _ImGuiID;
-    ParentViewportId: _ImGuiID;
-    ViewportFlagsOverrideSet: _ImGuiViewportFlags;
-    ViewportFlagsOverrideClear: _ImGuiViewportFlags;
-    TabItemFlagsOverrideSet: _ImGuiTabItemFlags;
-    DockNodeFlagsOverrideSet: _ImGuiDockNodeFlags;
-    DockingAlwaysTabBar: Boolean;
-    DockingAllowUnclassed: Boolean;
-  end;
-
-  _ImGuiPayload = record
-    Data: Pointer;
-    DataSize: Integer;
-    SourceId: _ImGuiID;
-    SourceParentId: _ImGuiID;
-    DataFrameCount: Integer;
-    DataType: array [0..32] of UTF8Char;
-    Preview: Boolean;
-    Delivery: Boolean;
-  end;
-
-  _ImGuiTableColumnSortSpecs = record
-    ColumnUserID: _ImGuiID;
-    ColumnIndex: _ImS16;
-    SortOrder: _ImS16;
-    SortDirection: _ImGuiSortDirection;
-  end;
-
-  _ImGuiTableSortSpecs = record
-    Specs: _PImGuiTableColumnSortSpecs;
-    SpecsCount: Integer;
-    SpecsDirty: Boolean;
-  end;
-
-  _ImGuiOnceUponAFrame = record
-    RefFrame: Integer;
-  end;
-
-  _ImGuiTextRange = record
-    b: PUTF8Char;
-    e: PUTF8Char;
-  end;
-
-  _ImVector_ImGuiTextRange = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiTextRange;
-  end;
-
-  _ImGuiTextFilter = record
-    InputBuf: array [0..255] of UTF8Char;
-    Filters: _ImVector_ImGuiTextRange;
-    CountGrep: Integer;
-  end;
-
-  _ImVector_char = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: PUTF8Char;
-  end;
-
-  _ImGuiTextBuffer = record
-    Buf: _ImVector_char;
-  end;
-
-  _anonymous_type_11 = record
-    case Integer of
-      0: (val_i: Integer);
-      1: (val_f: Single);
-      2: (val_p: Pointer);
-  end;
-  P_anonymous_type_11 = ^_anonymous_type_11;
-
-  _ImGuiStoragePair = record
-    key: _ImGuiID;
-    f2: _anonymous_type_11;
-  end;
-
-  _ImVector_ImGuiStoragePair = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiStoragePair;
-  end;
-
-  _ImGuiStorage = record
-    Data: _ImVector_ImGuiStoragePair;
-  end;
-
-  _ImGuiListClipper = record
-    DisplayStart: Integer;
-    DisplayEnd: Integer;
-    ItemsCount: Integer;
-    ItemsHeight: Single;
-    StartPosY: Single;
-    TempData: Pointer;
-  end;
-
-  _ImColor = record
-    Value: _ImVec4;
-  end;
-
-  _ImDrawCallback = procedure(const parent_list: _PImDrawList; const cmd: _PImDrawCmd); cdecl;
-
-  _ImDrawCmd = record
-    ClipRect: _ImVec4;
-    TextureId: _ImTextureID;
-    VtxOffset: Cardinal;
-    IdxOffset: Cardinal;
-    ElemCount: Cardinal;
-    UserCallback: _ImDrawCallback;
-    UserCallbackData: Pointer;
-  end;
-
-  _ImDrawVert = record
-    pos: _ImVec2;
-    uv: _ImVec2;
-    col: _ImU32;
-  end;
-
-  _ImDrawCmdHeader = record
-    ClipRect: _ImVec4;
-    TextureId: _ImTextureID;
-    VtxOffset: Cardinal;
-  end;
-
-  _ImVector_ImDrawCmd = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImDrawCmd;
-  end;
-
-  _ImVector_ImDrawIdx = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImDrawIdx;
-  end;
-
-  _ImDrawChannel = record
-    _CmdBuffer: _ImVector_ImDrawCmd;
-    _IdxBuffer: _ImVector_ImDrawIdx;
-  end;
-
-  _ImVector_ImDrawChannel = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImDrawChannel;
-  end;
-
-  _ImDrawListSplitter = record
-    _Current: Integer;
-    _Count: Integer;
-    _Channels: _ImVector_ImDrawChannel;
-  end;
-
-  _ImVector_ImDrawVert = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImDrawVert;
-  end;
-
-  _ImVector_ImVec4 = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImVec4;
-  end;
-
-  _ImVector_ImTextureID = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImTextureID;
-  end;
-
-  _ImVector_ImVec2 = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImVec2;
-  end;
-
-  _ImDrawList = record
-    CmdBuffer: _ImVector_ImDrawCmd;
-    IdxBuffer: _ImVector_ImDrawIdx;
-    VtxBuffer: _ImVector_ImDrawVert;
-    Flags: _ImDrawListFlags;
-    _VtxCurrentIdx: Cardinal;
-    _Data: _PImDrawListSharedData;
-    _OwnerName: PUTF8Char;
-    _VtxWritePtr: _PImDrawVert;
-    _IdxWritePtr: _PImDrawIdx;
-    _ClipRectStack: _ImVector_ImVec4;
-    _TextureIdStack: _ImVector_ImTextureID;
-    _Path: _ImVector_ImVec2;
-    _CmdHeader: _ImDrawCmdHeader;
-    _Splitter: _ImDrawListSplitter;
-    _FringeScale: Single;
-  end;
-
-  _ImDrawData = record
-    Valid: Boolean;
-    CmdListsCount: Integer;
-    TotalIdxCount: Integer;
-    TotalVtxCount: Integer;
-    CmdLists: _PPImDrawList;
-    DisplayPos: _ImVec2;
-    DisplaySize: _ImVec2;
-    FramebufferScale: _ImVec2;
-    OwnerViewport: _PImGuiViewport;
-  end;
-
-  _ImFontConfig = record
-    FontData: Pointer;
-    FontDataSize: Integer;
-    FontDataOwnedByAtlas: Boolean;
-    FontNo: Integer;
-    SizePixels: Single;
-    OversampleH: Integer;
-    OversampleV: Integer;
-    PixelSnapH: Boolean;
-    GlyphExtraSpacing: _ImVec2;
-    GlyphOffset: _ImVec2;
-    GlyphRanges: _PImWchar;
-    GlyphMinAdvanceX: Single;
-    GlyphMaxAdvanceX: Single;
-    MergeMode: Boolean;
-    FontBuilderFlags: Cardinal;
-    RasterizerMultiply: Single;
-    EllipsisChar: _ImWchar;
-    Name: array [0..39] of UTF8Char;
-    DstFont: _PImFont;
-  end;
-
-  _ImFontGlyph = record
-    Colored: Cardinal;
-    Visible: Cardinal;
-    Codepoint: Cardinal;
-    AdvanceX: Single;
-    X0: Single;
-    Y0: Single;
-    X1: Single;
-    Y1: Single;
-    U0: Single;
-    V0: Single;
-    U1: Single;
-    V1: Single;
-  end;
-
-  _ImVector_ImU32 = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImU32;
-  end;
-
-  _ImFontGlyphRangesBuilder = record
-    UsedChars: _ImVector_ImU32;
-  end;
-
-  _ImFontAtlasCustomRect = record
-    Width: Word;
-    Height: Word;
-    X: Word;
-    Y: Word;
-    GlyphID: Cardinal;
-    GlyphAdvanceX: Single;
-    GlyphOffset: _ImVec2;
-    Font: _PImFont;
-  end;
-
-  _ImVector_ImFontPtr = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PPImFont;
-  end;
-
-  _ImVector_ImFontAtlasCustomRect = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImFontAtlasCustomRect;
-  end;
-
-  _ImVector_ImFontConfig = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImFontConfig;
-  end;
-
-  _ImFontAtlas = record
-    Flags: _ImFontAtlasFlags;
-    TexID: _ImTextureID;
-    TexDesiredWidth: Integer;
-    TexGlyphPadding: Integer;
-    Locked: Boolean;
-    TexReady: Boolean;
-    TexPixelsUseColors: Boolean;
-    TexPixelsAlpha8: PByte;
-    TexPixelsRGBA32: PCardinal;
-    TexWidth: Integer;
-    TexHeight: Integer;
-    TexUvScale: _ImVec2;
-    TexUvWhitePixel: _ImVec2;
-    Fonts: _ImVector_ImFontPtr;
-    CustomRects: _ImVector_ImFontAtlasCustomRect;
-    ConfigData: _ImVector_ImFontConfig;
-    TexUvLines: array [0..63] of _ImVec4;
-    FontBuilderIO: _PImFontBuilderIO;
-    FontBuilderFlags: Cardinal;
-    PackIdMouseCursors: Integer;
-    PackIdLines: Integer;
-  end;
-
-  _ImVector_float = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: PSingle;
-  end;
-
-  _ImVector_ImFontGlyph = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImFontGlyph;
-  end;
-
-  _ImFont = record
-    IndexAdvanceX: _ImVector_float;
-    FallbackAdvanceX: Single;
-    FontSize: Single;
-    IndexLookup: _ImVector_ImWchar;
-    Glyphs: _ImVector_ImFontGlyph;
-    FallbackGlyph: _PImFontGlyph;
-    ContainerAtlas: _PImFontAtlas;
-    ConfigData: _PImFontConfig;
-    ConfigDataCount: Smallint;
-    FallbackChar: _ImWchar;
-    EllipsisChar: _ImWchar;
-    DotChar: _ImWchar;
-    DirtyLookupTables: Boolean;
-    Scale: Single;
-    Ascent: Single;
-    Descent: Single;
-    MetricsTotalSurface: Integer;
-    Used4kPagesMap: array [0..1] of _ImU8;
-  end;
-
-  _ImGuiViewport = record
-    ID: _ImGuiID;
-    Flags: _ImGuiViewportFlags;
-    Pos: _ImVec2;
-    Size: _ImVec2;
-    WorkPos: _ImVec2;
-    WorkSize: _ImVec2;
-    DpiScale: Single;
-    ParentViewportId: _ImGuiID;
-    DrawData: _PImDrawData;
-    RendererUserData: Pointer;
-    PlatformUserData: Pointer;
-    PlatformHandle: Pointer;
-    PlatformHandleRaw: Pointer;
-    PlatformRequestMove: Boolean;
-    PlatformRequestResize: Boolean;
-    PlatformRequestClose: Boolean;
-  end;
-
-  _ImVector_ImGuiPlatformMonitor = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiPlatformMonitor;
-  end;
-
-  _ImVector_ImGuiViewportPtr = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PPImGuiViewport;
-  end;
-
-  _ImGuiPlatformIO = record
-    Platform_CreateWindow: procedure(vp: _PImGuiViewport); cdecl;
-    Platform_DestroyWindow: procedure(vp: _PImGuiViewport); cdecl;
-    Platform_ShowWindow: procedure(vp: _PImGuiViewport); cdecl;
-    Platform_SetWindowPos: procedure(vp: _PImGuiViewport; pos: _ImVec2); cdecl;
-    Platform_GetWindowPos: function(vp: _PImGuiViewport): _ImVec2; cdecl;
-    Platform_SetWindowSize: procedure(vp: _PImGuiViewport; size: _ImVec2); cdecl;
-    Platform_GetWindowSize: function(vp: _PImGuiViewport): _ImVec2; cdecl;
-    Platform_SetWindowFocus: procedure(vp: _PImGuiViewport); cdecl;
-    Platform_GetWindowFocus: function(vp: _PImGuiViewport): Boolean; cdecl;
-    Platform_GetWindowMinimized: function(vp: _PImGuiViewport): Boolean; cdecl;
-    Platform_SetWindowTitle: procedure(vp: _PImGuiViewport; const str: PUTF8Char); cdecl;
-    Platform_SetWindowAlpha: procedure(vp: _PImGuiViewport; alpha: Single); cdecl;
-    Platform_UpdateWindow: procedure(vp: _PImGuiViewport); cdecl;
-    Platform_RenderWindow: procedure(vp: _PImGuiViewport; render_arg: Pointer); cdecl;
-    Platform_SwapBuffers: procedure(vp: _PImGuiViewport; render_arg: Pointer); cdecl;
-    Platform_GetWindowDpiScale: function(vp: _PImGuiViewport): Single; cdecl;
-    Platform_OnChangedViewport: procedure(vp: _PImGuiViewport); cdecl;
-    Platform_CreateVkSurface: function(vp: _PImGuiViewport; vk_inst: _ImU64; const vk_allocators: Pointer; out_vk_surface: _PImU64): Integer; cdecl;
-    Renderer_CreateWindow: procedure(vp: _PImGuiViewport); cdecl;
-    Renderer_DestroyWindow: procedure(vp: _PImGuiViewport); cdecl;
-    Renderer_SetWindowSize: procedure(vp: _PImGuiViewport; size: _ImVec2); cdecl;
-    Renderer_RenderWindow: procedure(vp: _PImGuiViewport; render_arg: Pointer); cdecl;
-    Renderer_SwapBuffers: procedure(vp: _PImGuiViewport; render_arg: Pointer); cdecl;
-    Monitors: _ImVector_ImGuiPlatformMonitor;
-    Viewports: _ImVector_ImGuiViewportPtr;
-  end;
-
-  _ImGuiPlatformMonitor = record
-    MainPos: _ImVec2;
-    MainSize: _ImVec2;
-    WorkPos: _ImVec2;
-    WorkSize: _ImVec2;
-    DpiScale: Single;
-  end;
-
-  _ImGuiPlatformImeData = record
-    WantVisible: Boolean;
-    InputPos: _ImVec2;
-    InputLineHeight: Single;
-  end;
-
-  _ImGuiDataAuthority = Integer;
-  _ImGuiLayoutType = Integer;
-  _ImGuiActivateFlags = Integer;
-  _ImGuiDebugLogFlags = Integer;
-  _ImGuiItemFlags = Integer;
-  _PImGuiItemFlags = ^_ImGuiItemFlags;
-  _ImGuiItemStatusFlags = Integer;
-  _ImGuiOldColumnFlags = Integer;
-  _ImGuiNavHighlightFlags = Integer;
-  _ImGuiNavDirSourceFlags = Integer;
-  _ImGuiNavMoveFlags = Integer;
-  _ImGuiNextItemDataFlags = Integer;
-  _ImGuiNextWindowDataFlags = Integer;
-  _ImGuiScrollFlags = Integer;
-  _ImGuiSeparatorFlags = Integer;
-  _ImGuiTextFlags = Integer;
-  _ImGuiTooltipFlags = Integer;
-
-  _ImGuiErrorLogCallback = procedure(user_data: Pointer; const fmt: PUTF8Char) varargs; cdecl;
-
-  _StbUndoRecord = record
-    where: Integer;
-    insert_length: Integer;
-    delete_length: Integer;
-    char_storage: Integer;
-  end;
-
-  _StbUndoState = record
-    undo_rec: array [0..98] of _StbUndoRecord;
-    undo_char: array [0..998] of _ImWchar;
-    undo_point: Smallint;
-    redo_point: Smallint;
-    undo_char_point: Integer;
-    redo_char_point: Integer;
-  end;
-
-  _STB_TexteditState = record
-    cursor: Integer;
-    select_start: Integer;
-    select_end: Integer;
-    insert_mode: Byte;
-    row_count_per_page: Integer;
-    cursor_at_end_of_line: Byte;
-    initialized: Byte;
-    has_preferred_x: Byte;
-    single_line: Byte;
-    padding1: Byte;
-    padding2: Byte;
-    padding3: Byte;
-    preferred_x: Single;
-    undostate: _StbUndoState;
-  end;
-
-  _StbTexteditRow = record
-    x0: Single;
-    x1: Single;
-    baseline_y_delta: Single;
-    ymin: Single;
-    ymax: Single;
-    num_chars: Integer;
-  end;
-
-  _ImFileHandle = PPointer;
-
-  _ImVec1 = record
-    x: Single;
-  end;
-
-  _ImVec2ih = record
-    x: Smallint;
-    y: Smallint;
-  end;
-
-  _ImRect = record
-    Min: _ImVec2;
-    Max: _ImVec2;
-  end;
-
-  _ImBitVector = record
-    Storage: _ImVector_ImU32;
-  end;
-
-  _ImPoolIdx = Integer;
-
-  _ImDrawListSharedData = record
-    TexUvWhitePixel: _ImVec2;
-    Font: _PImFont;
-    FontSize: Single;
-    CurveTessellationTol: Single;
-    CircleSegmentMaxError: Single;
-    ClipRectFullscreen: _ImVec4;
-    InitialFlags: _ImDrawListFlags;
-    ArcFastVtx: array [0..47] of _ImVec2;
-    ArcFastRadiusCutoff: Single;
-    CircleSegmentCounts: array [0..63] of _ImU8;
-    TexUvLines: _PImVec4;
-  end;
-
-  _ImVector_ImDrawListPtr = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PPImDrawList;
-  end;
-
-  _ImDrawDataBuilder = record
-    Layers: array [0..1] of _ImVector_ImDrawListPtr;
-  end;
-
-  _ImGuiDataTypeTempStorage = record
-    Data: array [0..7] of _ImU8;
-  end;
-
-  _ImGuiDataTypeInfo = record
-    Size: NativeUInt;
-    Name: PUTF8Char;
-    PrintFmt: PUTF8Char;
-    ScanFmt: PUTF8Char;
-  end;
-
-  _ImGuiColorMod = record
-    Col: _ImGuiCol;
-    BackupValue: _ImVec4;
-  end;
-
-  _anonymous_type_12 = record
-    case Integer of
-      0: (BackupInt: array [0..1] of Integer);
-      1: (BackupFloat: array [0..1] of Single);
-  end;
-  P_anonymous_type_12 = ^_anonymous_type_12;
-
-  _ImGuiStyleMod = record
-    VarIdx: _ImGuiStyleVar;
-    f2: _anonymous_type_12;
-  end;
-
-  _ImGuiComboPreviewData = record
-    PreviewRect: _ImRect;
-    BackupCursorPos: _ImVec2;
-    BackupCursorMaxPos: _ImVec2;
-    BackupCursorPosPrevLine: _ImVec2;
-    BackupPrevLineTextBaseOffset: Single;
-    BackupLayout: _ImGuiLayoutType;
-  end;
-
-  _ImGuiGroupData = record
-    WindowID: _ImGuiID;
-    BackupCursorPos: _ImVec2;
-    BackupCursorMaxPos: _ImVec2;
-    BackupIndent: _ImVec1;
-    BackupGroupOffset: _ImVec1;
-    BackupCurrLineSize: _ImVec2;
-    BackupCurrLineTextBaseOffset: Single;
-    BackupActiveIdIsAlive: _ImGuiID;
-    BackupActiveIdPreviousFrameIsAlive: Boolean;
-    BackupHoveredIdIsAlive: Boolean;
-    EmitItem: Boolean;
-  end;
-
-  _ImGuiMenuColumns = record
-    TotalWidth: _ImU32;
-    NextTotalWidth: _ImU32;
-    Spacing: _ImU16;
-    OffsetIcon: _ImU16;
-    OffsetLabel: _ImU16;
-    OffsetShortcut: _ImU16;
-    OffsetMark: _ImU16;
-    Widths: array [0..3] of _ImU16;
-  end;
-
-  _ImGuiInputTextState = record
-    ID: _ImGuiID;
-    CurLenW: Integer;
-    CurLenA: Integer;
-    TextW: _ImVector_ImWchar;
-    TextA: _ImVector_char;
-    InitialTextA: _ImVector_char;
-    TextAIsValid: Boolean;
-    BufCapacityA: Integer;
-    ScrollX: Single;
-    Stb: _STB_TexteditState;
-    CursorAnim: Single;
-    CursorFollow: Boolean;
-    SelectedAllMouseLock: Boolean;
-    Edited: Boolean;
-    Flags: _ImGuiInputTextFlags;
-  end;
-
-  _ImGuiPopupData = record
-    PopupId: _ImGuiID;
-    Window: _PImGuiWindow;
-    SourceWindow: _PImGuiWindow;
-    ParentNavLayer: Integer;
-    OpenFrameCount: Integer;
-    OpenParentId: _ImGuiID;
-    OpenPopupPos: _ImVec2;
-    OpenMousePos: _ImVec2;
-  end;
-
-  _ImGuiNextWindowData = record
-    Flags: _ImGuiNextWindowDataFlags;
-    PosCond: _ImGuiCond;
-    SizeCond: _ImGuiCond;
-    CollapsedCond: _ImGuiCond;
-    DockCond: _ImGuiCond;
-    PosVal: _ImVec2;
-    PosPivotVal: _ImVec2;
-    SizeVal: _ImVec2;
-    ContentSizeVal: _ImVec2;
-    ScrollVal: _ImVec2;
-    PosUndock: Boolean;
-    CollapsedVal: Boolean;
-    SizeConstraintRect: _ImRect;
-    SizeCallback: _ImGuiSizeCallback;
-    SizeCallbackUserData: Pointer;
-    BgAlphaVal: Single;
-    ViewportId: _ImGuiID;
-    DockId: _ImGuiID;
-    WindowClass: _ImGuiWindowClass;
-    MenuBarOffsetMinVal: _ImVec2;
-  end;
-
-  _ImGuiNextItemData = record
-    Flags: _ImGuiNextItemDataFlags;
-    Width: Single;
-    FocusScopeId: _ImGuiID;
-    OpenCond: _ImGuiCond;
-    OpenVal: Boolean;
-  end;
-
-  _ImGuiLastItemData = record
-    ID: _ImGuiID;
-    InFlags: _ImGuiItemFlags;
-    StatusFlags: _ImGuiItemStatusFlags;
-    Rect: _ImRect;
-    NavRect: _ImRect;
-    DisplayRect: _ImRect;
-  end;
-
-  _ImGuiStackSizes = record
-    SizeOfIDStack: Smallint;
-    SizeOfColorStack: Smallint;
-    SizeOfStyleVarStack: Smallint;
-    SizeOfFontStack: Smallint;
-    SizeOfFocusScopeStack: Smallint;
-    SizeOfGroupStack: Smallint;
-    SizeOfItemFlagsStack: Smallint;
-    SizeOfBeginPopupStack: Smallint;
-    SizeOfDisabledStack: Smallint;
-  end;
-
-  _ImGuiWindowStackData = record
-    Window: _PImGuiWindow;
-    ParentLastItemDataBackup: _ImGuiLastItemData;
-    StackSizesOnBegin: _ImGuiStackSizes;
-  end;
-
-  _ImGuiShrinkWidthItem = record
-    Index: Integer;
-    Width: Single;
-    InitialWidth: Single;
-  end;
-
-  _ImGuiPtrOrIndex = record
-    Ptr: Pointer;
-    Index: Integer;
-  end;
-
-  _ImBitArray_ImGuiKey_NamedKey_COUNT__lessImGuiKey_NamedKey_BEGIN = record
-    Storage: array [0..4] of _ImU32;
-  end;
-
-  _ImBitArrayForNamedKeys = _ImBitArray_ImGuiKey_NamedKey_COUNT__lessImGuiKey_NamedKey_BEGIN;
-
-  _ImGuiInputEventMousePos = record
-    PosX: Single;
-    PosY: Single;
-  end;
-
-  _ImGuiInputEventMouseWheel = record
-    WheelX: Single;
-    WheelY: Single;
-  end;
-
-  _ImGuiInputEventMouseButton = record
-    Button: Integer;
-    Down: Boolean;
-  end;
-
-  _ImGuiInputEventMouseViewport = record
-    HoveredViewportID: _ImGuiID;
-  end;
-
-  _ImGuiInputEventKey = record
-    Key: _ImGuiKey;
-    Down: Boolean;
-    AnalogValue: Single;
-  end;
-
-  _ImGuiInputEventText = record
-    Char: Cardinal;
-  end;
-
-  _ImGuiInputEventAppFocused = record
-    Focused: Boolean;
-  end;
-
-  _anonymous_type_13 = record
-    case Integer of
-      0: (MousePos: _ImGuiInputEventMousePos);
-      1: (MouseWheel: _ImGuiInputEventMouseWheel);
-      2: (MouseButton: _ImGuiInputEventMouseButton);
-      3: (MouseViewport: _ImGuiInputEventMouseViewport);
-      4: (Key: _ImGuiInputEventKey);
-      5: (Text: _ImGuiInputEventText);
-      6: (AppFocused: _ImGuiInputEventAppFocused);
-  end;
-  P_anonymous_type_13 = ^_anonymous_type_13;
-
-  _ImGuiInputEvent = record
-    &Type: _ImGuiInputEventType;
-    Source: _ImGuiInputSource;
-    f3: _anonymous_type_13;
-    AddedByTestEngine: Boolean;
-  end;
-
-  _ImGuiListClipperRange = record
-    Min: Integer;
-    Max: Integer;
-    PosToIndexConvert: Boolean;
-    PosToIndexOffsetMin: _ImS8;
-    PosToIndexOffsetMax: _ImS8;
-  end;
-
-  _ImVector_ImGuiListClipperRange = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiListClipperRange;
-  end;
-
-  _ImGuiListClipperData = record
-    ListClipper: _PImGuiListClipper;
-    LossynessOffset: Single;
-    StepNo: Integer;
-    ItemsFrozen: Integer;
-    Ranges: _ImVector_ImGuiListClipperRange;
-  end;
-
-  _ImGuiNavItemData = record
-    Window: _PImGuiWindow;
-    ID: _ImGuiID;
-    FocusScopeId: _ImGuiID;
-    RectRel: _ImRect;
-    InFlags: _ImGuiItemFlags;
-    DistBox: Single;
-    DistCenter: Single;
-    DistAxial: Single;
-  end;
-
-  _ImGuiOldColumnData = record
-    OffsetNorm: Single;
-    OffsetNormBeforeResize: Single;
-    Flags: _ImGuiOldColumnFlags;
-    ClipRect: _ImRect;
-  end;
-
-  _ImVector_ImGuiOldColumnData = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiOldColumnData;
-  end;
-
-  _ImGuiOldColumns = record
-    ID: _ImGuiID;
-    Flags: _ImGuiOldColumnFlags;
-    IsFirstFrame: Boolean;
-    IsBeingResized: Boolean;
-    Current: Integer;
-    Count: Integer;
-    OffMinX: Single;
-    OffMaxX: Single;
-    LineMinY: Single;
-    LineMaxY: Single;
-    HostCursorPosY: Single;
-    HostCursorMaxPosX: Single;
-    HostInitialClipRect: _ImRect;
-    HostBackupClipRect: _ImRect;
-    HostBackupParentWorkRect: _ImRect;
-    Columns: _ImVector_ImGuiOldColumnData;
-    Splitter: _ImDrawListSplitter;
-  end;
-
-  _ImVector_ImGuiWindowPtr = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PPImGuiWindow;
-  end;
-
-  _ImGuiDockNode = record
-    ID: _ImGuiID;
-    SharedFlags: _ImGuiDockNodeFlags;
-    LocalFlags: _ImGuiDockNodeFlags;
-    LocalFlagsInWindows: _ImGuiDockNodeFlags;
-    MergedFlags: _ImGuiDockNodeFlags;
-    State: _ImGuiDockNodeState;
-    ParentNode: _PImGuiDockNode;
-    ChildNodes: array [0..1] of _PImGuiDockNode;
-    Windows: _ImVector_ImGuiWindowPtr;
-    TabBar: _PImGuiTabBar;
-    Pos: _ImVec2;
-    Size: _ImVec2;
-    SizeRef: _ImVec2;
-    SplitAxis: _ImGuiAxis;
-    WindowClass: _ImGuiWindowClass;
-    LastBgColor: _ImU32;
-    HostWindow: _PImGuiWindow;
-    VisibleWindow: _PImGuiWindow;
-    CentralNode: _PImGuiDockNode;
-    OnlyNodeWithWindows: _PImGuiDockNode;
-    CountNodeWithWindows: Integer;
-    LastFrameAlive: Integer;
-    LastFrameActive: Integer;
-    LastFrameFocused: Integer;
-    LastFocusedNodeId: _ImGuiID;
-    SelectedTabId: _ImGuiID;
-    WantCloseTabId: _ImGuiID;
-    AuthorityForPos: _ImGuiDataAuthority;
-    AuthorityForSize: _ImGuiDataAuthority;
-    AuthorityForViewport: _ImGuiDataAuthority;
-    IsVisible: Boolean;
-    IsFocused: Boolean;
-    IsBgDrawnThisFrame: Boolean;
-    HasCloseButton: Boolean;
-    HasWindowMenuButton: Boolean;
-    HasCentralNodeChild: Boolean;
-    WantCloseAll: Boolean;
-    WantLockSizeOnce: Boolean;
-    WantMouseMove: Boolean;
-    WantHiddenTabBarUpdate: Boolean;
-    WantHiddenTabBarToggle: Boolean;
-  end;
-
-  _ImGuiWindowDockStyle = record
-    Colors: array [0..5] of _ImU32;
-  end;
-
-  _ImVector_ImGuiDockRequest = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiDockRequest;
-  end;
-
-  _ImVector_ImGuiDockNodeSettings = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiDockNodeSettings;
-  end;
-
-  _ImGuiDockContext = record
-    Nodes: _ImGuiStorage;
-    Requests: _ImVector_ImGuiDockRequest;
-    NodesSettings: _ImVector_ImGuiDockNodeSettings;
-    WantFullRebuild: Boolean;
-  end;
-
-  _ImGuiViewportP = record
-    _ImGuiViewport: _ImGuiViewport;
-    Idx: Integer;
-    LastFrameActive: Integer;
-    LastFrontMostStampCount: Integer;
-    LastNameHash: _ImGuiID;
-    LastPos: _ImVec2;
-    Alpha: Single;
-    LastAlpha: Single;
-    PlatformMonitor: Smallint;
-    PlatformWindowCreated: Boolean;
-    Window: _PImGuiWindow;
-    DrawListsLastFrame: array [0..1] of Integer;
-    DrawLists: array [0..1] of _PImDrawList;
-    DrawDataP: _ImDrawData;
-    DrawDataBuilder: _ImDrawDataBuilder;
-    LastPlatformPos: _ImVec2;
-    LastPlatformSize: _ImVec2;
-    LastRendererSize: _ImVec2;
-    WorkOffsetMin: _ImVec2;
-    WorkOffsetMax: _ImVec2;
-    BuildWorkOffsetMin: _ImVec2;
-    BuildWorkOffsetMax: _ImVec2;
-  end;
-
-  _ImGuiWindowSettings = record
-    ID: _ImGuiID;
-    Pos: _ImVec2ih;
-    Size: _ImVec2ih;
-    ViewportPos: _ImVec2ih;
-    ViewportId: _ImGuiID;
-    DockId: _ImGuiID;
-    ClassId: _ImGuiID;
-    DockOrder: Smallint;
-    Collapsed: Boolean;
-    WantApply: Boolean;
-  end;
-
-  _ImGuiSettingsHandler = record
-    TypeName: PUTF8Char;
-    TypeHash: _ImGuiID;
-    ClearAllFn: procedure(ctx: _PImGuiContext; handler: _PImGuiSettingsHandler); cdecl;
-    ReadInitFn: procedure(ctx: _PImGuiContext; handler: _PImGuiSettingsHandler); cdecl;
-    ReadOpenFn: function(ctx: _PImGuiContext; handler: _PImGuiSettingsHandler; const name: PUTF8Char): Pointer; cdecl;
-    ReadLineFn: procedure(ctx: _PImGuiContext; handler: _PImGuiSettingsHandler; entry: Pointer; const line: PUTF8Char); cdecl;
-    ApplyAllFn: procedure(ctx: _PImGuiContext; handler: _PImGuiSettingsHandler); cdecl;
-    WriteAllFn: procedure(ctx: _PImGuiContext; handler: _PImGuiSettingsHandler; out_buf: _PImGuiTextBuffer); cdecl;
-    UserData: Pointer;
-  end;
-
-  _ImGuiMetricsConfig = record
-    ShowDebugLog: Boolean;
-    ShowStackTool: Boolean;
-    ShowWindowsRects: Boolean;
-    ShowWindowsBeginOrder: Boolean;
-    ShowTablesRects: Boolean;
-    ShowDrawCmdMesh: Boolean;
-    ShowDrawCmdBoundingBoxes: Boolean;
-    ShowDockingNodes: Boolean;
-    ShowWindowsRectsType: Integer;
-    ShowTablesRectsType: Integer;
-  end;
-
-  _ImGuiStackLevelInfo = record
-    ID: _ImGuiID;
-    QueryFrameCount: _ImS8;
-    QuerySuccess: Boolean;
-    DataType: _ImGuiDataType;
-    Desc: array [0..56] of UTF8Char;
-  end;
-
-  _ImVector_ImGuiStackLevelInfo = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiStackLevelInfo;
-  end;
-
-  _ImGuiStackTool = record
-    LastActiveFrame: Integer;
-    StackLevel: Integer;
-    QueryId: _ImGuiID;
-    Results: _ImVector_ImGuiStackLevelInfo;
-    CopyToClipboardOnCtrlC: Boolean;
-    CopyToClipboardLastTime: Single;
-  end;
-
-  _ImGuiContextHookCallback = procedure(ctx: _PImGuiContext; hook: _PImGuiContextHook); cdecl;
-
-  _ImGuiContextHook = record
-    HookId: _ImGuiID;
-    &Type: _ImGuiContextHookType;
-    Owner: _ImGuiID;
-    Callback: _ImGuiContextHookCallback;
-    UserData: Pointer;
-  end;
-
-  _ImVector_ImGuiInputEvent = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiInputEvent;
-  end;
-
-  _ImVector_ImGuiWindowStackData = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiWindowStackData;
-  end;
-
-  _ImVector_ImGuiColorMod = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiColorMod;
-  end;
-
-  _ImVector_ImGuiStyleMod = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiStyleMod;
-  end;
-
-  _ImVector_ImGuiID = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiID;
-  end;
-
-  _ImVector_ImGuiItemFlags = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiItemFlags;
-  end;
-
-  _ImVector_ImGuiGroupData = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiGroupData;
-  end;
-
-  _ImVector_ImGuiPopupData = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiPopupData;
-  end;
-
-  _ImVector_ImGuiViewportPPtr = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PPImGuiViewportP;
-  end;
-
-  _ImVector_unsigned_char = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: PByte;
-  end;
-
-  _ImVector_ImGuiListClipperData = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiListClipperData;
-  end;
-
-  _ImVector_ImGuiTableTempData = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiTableTempData;
-  end;
-
-  _ImVector_ImGuiTable = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiTable;
-  end;
-
-  _ImPool_ImGuiTable = record
-    Buf: _ImVector_ImGuiTable;
-    Map: _ImGuiStorage;
-    FreeIdx: _ImPoolIdx;
-    AliveCount: _ImPoolIdx;
-  end;
-
-  _ImVector_ImGuiTabBar = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiTabBar;
-  end;
-
-  _ImPool_ImGuiTabBar = record
-    Buf: _ImVector_ImGuiTabBar;
-    Map: _ImGuiStorage;
-    FreeIdx: _ImPoolIdx;
-    AliveCount: _ImPoolIdx;
-  end;
-
-  _ImVector_ImGuiPtrOrIndex = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiPtrOrIndex;
-  end;
-
-  _ImVector_ImGuiShrinkWidthItem = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiShrinkWidthItem;
-  end;
-
-  _ImVector_ImGuiSettingsHandler = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiSettingsHandler;
-  end;
-
-  _ImChunkStream_ImGuiWindowSettings = record
-    Buf: _ImVector_char;
-  end;
-
-  _ImChunkStream_ImGuiTableSettings = record
-    Buf: _ImVector_char;
-  end;
-
-  _ImVector_ImGuiContextHook = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiContextHook;
-  end;
-
-  _ImGuiContext = record
-    Initialized: Boolean;
-    FontAtlasOwnedByContext: Boolean;
-    IO: _ImGuiIO;
-    PlatformIO: _ImGuiPlatformIO;
-    InputEventsQueue: _ImVector_ImGuiInputEvent;
-    InputEventsTrail: _ImVector_ImGuiInputEvent;
-    Style: _ImGuiStyle;
-    ConfigFlagsCurrFrame: _ImGuiConfigFlags;
-    ConfigFlagsLastFrame: _ImGuiConfigFlags;
-    Font: _PImFont;
-    FontSize: Single;
-    FontBaseSize: Single;
-    DrawListSharedData: _ImDrawListSharedData;
-    Time: Double;
-    FrameCount: Integer;
-    FrameCountEnded: Integer;
-    FrameCountPlatformEnded: Integer;
-    FrameCountRendered: Integer;
-    WithinFrameScope: Boolean;
-    WithinFrameScopeWithImplicitWindow: Boolean;
-    WithinEndChild: Boolean;
-    GcCompactAll: Boolean;
-    TestEngineHookItems: Boolean;
-    TestEngine: Pointer;
-    Windows: _ImVector_ImGuiWindowPtr;
-    WindowsFocusOrder: _ImVector_ImGuiWindowPtr;
-    WindowsTempSortBuffer: _ImVector_ImGuiWindowPtr;
-    CurrentWindowStack: _ImVector_ImGuiWindowStackData;
-    WindowsById: _ImGuiStorage;
-    WindowsActiveCount: Integer;
-    WindowsHoverPadding: _ImVec2;
-    CurrentWindow: _PImGuiWindow;
-    HoveredWindow: _PImGuiWindow;
-    HoveredWindowUnderMovingWindow: _PImGuiWindow;
-    HoveredDockNode: _PImGuiDockNode;
-    MovingWindow: _PImGuiWindow;
-    WheelingWindow: _PImGuiWindow;
-    WheelingWindowRefMousePos: _ImVec2;
-    WheelingWindowTimer: Single;
-    DebugHookIdInfo: _ImGuiID;
-    HoveredId: _ImGuiID;
-    HoveredIdPreviousFrame: _ImGuiID;
-    HoveredIdAllowOverlap: Boolean;
-    HoveredIdUsingMouseWheel: Boolean;
-    HoveredIdPreviousFrameUsingMouseWheel: Boolean;
-    HoveredIdDisabled: Boolean;
-    HoveredIdTimer: Single;
-    HoveredIdNotActiveTimer: Single;
-    ActiveId: _ImGuiID;
-    ActiveIdIsAlive: _ImGuiID;
-    ActiveIdTimer: Single;
-    ActiveIdIsJustActivated: Boolean;
-    ActiveIdAllowOverlap: Boolean;
-    ActiveIdNoClearOnFocusLoss: Boolean;
-    ActiveIdHasBeenPressedBefore: Boolean;
-    ActiveIdHasBeenEditedBefore: Boolean;
-    ActiveIdHasBeenEditedThisFrame: Boolean;
-    ActiveIdClickOffset: _ImVec2;
-    ActiveIdWindow: _PImGuiWindow;
-    ActiveIdSource: _ImGuiInputSource;
-    ActiveIdMouseButton: Integer;
-    ActiveIdPreviousFrame: _ImGuiID;
-    ActiveIdPreviousFrameIsAlive: Boolean;
-    ActiveIdPreviousFrameHasBeenEditedBefore: Boolean;
-    ActiveIdPreviousFrameWindow: _PImGuiWindow;
-    LastActiveId: _ImGuiID;
-    LastActiveIdTimer: Single;
-    ActiveIdUsingMouseWheel: Boolean;
-    ActiveIdUsingNavDirMask: _ImU32;
-    ActiveIdUsingNavInputMask: _ImU32;
-    ActiveIdUsingKeyInputMask: _ImBitArrayForNamedKeys;
-    CurrentItemFlags: _ImGuiItemFlags;
-    NextItemData: _ImGuiNextItemData;
-    LastItemData: _ImGuiLastItemData;
-    NextWindowData: _ImGuiNextWindowData;
-    ColorStack: _ImVector_ImGuiColorMod;
-    StyleVarStack: _ImVector_ImGuiStyleMod;
-    FontStack: _ImVector_ImFontPtr;
-    FocusScopeStack: _ImVector_ImGuiID;
-    ItemFlagsStack: _ImVector_ImGuiItemFlags;
-    GroupStack: _ImVector_ImGuiGroupData;
-    OpenPopupStack: _ImVector_ImGuiPopupData;
-    BeginPopupStack: _ImVector_ImGuiPopupData;
-    BeginMenuCount: Integer;
-    Viewports: _ImVector_ImGuiViewportPPtr;
-    CurrentDpiScale: Single;
-    CurrentViewport: _PImGuiViewportP;
-    MouseViewport: _PImGuiViewportP;
-    MouseLastHoveredViewport: _PImGuiViewportP;
-    PlatformLastFocusedViewportId: _ImGuiID;
-    FallbackMonitor: _ImGuiPlatformMonitor;
-    ViewportFrontMostStampCount: Integer;
-    NavWindow: _PImGuiWindow;
-    NavId: _ImGuiID;
-    NavFocusScopeId: _ImGuiID;
-    NavActivateId: _ImGuiID;
-    NavActivateDownId: _ImGuiID;
-    NavActivatePressedId: _ImGuiID;
-    NavActivateInputId: _ImGuiID;
-    NavActivateFlags: _ImGuiActivateFlags;
-    NavJustMovedToId: _ImGuiID;
-    NavJustMovedToFocusScopeId: _ImGuiID;
-    NavJustMovedToKeyMods: _ImGuiModFlags;
-    NavNextActivateId: _ImGuiID;
-    NavNextActivateFlags: _ImGuiActivateFlags;
-    NavInputSource: _ImGuiInputSource;
-    NavLayer: _ImGuiNavLayer;
-    NavIdIsAlive: Boolean;
-    NavMousePosDirty: Boolean;
-    NavDisableHighlight: Boolean;
-    NavDisableMouseHover: Boolean;
-    NavAnyRequest: Boolean;
-    NavInitRequest: Boolean;
-    NavInitRequestFromMove: Boolean;
-    NavInitResultId: _ImGuiID;
-    NavInitResultRectRel: _ImRect;
-    NavMoveSubmitted: Boolean;
-    NavMoveScoringItems: Boolean;
-    NavMoveForwardToNextFrame: Boolean;
-    NavMoveFlags: _ImGuiNavMoveFlags;
-    NavMoveScrollFlags: _ImGuiScrollFlags;
-    NavMoveKeyMods: _ImGuiModFlags;
-    NavMoveDir: _ImGuiDir;
-    NavMoveDirForDebug: _ImGuiDir;
-    NavMoveClipDir: _ImGuiDir;
-    NavScoringRect: _ImRect;
-    NavScoringNoClipRect: _ImRect;
-    NavScoringDebugCount: Integer;
-    NavTabbingDir: Integer;
-    NavTabbingCounter: Integer;
-    NavMoveResultLocal: _ImGuiNavItemData;
-    NavMoveResultLocalVisible: _ImGuiNavItemData;
-    NavMoveResultOther: _ImGuiNavItemData;
-    NavTabbingResultFirst: _ImGuiNavItemData;
-    NavWindowingTarget: _PImGuiWindow;
-    NavWindowingTargetAnim: _PImGuiWindow;
-    NavWindowingListWindow: _PImGuiWindow;
-    NavWindowingTimer: Single;
-    NavWindowingHighlightAlpha: Single;
-    NavWindowingToggleLayer: Boolean;
-    DimBgRatio: Single;
-    MouseCursor: _ImGuiMouseCursor;
-    DragDropActive: Boolean;
-    DragDropWithinSource: Boolean;
-    DragDropWithinTarget: Boolean;
-    DragDropSourceFlags: _ImGuiDragDropFlags;
-    DragDropSourceFrameCount: Integer;
-    DragDropMouseButton: Integer;
-    DragDropPayload: _ImGuiPayload;
-    DragDropTargetRect: _ImRect;
-    DragDropTargetId: _ImGuiID;
-    DragDropAcceptFlags: _ImGuiDragDropFlags;
-    DragDropAcceptIdCurrRectSurface: Single;
-    DragDropAcceptIdCurr: _ImGuiID;
-    DragDropAcceptIdPrev: _ImGuiID;
-    DragDropAcceptFrameCount: Integer;
-    DragDropHoldJustPressedId: _ImGuiID;
-    DragDropPayloadBufHeap: _ImVector_unsigned_char;
-    DragDropPayloadBufLocal: array [0..15] of Byte;
-    ClipperTempDataStacked: Integer;
-    ClipperTempData: _ImVector_ImGuiListClipperData;
-    CurrentTable: _PImGuiTable;
-    TablesTempDataStacked: Integer;
-    TablesTempData: _ImVector_ImGuiTableTempData;
-    Tables: _ImPool_ImGuiTable;
-    TablesLastTimeActive: _ImVector_float;
-    DrawChannelsTempMergeBuffer: _ImVector_ImDrawChannel;
-    CurrentTabBar: _PImGuiTabBar;
-    TabBars: _ImPool_ImGuiTabBar;
-    CurrentTabBarStack: _ImVector_ImGuiPtrOrIndex;
-    ShrinkWidthBuffer: _ImVector_ImGuiShrinkWidthItem;
-    MouseLastValidPos: _ImVec2;
-    InputTextState: _ImGuiInputTextState;
-    InputTextPasswordFont: _ImFont;
-    TempInputId: _ImGuiID;
-    ColorEditOptions: _ImGuiColorEditFlags;
-    ColorEditLastHue: Single;
-    ColorEditLastSat: Single;
-    ColorEditLastColor: _ImU32;
-    ColorPickerRef: _ImVec4;
-    ComboPreviewData: _ImGuiComboPreviewData;
-    SliderGrabClickOffset: Single;
-    SliderCurrentAccum: Single;
-    SliderCurrentAccumDirty: Boolean;
-    DragCurrentAccumDirty: Boolean;
-    DragCurrentAccum: Single;
-    DragSpeedDefaultRatio: Single;
-    ScrollbarClickDeltaToGrabCenter: Single;
-    DisabledAlphaBackup: Single;
-    DisabledStackSize: Smallint;
-    TooltipOverrideCount: Smallint;
-    TooltipSlowDelay: Single;
-    ClipboardHandlerData: _ImVector_char;
-    MenusIdSubmittedThisFrame: _ImVector_ImGuiID;
-    PlatformImeData: _ImGuiPlatformImeData;
-    PlatformImeDataPrev: _ImGuiPlatformImeData;
-    PlatformImeViewport: _ImGuiID;
-    PlatformLocaleDecimalPoint: UTF8Char;
-    DockContext: _ImGuiDockContext;
-    SettingsLoaded: Boolean;
-    SettingsDirtyTimer: Single;
-    SettingsIniData: _ImGuiTextBuffer;
-    SettingsHandlers: _ImVector_ImGuiSettingsHandler;
-    SettingsWindows: _ImChunkStream_ImGuiWindowSettings;
-    SettingsTables: _ImChunkStream_ImGuiTableSettings;
-    Hooks: _ImVector_ImGuiContextHook;
-    HookIdNext: _ImGuiID;
-    LogEnabled: Boolean;
-    LogType: _ImGuiLogType;
-    LogFile: _ImFileHandle;
-    LogBuffer: _ImGuiTextBuffer;
-    LogNextPrefix: PUTF8Char;
-    LogNextSuffix: PUTF8Char;
-    LogLinePosY: Single;
-    LogLineFirstItem: Boolean;
-    LogDepthRef: Integer;
-    LogDepthToExpand: Integer;
-    LogDepthToExpandDefault: Integer;
-    DebugLogFlags: _ImGuiDebugLogFlags;
-    DebugLogBuf: _ImGuiTextBuffer;
-    DebugItemPickerActive: Boolean;
-    DebugItemPickerBreakId: _ImGuiID;
-    DebugMetricsConfig: _ImGuiMetricsConfig;
-    DebugStackTool: _ImGuiStackTool;
-    FramerateSecPerFrame: array [0..119] of Single;
-    FramerateSecPerFrameIdx: Integer;
-    FramerateSecPerFrameCount: Integer;
-    FramerateSecPerFrameAccum: Single;
-    WantCaptureMouseNextFrame: Integer;
-    WantCaptureKeyboardNextFrame: Integer;
-    WantTextInputNextFrame: Integer;
-    TempBuffer: _ImVector_char;
-  end;
-
-  _ImGuiWindowTempData = record
-    CursorPos: _ImVec2;
-    CursorPosPrevLine: _ImVec2;
-    CursorStartPos: _ImVec2;
-    CursorMaxPos: _ImVec2;
-    IdealMaxPos: _ImVec2;
-    CurrLineSize: _ImVec2;
-    PrevLineSize: _ImVec2;
-    CurrLineTextBaseOffset: Single;
-    PrevLineTextBaseOffset: Single;
-    IsSameLine: Boolean;
-    Indent: _ImVec1;
-    ColumnsOffset: _ImVec1;
-    GroupOffset: _ImVec1;
-    CursorStartPosLossyness: _ImVec2;
-    NavLayerCurrent: _ImGuiNavLayer;
-    NavLayersActiveMask: Smallint;
-    NavLayersActiveMaskNext: Smallint;
-    NavFocusScopeIdCurrent: _ImGuiID;
-    NavHideHighlightOneFrame: Boolean;
-    NavHasScroll: Boolean;
-    MenuBarAppending: Boolean;
-    MenuBarOffset: _ImVec2;
-    MenuColumns: _ImGuiMenuColumns;
-    TreeDepth: Integer;
-    TreeJumpToParentOnPopMask: _ImU32;
-    ChildWindows: _ImVector_ImGuiWindowPtr;
-    StateStorage: _PImGuiStorage;
-    CurrentColumns: _PImGuiOldColumns;
-    CurrentTableIdx: Integer;
-    LayoutType: _ImGuiLayoutType;
-    ParentLayoutType: _ImGuiLayoutType;
-    ItemWidth: Single;
-    TextWrapPos: Single;
-    ItemWidthStack: _ImVector_float;
-    TextWrapPosStack: _ImVector_float;
-  end;
-
-  _ImVector_ImGuiOldColumns = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiOldColumns;
-  end;
-
-  _ImGuiWindow = record
-    Name: PUTF8Char;
-    ID: _ImGuiID;
-    Flags: _ImGuiWindowFlags;
-    FlagsPreviousFrame: _ImGuiWindowFlags;
-    WindowClass: _ImGuiWindowClass;
-    Viewport: _PImGuiViewportP;
-    ViewportId: _ImGuiID;
-    ViewportPos: _ImVec2;
-    ViewportAllowPlatformMonitorExtend: Integer;
-    Pos: _ImVec2;
-    Size: _ImVec2;
-    SizeFull: _ImVec2;
-    ContentSize: _ImVec2;
-    ContentSizeIdeal: _ImVec2;
-    ContentSizeExplicit: _ImVec2;
-    WindowPadding: _ImVec2;
-    WindowRounding: Single;
-    WindowBorderSize: Single;
-    NameBufLen: Integer;
-    MoveId: _ImGuiID;
-    TabId: _ImGuiID;
-    ChildId: _ImGuiID;
-    Scroll: _ImVec2;
-    ScrollMax: _ImVec2;
-    ScrollTarget: _ImVec2;
-    ScrollTargetCenterRatio: _ImVec2;
-    ScrollTargetEdgeSnapDist: _ImVec2;
-    ScrollbarSizes: _ImVec2;
-    ScrollbarX: Boolean;
-    ScrollbarY: Boolean;
-    ViewportOwned: Boolean;
-    Active: Boolean;
-    WasActive: Boolean;
-    WriteAccessed: Boolean;
-    Collapsed: Boolean;
-    WantCollapseToggle: Boolean;
-    SkipItems: Boolean;
-    Appearing: Boolean;
-    Hidden: Boolean;
-    IsFallbackWindow: Boolean;
-    IsExplicitChild: Boolean;
-    HasCloseButton: Boolean;
-    ResizeBorderHeld: UTF8Char;
-    BeginCount: Smallint;
-    BeginOrderWithinParent: Smallint;
-    BeginOrderWithinContext: Smallint;
-    FocusOrder: Smallint;
-    PopupId: _ImGuiID;
-    AutoFitFramesX: _ImS8;
-    AutoFitFramesY: _ImS8;
-    AutoFitChildAxises: _ImS8;
-    AutoFitOnlyGrows: Boolean;
-    AutoPosLastDirection: _ImGuiDir;
-    HiddenFramesCanSkipItems: _ImS8;
-    HiddenFramesCannotSkipItems: _ImS8;
-    HiddenFramesForRenderOnly: _ImS8;
-    DisableInputsFrames: _ImS8;
-    SetWindowPosAllowFlags: _ImGuiCond;
-    SetWindowSizeAllowFlags: _ImGuiCond;
-    SetWindowCollapsedAllowFlags: _ImGuiCond;
-    SetWindowDockAllowFlags: _ImGuiCond;
-    SetWindowPosVal: _ImVec2;
-    SetWindowPosPivot: _ImVec2;
-    IDStack: _ImVector_ImGuiID;
-    DC: _ImGuiWindowTempData;
-    OuterRectClipped: _ImRect;
-    InnerRect: _ImRect;
-    InnerClipRect: _ImRect;
-    WorkRect: _ImRect;
-    ParentWorkRect: _ImRect;
-    ClipRect: _ImRect;
-    ContentRegionRect: _ImRect;
-    HitTestHoleSize: _ImVec2ih;
-    HitTestHoleOffset: _ImVec2ih;
-    LastFrameActive: Integer;
-    LastFrameJustFocused: Integer;
-    LastTimeActive: Single;
-    ItemWidthDefault: Single;
-    StateStorage: _ImGuiStorage;
-    ColumnsStorage: _ImVector_ImGuiOldColumns;
-    FontWindowScale: Single;
-    FontDpiScale: Single;
-    SettingsOffset: Integer;
-    DrawList: _PImDrawList;
-    DrawListInst: _ImDrawList;
-    ParentWindow: _PImGuiWindow;
-    ParentWindowInBeginStack: _PImGuiWindow;
-    RootWindow: _PImGuiWindow;
-    RootWindowPopupTree: _PImGuiWindow;
-    RootWindowDockTree: _PImGuiWindow;
-    RootWindowForTitleBarHighlight: _PImGuiWindow;
-    RootWindowForNav: _PImGuiWindow;
-    NavLastChildNavWindow: _PImGuiWindow;
-    NavLastIds: array [0..1] of _ImGuiID;
-    NavRectRel: array [0..1] of _ImRect;
-    MemoryDrawListIdxCapacity: Integer;
-    MemoryDrawListVtxCapacity: Integer;
-    MemoryCompacted: Boolean;
-    DockIsActive: Boolean;
-    DockNodeIsVisible: Boolean;
-    DockTabIsVisible: Boolean;
-    DockTabWantClose: Boolean;
-    DockOrder: Smallint;
-    DockStyle: _ImGuiWindowDockStyle;
-    DockNode: _PImGuiDockNode;
-    DockNodeAsHost: _PImGuiDockNode;
-    DockId: _ImGuiID;
-    DockTabItemStatusFlags: _ImGuiItemStatusFlags;
-    DockTabItemRect: _ImRect;
-  end;
-
-  _ImGuiTabItem = record
-    ID: _ImGuiID;
-    Flags: _ImGuiTabItemFlags;
-    Window: _PImGuiWindow;
-    LastFrameVisible: Integer;
-    LastFrameSelected: Integer;
-    Offset: Single;
-    Width: Single;
-    ContentWidth: Single;
-    RequestedWidth: Single;
-    NameOffset: _ImS32;
-    BeginOrder: _ImS16;
-    IndexDuringLayout: _ImS16;
-    WantClose: Boolean;
-  end;
-
-  _ImVector_ImGuiTabItem = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiTabItem;
-  end;
-
-  _ImGuiTabBar = record
-    Tabs: _ImVector_ImGuiTabItem;
-    Flags: _ImGuiTabBarFlags;
-    ID: _ImGuiID;
-    SelectedTabId: _ImGuiID;
-    NextSelectedTabId: _ImGuiID;
-    VisibleTabId: _ImGuiID;
-    CurrFrameVisible: Integer;
-    PrevFrameVisible: Integer;
-    BarRect: _ImRect;
-    CurrTabsContentsHeight: Single;
-    PrevTabsContentsHeight: Single;
-    WidthAllTabs: Single;
-    WidthAllTabsIdeal: Single;
-    ScrollingAnim: Single;
-    ScrollingTarget: Single;
-    ScrollingTargetDistToVisibility: Single;
-    ScrollingSpeed: Single;
-    ScrollingRectMinX: Single;
-    ScrollingRectMaxX: Single;
-    ReorderRequestTabId: _ImGuiID;
-    ReorderRequestOffset: _ImS16;
-    BeginCount: _ImS8;
-    WantLayout: Boolean;
-    VisibleTabWasSubmitted: Boolean;
-    TabsAddedNew: Boolean;
-    TabsActiveCount: _ImS16;
-    LastTabItemIdx: _ImS16;
-    ItemSpacingY: Single;
-    FramePadding: _ImVec2;
-    BackupCursorPos: _ImVec2;
-    TabsNames: _ImGuiTextBuffer;
-  end;
-
-  _ImGuiTableColumnIdx = _ImS8;
-  _PImGuiTableColumnIdx = ^_ImGuiTableColumnIdx;
-  _ImGuiTableDrawChannelIdx = _ImU8;
-
-  _ImGuiTableColumn = record
-    Flags: _ImGuiTableColumnFlags;
-    WidthGiven: Single;
-    MinX: Single;
-    MaxX: Single;
-    WidthRequest: Single;
-    WidthAuto: Single;
-    StretchWeight: Single;
-    InitStretchWeightOrWidth: Single;
-    ClipRect: _ImRect;
-    UserID: _ImGuiID;
-    WorkMinX: Single;
-    WorkMaxX: Single;
-    ItemWidth: Single;
-    ContentMaxXFrozen: Single;
-    ContentMaxXUnfrozen: Single;
-    ContentMaxXHeadersUsed: Single;
-    ContentMaxXHeadersIdeal: Single;
-    NameOffset: _ImS16;
-    DisplayOrder: _ImGuiTableColumnIdx;
-    IndexWithinEnabledSet: _ImGuiTableColumnIdx;
-    PrevEnabledColumn: _ImGuiTableColumnIdx;
-    NextEnabledColumn: _ImGuiTableColumnIdx;
-    SortOrder: _ImGuiTableColumnIdx;
-    DrawChannelCurrent: _ImGuiTableDrawChannelIdx;
-    DrawChannelFrozen: _ImGuiTableDrawChannelIdx;
-    DrawChannelUnfrozen: _ImGuiTableDrawChannelIdx;
-    IsEnabled: Boolean;
-    IsUserEnabled: Boolean;
-    IsUserEnabledNextFrame: Boolean;
-    IsVisibleX: Boolean;
-    IsVisibleY: Boolean;
-    IsRequestOutput: Boolean;
-    IsSkipItems: Boolean;
-    IsPreserveWidthAuto: Boolean;
-    NavLayerCurrent: _ImS8;
-    AutoFitQueue: _ImU8;
-    CannotSkipItemsQueue: _ImU8;
-    SortDirection: _ImU8;
-    SortDirectionsAvailCount: _ImU8;
-    SortDirectionsAvailMask: _ImU8;
-    SortDirectionsAvailList: _ImU8;
-  end;
-
-  _ImGuiTableCellData = record
-    BgColor: _ImU32;
-    Column: _ImGuiTableColumnIdx;
-  end;
-
-  _ImGuiTableInstanceData = record
-    LastOuterHeight: Single;
-    LastFirstRowHeight: Single;
-  end;
-
-  _ImSpan_ImGuiTableColumn = record
-    Data: _PImGuiTableColumn;
-    DataEnd: _PImGuiTableColumn;
-  end;
-
-  _ImSpan_ImGuiTableColumnIdx = record
-    Data: _PImGuiTableColumnIdx;
-    DataEnd: _PImGuiTableColumnIdx;
-  end;
-
-  _ImSpan_ImGuiTableCellData = record
-    Data: _PImGuiTableCellData;
-    DataEnd: _PImGuiTableCellData;
-  end;
-
-  _ImVector_ImGuiTableInstanceData = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiTableInstanceData;
-  end;
-
-  _ImVector_ImGuiTableColumnSortSpecs = record
-    Size: Integer;
-    Capacity: Integer;
-    Data: _PImGuiTableColumnSortSpecs;
-  end;
-
-  _ImGuiTable = record
-    ID: _ImGuiID;
-    Flags: _ImGuiTableFlags;
-    RawData: Pointer;
-    TempData: _PImGuiTableTempData;
-    Columns: _ImSpan_ImGuiTableColumn;
-    DisplayOrderToIndex: _ImSpan_ImGuiTableColumnIdx;
-    RowCellData: _ImSpan_ImGuiTableCellData;
-    EnabledMaskByDisplayOrder: _ImU64;
-    EnabledMaskByIndex: _ImU64;
-    VisibleMaskByIndex: _ImU64;
-    RequestOutputMaskByIndex: _ImU64;
-    SettingsLoadedFlags: _ImGuiTableFlags;
-    SettingsOffset: Integer;
-    LastFrameActive: Integer;
-    ColumnsCount: Integer;
-    CurrentRow: Integer;
-    CurrentColumn: Integer;
-    InstanceCurrent: _ImS16;
-    InstanceInteracted: _ImS16;
-    RowPosY1: Single;
-    RowPosY2: Single;
-    RowMinHeight: Single;
-    RowTextBaseline: Single;
-    RowIndentOffsetX: Single;
-    RowFlags: _ImGuiTableRowFlags;
-    LastRowFlags: _ImGuiTableRowFlags;
-    RowBgColorCounter: Integer;
-    RowBgColor: array [0..1] of _ImU32;
-    BorderColorStrong: _ImU32;
-    BorderColorLight: _ImU32;
-    BorderX1: Single;
-    BorderX2: Single;
-    HostIndentX: Single;
-    MinColumnWidth: Single;
-    OuterPaddingX: Single;
-    CellPaddingX: Single;
-    CellPaddingY: Single;
-    CellSpacingX1: Single;
-    CellSpacingX2: Single;
-    InnerWidth: Single;
-    ColumnsGivenWidth: Single;
-    ColumnsAutoFitWidth: Single;
-    ColumnsStretchSumWeights: Single;
-    ResizedColumnNextWidth: Single;
-    ResizeLockMinContentsX2: Single;
-    RefScale: Single;
-    OuterRect: _ImRect;
-    InnerRect: _ImRect;
-    WorkRect: _ImRect;
-    InnerClipRect: _ImRect;
-    BgClipRect: _ImRect;
-    Bg0ClipRectForDrawCmd: _ImRect;
-    Bg2ClipRectForDrawCmd: _ImRect;
-    HostClipRect: _ImRect;
-    HostBackupInnerClipRect: _ImRect;
-    OuterWindow: _PImGuiWindow;
-    InnerWindow: _PImGuiWindow;
-    ColumnsNames: _ImGuiTextBuffer;
-    DrawSplitter: _PImDrawListSplitter;
-    InstanceDataFirst: _ImGuiTableInstanceData;
-    InstanceDataExtra: _ImVector_ImGuiTableInstanceData;
-    SortSpecsSingle: _ImGuiTableColumnSortSpecs;
-    SortSpecsMulti: _ImVector_ImGuiTableColumnSortSpecs;
-    SortSpecs: _ImGuiTableSortSpecs;
-    SortSpecsCount: _ImGuiTableColumnIdx;
-    ColumnsEnabledCount: _ImGuiTableColumnIdx;
-    ColumnsEnabledFixedCount: _ImGuiTableColumnIdx;
-    DeclColumnsCount: _ImGuiTableColumnIdx;
-    HoveredColumnBody: _ImGuiTableColumnIdx;
-    HoveredColumnBorder: _ImGuiTableColumnIdx;
-    AutoFitSingleColumn: _ImGuiTableColumnIdx;
-    ResizedColumn: _ImGuiTableColumnIdx;
-    LastResizedColumn: _ImGuiTableColumnIdx;
-    HeldHeaderColumn: _ImGuiTableColumnIdx;
-    ReorderColumn: _ImGuiTableColumnIdx;
-    ReorderColumnDir: _ImGuiTableColumnIdx;
-    LeftMostEnabledColumn: _ImGuiTableColumnIdx;
-    RightMostEnabledColumn: _ImGuiTableColumnIdx;
-    LeftMostStretchedColumn: _ImGuiTableColumnIdx;
-    RightMostStretchedColumn: _ImGuiTableColumnIdx;
-    ContextPopupColumn: _ImGuiTableColumnIdx;
-    FreezeRowsRequest: _ImGuiTableColumnIdx;
-    FreezeRowsCount: _ImGuiTableColumnIdx;
-    FreezeColumnsRequest: _ImGuiTableColumnIdx;
-    FreezeColumnsCount: _ImGuiTableColumnIdx;
-    RowCellDataCurrent: _ImGuiTableColumnIdx;
-    DummyDrawChannel: _ImGuiTableDrawChannelIdx;
-    Bg2DrawChannelCurrent: _ImGuiTableDrawChannelIdx;
-    Bg2DrawChannelUnfrozen: _ImGuiTableDrawChannelIdx;
-    IsLayoutLocked: Boolean;
-    IsInsideRow: Boolean;
-    IsInitializing: Boolean;
-    IsSortSpecsDirty: Boolean;
-    IsUsingHeaders: Boolean;
-    IsContextPopupOpen: Boolean;
-    IsSettingsRequestLoad: Boolean;
-    IsSettingsDirty: Boolean;
-    IsDefaultDisplayOrder: Boolean;
-    IsResetAllRequest: Boolean;
-    IsResetDisplayOrderRequest: Boolean;
-    IsUnfrozenRows: Boolean;
-    IsDefaultSizingPolicy: Boolean;
-    MemoryCompacted: Boolean;
-    HostSkipItems: Boolean;
-  end;
-
-  _ImGuiTableTempData = record
-    TableIndex: Integer;
-    LastTimeActive: Single;
-    UserOuterSize: _ImVec2;
-    DrawSplitter: _ImDrawListSplitter;
-    HostBackupWorkRect: _ImRect;
-    HostBackupParentWorkRect: _ImRect;
-    HostBackupPrevLineSize: _ImVec2;
-    HostBackupCurrLineSize: _ImVec2;
-    HostBackupCursorMaxPos: _ImVec2;
-    HostBackupColumnsOffset: _ImVec1;
-    HostBackupItemWidth: Single;
-    HostBackupItemWidthStackSize: Integer;
-  end;
-
-  _ImGuiTableColumnSettings = record
-    WidthOrWeight: Single;
-    UserID: _ImGuiID;
-    Index: _ImGuiTableColumnIdx;
-    DisplayOrder: _ImGuiTableColumnIdx;
-    SortOrder: _ImGuiTableColumnIdx;
-    SortDirection: _ImU8;
-    IsEnabled: _ImU8;
-    IsStretch: _ImU8;
-  end;
-
-  _ImGuiTableSettings = record
-    ID: _ImGuiID;
-    SaveFlags: _ImGuiTableFlags;
-    RefScale: Single;
-    ColumnsCount: _ImGuiTableColumnIdx;
-    ColumnsCountMax: _ImGuiTableColumnIdx;
-    WantApply: Boolean;
-  end;
-
-  _ImFontBuilderIO = record
-    FontBuilder_Build: function(atlas: _PImFontAtlas): Boolean; cdecl;
-  end;
+  _Psspine_context = ^_sspine_context;
+  _Psspine_atlas = ^_sspine_atlas;
+  _Psspine_skeleton = ^_sspine_skeleton;
+  _Psspine_instance = ^_sspine_instance;
+  _Psspine_skinset = ^_sspine_skinset;
+  _Psspine_image = ^_sspine_image;
+  _Psspine_atlas_page = ^_sspine_atlas_page;
+  _Psspine_anim = ^_sspine_anim;
+  _Psspine_bone = ^_sspine_bone;
+  _Psspine_slot = ^_sspine_slot;
+  _Psspine_event = ^_sspine_event;
+  _Psspine_iktarget = ^_sspine_iktarget;
+  _Psspine_skin = ^_sspine_skin;
+  _Psspine_range = ^_sspine_range;
+  _Psspine_vec2 = ^_sspine_vec2;
+  _Psspine_mat4 = ^_sspine_mat4;
+  _Psspine_string = ^_sspine_string;
+  _Psspine_layer_transform = ^_sspine_layer_transform;
+  _Psspine_bone_transform = ^_sspine_bone_transform;
+  _Psspine_context_desc = ^_sspine_context_desc;
+  _Psspine_context_info = ^_sspine_context_info;
+  _Psspine_image_info = ^_sspine_image_info;
+  _Psspine_atlas_overrides = ^_sspine_atlas_overrides;
+  _Psspine_atlas_desc = ^_sspine_atlas_desc;
+  _Psspine_atlas_page_info = ^_sspine_atlas_page_info;
+  _Psspine_skeleton_desc = ^_sspine_skeleton_desc;
+  _Psspine_skinset_desc = ^_sspine_skinset_desc;
+  _Psspine_anim_info = ^_sspine_anim_info;
+  _Psspine_bone_info = ^_sspine_bone_info;
+  _Psspine_slot_info = ^_sspine_slot_info;
+  _Psspine_iktarget_info = ^_sspine_iktarget_info;
+  _Psspine_skin_info = ^_sspine_skin_info;
+  _Psspine_event_info = ^_sspine_event_info;
+  _Psspine_triggered_event_info = ^_sspine_triggered_event_info;
+  _Psspine_instance_desc = ^_sspine_instance_desc;
+  _Psspine_allocator = ^_sspine_allocator;
+  _Psspine_logger = ^_sspine_logger;
+  _Psspine_desc = ^_sspine_desc;
 
   _FONSparams = record
     width: Integer;
@@ -4868,6 +2261,10 @@ type
     id: UInt32;
   end;
 
+  _sg_sampler = record
+    id: UInt32;
+  end;
+
   _sg_shader = record
     id: UInt32;
   end;
@@ -4876,11 +2273,7 @@ type
     id: UInt32;
   end;
 
-  _sg_pass = record
-    id: UInt32;
-  end;
-
-  _sg_context = record
+  _sg_view = record
     id: UInt32;
   end;
 
@@ -4903,18 +2296,25 @@ type
     blend: Boolean;
     msaa: Boolean;
     depth: Boolean;
+    compressed: Boolean;
+    read: Boolean;
+    write: Boolean;
+    bytes_per_pixel: Integer;
   end;
 
   _sg_features = record
-    instancing: Boolean;
     origin_top_left: Boolean;
-    multiple_render_targets: Boolean;
-    msaa_render_targets: Boolean;
-    imagetype_3d: Boolean;
-    imagetype_array: Boolean;
     image_clamp_to_border: Boolean;
     mrt_independent_blend_state: Boolean;
     mrt_independent_write_mask: Boolean;
+    compute: Boolean;
+    msaa_texture_bindings: Boolean;
+    separate_buffer_types: Boolean;
+    draw_base_vertex: Boolean;
+    draw_base_instance: Boolean;
+    dual_source_blending: Boolean;
+    vertexformat_int10_n2: Boolean;
+    gl_texture_views: Boolean;
   end;
 
   _sg_limits = record
@@ -4924,29 +2324,100 @@ type
     max_image_size_array: Integer;
     max_image_array_layers: Integer;
     max_vertex_attrs: Integer;
-    gl_max_vertex_uniform_vectors: Integer;
+    max_color_attachments: Integer;
+    max_texture_bindings_per_stage: Integer;
+    max_storage_buffer_bindings_per_stage: Integer;
+    max_storage_image_bindings_per_stage: Integer;
+    gl_max_vertex_uniform_components: Integer;
+    gl_max_combined_texture_image_units: Integer;
+    d3d11_max_unordered_access_views: Integer;
+    vk_min_uniform_buffer_offset_alignment: Integer;
   end;
 
   _sg_color_attachment_action = record
-    action: _sg_action;
-    value: _sg_color;
+    load_action: _sg_load_action;
+    store_action: _sg_store_action;
+    clear_value: _sg_color;
   end;
 
   _sg_depth_attachment_action = record
-    action: _sg_action;
-    value: Single;
+    load_action: _sg_load_action;
+    store_action: _sg_store_action;
+    clear_value: Single;
   end;
 
   _sg_stencil_attachment_action = record
-    action: _sg_action;
-    value: UInt8;
+    load_action: _sg_load_action;
+    store_action: _sg_store_action;
+    clear_value: UInt8;
   end;
 
   _sg_pass_action = record
-    _start_canary: UInt32;
-    colors: array [0..3] of _sg_color_attachment_action;
+    colors: array [0..7] of _sg_color_attachment_action;
     depth: _sg_depth_attachment_action;
     stencil: _sg_stencil_attachment_action;
+  end;
+
+  _sg_metal_swapchain = record
+    current_drawable: Pointer;
+    depth_stencil_texture: Pointer;
+    msaa_color_texture: Pointer;
+  end;
+
+  _sg_d3d11_swapchain = record
+    render_view: Pointer;
+    resolve_view: Pointer;
+    depth_stencil_view: Pointer;
+  end;
+
+  _sg_wgpu_swapchain = record
+    render_view: Pointer;
+    resolve_view: Pointer;
+    depth_stencil_view: Pointer;
+  end;
+
+  _sg_vulkan_swapchain = record
+    render_image: Pointer;
+    render_view: Pointer;
+    resolve_image: Pointer;
+    resolve_view: Pointer;
+    depth_stencil_image: Pointer;
+    depth_stencil_view: Pointer;
+    render_finished_semaphore: Pointer;
+    present_complete_semaphore: Pointer;
+  end;
+
+  _sg_gl_swapchain = record
+    framebuffer: UInt32;
+  end;
+
+  _sg_swapchain = record
+    invalid: Boolean;
+    width: Integer;
+    height: Integer;
+    sample_count: Integer;
+    color_format: _sg_pixel_format;
+    depth_format: _sg_pixel_format;
+    metal: _sg_metal_swapchain;
+    d3d11: _sg_d3d11_swapchain;
+    wgpu: _sg_wgpu_swapchain;
+    vulkan: _sg_vulkan_swapchain;
+    gl: _sg_gl_swapchain;
+  end;
+
+  _sg_attachments = record
+    colors: array [0..7] of _sg_view;
+    resolves: array [0..7] of _sg_view;
+    depth_stencil: _sg_view;
+  end;
+
+  _sg_pass = record
+    _start_canary: UInt32;
+    compute: Boolean;
+    action: _sg_pass_action;
+    attachments: _sg_attachments;
+    swapchain: _sg_swapchain;
+    &label: PUTF8Char;
     _end_canary: UInt32;
   end;
 
@@ -4956,16 +2427,24 @@ type
     vertex_buffer_offsets: array [0..7] of Integer;
     index_buffer: _sg_buffer;
     index_buffer_offset: Integer;
-    vs_images: array [0..11] of _sg_image;
-    fs_images: array [0..11] of _sg_image;
+    views: array [0..31] of _sg_view;
+    samplers: array [0..11] of _sg_sampler;
     _end_canary: UInt32;
+  end;
+
+  _sg_buffer_usage = record
+    vertex_buffer: Boolean;
+    index_buffer: Boolean;
+    storage_buffer: Boolean;
+    immutable: Boolean;
+    dynamic_update: Boolean;
+    stream_update: Boolean;
   end;
 
   _sg_buffer_desc = record
     _start_canary: UInt32;
     size: NativeUInt;
-    &type: _sg_buffer_type;
-    usage: _sg_usage;
+    usage: _sg_buffer_usage;
     data: _sg_range;
     &label: PUTF8Char;
     gl_buffers: array [0..1] of UInt32;
@@ -4975,98 +2454,185 @@ type
     _end_canary: UInt32;
   end;
 
+  _sg_image_usage = record
+    storage_image: Boolean;
+    color_attachment: Boolean;
+    resolve_attachment: Boolean;
+    depth_stencil_attachment: Boolean;
+    immutable: Boolean;
+    dynamic_update: Boolean;
+    stream_update: Boolean;
+  end;
+
   _sg_image_data = record
-    subimage: array [0..5] of array [0..15] of _sg_range;
+    mip_levels: array [0..15] of _sg_range;
   end;
 
   _sg_image_desc = record
     _start_canary: UInt32;
     &type: _sg_image_type;
-    render_target: Boolean;
+    usage: _sg_image_usage;
     width: Integer;
     height: Integer;
     num_slices: Integer;
     num_mipmaps: Integer;
-    usage: _sg_usage;
     pixel_format: _sg_pixel_format;
     sample_count: Integer;
-    min_filter: _sg_filter;
-    mag_filter: _sg_filter;
-    wrap_u: _sg_wrap;
-    wrap_v: _sg_wrap;
-    wrap_w: _sg_wrap;
-    border_color: _sg_border_color;
-    max_anisotropy: UInt32;
-    min_lod: Single;
-    max_lod: Single;
     data: _sg_image_data;
     &label: PUTF8Char;
     gl_textures: array [0..1] of UInt32;
     gl_texture_target: UInt32;
     mtl_textures: array [0..1] of Pointer;
     d3d11_texture: Pointer;
-    d3d11_shader_resource_view: Pointer;
     wgpu_texture: Pointer;
     _end_canary: UInt32;
   end;
 
-  _sg_shader_attr_desc = record
-    name: PUTF8Char;
-    sem_name: PUTF8Char;
-    sem_index: Integer;
+  _sg_sampler_desc = record
+    _start_canary: UInt32;
+    min_filter: _sg_filter;
+    mag_filter: _sg_filter;
+    mipmap_filter: _sg_filter;
+    wrap_u: _sg_wrap;
+    wrap_v: _sg_wrap;
+    wrap_w: _sg_wrap;
+    min_lod: Single;
+    max_lod: Single;
+    border_color: _sg_border_color;
+    compare: _sg_compare_func;
+    max_anisotropy: UInt32;
+    &label: PUTF8Char;
+    gl_sampler: UInt32;
+    mtl_sampler: Pointer;
+    d3d11_sampler: Pointer;
+    wgpu_sampler: Pointer;
+    _end_canary: UInt32;
   end;
 
-  _sg_shader_uniform_desc = record
-    name: PUTF8Char;
-    &type: _sg_uniform_type;
-    array_count: Integer;
-  end;
-
-  _sg_shader_uniform_block_desc = record
-    size: NativeUInt;
-    layout: _sg_uniform_layout;
-    uniforms: array [0..15] of _sg_shader_uniform_desc;
-  end;
-
-  _sg_shader_image_desc = record
-    name: PUTF8Char;
-    image_type: _sg_image_type;
-    sampler_type: _sg_sampler_type;
-  end;
-
-  _sg_shader_stage_desc = record
+  _sg_shader_function = record
     source: PUTF8Char;
     bytecode: _sg_range;
     entry: PUTF8Char;
     d3d11_target: PUTF8Char;
-    uniform_blocks: array [0..3] of _sg_shader_uniform_block_desc;
-    images: array [0..11] of _sg_shader_image_desc;
+    d3d11_filepath: PUTF8Char;
+  end;
+
+  _sg_shader_vertex_attr = record
+    base_type: _sg_shader_attr_base_type;
+    glsl_name: PUTF8Char;
+    hlsl_sem_name: PUTF8Char;
+    hlsl_sem_index: UInt8;
+  end;
+
+  _sg_glsl_shader_uniform = record
+    &type: _sg_uniform_type;
+    array_count: UInt16;
+    glsl_name: PUTF8Char;
+  end;
+
+  _sg_shader_uniform_block = record
+    stage: _sg_shader_stage;
+    size: UInt32;
+    hlsl_register_b_n: UInt8;
+    msl_buffer_n: UInt8;
+    wgsl_group0_binding_n: UInt8;
+    spirv_set0_binding_n: UInt8;
+    layout: _sg_uniform_layout;
+    glsl_uniforms: array [0..15] of _sg_glsl_shader_uniform;
+  end;
+
+  _sg_shader_texture_view = record
+    stage: _sg_shader_stage;
+    image_type: _sg_image_type;
+    sample_type: _sg_image_sample_type;
+    multisampled: Boolean;
+    hlsl_register_t_n: UInt8;
+    msl_texture_n: UInt8;
+    wgsl_group1_binding_n: UInt8;
+    spirv_set1_binding_n: UInt8;
+  end;
+
+  _sg_shader_storage_buffer_view = record
+    stage: _sg_shader_stage;
+    readonly: Boolean;
+    hlsl_register_t_n: UInt8;
+    hlsl_register_u_n: UInt8;
+    msl_buffer_n: UInt8;
+    wgsl_group1_binding_n: UInt8;
+    spirv_set1_binding_n: UInt8;
+    glsl_binding_n: UInt8;
+  end;
+
+  _sg_shader_storage_image_view = record
+    stage: _sg_shader_stage;
+    image_type: _sg_image_type;
+    access_format: _sg_pixel_format;
+    writeonly: Boolean;
+    hlsl_register_u_n: UInt8;
+    msl_texture_n: UInt8;
+    wgsl_group1_binding_n: UInt8;
+    spirv_set1_binding_n: UInt8;
+    glsl_binding_n: UInt8;
+  end;
+
+  _sg_shader_view = record
+    texture: _sg_shader_texture_view;
+    storage_buffer: _sg_shader_storage_buffer_view;
+    storage_image: _sg_shader_storage_image_view;
+  end;
+
+  _sg_shader_sampler = record
+    stage: _sg_shader_stage;
+    sampler_type: _sg_sampler_type;
+    hlsl_register_s_n: UInt8;
+    msl_sampler_n: UInt8;
+    wgsl_group1_binding_n: UInt8;
+    spirv_set1_binding_n: UInt8;
+  end;
+
+  _sg_shader_texture_sampler_pair = record
+    stage: _sg_shader_stage;
+    view_slot: UInt8;
+    sampler_slot: UInt8;
+    glsl_name: PUTF8Char;
+  end;
+
+  _sg_mtl_shader_threads_per_threadgroup = record
+    x: Integer;
+    y: Integer;
+    z: Integer;
   end;
 
   _sg_shader_desc = record
     _start_canary: UInt32;
-    attrs: array [0..15] of _sg_shader_attr_desc;
-    vs: _sg_shader_stage_desc;
-    fs: _sg_shader_stage_desc;
+    vertex_func: _sg_shader_function;
+    fragment_func: _sg_shader_function;
+    compute_func: _sg_shader_function;
+    attrs: array [0..15] of _sg_shader_vertex_attr;
+    uniform_blocks: array [0..7] of _sg_shader_uniform_block;
+    views: array [0..31] of _sg_shader_view;
+    samplers: array [0..11] of _sg_shader_sampler;
+    texture_sampler_pairs: array [0..31] of _sg_shader_texture_sampler_pair;
+    mtl_threads_per_threadgroup: _sg_mtl_shader_threads_per_threadgroup;
     &label: PUTF8Char;
     _end_canary: UInt32;
   end;
 
-  _sg_buffer_layout_desc = record
+  _sg_vertex_buffer_layout_state = record
     stride: Integer;
     step_func: _sg_vertex_step;
     step_rate: Integer;
   end;
 
-  _sg_vertex_attr_desc = record
+  _sg_vertex_attr_state = record
     buffer_index: Integer;
     offset: Integer;
     format: _sg_vertex_format;
   end;
 
-  _sg_layout_desc = record
-    buffers: array [0..7] of _sg_buffer_layout_desc;
-    attrs: array [0..15] of _sg_vertex_attr_desc;
+  _sg_vertex_layout_state = record
+    buffers: array [0..7] of _sg_vertex_buffer_layout_state;
+    attrs: array [0..15] of _sg_vertex_attr_state;
   end;
 
   _sg_stencil_face_state = record
@@ -5104,7 +2670,7 @@ type
     op_alpha: _sg_blend_op;
   end;
 
-  _sg_color_state = record
+  _sg_color_target_state = record
     pixel_format: _sg_pixel_format;
     write_mask: _sg_color_mask;
     blend: _sg_blend_state;
@@ -5112,12 +2678,13 @@ type
 
   _sg_pipeline_desc = record
     _start_canary: UInt32;
+    compute: Boolean;
     shader: _sg_shader;
-    layout: _sg_layout_desc;
+    layout: _sg_vertex_layout_state;
     depth: _sg_depth_state;
     stencil: _sg_stencil_state;
     color_count: Integer;
-    colors: array [0..3] of _sg_color_state;
+    colors: array [0..7] of _sg_color_target_state;
     primitive_type: _sg_primitive_type;
     index_type: _sg_index_type;
     cull_mode: _sg_cull_mode;
@@ -5129,16 +2696,36 @@ type
     _end_canary: UInt32;
   end;
 
-  _sg_pass_attachment_desc = record
+  _sg_buffer_view_desc = record
+    buffer: _sg_buffer;
+    offset: Integer;
+  end;
+
+  _sg_image_view_desc = record
     image: _sg_image;
     mip_level: Integer;
     slice: Integer;
   end;
 
-  _sg_pass_desc = record
+  _sg_texture_view_range = record
+    base: Integer;
+    count: Integer;
+  end;
+
+  _sg_texture_view_desc = record
+    image: _sg_image;
+    mip_levels: _sg_texture_view_range;
+    slices: _sg_texture_view_range;
+  end;
+
+  _sg_view_desc = record
     _start_canary: UInt32;
-    color_attachments: array [0..3] of _sg_pass_attachment_desc;
-    depth_stencil_attachment: _sg_pass_attachment_desc;
+    texture: _sg_texture_view_desc;
+    storage_buffer: _sg_buffer_view_desc;
+    storage_image: _sg_image_view_desc;
+    color_attachment: _sg_image_view_desc;
+    resolve_attachment: _sg_image_view_desc;
+    depth_stencil_attachment: _sg_image_view_desc;
     &label: PUTF8Char;
     _end_canary: UInt32;
   end;
@@ -5148,69 +2735,68 @@ type
     reset_state_cache: procedure(user_data: Pointer); cdecl;
     make_buffer: procedure(const desc: _Psg_buffer_desc; result: _sg_buffer; user_data: Pointer); cdecl;
     make_image: procedure(const desc: _Psg_image_desc; result: _sg_image; user_data: Pointer); cdecl;
+    make_sampler: procedure(const desc: _Psg_sampler_desc; result: _sg_sampler; user_data: Pointer); cdecl;
     make_shader: procedure(const desc: _Psg_shader_desc; result: _sg_shader; user_data: Pointer); cdecl;
     make_pipeline: procedure(const desc: _Psg_pipeline_desc; result: _sg_pipeline; user_data: Pointer); cdecl;
-    make_pass: procedure(const desc: _Psg_pass_desc; result: _sg_pass; user_data: Pointer); cdecl;
+    make_view: procedure(const desc: _Psg_view_desc; result: _sg_view; user_data: Pointer); cdecl;
     destroy_buffer: procedure(buf: _sg_buffer; user_data: Pointer); cdecl;
     destroy_image: procedure(img: _sg_image; user_data: Pointer); cdecl;
+    destroy_sampler: procedure(smp: _sg_sampler; user_data: Pointer); cdecl;
     destroy_shader: procedure(shd: _sg_shader; user_data: Pointer); cdecl;
     destroy_pipeline: procedure(pip: _sg_pipeline; user_data: Pointer); cdecl;
-    destroy_pass: procedure(pass: _sg_pass; user_data: Pointer); cdecl;
+    destroy_view: procedure(view: _sg_view; user_data: Pointer); cdecl;
     update_buffer: procedure(buf: _sg_buffer; const data: _Psg_range; user_data: Pointer); cdecl;
     update_image: procedure(img: _sg_image; const data: _Psg_image_data; user_data: Pointer); cdecl;
     append_buffer: procedure(buf: _sg_buffer; const data: _Psg_range; result: Integer; user_data: Pointer); cdecl;
-    begin_default_pass: procedure(const pass_action: _Psg_pass_action; width: Integer; height: Integer; user_data: Pointer); cdecl;
-    begin_pass: procedure(pass: _sg_pass; const pass_action: _Psg_pass_action; user_data: Pointer); cdecl;
+    begin_pass: procedure(const pass: _Psg_pass; user_data: Pointer); cdecl;
     apply_viewport: procedure(x: Integer; y: Integer; width: Integer; height: Integer; origin_top_left: Boolean; user_data: Pointer); cdecl;
     apply_scissor_rect: procedure(x: Integer; y: Integer; width: Integer; height: Integer; origin_top_left: Boolean; user_data: Pointer); cdecl;
     apply_pipeline: procedure(pip: _sg_pipeline; user_data: Pointer); cdecl;
     apply_bindings: procedure(const bindings: _Psg_bindings; user_data: Pointer); cdecl;
-    apply_uniforms: procedure(stage: _sg_shader_stage; ub_index: Integer; const data: _Psg_range; user_data: Pointer); cdecl;
+    apply_uniforms: procedure(ub_index: Integer; const data: _Psg_range; user_data: Pointer); cdecl;
     draw: procedure(base_element: Integer; num_elements: Integer; num_instances: Integer; user_data: Pointer); cdecl;
+    draw_ex: procedure(base_element: Integer; num_elements: Integer; num_instances: Integer; base_vertex: Integer; base_instance: Integer; user_data: Pointer); cdecl;
+    dispatch: procedure(num_groups_x: Integer; num_groups_y: Integer; num_groups_z: Integer; user_data: Pointer); cdecl;
     end_pass: procedure(user_data: Pointer); cdecl;
     commit: procedure(user_data: Pointer); cdecl;
     alloc_buffer: procedure(result: _sg_buffer; user_data: Pointer); cdecl;
     alloc_image: procedure(result: _sg_image; user_data: Pointer); cdecl;
+    alloc_sampler: procedure(result: _sg_sampler; user_data: Pointer); cdecl;
     alloc_shader: procedure(result: _sg_shader; user_data: Pointer); cdecl;
     alloc_pipeline: procedure(result: _sg_pipeline; user_data: Pointer); cdecl;
-    alloc_pass: procedure(result: _sg_pass; user_data: Pointer); cdecl;
+    alloc_view: procedure(result: _sg_view; user_data: Pointer); cdecl;
     dealloc_buffer: procedure(buf_id: _sg_buffer; user_data: Pointer); cdecl;
     dealloc_image: procedure(img_id: _sg_image; user_data: Pointer); cdecl;
+    dealloc_sampler: procedure(smp_id: _sg_sampler; user_data: Pointer); cdecl;
     dealloc_shader: procedure(shd_id: _sg_shader; user_data: Pointer); cdecl;
     dealloc_pipeline: procedure(pip_id: _sg_pipeline; user_data: Pointer); cdecl;
-    dealloc_pass: procedure(pass_id: _sg_pass; user_data: Pointer); cdecl;
+    dealloc_view: procedure(view_id: _sg_view; user_data: Pointer); cdecl;
     init_buffer: procedure(buf_id: _sg_buffer; const desc: _Psg_buffer_desc; user_data: Pointer); cdecl;
     init_image: procedure(img_id: _sg_image; const desc: _Psg_image_desc; user_data: Pointer); cdecl;
+    init_sampler: procedure(smp_id: _sg_sampler; const desc: _Psg_sampler_desc; user_data: Pointer); cdecl;
     init_shader: procedure(shd_id: _sg_shader; const desc: _Psg_shader_desc; user_data: Pointer); cdecl;
     init_pipeline: procedure(pip_id: _sg_pipeline; const desc: _Psg_pipeline_desc; user_data: Pointer); cdecl;
-    init_pass: procedure(pass_id: _sg_pass; const desc: _Psg_pass_desc; user_data: Pointer); cdecl;
+    init_view: procedure(view_id: _sg_view; const desc: _Psg_view_desc; user_data: Pointer); cdecl;
     uninit_buffer: procedure(buf_id: _sg_buffer; user_data: Pointer); cdecl;
     uninit_image: procedure(img_id: _sg_image; user_data: Pointer); cdecl;
+    uninit_sampler: procedure(smp_id: _sg_sampler; user_data: Pointer); cdecl;
     uninit_shader: procedure(shd_id: _sg_shader; user_data: Pointer); cdecl;
     uninit_pipeline: procedure(pip_id: _sg_pipeline; user_data: Pointer); cdecl;
-    uninit_pass: procedure(pass_id: _sg_pass; user_data: Pointer); cdecl;
+    uninit_view: procedure(view_id: _sg_view; user_data: Pointer); cdecl;
     fail_buffer: procedure(buf_id: _sg_buffer; user_data: Pointer); cdecl;
     fail_image: procedure(img_id: _sg_image; user_data: Pointer); cdecl;
+    fail_sampler: procedure(smp_id: _sg_sampler; user_data: Pointer); cdecl;
     fail_shader: procedure(shd_id: _sg_shader; user_data: Pointer); cdecl;
     fail_pipeline: procedure(pip_id: _sg_pipeline; user_data: Pointer); cdecl;
-    fail_pass: procedure(pass_id: _sg_pass; user_data: Pointer); cdecl;
+    fail_view: procedure(view_id: _sg_view; user_data: Pointer); cdecl;
     push_debug_group: procedure(const name: PUTF8Char; user_data: Pointer); cdecl;
     pop_debug_group: procedure(user_data: Pointer); cdecl;
-    err_buffer_pool_exhausted: procedure(user_data: Pointer); cdecl;
-    err_image_pool_exhausted: procedure(user_data: Pointer); cdecl;
-    err_shader_pool_exhausted: procedure(user_data: Pointer); cdecl;
-    err_pipeline_pool_exhausted: procedure(user_data: Pointer); cdecl;
-    err_pass_pool_exhausted: procedure(user_data: Pointer); cdecl;
-    err_context_mismatch: procedure(user_data: Pointer); cdecl;
-    err_pass_invalid: procedure(user_data: Pointer); cdecl;
-    err_draw_invalid: procedure(user_data: Pointer); cdecl;
-    err_bindings_invalid: procedure(user_data: Pointer); cdecl;
   end;
 
   _sg_slot_info = record
     state: _sg_resource_state;
     res_id: UInt32;
-    ctx_id: UInt32;
+    uninit_count: UInt32;
   end;
 
   _sg_buffer_info = record
@@ -5228,8 +2814,10 @@ type
     upd_frame_index: UInt32;
     num_slots: Integer;
     active_slot: Integer;
-    width: Integer;
-    height: Integer;
+  end;
+
+  _sg_sampler_info = record
+    slot: _sg_slot_info;
   end;
 
   _sg_shader_info = record
@@ -5240,74 +2828,437 @@ type
     slot: _sg_slot_info;
   end;
 
-  _sg_pass_info = record
+  _sg_view_info = record
     slot: _sg_slot_info;
   end;
 
-  _sg_gl_context_desc = record
-    force_gles2: Boolean;
+  _sg_frame_stats_gl = record
+    num_bind_buffer: UInt32;
+    num_active_texture: UInt32;
+    num_bind_texture: UInt32;
+    num_bind_sampler: UInt32;
+    num_bind_image_texture: UInt32;
+    num_use_program: UInt32;
+    num_render_state: UInt32;
+    num_vertex_attrib_pointer: UInt32;
+    num_vertex_attrib_divisor: UInt32;
+    num_enable_vertex_attrib_array: UInt32;
+    num_disable_vertex_attrib_array: UInt32;
+    num_uniform: UInt32;
+    num_memory_barriers: UInt32;
   end;
 
-  _sg_metal_context_desc = record
-    device: Pointer;
-    renderpass_descriptor_cb: function(): Pointer; cdecl;
-    renderpass_descriptor_userdata_cb: function(p1: Pointer): Pointer; cdecl;
-    drawable_cb: function(): Pointer; cdecl;
-    drawable_userdata_cb: function(p1: Pointer): Pointer; cdecl;
-    user_data: Pointer;
+  _sg_frame_stats_d3d11_pass = record
+    num_om_set_render_targets: UInt32;
+    num_clear_render_target_view: UInt32;
+    num_clear_depth_stencil_view: UInt32;
+    num_resolve_subresource: UInt32;
   end;
 
-  _sg_d3d11_context_desc = record
-    device: Pointer;
-    device_context: Pointer;
-    render_target_view_cb: function(): Pointer; cdecl;
-    render_target_view_userdata_cb: function(p1: Pointer): Pointer; cdecl;
-    depth_stencil_view_cb: function(): Pointer; cdecl;
-    depth_stencil_view_userdata_cb: function(p1: Pointer): Pointer; cdecl;
-    user_data: Pointer;
+  _sg_frame_stats_d3d11_pipeline = record
+    num_rs_set_state: UInt32;
+    num_om_set_depth_stencil_state: UInt32;
+    num_om_set_blend_state: UInt32;
+    num_ia_set_primitive_topology: UInt32;
+    num_ia_set_input_layout: UInt32;
+    num_vs_set_shader: UInt32;
+    num_vs_set_constant_buffers: UInt32;
+    num_ps_set_shader: UInt32;
+    num_ps_set_constant_buffers: UInt32;
+    num_cs_set_shader: UInt32;
+    num_cs_set_constant_buffers: UInt32;
   end;
 
-  _sg_wgpu_context_desc = record
-    device: Pointer;
-    render_view_cb: function(): Pointer; cdecl;
-    render_view_userdata_cb: function(p1: Pointer): Pointer; cdecl;
-    resolve_view_cb: function(): Pointer; cdecl;
-    resolve_view_userdata_cb: function(p1: Pointer): Pointer; cdecl;
-    depth_stencil_view_cb: function(): Pointer; cdecl;
-    depth_stencil_view_userdata_cb: function(p1: Pointer): Pointer; cdecl;
-    user_data: Pointer;
+  _sg_frame_stats_d3d11_bindings = record
+    num_ia_set_vertex_buffers: UInt32;
+    num_ia_set_index_buffer: UInt32;
+    num_vs_set_shader_resources: UInt32;
+    num_vs_set_samplers: UInt32;
+    num_ps_set_shader_resources: UInt32;
+    num_ps_set_samplers: UInt32;
+    num_cs_set_shader_resources: UInt32;
+    num_cs_set_samplers: UInt32;
+    num_cs_set_unordered_access_views: UInt32;
   end;
 
-  _sg_context_desc = record
+  _sg_frame_stats_d3d11_uniforms = record
+    num_update_subresource: UInt32;
+  end;
+
+  _sg_frame_stats_d3d11_draw = record
+    num_draw_indexed_instanced: UInt32;
+    num_draw_indexed: UInt32;
+    num_draw_instanced: UInt32;
+    num_draw: UInt32;
+  end;
+
+  _sg_frame_stats_d3d11 = record
+    pass: _sg_frame_stats_d3d11_pass;
+    pipeline: _sg_frame_stats_d3d11_pipeline;
+    bindings: _sg_frame_stats_d3d11_bindings;
+    uniforms: _sg_frame_stats_d3d11_uniforms;
+    draw: _sg_frame_stats_d3d11_draw;
+    num_map: UInt32;
+    num_unmap: UInt32;
+  end;
+
+  _sg_frame_stats_metal_idpool = record
+    num_added: UInt32;
+    num_released: UInt32;
+    num_garbage_collected: UInt32;
+  end;
+
+  _sg_frame_stats_metal_pipeline = record
+    num_set_blend_color: UInt32;
+    num_set_cull_mode: UInt32;
+    num_set_front_facing_winding: UInt32;
+    num_set_stencil_reference_value: UInt32;
+    num_set_depth_bias: UInt32;
+    num_set_render_pipeline_state: UInt32;
+    num_set_depth_stencil_state: UInt32;
+  end;
+
+  _sg_frame_stats_metal_bindings = record
+    num_set_vertex_buffer: UInt32;
+    num_set_vertex_buffer_offset: UInt32;
+    num_skip_redundant_vertex_buffer: UInt32;
+    num_set_vertex_texture: UInt32;
+    num_skip_redundant_vertex_texture: UInt32;
+    num_set_vertex_sampler_state: UInt32;
+    num_skip_redundant_vertex_sampler_state: UInt32;
+    num_set_fragment_buffer: UInt32;
+    num_set_fragment_buffer_offset: UInt32;
+    num_skip_redundant_fragment_buffer: UInt32;
+    num_set_fragment_texture: UInt32;
+    num_skip_redundant_fragment_texture: UInt32;
+    num_set_fragment_sampler_state: UInt32;
+    num_skip_redundant_fragment_sampler_state: UInt32;
+    num_set_compute_buffer: UInt32;
+    num_set_compute_buffer_offset: UInt32;
+    num_skip_redundant_compute_buffer: UInt32;
+    num_set_compute_texture: UInt32;
+    num_skip_redundant_compute_texture: UInt32;
+    num_set_compute_sampler_state: UInt32;
+    num_skip_redundant_compute_sampler_state: UInt32;
+  end;
+
+  _sg_frame_stats_metal_uniforms = record
+    num_set_vertex_buffer_offset: UInt32;
+    num_set_fragment_buffer_offset: UInt32;
+    num_set_compute_buffer_offset: UInt32;
+  end;
+
+  _sg_frame_stats_metal = record
+    idpool: _sg_frame_stats_metal_idpool;
+    pipeline: _sg_frame_stats_metal_pipeline;
+    bindings: _sg_frame_stats_metal_bindings;
+    uniforms: _sg_frame_stats_metal_uniforms;
+  end;
+
+  _sg_frame_stats_wgpu_uniforms = record
+    num_set_bindgroup: UInt32;
+    size_write_buffer: UInt32;
+  end;
+
+  _sg_frame_stats_wgpu_bindings = record
+    num_set_vertex_buffer: UInt32;
+    num_skip_redundant_vertex_buffer: UInt32;
+    num_set_index_buffer: UInt32;
+    num_skip_redundant_index_buffer: UInt32;
+    num_create_bindgroup: UInt32;
+    num_discard_bindgroup: UInt32;
+    num_set_bindgroup: UInt32;
+    num_skip_redundant_bindgroup: UInt32;
+    num_bindgroup_cache_hits: UInt32;
+    num_bindgroup_cache_misses: UInt32;
+    num_bindgroup_cache_collisions: UInt32;
+    num_bindgroup_cache_invalidates: UInt32;
+    num_bindgroup_cache_hash_vs_key_mismatch: UInt32;
+  end;
+
+  _sg_frame_stats_wgpu = record
+    uniforms: _sg_frame_stats_wgpu_uniforms;
+    bindings: _sg_frame_stats_wgpu_bindings;
+  end;
+
+  _sg_frame_stats_vk = record
+    num_cmd_pipeline_barrier: UInt32;
+    num_allocate_memory: UInt32;
+    num_free_memory: UInt32;
+    size_allocate_memory: UInt32;
+    num_delete_queue_added: UInt32;
+    num_delete_queue_collected: UInt32;
+    num_cmd_copy_buffer: UInt32;
+    num_cmd_copy_buffer_to_image: UInt32;
+    num_cmd_set_descriptor_buffer_offsets: UInt32;
+    size_descriptor_buffer_writes: UInt32;
+  end;
+
+  _sg_frame_resource_stats = record
+    allocated: UInt32;
+    deallocated: UInt32;
+    inited: UInt32;
+    uninited: UInt32;
+  end;
+
+  _sg_total_resource_stats = record
+    alive: UInt32;
+    free: UInt32;
+    allocated: UInt32;
+    deallocated: UInt32;
+    inited: UInt32;
+    uninited: UInt32;
+  end;
+
+  _sg_total_stats = record
+    buffers: _sg_total_resource_stats;
+    images: _sg_total_resource_stats;
+    samplers: _sg_total_resource_stats;
+    views: _sg_total_resource_stats;
+    shaders: _sg_total_resource_stats;
+    pipelines: _sg_total_resource_stats;
+  end;
+
+  _sg_frame_stats = record
+    frame_index: UInt32;
+    num_passes: UInt32;
+    num_apply_viewport: UInt32;
+    num_apply_scissor_rect: UInt32;
+    num_apply_pipeline: UInt32;
+    num_apply_bindings: UInt32;
+    num_apply_uniforms: UInt32;
+    num_draw: UInt32;
+    num_draw_ex: UInt32;
+    num_dispatch: UInt32;
+    num_update_buffer: UInt32;
+    num_append_buffer: UInt32;
+    num_update_image: UInt32;
+    size_apply_uniforms: UInt32;
+    size_update_buffer: UInt32;
+    size_append_buffer: UInt32;
+    size_update_image: UInt32;
+    buffers: _sg_frame_resource_stats;
+    images: _sg_frame_resource_stats;
+    samplers: _sg_frame_resource_stats;
+    views: _sg_frame_resource_stats;
+    shaders: _sg_frame_resource_stats;
+    pipelines: _sg_frame_resource_stats;
+    gl: _sg_frame_stats_gl;
+    d3d11: _sg_frame_stats_d3d11;
+    metal: _sg_frame_stats_metal;
+    wgpu: _sg_frame_stats_wgpu;
+    vk: _sg_frame_stats_vk;
+  end;
+
+  _sg_stats = record
+    prev_frame: _sg_frame_stats;
+    cur_frame: _sg_frame_stats;
+    total: _sg_total_stats;
+  end;
+
+  _sg_environment_defaults = record
     color_format: _sg_pixel_format;
     depth_format: _sg_pixel_format;
     sample_count: Integer;
-    gl: _sg_gl_context_desc;
-    metal: _sg_metal_context_desc;
-    d3d11: _sg_d3d11_context_desc;
-    wgpu: _sg_wgpu_context_desc;
+  end;
+
+  _sg_metal_environment = record
+    device: Pointer;
+  end;
+
+  _sg_d3d11_environment = record
+    device: Pointer;
+    device_context: Pointer;
+  end;
+
+  _sg_wgpu_environment = record
+    device: Pointer;
+  end;
+
+  _sg_vulkan_environment = record
+    instance: Pointer;
+    physical_device: Pointer;
+    device: Pointer;
+    queue: Pointer;
+    queue_family_index: UInt32;
+  end;
+
+  _sg_environment = record
+    defaults: _sg_environment_defaults;
+    metal: _sg_metal_environment;
+    d3d11: _sg_d3d11_environment;
+    wgpu: _sg_wgpu_environment;
+    vulkan: _sg_vulkan_environment;
+  end;
+
+  _sg_commit_listener = record
+    func: procedure(user_data: Pointer); cdecl;
+    user_data: Pointer;
   end;
 
   _sg_allocator = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
     user_data: Pointer;
+  end;
+
+  _sg_logger = record
+    func: procedure(const tag: PUTF8Char; log_level: UInt32; log_item_id: UInt32; const message_or_null: PUTF8Char; line_nr: UInt32; const filename_or_null: PUTF8Char; user_data: Pointer); cdecl;
+    user_data: Pointer;
+  end;
+
+  _sg_d3d11_desc = record
+    shader_debugging: Boolean;
+  end;
+
+  _sg_metal_desc = record
+    force_managed_storage_mode: Boolean;
+    use_command_buffer_with_retained_references: Boolean;
+  end;
+
+  _sg_wgpu_desc = record
+    disable_bindgroups_cache: Boolean;
+    bindgroups_cache_size: Integer;
+  end;
+
+  _sg_vulkan_desc = record
+    copy_staging_buffer_size: Integer;
+    stream_staging_buffer_size: Integer;
+    descriptor_buffer_size: Integer;
   end;
 
   _sg_desc = record
     _start_canary: UInt32;
     buffer_pool_size: Integer;
     image_pool_size: Integer;
+    sampler_pool_size: Integer;
     shader_pool_size: Integer;
     pipeline_pool_size: Integer;
-    pass_pool_size: Integer;
-    context_pool_size: Integer;
+    view_pool_size: Integer;
     uniform_buffer_size: Integer;
-    staging_buffer_size: Integer;
-    sampler_cache_size: Integer;
+    max_commit_listeners: Integer;
+    disable_validation: Boolean;
+    enforce_portable_limits: Boolean;
+    d3d11: _sg_d3d11_desc;
+    metal: _sg_metal_desc;
+    wgpu: _sg_wgpu_desc;
+    vulkan: _sg_vulkan_desc;
     allocator: _sg_allocator;
-    context: _sg_context_desc;
+    logger: _sg_logger;
+    environment: _sg_environment;
     _end_canary: UInt32;
+  end;
+
+  _sg_d3d11_buffer_info = record
+    buf: Pointer;
+  end;
+
+  _sg_d3d11_image_info = record
+    tex2d: Pointer;
+    tex3d: Pointer;
+    res: Pointer;
+  end;
+
+  _sg_d3d11_sampler_info = record
+    smp: Pointer;
+  end;
+
+  _sg_d3d11_shader_info = record
+    cbufs: array [0..7] of Pointer;
+    vs: Pointer;
+    fs: Pointer;
+  end;
+
+  _sg_d3d11_pipeline_info = record
+    il: Pointer;
+    rs: Pointer;
+    dss: Pointer;
+    bs: Pointer;
+  end;
+
+  _sg_d3d11_view_info = record
+    srv: Pointer;
+    uav: Pointer;
+    rtv: Pointer;
+    dsv: Pointer;
+  end;
+
+  _sg_mtl_buffer_info = record
+    buf: array [0..1] of Pointer;
+    active_slot: Integer;
+  end;
+
+  _sg_mtl_image_info = record
+    tex: array [0..1] of Pointer;
+    active_slot: Integer;
+  end;
+
+  _sg_mtl_sampler_info = record
+    smp: Pointer;
+  end;
+
+  _sg_mtl_shader_info = record
+    vertex_lib: Pointer;
+    fragment_lib: Pointer;
+    vertex_func: Pointer;
+    fragment_func: Pointer;
+  end;
+
+  _sg_mtl_pipeline_info = record
+    rps: Pointer;
+    dss: Pointer;
+  end;
+
+  _sg_wgpu_buffer_info = record
+    buf: Pointer;
+  end;
+
+  _sg_wgpu_image_info = record
+    tex: Pointer;
+  end;
+
+  _sg_wgpu_sampler_info = record
+    smp: Pointer;
+  end;
+
+  _sg_wgpu_shader_info = record
+    vs_mod: Pointer;
+    fs_mod: Pointer;
+    bgl: Pointer;
+  end;
+
+  _sg_wgpu_pipeline_info = record
+    render_pipeline: Pointer;
+    compute_pipeline: Pointer;
+  end;
+
+  _sg_wgpu_view_info = record
+    view: Pointer;
+  end;
+
+  _sg_gl_buffer_info = record
+    buf: array [0..1] of UInt32;
+    active_slot: Integer;
+  end;
+
+  _sg_gl_image_info = record
+    tex: array [0..1] of UInt32;
+    tex_target: UInt32;
+    active_slot: Integer;
+  end;
+
+  _sg_gl_sampler_info = record
+    smp: UInt32;
+  end;
+
+  _sg_gl_shader_info = record
+    prog: UInt32;
+  end;
+
+  _sg_gl_view_info = record
+    tex_view: array [0..1] of UInt32;
+    msaa_render_buffer: UInt32;
+    msaa_resolve_frame_buffer: UInt32;
   end;
 
   _sapp_touchpoint = record
@@ -5348,6 +3299,8 @@ type
   _sapp_image_desc = record
     width: Integer;
     height: Integer;
+    cursor_hotspot_x: Integer;
+    cursor_hotspot_y: Integer;
     pixels: _sapp_range;
   end;
 
@@ -5357,9 +3310,130 @@ type
   end;
 
   _sapp_allocator = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
     user_data: Pointer;
+  end;
+
+  _sapp_environment_defaults = record
+    color_format: _sapp_pixel_format;
+    depth_format: _sapp_pixel_format;
+    sample_count: Integer;
+  end;
+
+  _sapp_metal_environment = record
+    device: Pointer;
+  end;
+
+  _sapp_d3d11_environment = record
+    device: Pointer;
+    device_context: Pointer;
+  end;
+
+  _sapp_wgpu_environment = record
+    device: Pointer;
+  end;
+
+  _sapp_vulkan_environment = record
+    instance: Pointer;
+    physical_device: Pointer;
+    device: Pointer;
+    queue: Pointer;
+    queue_family_index: UInt32;
+  end;
+
+  _sapp_environment = record
+    defaults: _sapp_environment_defaults;
+    metal: _sapp_metal_environment;
+    d3d11: _sapp_d3d11_environment;
+    wgpu: _sapp_wgpu_environment;
+    vulkan: _sapp_vulkan_environment;
+  end;
+
+  _sapp_metal_swapchain = record
+    current_drawable: Pointer;
+    depth_stencil_texture: Pointer;
+    msaa_color_texture: Pointer;
+  end;
+
+  _sapp_d3d11_swapchain = record
+    render_view: Pointer;
+    resolve_view: Pointer;
+    depth_stencil_view: Pointer;
+  end;
+
+  _sapp_wgpu_swapchain = record
+    render_view: Pointer;
+    resolve_view: Pointer;
+    depth_stencil_view: Pointer;
+  end;
+
+  _sapp_vulkan_swapchain = record
+    render_image: Pointer;
+    render_view: Pointer;
+    resolve_image: Pointer;
+    resolve_view: Pointer;
+    depth_stencil_image: Pointer;
+    depth_stencil_view: Pointer;
+    render_finished_semaphore: Pointer;
+    present_complete_semaphore: Pointer;
+  end;
+
+  _sapp_gl_swapchain = record
+    framebuffer: UInt32;
+  end;
+
+  _sapp_swapchain = record
+    invalid: Boolean;
+    width: Integer;
+    height: Integer;
+    sample_count: Integer;
+    color_format: _sapp_pixel_format;
+    depth_format: _sapp_pixel_format;
+    metal: _sapp_metal_swapchain;
+    d3d11: _sapp_d3d11_swapchain;
+    wgpu: _sapp_wgpu_swapchain;
+    vulkan: _sapp_vulkan_swapchain;
+    gl: _sapp_gl_swapchain;
+  end;
+
+  _sapp_logger = record
+    func: procedure(const tag: PUTF8Char; log_level: UInt32; log_item_id: UInt32; const message_or_null: PUTF8Char; line_nr: UInt32; const filename_or_null: PUTF8Char; user_data: Pointer); cdecl;
+    user_data: Pointer;
+  end;
+
+  _sapp_gl_desc = record
+    major_version: Integer;
+    minor_version: Integer;
+  end;
+
+  _sapp_win32_desc = record
+    console_utf8: Boolean;
+    console_create: Boolean;
+    console_attach: Boolean;
+  end;
+
+  _sapp_html5_desc = record
+    canvas_selector: PUTF8Char;
+    canvas_resize: Boolean;
+    preserve_drawing_buffer: Boolean;
+    ask_leave_site: Boolean;
+    update_document_title: Boolean;
+    bubble_mouse_events: Boolean;
+    bubble_touch_events: Boolean;
+    bubble_wheel_events: Boolean;
+    bubble_key_events: Boolean;
+    bubble_char_events: Boolean;
+    use_emsc_set_main_loop: Boolean;
+    emsc_set_main_loop_simulate_infinite_loop: Boolean;
+  end;
+
+  _sapp_ios_desc = record
+    keyboard_resizes_canvas: Boolean;
+  end;
+
+  _sapp_metal_desc = record
+    disable_display_sync: Boolean;
   end;
 
   _sapp_desc = record
@@ -5367,20 +3441,22 @@ type
     frame_cb: procedure(); cdecl;
     cleanup_cb: procedure(); cdecl;
     event_cb: procedure(const p1: _Psapp_event); cdecl;
-    fail_cb: procedure(const p1: PUTF8Char); cdecl;
     user_data: Pointer;
     init_userdata_cb: procedure(p1: Pointer); cdecl;
     frame_userdata_cb: procedure(p1: Pointer); cdecl;
     cleanup_userdata_cb: procedure(p1: Pointer); cdecl;
     event_userdata_cb: procedure(const p1: _Psapp_event; p2: Pointer); cdecl;
-    fail_userdata_cb: procedure(const p1: PUTF8Char; p2: Pointer); cdecl;
     width: Integer;
     height: Integer;
+    depth_format: _sapp_pixel_format;
+    composite_mode: _sapp_composite_mode;
     sample_count: Integer;
     swap_interval: Integer;
+    srgb: Boolean;
+    hdr: Boolean;
+    disable_vsync: Boolean;
     high_dpi: Boolean;
     fullscreen: Boolean;
-    alpha: Boolean;
     window_title: PUTF8Char;
     enable_clipboard: Boolean;
     clipboard_size: Integer;
@@ -5389,41 +3465,33 @@ type
     max_dropped_file_path_length: Integer;
     icon: _sapp_icon_desc;
     allocator: _sapp_allocator;
-    gl_force_gles2: Boolean;
-    gl_major_version: Integer;
-    gl_minor_version: Integer;
-    win32_console_utf8: Boolean;
-    win32_console_create: Boolean;
-    win32_console_attach: Boolean;
-    html5_canvas_name: PUTF8Char;
-    html5_canvas_resize: Boolean;
-    html5_preserve_drawing_buffer: Boolean;
-    html5_premultiplied_alpha: Boolean;
-    html5_ask_leave_site: Boolean;
-    ios_keyboard_resizes_canvas: Boolean;
+    logger: _sapp_logger;
+    gl: _sapp_gl_desc;
+    metal: _sapp_metal_desc;
+    win32: _sapp_win32_desc;
+    html5: _sapp_html5_desc;
+    ios: _sapp_ios_desc;
   end;
 
   _sapp_html5_fetch_response = record
     succeeded: Boolean;
     error_code: _sapp_html5_fetch_error;
     file_index: Integer;
-    fetched_size: UInt32;
-    buffer_ptr: Pointer;
-    buffer_size: UInt32;
+    data: _sapp_range;
+    buffer: _sapp_range;
     user_data: Pointer;
   end;
 
   _sapp_html5_fetch_request = record
     dropped_file_index: Integer;
     callback: procedure(const p1: _Psapp_html5_fetch_response); cdecl;
-    buffer_ptr: Pointer;
-    buffer_size: UInt32;
+    buffer: _sapp_range;
     user_data: Pointer;
   end;
 
   _sargs_allocator = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
     user_data: Pointer;
   end;
 
@@ -5435,10 +3503,25 @@ type
     allocator: _sargs_allocator;
   end;
 
-  _saudio_allocator = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+  _saudio_logger = record
+    func: procedure(const tag: PUTF8Char; log_level: UInt32; log_item_id: UInt32; const message_or_null: PUTF8Char; line_nr: UInt32; const filename_or_null: PUTF8Char; user_data: Pointer); cdecl;
     user_data: Pointer;
+  end;
+
+  _saudio_allocator = record
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    user_data: Pointer;
+  end;
+
+  _saudio_n3ds_desc = record
+    queue_count: Integer;
+    interpolation_type: _saudio_n3ds_ndspinterptype;
+    channel_id: Integer;
+  end;
+
+  _saudio_win32_desc = record
+    skip_coinitialize: Boolean;
   end;
 
   _saudio_desc = record
@@ -5450,7 +3533,15 @@ type
     stream_cb: procedure(buffer: PSingle; num_frames: Integer; num_channels: Integer); cdecl;
     stream_userdata_cb: procedure(buffer: PSingle; num_frames: Integer; num_channels: Integer; user_data: Pointer); cdecl;
     user_data: Pointer;
+    win32: _saudio_win32_desc;
+    n3ds: _saudio_n3ds_desc;
     allocator: _saudio_allocator;
+    logger: _saudio_logger;
+  end;
+
+  _sdtx_logger_t = record
+    func: procedure(const tag: PUTF8Char; log_level: UInt32; log_item_id: UInt32; const message_or_null: PUTF8Char; line_nr: UInt32; const filename_or_null: PUTF8Char; user_data: Pointer); cdecl;
+    user_data: Pointer;
   end;
 
   _sdtx_context = record
@@ -5469,6 +3560,7 @@ type
   end;
 
   _sdtx_context_desc_t = record
+    max_commands: Integer;
     char_buf_size: Integer;
     canvas_width: Single;
     canvas_height: Single;
@@ -5479,8 +3571,8 @@ type
   end;
 
   _sdtx_allocator_t = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
     user_data: Pointer;
   end;
 
@@ -5490,11 +3582,12 @@ type
     fonts: array [0..7] of _sdtx_font_desc_t;
     context: _sdtx_context_desc_t;
     allocator: _sdtx_allocator_t;
+    logger: _sdtx_logger_t;
   end;
 
   _sfons_allocator_t = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
     user_data: Pointer;
   end;
 
@@ -5504,394 +3597,99 @@ type
     allocator: _sfons_allocator_t;
   end;
 
-  _sg_imgui_str_t = record
-    buf: array [0..95] of UTF8Char;
+  _sfb_framebuffer = record
+    id: UInt32;
   end;
 
-  _sg_imgui_buffer_t = record
-    res_id: _sg_buffer;
-    &label: _sg_imgui_str_t;
-    desc: _sg_buffer_desc;
-  end;
-
-  _sg_imgui_image_t = record
-    res_id: _sg_image;
-    ui_scale: Single;
-    &label: _sg_imgui_str_t;
-    desc: _sg_image_desc;
-  end;
-
-  _sg_imgui_shader_t = record
-    res_id: _sg_shader;
-    &label: _sg_imgui_str_t;
-    vs_entry: _sg_imgui_str_t;
-    vs_d3d11_target: _sg_imgui_str_t;
-    vs_image_name: array [0..11] of _sg_imgui_str_t;
-    vs_uniform_name: array [0..3] of array [0..15] of _sg_imgui_str_t;
-    fs_entry: _sg_imgui_str_t;
-    fs_d3d11_target: _sg_imgui_str_t;
-    fs_image_name: array [0..11] of _sg_imgui_str_t;
-    fs_uniform_name: array [0..3] of array [0..15] of _sg_imgui_str_t;
-    attr_name: array [0..15] of _sg_imgui_str_t;
-    attr_sem_name: array [0..15] of _sg_imgui_str_t;
-    desc: _sg_shader_desc;
-  end;
-
-  _sg_imgui_pipeline_t = record
-    res_id: _sg_pipeline;
-    &label: _sg_imgui_str_t;
-    desc: _sg_pipeline_desc;
-  end;
-
-  _sg_imgui_pass_t = record
-    res_id: _sg_pass;
-    &label: _sg_imgui_str_t;
-    color_image_scale: array [0..3] of Single;
-    ds_image_scale: Single;
-    desc: _sg_pass_desc;
-  end;
-
-  _sg_imgui_buffers_t = record
-    open: Boolean;
-    num_slots: Integer;
-    sel_buf: _sg_buffer;
-    slots: _Psg_imgui_buffer_t;
-  end;
-
-  _sg_imgui_images_t = record
-    open: Boolean;
-    num_slots: Integer;
-    sel_img: _sg_image;
-    slots: _Psg_imgui_image_t;
-  end;
-
-  _sg_imgui_shaders_t = record
-    open: Boolean;
-    num_slots: Integer;
-    sel_shd: _sg_shader;
-    slots: _Psg_imgui_shader_t;
-  end;
-
-  _sg_imgui_pipelines_t = record
-    open: Boolean;
-    num_slots: Integer;
-    sel_pip: _sg_pipeline;
-    slots: _Psg_imgui_pipeline_t;
-  end;
-
-  _sg_imgui_passes_t = record
-    open: Boolean;
-    num_slots: Integer;
-    sel_pass: _sg_pass;
-    slots: _Psg_imgui_pass_t;
-  end;
-
-  _sg_imgui_args_make_buffer_t = record
-    result: _sg_buffer;
-  end;
-
-  _sg_imgui_args_make_image_t = record
-    result: _sg_image;
-  end;
-
-  _sg_imgui_args_make_shader_t = record
-    result: _sg_shader;
-  end;
-
-  _sg_imgui_args_make_pipeline_t = record
-    result: _sg_pipeline;
-  end;
-
-  _sg_imgui_args_make_pass_t = record
-    result: _sg_pass;
-  end;
-
-  _sg_imgui_args_destroy_buffer_t = record
-    buffer: _sg_buffer;
-  end;
-
-  _sg_imgui_args_destroy_image_t = record
-    image: _sg_image;
-  end;
-
-  _sg_imgui_args_destroy_shader_t = record
-    shader: _sg_shader;
-  end;
-
-  _sg_imgui_args_destroy_pipeline_t = record
-    pipeline: _sg_pipeline;
-  end;
-
-  _sg_imgui_args_destroy_pass_t = record
-    pass: _sg_pass;
-  end;
-
-  _sg_imgui_args_update_buffer_t = record
-    buffer: _sg_buffer;
-    data_size: NativeUInt;
-  end;
-
-  _sg_imgui_args_update_image_t = record
-    image: _sg_image;
-  end;
-
-  _sg_imgui_args_append_buffer_t = record
-    buffer: _sg_buffer;
-    data_size: NativeUInt;
-    result: Integer;
-  end;
-
-  _sg_imgui_args_begin_default_pass_t = record
-    action: _sg_pass_action;
-    width: Integer;
-    height: Integer;
-  end;
-
-  _sg_imgui_args_begin_pass_t = record
-    pass: _sg_pass;
-    action: _sg_pass_action;
-  end;
-
-  _sg_imgui_args_apply_viewport_t = record
+  _sfb_rect = record
     x: Integer;
     y: Integer;
     width: Integer;
     height: Integer;
-    origin_top_left: Boolean;
   end;
 
-  _sg_imgui_args_apply_scissor_rect_t = record
-    x: Integer;
-    y: Integer;
+  _sfb_render_pass_desc = record
+    color_format: _sg_pixel_format;
+    depth_format: _sg_pixel_format;
+    sample_count: Integer;
+  end;
+
+  _sfb_framebuffer_desc = record
     width: Integer;
     height: Integer;
-    origin_top_left: Boolean;
+    prescale: Integer;
+    format: _sfb_format;
+    cliprect: _sfb_rect;
+    rotate90: Boolean;
+    render_pass: _sfb_render_pass_desc;
   end;
 
-  _sg_imgui_args_apply_pipeline_t = record
-    pipeline: _sg_pipeline;
+  _sfb_resize_desc = record
+    width: Integer;
+    height: Integer;
+    prescale: Integer;
+    cliprect: _sfb_rect;
   end;
 
-  _sg_imgui_args_apply_bindings_t = record
-    bindings: _sg_bindings;
+  _sfb_update_desc = record
+    pixels: _sg_range;
+    palette: _sg_range;
   end;
 
-  _sg_imgui_args_apply_uniforms_t = record
-    stage: _sg_shader_stage;
-    ub_index: Integer;
-    data_size: NativeUInt;
-    pipeline: _sg_pipeline;
-    ubuf_pos: NativeUInt;
+  _sfb_render_desc = record
+    use_nearest_filter: Boolean;
+    pip: _sg_pipeline;
+    views: array [0..31] of _sg_view;
+    samplers: array [0..11] of _sg_sampler;
+    uniforms: array [0..7] of _sg_range;
   end;
 
-  _sg_imgui_args_draw_t = record
-    base_element: Integer;
-    num_elements: Integer;
-    num_instances: Integer;
-  end;
-
-  _sg_imgui_args_alloc_buffer_t = record
-    result: _sg_buffer;
-  end;
-
-  _sg_imgui_args_alloc_image_t = record
-    result: _sg_image;
-  end;
-
-  _sg_imgui_args_alloc_shader_t = record
-    result: _sg_shader;
-  end;
-
-  _sg_imgui_args_alloc_pipeline_t = record
-    result: _sg_pipeline;
-  end;
-
-  _sg_imgui_args_alloc_pass_t = record
-    result: _sg_pass;
-  end;
-
-  _sg_imgui_args_dealloc_buffer_t = record
-    buffer: _sg_buffer;
-  end;
-
-  _sg_imgui_args_dealloc_image_t = record
+  _sfb_texture_info = record
+    width: Integer;
+    height: Integer;
+    pixel_format: _sg_pixel_format;
     image: _sg_image;
+    tex_view: _sg_view;
   end;
 
-  _sg_imgui_args_dealloc_shader_t = record
-    shader: _sg_shader;
+  _sfb_framebuffer_info = record
+    update: _sfb_texture_info;
+    offscreen: _sfb_texture_info;
+    palette: _sfb_texture_info;
+    nearest_sampler: _sg_sampler;
+    linear_sampler: _sg_sampler;
   end;
 
-  _sg_imgui_args_dealloc_pipeline_t = record
-    pipeline: _sg_pipeline;
-  end;
-
-  _sg_imgui_args_dealloc_pass_t = record
-    pass: _sg_pass;
-  end;
-
-  _sg_imgui_args_init_buffer_t = record
-    buffer: _sg_buffer;
-  end;
-
-  _sg_imgui_args_init_image_t = record
-    image: _sg_image;
-  end;
-
-  _sg_imgui_args_init_shader_t = record
-    shader: _sg_shader;
-  end;
-
-  _sg_imgui_args_init_pipeline_t = record
-    pipeline: _sg_pipeline;
-  end;
-
-  _sg_imgui_args_init_pass_t = record
-    pass: _sg_pass;
-  end;
-
-  _sg_imgui_args_uninit_buffer_t = record
-    buffer: _sg_buffer;
-  end;
-
-  _sg_imgui_args_uninit_image_t = record
-    image: _sg_image;
-  end;
-
-  _sg_imgui_args_uninit_shader_t = record
-    shader: _sg_shader;
-  end;
-
-  _sg_imgui_args_uninit_pipeline_t = record
-    pipeline: _sg_pipeline;
-  end;
-
-  _sg_imgui_args_uninit_pass_t = record
-    pass: _sg_pass;
-  end;
-
-  _sg_imgui_args_fail_buffer_t = record
-    buffer: _sg_buffer;
-  end;
-
-  _sg_imgui_args_fail_image_t = record
-    image: _sg_image;
-  end;
-
-  _sg_imgui_args_fail_shader_t = record
-    shader: _sg_shader;
-  end;
-
-  _sg_imgui_args_fail_pipeline_t = record
-    pipeline: _sg_pipeline;
-  end;
-
-  _sg_imgui_args_fail_pass_t = record
-    pass: _sg_pass;
-  end;
-
-  _sg_imgui_args_push_debug_group_t = record
-    name: _sg_imgui_str_t;
-  end;
-
-  _sg_imgui_args_t = record
-    case Integer of
-      0: (make_buffer: _sg_imgui_args_make_buffer_t);
-      1: (make_image: _sg_imgui_args_make_image_t);
-      2: (make_shader: _sg_imgui_args_make_shader_t);
-      3: (make_pipeline: _sg_imgui_args_make_pipeline_t);
-      4: (make_pass: _sg_imgui_args_make_pass_t);
-      5: (destroy_buffer: _sg_imgui_args_destroy_buffer_t);
-      6: (destroy_image: _sg_imgui_args_destroy_image_t);
-      7: (destroy_shader: _sg_imgui_args_destroy_shader_t);
-      8: (destroy_pipeline: _sg_imgui_args_destroy_pipeline_t);
-      9: (destroy_pass: _sg_imgui_args_destroy_pass_t);
-      10: (update_buffer: _sg_imgui_args_update_buffer_t);
-      11: (update_image: _sg_imgui_args_update_image_t);
-      12: (append_buffer: _sg_imgui_args_append_buffer_t);
-      13: (begin_default_pass: _sg_imgui_args_begin_default_pass_t);
-      14: (begin_pass: _sg_imgui_args_begin_pass_t);
-      15: (apply_viewport: _sg_imgui_args_apply_viewport_t);
-      16: (apply_scissor_rect: _sg_imgui_args_apply_scissor_rect_t);
-      17: (apply_pipeline: _sg_imgui_args_apply_pipeline_t);
-      18: (apply_bindings: _sg_imgui_args_apply_bindings_t);
-      19: (apply_uniforms: _sg_imgui_args_apply_uniforms_t);
-      20: (draw: _sg_imgui_args_draw_t);
-      21: (alloc_buffer: _sg_imgui_args_alloc_buffer_t);
-      22: (alloc_image: _sg_imgui_args_alloc_image_t);
-      23: (alloc_shader: _sg_imgui_args_alloc_shader_t);
-      24: (alloc_pipeline: _sg_imgui_args_alloc_pipeline_t);
-      25: (alloc_pass: _sg_imgui_args_alloc_pass_t);
-      26: (dealloc_buffer: _sg_imgui_args_dealloc_buffer_t);
-      27: (dealloc_image: _sg_imgui_args_dealloc_image_t);
-      28: (dealloc_shader: _sg_imgui_args_dealloc_shader_t);
-      29: (dealloc_pipeline: _sg_imgui_args_dealloc_pipeline_t);
-      30: (dealloc_pass: _sg_imgui_args_dealloc_pass_t);
-      31: (init_buffer: _sg_imgui_args_init_buffer_t);
-      32: (init_image: _sg_imgui_args_init_image_t);
-      33: (init_shader: _sg_imgui_args_init_shader_t);
-      34: (init_pipeline: _sg_imgui_args_init_pipeline_t);
-      35: (init_pass: _sg_imgui_args_init_pass_t);
-      36: (uninit_buffer: _sg_imgui_args_uninit_buffer_t);
-      37: (uninit_image: _sg_imgui_args_uninit_image_t);
-      38: (uninit_shader: _sg_imgui_args_uninit_shader_t);
-      39: (uninit_pipeline: _sg_imgui_args_uninit_pipeline_t);
-      40: (uninit_pass: _sg_imgui_args_uninit_pass_t);
-      41: (fail_buffer: _sg_imgui_args_fail_buffer_t);
-      42: (fail_image: _sg_imgui_args_fail_image_t);
-      43: (fail_shader: _sg_imgui_args_fail_shader_t);
-      44: (fail_pipeline: _sg_imgui_args_fail_pipeline_t);
-      45: (fail_pass: _sg_imgui_args_fail_pass_t);
-      46: (push_debug_group: _sg_imgui_args_push_debug_group_t);
-  end;
-
-  _sg_imgui_capture_item_t = record
-    cmd: _sg_imgui_cmd_t;
-    color: UInt32;
-    args: _sg_imgui_args_t;
-  end;
-
-  _sg_imgui_capture_bucket_t = record
-    ubuf_size: NativeUInt;
-    ubuf_pos: NativeUInt;
-    ubuf: PUInt8;
-    num_items: Integer;
-    items: array [0..4095] of _sg_imgui_capture_item_t;
-  end;
-
-  _sg_imgui_capture_t = record
-    open: Boolean;
-    bucket_index: Integer;
-    sel_item: Integer;
-    bucket: array [0..1] of _sg_imgui_capture_bucket_t;
-  end;
-
-  _sg_imgui_caps_t = record
-    open: Boolean;
-  end;
-
-  _sg_imgui_allocator_t = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+  _sfb_allocator = record
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
     user_data: Pointer;
   end;
 
-  _sg_imgui_desc_t = record
-    allocator: _sg_imgui_allocator_t;
+  _sfb_logger = record
+    func: procedure(const tag: PUTF8Char; log_level: UInt32; log_item_id: UInt32; const message_or_null: PUTF8Char; line_nr: UInt32; const filename_or_null: PUTF8Char; user_data: Pointer); cdecl;
+    user_data: Pointer;
   end;
 
-  _sg_imgui_t = record
-    init_tag: UInt32;
-    desc: _sg_imgui_desc_t;
-    buffers: _sg_imgui_buffers_t;
-    images: _sg_imgui_images_t;
-    shaders: _sg_imgui_shaders_t;
-    pipelines: _sg_imgui_pipelines_t;
-    passes: _sg_imgui_passes_t;
-    capture: _sg_imgui_capture_t;
-    caps: _sg_imgui_caps_t;
-    cur_pipeline: _sg_pipeline;
-    hooks: _sg_trace_hooks;
+  _sfb_desc = record
+    framebuffer_pool_size: Integer;
+    allocator: _sfb_allocator;
+    logger: _sfb_logger;
+  end;
+
+  _sgimgui_allocator_t = record
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    user_data: Pointer;
+  end;
+
+  _sgimgui_desc_t = record
+    allocator: _sgimgui_allocator_t;
+  end;
+
+  _sgl_logger_t = record
+    func: procedure(const tag: PUTF8Char; log_level: UInt32; log_item_id: UInt32; const message_or_null: PUTF8Char; line_nr: UInt32; const filename_or_null: PUTF8Char; user_data: Pointer); cdecl;
+    user_data: Pointer;
   end;
 
   _sgl_pipeline = record
@@ -5900,6 +3698,16 @@ type
 
   _sgl_context = record
     id: UInt32;
+  end;
+
+  _sgl_error_t = record
+    any: Boolean;
+    vertices_full: Boolean;
+    uniforms_full: Boolean;
+    commands_full: Boolean;
+    stack_overflow: Boolean;
+    stack_underflow: Boolean;
+    no_context: Boolean;
   end;
 
   _sgl_context_desc_t = record
@@ -5911,8 +3719,8 @@ type
   end;
 
   _sgl_allocator_t = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
     user_data: Pointer;
   end;
 
@@ -5926,11 +3734,17 @@ type
     sample_count: Integer;
     face_winding: _sg_face_winding;
     allocator: _sgl_allocator_t;
+    logger: _sgl_logger_t;
   end;
 
   _simgui_allocator_t = record
-    alloc: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
-    free: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    user_data: Pointer;
+  end;
+
+  _simgui_logger_t = record
+    func: procedure(const tag: PUTF8Char; log_level: UInt32; log_item_id: UInt32; const message_or_null: PUTF8Char; line_nr: UInt32; const filename_or_null: PUTF8Char; user_data: Pointer); cdecl;
     user_data: Pointer;
   end;
 
@@ -5946,6 +3760,7 @@ type
     disable_windows_resize_from_edges: Boolean;
     write_alpha_channel: Boolean;
     allocator: _simgui_allocator_t;
+    logger: _simgui_logger_t;
   end;
 
   _simgui_frame_desc_t = record
@@ -5953,6 +3768,31 @@ type
     height: Integer;
     delta_time: Double;
     dpi_scale: Single;
+  end;
+
+  _simgui_font_tex_desc_t = record
+    min_filter: _sg_filter;
+    mag_filter: _sg_filter;
+  end;
+
+  _slbx_border = record
+    left: Integer;
+    right: Integer;
+    top: Integer;
+    bottom: Integer;
+  end;
+
+  _slbx_letterbox_desc = record
+    content_aspect_ratio: Single;
+    anchor: _slbx_anchor;
+    border: _slbx_border;
+  end;
+
+  _slbx_viewport = record
+    x: Integer;
+    y: Integer;
+    width: Integer;
+    height: Integer;
   end;
 
   _smemtrack_info_t = record
@@ -6059,3840 +3899,259 @@ type
     transform: _sshape_mat4_t;
   end;
 
-function _ImVec2_ImVec2_Nil(): _PImVec2; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec2_ImVec2_Nil';
-
-procedure _ImVec2_destroy(self: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec2_destroy';
-
-function _ImVec2_ImVec2_Float(_x: Single; _y: Single): _PImVec2; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec2_ImVec2_Float';
-
-function _ImVec4_ImVec4_Nil(): _PImVec4; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec4_ImVec4_Nil';
-
-procedure _ImVec4_destroy(self: _PImVec4); cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec4_destroy';
-
-function _ImVec4_ImVec4_Float(_x: Single; _y: Single; _z: Single; _w: Single): _PImVec4; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec4_ImVec4_Float';
-
-function _igCreateContext(shared_font_atlas: _PImFontAtlas): _PImGuiContext; cdecl;
-  external _LIB_SOKOL name _PU + 'igCreateContext';
-
-procedure _igDestroyContext(ctx: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'igDestroyContext';
-
-function _igGetCurrentContext(): _PImGuiContext; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCurrentContext';
-
-procedure _igSetCurrentContext(ctx: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetCurrentContext';
-
-function _igGetIO(): _PImGuiIO; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetIO';
-
-function _igGetStyle(): _PImGuiStyle; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetStyle';
-
-procedure _igNewFrame(); cdecl;
-  external _LIB_SOKOL name _PU + 'igNewFrame';
-
-procedure _igEndFrame(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndFrame';
-
-procedure _igRender(); cdecl;
-  external _LIB_SOKOL name _PU + 'igRender';
-
-function _igGetDrawData(): _PImDrawData; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetDrawData';
-
-procedure _igShowDemoWindow(p_open: PBoolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowDemoWindow';
-
-procedure _igShowMetricsWindow(p_open: PBoolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowMetricsWindow';
-
-procedure _igShowDebugLogWindow(p_open: PBoolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowDebugLogWindow';
-
-procedure _igShowStackToolWindow(p_open: PBoolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowStackToolWindow';
-
-procedure _igShowAboutWindow(p_open: PBoolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowAboutWindow';
-
-procedure _igShowStyleEditor(ref: _PImGuiStyle); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowStyleEditor';
-
-function _igShowStyleSelector(const &label: PUTF8Char): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igShowStyleSelector';
-
-procedure _igShowFontSelector(const &label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowFontSelector';
-
-procedure _igShowUserGuide(); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowUserGuide';
-
-function _igGetVersion(): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetVersion';
-
-procedure _igStyleColorsDark(dst: _PImGuiStyle); cdecl;
-  external _LIB_SOKOL name _PU + 'igStyleColorsDark';
-
-procedure _igStyleColorsLight(dst: _PImGuiStyle); cdecl;
-  external _LIB_SOKOL name _PU + 'igStyleColorsLight';
-
-procedure _igStyleColorsClassic(dst: _PImGuiStyle); cdecl;
-  external _LIB_SOKOL name _PU + 'igStyleColorsClassic';
-
-function _igBegin(const name: PUTF8Char; p_open: PBoolean; flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBegin';
-
-procedure _igEnd(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEnd';
-
-function _igBeginChild_Str(const str_id: PUTF8Char; size: _ImVec2; border: Boolean; flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginChild_Str';
-
-function _igBeginChild_ID(id: _ImGuiID; size: _ImVec2; border: Boolean; flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginChild_ID';
-
-procedure _igEndChild(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndChild';
-
-function _igIsWindowAppearing(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowAppearing';
-
-function _igIsWindowCollapsed(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowCollapsed';
-
-function _igIsWindowFocused(flags: _ImGuiFocusedFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowFocused';
-
-function _igIsWindowHovered(flags: _ImGuiHoveredFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowHovered';
-
-function _igGetWindowDrawList(): _PImDrawList; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowDrawList';
-
-function _igGetWindowDpiScale(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowDpiScale';
-
-procedure _igGetWindowPos(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowPos';
-
-procedure _igGetWindowSize(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowSize';
-
-function _igGetWindowWidth(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowWidth';
-
-function _igGetWindowHeight(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowHeight';
-
-function _igGetWindowViewport(): _PImGuiViewport; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowViewport';
-
-procedure _igSetNextWindowPos(pos: _ImVec2; cond: _ImGuiCond; pivot: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowPos';
-
-procedure _igSetNextWindowSize(size: _ImVec2; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowSize';
-
-procedure _igSetNextWindowSizeConstraints(size_min: _ImVec2; size_max: _ImVec2; custom_callback: _ImGuiSizeCallback; custom_callback_data: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowSizeConstraints';
-
-procedure _igSetNextWindowContentSize(size: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowContentSize';
-
-procedure _igSetNextWindowCollapsed(collapsed: Boolean; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowCollapsed';
-
-procedure _igSetNextWindowFocus(); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowFocus';
-
-procedure _igSetNextWindowBgAlpha(alpha: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowBgAlpha';
-
-procedure _igSetNextWindowViewport(viewport_id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowViewport';
-
-procedure _igSetWindowPos_Vec2(pos: _ImVec2; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowPos_Vec2';
-
-procedure _igSetWindowSize_Vec2(size: _ImVec2; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowSize_Vec2';
-
-procedure _igSetWindowCollapsed_Bool(collapsed: Boolean; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowCollapsed_Bool';
-
-procedure _igSetWindowFocus_Nil(); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowFocus_Nil';
-
-procedure _igSetWindowFontScale(scale: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowFontScale';
-
-procedure _igSetWindowPos_Str(const name: PUTF8Char; pos: _ImVec2; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowPos_Str';
-
-procedure _igSetWindowSize_Str(const name: PUTF8Char; size: _ImVec2; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowSize_Str';
-
-procedure _igSetWindowCollapsed_Str(const name: PUTF8Char; collapsed: Boolean; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowCollapsed_Str';
-
-procedure _igSetWindowFocus_Str(const name: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowFocus_Str';
-
-procedure _igGetContentRegionAvail(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetContentRegionAvail';
-
-procedure _igGetContentRegionMax(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetContentRegionMax';
-
-procedure _igGetWindowContentRegionMin(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowContentRegionMin';
-
-procedure _igGetWindowContentRegionMax(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowContentRegionMax';
-
-function _igGetScrollX(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetScrollX';
-
-function _igGetScrollY(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetScrollY';
-
-procedure _igSetScrollX_Float(scroll_x: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollX_Float';
-
-procedure _igSetScrollY_Float(scroll_y: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollY_Float';
-
-function _igGetScrollMaxX(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetScrollMaxX';
-
-function _igGetScrollMaxY(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetScrollMaxY';
-
-procedure _igSetScrollHereX(center_x_ratio: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollHereX';
-
-procedure _igSetScrollHereY(center_y_ratio: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollHereY';
-
-procedure _igSetScrollFromPosX_Float(local_x: Single; center_x_ratio: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollFromPosX_Float';
-
-procedure _igSetScrollFromPosY_Float(local_y: Single; center_y_ratio: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollFromPosY_Float';
-
-procedure _igPushFont(font: _PImFont); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushFont';
-
-procedure _igPopFont(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopFont';
-
-procedure _igPushStyleColor_U32(idx: _ImGuiCol; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushStyleColor_U32';
-
-procedure _igPushStyleColor_Vec4(idx: _ImGuiCol; col: _ImVec4); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushStyleColor_Vec4';
-
-procedure _igPopStyleColor(count: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopStyleColor';
-
-procedure _igPushStyleVar_Float(idx: _ImGuiStyleVar; val: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushStyleVar_Float';
-
-procedure _igPushStyleVar_Vec2(idx: _ImGuiStyleVar; val: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushStyleVar_Vec2';
-
-procedure _igPopStyleVar(count: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopStyleVar';
-
-procedure _igPushAllowKeyboardFocus(allow_keyboard_focus: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushAllowKeyboardFocus';
-
-procedure _igPopAllowKeyboardFocus(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopAllowKeyboardFocus';
-
-procedure _igPushButtonRepeat(&repeat: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushButtonRepeat';
-
-procedure _igPopButtonRepeat(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopButtonRepeat';
-
-procedure _igPushItemWidth(item_width: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushItemWidth';
-
-procedure _igPopItemWidth(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopItemWidth';
-
-procedure _igSetNextItemWidth(item_width: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextItemWidth';
-
-function _igCalcItemWidth(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igCalcItemWidth';
-
-procedure _igPushTextWrapPos(wrap_local_pos_x: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushTextWrapPos';
-
-procedure _igPopTextWrapPos(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopTextWrapPos';
-
-function _igGetFont(): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFont';
-
-function _igGetFontSize(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFontSize';
-
-procedure _igGetFontTexUvWhitePixel(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFontTexUvWhitePixel';
-
-function _igGetColorU32_Col(idx: _ImGuiCol; alpha_mul: Single): _ImU32; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColorU32_Col';
-
-function _igGetColorU32_Vec4(col: _ImVec4): _ImU32; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColorU32_Vec4';
-
-function _igGetColorU32_U32(col: _ImU32): _ImU32; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColorU32_U32';
-
-function _igGetStyleColorVec4(idx: _ImGuiCol): _PImVec4; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetStyleColorVec4';
-
-procedure _igSeparator(); cdecl;
-  external _LIB_SOKOL name _PU + 'igSeparator';
-
-procedure _igSameLine(offset_from_start_x: Single; spacing: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSameLine';
-
-procedure _igNewLine(); cdecl;
-  external _LIB_SOKOL name _PU + 'igNewLine';
-
-procedure _igSpacing(); cdecl;
-  external _LIB_SOKOL name _PU + 'igSpacing';
-
-procedure _igDummy(size: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igDummy';
-
-procedure _igIndent(indent_w: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igIndent';
-
-procedure _igUnindent(indent_w: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igUnindent';
-
-procedure _igBeginGroup(); cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginGroup';
-
-procedure _igEndGroup(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndGroup';
-
-procedure _igGetCursorPos(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCursorPos';
-
-function _igGetCursorPosX(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCursorPosX';
-
-function _igGetCursorPosY(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCursorPosY';
-
-procedure _igSetCursorPos(local_pos: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetCursorPos';
-
-procedure _igSetCursorPosX(local_x: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetCursorPosX';
-
-procedure _igSetCursorPosY(local_y: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetCursorPosY';
-
-procedure _igGetCursorStartPos(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCursorStartPos';
-
-procedure _igGetCursorScreenPos(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCursorScreenPos';
-
-procedure _igSetCursorScreenPos(pos: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetCursorScreenPos';
-
-procedure _igAlignTextToFramePadding(); cdecl;
-  external _LIB_SOKOL name _PU + 'igAlignTextToFramePadding';
-
-function _igGetTextLineHeight(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetTextLineHeight';
-
-function _igGetTextLineHeightWithSpacing(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetTextLineHeightWithSpacing';
-
-function _igGetFrameHeight(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFrameHeight';
-
-function _igGetFrameHeightWithSpacing(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFrameHeightWithSpacing';
-
-procedure _igPushID_Str(const str_id: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushID_Str';
-
-procedure _igPushID_StrStr(const str_id_begin: PUTF8Char; const str_id_end: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushID_StrStr';
-
-procedure _igPushID_Ptr(const ptr_id: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushID_Ptr';
-
-procedure _igPushID_Int(int_id: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushID_Int';
-
-procedure _igPopID(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopID';
-
-function _igGetID_Str(const str_id: PUTF8Char): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetID_Str';
-
-function _igGetID_StrStr(const str_id_begin: PUTF8Char; const str_id_end: PUTF8Char): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetID_StrStr';
-
-function _igGetID_Ptr(const ptr_id: Pointer): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetID_Ptr';
-
-procedure _igTextUnformatted(const text: PUTF8Char; const text_end: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igTextUnformatted';
-
-procedure _igText(const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igText';
-
-procedure _igTextV(const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTextV';
-
-procedure _igTextColored(col: _ImVec4; const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igTextColored';
-
-procedure _igTextColoredV(col: _ImVec4; const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTextColoredV';
-
-procedure _igTextDisabled(const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igTextDisabled';
-
-procedure _igTextDisabledV(const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTextDisabledV';
-
-procedure _igTextWrapped(const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igTextWrapped';
-
-procedure _igTextWrappedV(const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTextWrappedV';
-
-procedure _igLabelText(const &label: PUTF8Char; const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igLabelText';
-
-procedure _igLabelTextV(const &label: PUTF8Char; const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igLabelTextV';
-
-procedure _igBulletText(const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igBulletText';
-
-procedure _igBulletTextV(const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igBulletTextV';
-
-function _igButton(const &label: PUTF8Char; size: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igButton';
-
-function _igSmallButton(const &label: PUTF8Char): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSmallButton';
-
-function _igInvisibleButton(const str_id: PUTF8Char; size: _ImVec2; flags: _ImGuiButtonFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInvisibleButton';
-
-function _igArrowButton(const str_id: PUTF8Char; dir: _ImGuiDir): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igArrowButton';
-
-procedure _igImage(user_texture_id: _ImTextureID; size: _ImVec2; uv0: _ImVec2; uv1: _ImVec2; tint_col: _ImVec4; border_col: _ImVec4); cdecl;
-  external _LIB_SOKOL name _PU + 'igImage';
-
-function _igImageButton(user_texture_id: _ImTextureID; size: _ImVec2; uv0: _ImVec2; uv1: _ImVec2; frame_padding: Integer; bg_col: _ImVec4; tint_col: _ImVec4): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImageButton';
-
-function _igCheckbox(const &label: PUTF8Char; v: PBoolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCheckbox';
-
-function _igCheckboxFlags_IntPtr(const &label: PUTF8Char; flags: PInteger; flags_value: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCheckboxFlags_IntPtr';
-
-function _igCheckboxFlags_UintPtr(const &label: PUTF8Char; flags: PCardinal; flags_value: Cardinal): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCheckboxFlags_UintPtr';
-
-function _igRadioButton_Bool(const &label: PUTF8Char; active: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igRadioButton_Bool';
-
-function _igRadioButton_IntPtr(const &label: PUTF8Char; v: PInteger; v_button: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igRadioButton_IntPtr';
-
-procedure _igProgressBar(fraction: Single; size_arg: _ImVec2; const overlay: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igProgressBar';
-
-procedure _igBullet(); cdecl;
-  external _LIB_SOKOL name _PU + 'igBullet';
-
-function _igBeginCombo(const &label: PUTF8Char; const preview_value: PUTF8Char; flags: _ImGuiComboFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginCombo';
-
-procedure _igEndCombo(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndCombo';
-
-function _igCombo_Str_arr(const &label: PUTF8Char; current_item: PInteger; items: PPUTF8Char; items_count: Integer; popup_max_height_in_items: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCombo_Str_arr';
-
-function _igCombo_Str(const &label: PUTF8Char; current_item: PInteger; const items_separated_by_zeros: PUTF8Char; popup_max_height_in_items: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCombo_Str';
-
-type
-  _igCombo_FnBoolPtr__items_getter = function(data: Pointer; idx: Integer; out_text: PPUTF8Char): Boolean; cdecl;
-
-function _igCombo_FnBoolPtr(const &label: PUTF8Char; current_item: PInteger; items_getter: _igCombo_FnBoolPtr__items_getter; data: Pointer; items_count: Integer; popup_max_height_in_items: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCombo_FnBoolPtr';
-
-function _igDragFloat(const &label: PUTF8Char; v: PSingle; v_speed: Single; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragFloat';
-
-function _igDragFloat2(const &label: PUTF8Char; v: PSingle; v_speed: Single; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragFloat2';
-
-function _igDragFloat3(const &label: PUTF8Char; v: PSingle; v_speed: Single; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragFloat3';
-
-function _igDragFloat4(const &label: PUTF8Char; v: PSingle; v_speed: Single; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragFloat4';
-
-function _igDragFloatRange2(const &label: PUTF8Char; v_current_min: PSingle; v_current_max: PSingle; v_speed: Single; v_min: Single; v_max: Single; const format: PUTF8Char; const format_max: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragFloatRange2';
-
-function _igDragInt(const &label: PUTF8Char; v: PInteger; v_speed: Single; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragInt';
-
-function _igDragInt2(const &label: PUTF8Char; v: PInteger; v_speed: Single; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragInt2';
-
-function _igDragInt3(const &label: PUTF8Char; v: PInteger; v_speed: Single; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragInt3';
-
-function _igDragInt4(const &label: PUTF8Char; v: PInteger; v_speed: Single; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragInt4';
-
-function _igDragIntRange2(const &label: PUTF8Char; v_current_min: PInteger; v_current_max: PInteger; v_speed: Single; v_min: Integer; v_max: Integer; const format: PUTF8Char; const format_max: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragIntRange2';
-
-function _igDragScalar(const &label: PUTF8Char; data_type: _ImGuiDataType; p_data: Pointer; v_speed: Single; const p_min: Pointer; const p_max: Pointer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragScalar';
-
-function _igDragScalarN(const &label: PUTF8Char; data_type: _ImGuiDataType; p_data: Pointer; components: Integer; v_speed: Single; const p_min: Pointer; const p_max: Pointer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragScalarN';
-
-function _igSliderFloat(const &label: PUTF8Char; v: PSingle; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderFloat';
-
-function _igSliderFloat2(const &label: PUTF8Char; v: PSingle; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderFloat2';
-
-function _igSliderFloat3(const &label: PUTF8Char; v: PSingle; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderFloat3';
-
-function _igSliderFloat4(const &label: PUTF8Char; v: PSingle; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderFloat4';
-
-function _igSliderAngle(const &label: PUTF8Char; v_rad: PSingle; v_degrees_min: Single; v_degrees_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderAngle';
-
-function _igSliderInt(const &label: PUTF8Char; v: PInteger; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderInt';
-
-function _igSliderInt2(const &label: PUTF8Char; v: PInteger; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderInt2';
-
-function _igSliderInt3(const &label: PUTF8Char; v: PInteger; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderInt3';
-
-function _igSliderInt4(const &label: PUTF8Char; v: PInteger; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderInt4';
-
-function _igSliderScalar(const &label: PUTF8Char; data_type: _ImGuiDataType; p_data: Pointer; const p_min: Pointer; const p_max: Pointer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderScalar';
-
-function _igSliderScalarN(const &label: PUTF8Char; data_type: _ImGuiDataType; p_data: Pointer; components: Integer; const p_min: Pointer; const p_max: Pointer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderScalarN';
-
-function _igVSliderFloat(const &label: PUTF8Char; size: _ImVec2; v: PSingle; v_min: Single; v_max: Single; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igVSliderFloat';
-
-function _igVSliderInt(const &label: PUTF8Char; size: _ImVec2; v: PInteger; v_min: Integer; v_max: Integer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igVSliderInt';
-
-function _igVSliderScalar(const &label: PUTF8Char; size: _ImVec2; data_type: _ImGuiDataType; p_data: Pointer; const p_min: Pointer; const p_max: Pointer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igVSliderScalar';
-
-function _igInputText(const &label: PUTF8Char; buf: PUTF8Char; buf_size: NativeUInt; flags: _ImGuiInputTextFlags; callback: _ImGuiInputTextCallback; user_data: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputText';
-
-function _igInputTextMultiline(const &label: PUTF8Char; buf: PUTF8Char; buf_size: NativeUInt; size: _ImVec2; flags: _ImGuiInputTextFlags; callback: _ImGuiInputTextCallback; user_data: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputTextMultiline';
-
-function _igInputTextWithHint(const &label: PUTF8Char; const hint: PUTF8Char; buf: PUTF8Char; buf_size: NativeUInt; flags: _ImGuiInputTextFlags; callback: _ImGuiInputTextCallback; user_data: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputTextWithHint';
-
-function _igInputFloat(const &label: PUTF8Char; v: PSingle; step: Single; step_fast: Single; const format: PUTF8Char; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputFloat';
-
-function _igInputFloat2(const &label: PUTF8Char; v: PSingle; const format: PUTF8Char; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputFloat2';
-
-function _igInputFloat3(const &label: PUTF8Char; v: PSingle; const format: PUTF8Char; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputFloat3';
-
-function _igInputFloat4(const &label: PUTF8Char; v: PSingle; const format: PUTF8Char; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputFloat4';
-
-function _igInputInt(const &label: PUTF8Char; v: PInteger; step: Integer; step_fast: Integer; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputInt';
-
-function _igInputInt2(const &label: PUTF8Char; v: PInteger; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputInt2';
-
-function _igInputInt3(const &label: PUTF8Char; v: PInteger; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputInt3';
-
-function _igInputInt4(const &label: PUTF8Char; v: PInteger; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputInt4';
-
-function _igInputDouble(const &label: PUTF8Char; v: PDouble; step: Double; step_fast: Double; const format: PUTF8Char; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputDouble';
-
-function _igInputScalar(const &label: PUTF8Char; data_type: _ImGuiDataType; p_data: Pointer; const p_step: Pointer; const p_step_fast: Pointer; const format: PUTF8Char; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputScalar';
-
-function _igInputScalarN(const &label: PUTF8Char; data_type: _ImGuiDataType; p_data: Pointer; components: Integer; const p_step: Pointer; const p_step_fast: Pointer; const format: PUTF8Char; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputScalarN';
-
-function _igColorEdit3(const &label: PUTF8Char; col: PSingle; flags: _ImGuiColorEditFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igColorEdit3';
-
-function _igColorEdit4(const &label: PUTF8Char; col: PSingle; flags: _ImGuiColorEditFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igColorEdit4';
-
-function _igColorPicker3(const &label: PUTF8Char; col: PSingle; flags: _ImGuiColorEditFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igColorPicker3';
-
-function _igColorPicker4(const &label: PUTF8Char; col: PSingle; flags: _ImGuiColorEditFlags; const ref_col: PSingle): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igColorPicker4';
-
-function _igColorButton(const desc_id: PUTF8Char; col: _ImVec4; flags: _ImGuiColorEditFlags; size: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igColorButton';
-
-procedure _igSetColorEditOptions(flags: _ImGuiColorEditFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetColorEditOptions';
-
-function _igTreeNode_Str(const &label: PUTF8Char): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNode_Str';
-
-function _igTreeNode_StrStr(const str_id: PUTF8Char; const fmt: PUTF8Char): Boolean varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNode_StrStr';
-
-function _igTreeNode_Ptr(const ptr_id: Pointer; const fmt: PUTF8Char): Boolean varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNode_Ptr';
-
-function _igTreeNodeV_Str(const str_id: PUTF8Char; const fmt: PUTF8Char; args: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeV_Str';
-
-function _igTreeNodeV_Ptr(const ptr_id: Pointer; const fmt: PUTF8Char; args: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeV_Ptr';
-
-function _igTreeNodeEx_Str(const &label: PUTF8Char; flags: _ImGuiTreeNodeFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeEx_Str';
-
-function _igTreeNodeEx_StrStr(const str_id: PUTF8Char; flags: _ImGuiTreeNodeFlags; const fmt: PUTF8Char): Boolean varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeEx_StrStr';
-
-function _igTreeNodeEx_Ptr(const ptr_id: Pointer; flags: _ImGuiTreeNodeFlags; const fmt: PUTF8Char): Boolean varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeEx_Ptr';
-
-function _igTreeNodeExV_Str(const str_id: PUTF8Char; flags: _ImGuiTreeNodeFlags; const fmt: PUTF8Char; args: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeExV_Str';
-
-function _igTreeNodeExV_Ptr(const ptr_id: Pointer; flags: _ImGuiTreeNodeFlags; const fmt: PUTF8Char; args: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeExV_Ptr';
-
-procedure _igTreePush_Str(const str_id: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igTreePush_Str';
-
-procedure _igTreePush_Ptr(const ptr_id: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTreePush_Ptr';
-
-procedure _igTreePop(); cdecl;
-  external _LIB_SOKOL name _PU + 'igTreePop';
-
-function _igGetTreeNodeToLabelSpacing(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetTreeNodeToLabelSpacing';
-
-function _igCollapsingHeader_TreeNodeFlags(const &label: PUTF8Char; flags: _ImGuiTreeNodeFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCollapsingHeader_TreeNodeFlags';
-
-function _igCollapsingHeader_BoolPtr(const &label: PUTF8Char; p_visible: PBoolean; flags: _ImGuiTreeNodeFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCollapsingHeader_BoolPtr';
-
-procedure _igSetNextItemOpen(is_open: Boolean; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextItemOpen';
-
-function _igSelectable_Bool(const &label: PUTF8Char; selected: Boolean; flags: _ImGuiSelectableFlags; size: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSelectable_Bool';
-
-function _igSelectable_BoolPtr(const &label: PUTF8Char; p_selected: PBoolean; flags: _ImGuiSelectableFlags; size: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSelectable_BoolPtr';
-
-function _igBeginListBox(const &label: PUTF8Char; size: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginListBox';
-
-procedure _igEndListBox(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndListBox';
-
-function _igListBox_Str_arr(const &label: PUTF8Char; current_item: PInteger; items: PPUTF8Char; items_count: Integer; height_in_items: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igListBox_Str_arr';
-
-type
-  _igListBox_FnBoolPtr__items_getter = function(data: Pointer; idx: Integer; out_text: PPUTF8Char): Boolean; cdecl;
-
-function _igListBox_FnBoolPtr(const &label: PUTF8Char; current_item: PInteger; items_getter: _igListBox_FnBoolPtr__items_getter; data: Pointer; items_count: Integer; height_in_items: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igListBox_FnBoolPtr';
-
-procedure _igPlotLines_FloatPtr(const &label: PUTF8Char; const values: PSingle; values_count: Integer; values_offset: Integer; const overlay_text: PUTF8Char; scale_min: Single; scale_max: Single; graph_size: _ImVec2; stride: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igPlotLines_FloatPtr';
-
-type
-  _igPlotLines_FnFloatPtr__values_getter = function(data: Pointer; idx: Integer): Single; cdecl;
-
-procedure _igPlotLines_FnFloatPtr(const &label: PUTF8Char; values_getter: _igPlotLines_FnFloatPtr__values_getter; data: Pointer; values_count: Integer; values_offset: Integer; const overlay_text: PUTF8Char; scale_min: Single; scale_max: Single; graph_size: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igPlotLines_FnFloatPtr';
-
-procedure _igPlotHistogram_FloatPtr(const &label: PUTF8Char; const values: PSingle; values_count: Integer; values_offset: Integer; const overlay_text: PUTF8Char; scale_min: Single; scale_max: Single; graph_size: _ImVec2; stride: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igPlotHistogram_FloatPtr';
-
-type
-  _igPlotHistogram_FnFloatPtr__values_getter = function(data: Pointer; idx: Integer): Single; cdecl;
-
-procedure _igPlotHistogram_FnFloatPtr(const &label: PUTF8Char; values_getter: _igPlotHistogram_FnFloatPtr__values_getter; data: Pointer; values_count: Integer; values_offset: Integer; const overlay_text: PUTF8Char; scale_min: Single; scale_max: Single; graph_size: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igPlotHistogram_FnFloatPtr';
-
-procedure _igValue_Bool(const prefix: PUTF8Char; b: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igValue_Bool';
-
-procedure _igValue_Int(const prefix: PUTF8Char; v: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igValue_Int';
-
-procedure _igValue_Uint(const prefix: PUTF8Char; v: Cardinal); cdecl;
-  external _LIB_SOKOL name _PU + 'igValue_Uint';
-
-procedure _igValue_Float(const prefix: PUTF8Char; v: Single; const float_format: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igValue_Float';
-
-function _igBeginMenuBar(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginMenuBar';
-
-procedure _igEndMenuBar(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndMenuBar';
-
-function _igBeginMainMenuBar(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginMainMenuBar';
-
-procedure _igEndMainMenuBar(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndMainMenuBar';
-
-function _igBeginMenu(const &label: PUTF8Char; enabled: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginMenu';
-
-procedure _igEndMenu(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndMenu';
-
-function _igMenuItem_Bool(const &label: PUTF8Char; const shortcut: PUTF8Char; selected: Boolean; enabled: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igMenuItem_Bool';
-
-function _igMenuItem_BoolPtr(const &label: PUTF8Char; const shortcut: PUTF8Char; p_selected: PBoolean; enabled: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igMenuItem_BoolPtr';
-
-procedure _igBeginTooltip(); cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginTooltip';
-
-procedure _igEndTooltip(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndTooltip';
-
-procedure _igSetTooltip(const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igSetTooltip';
-
-procedure _igSetTooltipV(const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetTooltipV';
-
-function _igBeginPopup(const str_id: PUTF8Char; flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginPopup';
-
-function _igBeginPopupModal(const name: PUTF8Char; p_open: PBoolean; flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginPopupModal';
-
-procedure _igEndPopup(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndPopup';
-
-procedure _igOpenPopup_Str(const str_id: PUTF8Char; popup_flags: _ImGuiPopupFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igOpenPopup_Str';
-
-procedure _igOpenPopup_ID(id: _ImGuiID; popup_flags: _ImGuiPopupFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igOpenPopup_ID';
-
-procedure _igOpenPopupOnItemClick(const str_id: PUTF8Char; popup_flags: _ImGuiPopupFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igOpenPopupOnItemClick';
-
-procedure _igCloseCurrentPopup(); cdecl;
-  external _LIB_SOKOL name _PU + 'igCloseCurrentPopup';
-
-function _igBeginPopupContextItem(const str_id: PUTF8Char; popup_flags: _ImGuiPopupFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginPopupContextItem';
-
-function _igBeginPopupContextWindow(const str_id: PUTF8Char; popup_flags: _ImGuiPopupFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginPopupContextWindow';
-
-function _igBeginPopupContextVoid(const str_id: PUTF8Char; popup_flags: _ImGuiPopupFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginPopupContextVoid';
-
-function _igIsPopupOpen_Str(const str_id: PUTF8Char; flags: _ImGuiPopupFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsPopupOpen_Str';
-
-function _igBeginTable(const str_id: PUTF8Char; column: Integer; flags: _ImGuiTableFlags; outer_size: _ImVec2; inner_width: Single): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginTable';
-
-procedure _igEndTable(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndTable';
-
-procedure _igTableNextRow(row_flags: _ImGuiTableRowFlags; min_row_height: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableNextRow';
-
-function _igTableNextColumn(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableNextColumn';
-
-function _igTableSetColumnIndex(column_n: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetColumnIndex';
-
-procedure _igTableSetupColumn(const &label: PUTF8Char; flags: _ImGuiTableColumnFlags; init_width_or_weight: Single; user_id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetupColumn';
-
-procedure _igTableSetupScrollFreeze(cols: Integer; rows: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetupScrollFreeze';
-
-procedure _igTableHeadersRow(); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableHeadersRow';
-
-procedure _igTableHeader(const &label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableHeader';
-
-function _igTableGetSortSpecs(): _PImGuiTableSortSpecs; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetSortSpecs';
-
-function _igTableGetColumnCount(): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetColumnCount';
-
-function _igTableGetColumnIndex(): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetColumnIndex';
-
-function _igTableGetRowIndex(): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetRowIndex';
-
-function _igTableGetColumnName_Int(column_n: Integer): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetColumnName_Int';
-
-function _igTableGetColumnFlags(column_n: Integer): _ImGuiTableColumnFlags; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetColumnFlags';
-
-procedure _igTableSetColumnEnabled(column_n: Integer; v: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetColumnEnabled';
-
-procedure _igTableSetBgColor(target: _ImGuiTableBgTarget; color: _ImU32; column_n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetBgColor';
-
-procedure _igColumns(count: Integer; const id: PUTF8Char; border: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igColumns';
-
-procedure _igNextColumn(); cdecl;
-  external _LIB_SOKOL name _PU + 'igNextColumn';
-
-function _igGetColumnIndex(): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColumnIndex';
-
-function _igGetColumnWidth(column_index: Integer): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColumnWidth';
-
-procedure _igSetColumnWidth(column_index: Integer; width: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetColumnWidth';
-
-function _igGetColumnOffset(column_index: Integer): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColumnOffset';
-
-procedure _igSetColumnOffset(column_index: Integer; offset_x: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetColumnOffset';
-
-function _igGetColumnsCount(): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColumnsCount';
-
-function _igBeginTabBar(const str_id: PUTF8Char; flags: _ImGuiTabBarFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginTabBar';
-
-procedure _igEndTabBar(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndTabBar';
-
-function _igBeginTabItem(const &label: PUTF8Char; p_open: PBoolean; flags: _ImGuiTabItemFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginTabItem';
-
-procedure _igEndTabItem(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndTabItem';
-
-function _igTabItemButton(const &label: PUTF8Char; flags: _ImGuiTabItemFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTabItemButton';
-
-procedure _igSetTabItemClosed(const tab_or_docked_window_label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetTabItemClosed';
-
-function _igDockSpace(id: _ImGuiID; size: _ImVec2; flags: _ImGuiDockNodeFlags; const window_class: _PImGuiWindowClass): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockSpace';
-
-function _igDockSpaceOverViewport(const viewport: _PImGuiViewport; flags: _ImGuiDockNodeFlags; const window_class: _PImGuiWindowClass): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockSpaceOverViewport';
-
-procedure _igSetNextWindowDockID(dock_id: _ImGuiID; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowDockID';
-
-procedure _igSetNextWindowClass(const window_class: _PImGuiWindowClass); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowClass';
-
-function _igGetWindowDockID(): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowDockID';
-
-function _igIsWindowDocked(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowDocked';
-
-procedure _igLogToTTY(auto_open_depth: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogToTTY';
-
-procedure _igLogToFile(auto_open_depth: Integer; const filename: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogToFile';
-
-procedure _igLogToClipboard(auto_open_depth: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogToClipboard';
-
-procedure _igLogFinish(); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogFinish';
-
-procedure _igLogButtons(); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogButtons';
-
-procedure _igLogTextV(const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogTextV';
-
-function _igBeginDragDropSource(flags: _ImGuiDragDropFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginDragDropSource';
-
-function _igSetDragDropPayload(const &type: PUTF8Char; const data: Pointer; sz: NativeUInt; cond: _ImGuiCond): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSetDragDropPayload';
-
-procedure _igEndDragDropSource(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndDragDropSource';
-
-function _igBeginDragDropTarget(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginDragDropTarget';
-
-function _igAcceptDragDropPayload(const &type: PUTF8Char; flags: _ImGuiDragDropFlags): _PImGuiPayload; cdecl;
-  external _LIB_SOKOL name _PU + 'igAcceptDragDropPayload';
-
-procedure _igEndDragDropTarget(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndDragDropTarget';
-
-function _igGetDragDropPayload(): _PImGuiPayload; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetDragDropPayload';
-
-procedure _igBeginDisabled(disabled: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginDisabled';
-
-procedure _igEndDisabled(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndDisabled';
-
-procedure _igPushClipRect(clip_rect_min: _ImVec2; clip_rect_max: _ImVec2; intersect_with_current_clip_rect: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushClipRect';
-
-procedure _igPopClipRect(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopClipRect';
-
-procedure _igSetItemDefaultFocus(); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetItemDefaultFocus';
-
-procedure _igSetKeyboardFocusHere(offset: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetKeyboardFocusHere';
-
-function _igIsItemHovered(flags: _ImGuiHoveredFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemHovered';
-
-function _igIsItemActive(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemActive';
-
-function _igIsItemFocused(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemFocused';
-
-function _igIsItemClicked(mouse_button: _ImGuiMouseButton): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemClicked';
-
-function _igIsItemVisible(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemVisible';
-
-function _igIsItemEdited(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemEdited';
-
-function _igIsItemActivated(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemActivated';
-
-function _igIsItemDeactivated(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemDeactivated';
-
-function _igIsItemDeactivatedAfterEdit(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemDeactivatedAfterEdit';
-
-function _igIsItemToggledOpen(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemToggledOpen';
-
-function _igIsAnyItemHovered(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsAnyItemHovered';
-
-function _igIsAnyItemActive(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsAnyItemActive';
-
-function _igIsAnyItemFocused(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsAnyItemFocused';
-
-procedure _igGetItemRectMin(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetItemRectMin';
-
-procedure _igGetItemRectMax(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetItemRectMax';
-
-procedure _igGetItemRectSize(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetItemRectSize';
-
-procedure _igSetItemAllowOverlap(); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetItemAllowOverlap';
-
-function _igGetMainViewport(): _PImGuiViewport; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetMainViewport';
-
-function _igGetBackgroundDrawList_Nil(): _PImDrawList; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetBackgroundDrawList_Nil';
-
-function _igGetForegroundDrawList_Nil(): _PImDrawList; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetForegroundDrawList_Nil';
-
-function _igGetBackgroundDrawList_ViewportPtr(viewport: _PImGuiViewport): _PImDrawList; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetBackgroundDrawList_ViewportPtr';
-
-function _igGetForegroundDrawList_ViewportPtr(viewport: _PImGuiViewport): _PImDrawList; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetForegroundDrawList_ViewportPtr';
-
-function _igIsRectVisible_Nil(size: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsRectVisible_Nil';
-
-function _igIsRectVisible_Vec2(rect_min: _ImVec2; rect_max: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsRectVisible_Vec2';
-
-function _igGetTime(): Double; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetTime';
-
-function _igGetFrameCount(): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFrameCount';
-
-function _igGetDrawListSharedData(): _PImDrawListSharedData; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetDrawListSharedData';
-
-function _igGetStyleColorName(idx: _ImGuiCol): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetStyleColorName';
-
-procedure _igSetStateStorage(storage: _PImGuiStorage); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetStateStorage';
-
-function _igGetStateStorage(): _PImGuiStorage; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetStateStorage';
-
-function _igBeginChildFrame(id: _ImGuiID; size: _ImVec2; flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginChildFrame';
-
-procedure _igEndChildFrame(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndChildFrame';
-
-procedure _igCalcTextSize(pOut: _PImVec2; const text: PUTF8Char; const text_end: PUTF8Char; hide_text_after_double_hash: Boolean; wrap_width: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igCalcTextSize';
-
-procedure _igColorConvertU32ToFloat4(pOut: _PImVec4; &in: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igColorConvertU32ToFloat4';
-
-function _igColorConvertFloat4ToU32(&in: _ImVec4): _ImU32; cdecl;
-  external _LIB_SOKOL name _PU + 'igColorConvertFloat4ToU32';
-
-procedure _igColorConvertRGBtoHSV(r: Single; g: Single; b: Single; out_h: PSingle; out_s: PSingle; out_v: PSingle); cdecl;
-  external _LIB_SOKOL name _PU + 'igColorConvertRGBtoHSV';
-
-procedure _igColorConvertHSVtoRGB(h: Single; s: Single; v: Single; out_r: PSingle; out_g: PSingle; out_b: PSingle); cdecl;
-  external _LIB_SOKOL name _PU + 'igColorConvertHSVtoRGB';
-
-function _igIsKeyDown(key: _ImGuiKey): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsKeyDown';
-
-function _igIsKeyPressed(key: _ImGuiKey; &repeat: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsKeyPressed';
-
-function _igIsKeyReleased(key: _ImGuiKey): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsKeyReleased';
-
-function _igGetKeyPressedAmount(key: _ImGuiKey; repeat_delay: Single; rate: Single): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetKeyPressedAmount';
-
-function _igGetKeyName(key: _ImGuiKey): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetKeyName';
-
-procedure _igSetNextFrameWantCaptureKeyboard(want_capture_keyboard: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextFrameWantCaptureKeyboard';
-
-function _igIsMouseDown(button: _ImGuiMouseButton): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsMouseDown';
-
-function _igIsMouseClicked(button: _ImGuiMouseButton; &repeat: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsMouseClicked';
-
-function _igIsMouseReleased(button: _ImGuiMouseButton): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsMouseReleased';
-
-function _igIsMouseDoubleClicked(button: _ImGuiMouseButton): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsMouseDoubleClicked';
-
-function _igGetMouseClickedCount(button: _ImGuiMouseButton): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetMouseClickedCount';
-
-function _igIsMouseHoveringRect(r_min: _ImVec2; r_max: _ImVec2; clip: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsMouseHoveringRect';
-
-function _igIsMousePosValid(const mouse_pos: _PImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsMousePosValid';
-
-function _igIsAnyMouseDown(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsAnyMouseDown';
-
-procedure _igGetMousePos(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetMousePos';
-
-procedure _igGetMousePosOnOpeningCurrentPopup(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetMousePosOnOpeningCurrentPopup';
-
-function _igIsMouseDragging(button: _ImGuiMouseButton; lock_threshold: Single): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsMouseDragging';
-
-procedure _igGetMouseDragDelta(pOut: _PImVec2; button: _ImGuiMouseButton; lock_threshold: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetMouseDragDelta';
-
-procedure _igResetMouseDragDelta(button: _ImGuiMouseButton); cdecl;
-  external _LIB_SOKOL name _PU + 'igResetMouseDragDelta';
-
-function _igGetMouseCursor(): _ImGuiMouseCursor; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetMouseCursor';
-
-procedure _igSetMouseCursor(cursor_type: _ImGuiMouseCursor); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetMouseCursor';
-
-procedure _igSetNextFrameWantCaptureMouse(want_capture_mouse: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextFrameWantCaptureMouse';
-
-function _igGetClipboardText(): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetClipboardText';
-
-procedure _igSetClipboardText(const text: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetClipboardText';
-
-procedure _igLoadIniSettingsFromDisk(const ini_filename: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igLoadIniSettingsFromDisk';
-
-procedure _igLoadIniSettingsFromMemory(const ini_data: PUTF8Char; ini_size: NativeUInt); cdecl;
-  external _LIB_SOKOL name _PU + 'igLoadIniSettingsFromMemory';
-
-procedure _igSaveIniSettingsToDisk(const ini_filename: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igSaveIniSettingsToDisk';
-
-function _igSaveIniSettingsToMemory(out_ini_size: PNativeUInt): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igSaveIniSettingsToMemory';
-
-procedure _igDebugTextEncoding(const text: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugTextEncoding';
-
-function _igDebugCheckVersionAndDataLayout(const version_str: PUTF8Char; sz_io: NativeUInt; sz_style: NativeUInt; sz_vec2: NativeUInt; sz_vec4: NativeUInt; sz_drawvert: NativeUInt; sz_drawidx: NativeUInt): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugCheckVersionAndDataLayout';
-
-procedure _igSetAllocatorFunctions(alloc_func: _ImGuiMemAllocFunc; free_func: _ImGuiMemFreeFunc; user_data: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetAllocatorFunctions';
-
-procedure _igGetAllocatorFunctions(p_alloc_func: _PImGuiMemAllocFunc; p_free_func: _PImGuiMemFreeFunc; p_user_data: PPointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetAllocatorFunctions';
-
-function _igMemAlloc(size: NativeUInt): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'igMemAlloc';
-
-procedure _igMemFree(ptr: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igMemFree';
-
-function _igGetPlatformIO(): _PImGuiPlatformIO; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetPlatformIO';
-
-procedure _igUpdatePlatformWindows(); cdecl;
-  external _LIB_SOKOL name _PU + 'igUpdatePlatformWindows';
-
-procedure _igRenderPlatformWindowsDefault(platform_render_arg: Pointer; renderer_render_arg: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderPlatformWindowsDefault';
-
-procedure _igDestroyPlatformWindows(); cdecl;
-  external _LIB_SOKOL name _PU + 'igDestroyPlatformWindows';
-
-function _igFindViewportByID(id: _ImGuiID): _PImGuiViewport; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindViewportByID';
-
-function _igFindViewportByPlatformHandle(platform_handle: Pointer): _PImGuiViewport; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindViewportByPlatformHandle';
-
-function _ImGuiStyle_ImGuiStyle(): _PImGuiStyle; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStyle_ImGuiStyle';
-
-procedure _ImGuiStyle_destroy(self: _PImGuiStyle); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStyle_destroy';
-
-procedure _ImGuiStyle_ScaleAllSizes(self: _PImGuiStyle; scale_factor: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStyle_ScaleAllSizes';
-
-procedure _ImGuiIO_AddKeyEvent(self: _PImGuiIO; key: _ImGuiKey; down: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddKeyEvent';
-
-procedure _ImGuiIO_AddKeyAnalogEvent(self: _PImGuiIO; key: _ImGuiKey; down: Boolean; v: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddKeyAnalogEvent';
-
-procedure _ImGuiIO_AddMousePosEvent(self: _PImGuiIO; x: Single; y: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddMousePosEvent';
-
-procedure _ImGuiIO_AddMouseButtonEvent(self: _PImGuiIO; button: Integer; down: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddMouseButtonEvent';
-
-procedure _ImGuiIO_AddMouseWheelEvent(self: _PImGuiIO; wh_x: Single; wh_y: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddMouseWheelEvent';
-
-procedure _ImGuiIO_AddMouseViewportEvent(self: _PImGuiIO; id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddMouseViewportEvent';
-
-procedure _ImGuiIO_AddFocusEvent(self: _PImGuiIO; focused: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddFocusEvent';
-
-procedure _ImGuiIO_AddInputCharacter(self: _PImGuiIO; c: Cardinal); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddInputCharacter';
-
-procedure _ImGuiIO_AddInputCharacterUTF16(self: _PImGuiIO; c: _ImWchar16); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddInputCharacterUTF16';
-
-procedure _ImGuiIO_AddInputCharactersUTF8(self: _PImGuiIO; const str: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_AddInputCharactersUTF8';
-
-procedure _ImGuiIO_SetKeyEventNativeData(self: _PImGuiIO; key: _ImGuiKey; native_keycode: Integer; native_scancode: Integer; native_legacy_index: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_SetKeyEventNativeData';
-
-procedure _ImGuiIO_SetAppAcceptingEvents(self: _PImGuiIO; accepting_events: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_SetAppAcceptingEvents';
-
-procedure _ImGuiIO_ClearInputCharacters(self: _PImGuiIO); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_ClearInputCharacters';
-
-procedure _ImGuiIO_ClearInputKeys(self: _PImGuiIO); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_ClearInputKeys';
-
-function _ImGuiIO_ImGuiIO(): _PImGuiIO; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_ImGuiIO';
-
-procedure _ImGuiIO_destroy(self: _PImGuiIO); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiIO_destroy';
-
-function _ImGuiInputTextCallbackData_ImGuiInputTextCallbackData(): _PImGuiInputTextCallbackData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextCallbackData_ImGuiInputTextCallbackData';
-
-procedure _ImGuiInputTextCallbackData_destroy(self: _PImGuiInputTextCallbackData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextCallbackData_destroy';
-
-procedure _ImGuiInputTextCallbackData_DeleteChars(self: _PImGuiInputTextCallbackData; pos: Integer; bytes_count: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextCallbackData_DeleteChars';
-
-procedure _ImGuiInputTextCallbackData_InsertChars(self: _PImGuiInputTextCallbackData; pos: Integer; const text: PUTF8Char; const text_end: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextCallbackData_InsertChars';
-
-procedure _ImGuiInputTextCallbackData_SelectAll(self: _PImGuiInputTextCallbackData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextCallbackData_SelectAll';
-
-procedure _ImGuiInputTextCallbackData_ClearSelection(self: _PImGuiInputTextCallbackData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextCallbackData_ClearSelection';
-
-function _ImGuiInputTextCallbackData_HasSelection(self: _PImGuiInputTextCallbackData): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextCallbackData_HasSelection';
-
-function _ImGuiWindowClass_ImGuiWindowClass(): _PImGuiWindowClass; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindowClass_ImGuiWindowClass';
-
-procedure _ImGuiWindowClass_destroy(self: _PImGuiWindowClass); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindowClass_destroy';
-
-function _ImGuiPayload_ImGuiPayload(): _PImGuiPayload; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPayload_ImGuiPayload';
-
-procedure _ImGuiPayload_destroy(self: _PImGuiPayload); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPayload_destroy';
-
-procedure _ImGuiPayload_Clear(self: _PImGuiPayload); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPayload_Clear';
-
-function _ImGuiPayload_IsDataType(self: _PImGuiPayload; const &type: PUTF8Char): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPayload_IsDataType';
-
-function _ImGuiPayload_IsPreview(self: _PImGuiPayload): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPayload_IsPreview';
-
-function _ImGuiPayload_IsDelivery(self: _PImGuiPayload): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPayload_IsDelivery';
-
-function _ImGuiTableColumnSortSpecs_ImGuiTableColumnSortSpecs(): _PImGuiTableColumnSortSpecs; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableColumnSortSpecs_ImGuiTableColumnSortSpecs';
-
-procedure _ImGuiTableColumnSortSpecs_destroy(self: _PImGuiTableColumnSortSpecs); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableColumnSortSpecs_destroy';
-
-function _ImGuiTableSortSpecs_ImGuiTableSortSpecs(): _PImGuiTableSortSpecs; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableSortSpecs_ImGuiTableSortSpecs';
-
-procedure _ImGuiTableSortSpecs_destroy(self: _PImGuiTableSortSpecs); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableSortSpecs_destroy';
-
-function _ImGuiOnceUponAFrame_ImGuiOnceUponAFrame(): _PImGuiOnceUponAFrame; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiOnceUponAFrame_ImGuiOnceUponAFrame';
-
-procedure _ImGuiOnceUponAFrame_destroy(self: _PImGuiOnceUponAFrame); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiOnceUponAFrame_destroy';
-
-function _ImGuiTextFilter_ImGuiTextFilter(const default_filter: PUTF8Char): _PImGuiTextFilter; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextFilter_ImGuiTextFilter';
-
-procedure _ImGuiTextFilter_destroy(self: _PImGuiTextFilter); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextFilter_destroy';
-
-function _ImGuiTextFilter_Draw(self: _PImGuiTextFilter; const &label: PUTF8Char; width: Single): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextFilter_Draw';
-
-function _ImGuiTextFilter_PassFilter(self: _PImGuiTextFilter; const text: PUTF8Char; const text_end: PUTF8Char): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextFilter_PassFilter';
-
-procedure _ImGuiTextFilter_Build(self: _PImGuiTextFilter); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextFilter_Build';
-
-procedure _ImGuiTextFilter_Clear(self: _PImGuiTextFilter); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextFilter_Clear';
-
-function _ImGuiTextFilter_IsActive(self: _PImGuiTextFilter): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextFilter_IsActive';
-
-function _ImGuiTextRange_ImGuiTextRange_Nil(): _PImGuiTextRange; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextRange_ImGuiTextRange_Nil';
-
-procedure _ImGuiTextRange_destroy(self: _PImGuiTextRange); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextRange_destroy';
-
-function _ImGuiTextRange_ImGuiTextRange_Str(const _b: PUTF8Char; const _e: PUTF8Char): _PImGuiTextRange; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextRange_ImGuiTextRange_Str';
-
-function _ImGuiTextRange_empty(self: _PImGuiTextRange): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextRange_empty';
-
-procedure _ImGuiTextRange_split(self: _PImGuiTextRange; separator: UTF8Char; &out: _PImVector_ImGuiTextRange); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextRange_split';
-
-function _ImGuiTextBuffer_ImGuiTextBuffer(): _PImGuiTextBuffer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_ImGuiTextBuffer';
-
-procedure _ImGuiTextBuffer_destroy(self: _PImGuiTextBuffer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_destroy';
-
-function _ImGuiTextBuffer_begin(self: _PImGuiTextBuffer): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_begin';
-
-function _ImGuiTextBuffer_end(self: _PImGuiTextBuffer): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_end';
-
-function _ImGuiTextBuffer_size(self: _PImGuiTextBuffer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_size';
-
-function _ImGuiTextBuffer_empty(self: _PImGuiTextBuffer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_empty';
-
-procedure _ImGuiTextBuffer_clear(self: _PImGuiTextBuffer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_clear';
-
-procedure _ImGuiTextBuffer_reserve(self: _PImGuiTextBuffer; capacity: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_reserve';
-
-function _ImGuiTextBuffer_c_str(self: _PImGuiTextBuffer): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_c_str';
-
-procedure _ImGuiTextBuffer_append(self: _PImGuiTextBuffer; const str: PUTF8Char; const str_end: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_append';
-
-procedure _ImGuiTextBuffer_appendfv(self: _PImGuiTextBuffer; const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_appendfv';
-
-function _ImGuiStoragePair_ImGuiStoragePair_Int(_key: _ImGuiID; _val_i: Integer): _PImGuiStoragePair; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStoragePair_ImGuiStoragePair_Int';
-
-procedure _ImGuiStoragePair_destroy(self: _PImGuiStoragePair); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStoragePair_destroy';
-
-function _ImGuiStoragePair_ImGuiStoragePair_Float(_key: _ImGuiID; _val_f: Single): _PImGuiStoragePair; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStoragePair_ImGuiStoragePair_Float';
-
-function _ImGuiStoragePair_ImGuiStoragePair_Ptr(_key: _ImGuiID; _val_p: Pointer): _PImGuiStoragePair; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStoragePair_ImGuiStoragePair_Ptr';
-
-procedure _ImGuiStorage_Clear(self: _PImGuiStorage); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_Clear';
-
-function _ImGuiStorage_GetInt(self: _PImGuiStorage; key: _ImGuiID; default_val: Integer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_GetInt';
-
-procedure _ImGuiStorage_SetInt(self: _PImGuiStorage; key: _ImGuiID; val: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_SetInt';
-
-function _ImGuiStorage_GetBool(self: _PImGuiStorage; key: _ImGuiID; default_val: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_GetBool';
-
-procedure _ImGuiStorage_SetBool(self: _PImGuiStorage; key: _ImGuiID; val: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_SetBool';
-
-function _ImGuiStorage_GetFloat(self: _PImGuiStorage; key: _ImGuiID; default_val: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_GetFloat';
-
-procedure _ImGuiStorage_SetFloat(self: _PImGuiStorage; key: _ImGuiID; val: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_SetFloat';
-
-function _ImGuiStorage_GetVoidPtr(self: _PImGuiStorage; key: _ImGuiID): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_GetVoidPtr';
-
-procedure _ImGuiStorage_SetVoidPtr(self: _PImGuiStorage; key: _ImGuiID; val: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_SetVoidPtr';
-
-function _ImGuiStorage_GetIntRef(self: _PImGuiStorage; key: _ImGuiID; default_val: Integer): PInteger; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_GetIntRef';
-
-function _ImGuiStorage_GetBoolRef(self: _PImGuiStorage; key: _ImGuiID; default_val: Boolean): PBoolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_GetBoolRef';
-
-function _ImGuiStorage_GetFloatRef(self: _PImGuiStorage; key: _ImGuiID; default_val: Single): PSingle; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_GetFloatRef';
-
-function _ImGuiStorage_GetVoidPtrRef(self: _PImGuiStorage; key: _ImGuiID; default_val: Pointer): PPointer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_GetVoidPtrRef';
-
-procedure _ImGuiStorage_SetAllInt(self: _PImGuiStorage; val: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_SetAllInt';
-
-procedure _ImGuiStorage_BuildSortByKey(self: _PImGuiStorage); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStorage_BuildSortByKey';
-
-function _ImGuiListClipper_ImGuiListClipper(): _PImGuiListClipper; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipper_ImGuiListClipper';
-
-procedure _ImGuiListClipper_destroy(self: _PImGuiListClipper); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipper_destroy';
-
-procedure _ImGuiListClipper_Begin(self: _PImGuiListClipper; items_count: Integer; items_height: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipper_Begin';
-
-procedure _ImGuiListClipper_End(self: _PImGuiListClipper); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipper_End';
-
-function _ImGuiListClipper_Step(self: _PImGuiListClipper): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipper_Step';
-
-procedure _ImGuiListClipper_ForceDisplayRangeByIndices(self: _PImGuiListClipper; item_min: Integer; item_max: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipper_ForceDisplayRangeByIndices';
-
-function _ImColor_ImColor_Nil(): _PImColor; cdecl;
-  external _LIB_SOKOL name _PU + 'ImColor_ImColor_Nil';
-
-procedure _ImColor_destroy(self: _PImColor); cdecl;
-  external _LIB_SOKOL name _PU + 'ImColor_destroy';
-
-function _ImColor_ImColor_Float(r: Single; g: Single; b: Single; a: Single): _PImColor; cdecl;
-  external _LIB_SOKOL name _PU + 'ImColor_ImColor_Float';
-
-function _ImColor_ImColor_Vec4(col: _ImVec4): _PImColor; cdecl;
-  external _LIB_SOKOL name _PU + 'ImColor_ImColor_Vec4';
-
-function _ImColor_ImColor_Int(r: Integer; g: Integer; b: Integer; a: Integer): _PImColor; cdecl;
-  external _LIB_SOKOL name _PU + 'ImColor_ImColor_Int';
-
-function _ImColor_ImColor_U32(rgba: _ImU32): _PImColor; cdecl;
-  external _LIB_SOKOL name _PU + 'ImColor_ImColor_U32';
-
-procedure _ImColor_SetHSV(self: _PImColor; h: Single; s: Single; v: Single; a: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImColor_SetHSV';
-
-procedure _ImColor_HSV(pOut: _PImColor; h: Single; s: Single; v: Single; a: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImColor_HSV';
-
-function _ImDrawCmd_ImDrawCmd(): _PImDrawCmd; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawCmd_ImDrawCmd';
-
-procedure _ImDrawCmd_destroy(self: _PImDrawCmd); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawCmd_destroy';
-
-function _ImDrawCmd_GetTexID(self: _PImDrawCmd): _ImTextureID; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawCmd_GetTexID';
-
-function _ImDrawListSplitter_ImDrawListSplitter(): _PImDrawListSplitter; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSplitter_ImDrawListSplitter';
-
-procedure _ImDrawListSplitter_destroy(self: _PImDrawListSplitter); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSplitter_destroy';
-
-procedure _ImDrawListSplitter_Clear(self: _PImDrawListSplitter); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSplitter_Clear';
-
-procedure _ImDrawListSplitter_ClearFreeMemory(self: _PImDrawListSplitter); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSplitter_ClearFreeMemory';
-
-procedure _ImDrawListSplitter_Split(self: _PImDrawListSplitter; draw_list: _PImDrawList; count: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSplitter_Split';
-
-procedure _ImDrawListSplitter_Merge(self: _PImDrawListSplitter; draw_list: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSplitter_Merge';
-
-procedure _ImDrawListSplitter_SetCurrentChannel(self: _PImDrawListSplitter; draw_list: _PImDrawList; channel_idx: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSplitter_SetCurrentChannel';
-
-function _ImDrawList_ImDrawList(const shared_data: _PImDrawListSharedData): _PImDrawList; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_ImDrawList';
-
-procedure _ImDrawList_destroy(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_destroy';
-
-procedure _ImDrawList_PushClipRect(self: _PImDrawList; clip_rect_min: _ImVec2; clip_rect_max: _ImVec2; intersect_with_current_clip_rect: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PushClipRect';
-
-procedure _ImDrawList_PushClipRectFullScreen(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PushClipRectFullScreen';
-
-procedure _ImDrawList_PopClipRect(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PopClipRect';
-
-procedure _ImDrawList_PushTextureID(self: _PImDrawList; texture_id: _ImTextureID); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PushTextureID';
-
-procedure _ImDrawList_PopTextureID(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PopTextureID';
-
-procedure _ImDrawList_GetClipRectMin(pOut: _PImVec2; self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_GetClipRectMin';
-
-procedure _ImDrawList_GetClipRectMax(pOut: _PImVec2; self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_GetClipRectMax';
-
-procedure _ImDrawList_AddLine(self: _PImDrawList; p1: _ImVec2; p2: _ImVec2; col: _ImU32; thickness: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddLine';
-
-procedure _ImDrawList_AddRect(self: _PImDrawList; p_min: _ImVec2; p_max: _ImVec2; col: _ImU32; rounding: Single; flags: _ImDrawFlags; thickness: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddRect';
-
-procedure _ImDrawList_AddRectFilled(self: _PImDrawList; p_min: _ImVec2; p_max: _ImVec2; col: _ImU32; rounding: Single; flags: _ImDrawFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddRectFilled';
-
-procedure _ImDrawList_AddRectFilledMultiColor(self: _PImDrawList; p_min: _ImVec2; p_max: _ImVec2; col_upr_left: _ImU32; col_upr_right: _ImU32; col_bot_right: _ImU32; col_bot_left: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddRectFilledMultiColor';
-
-procedure _ImDrawList_AddQuad(self: _PImDrawList; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; p4: _ImVec2; col: _ImU32; thickness: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddQuad';
-
-procedure _ImDrawList_AddQuadFilled(self: _PImDrawList; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; p4: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddQuadFilled';
-
-procedure _ImDrawList_AddTriangle(self: _PImDrawList; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; col: _ImU32; thickness: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddTriangle';
-
-procedure _ImDrawList_AddTriangleFilled(self: _PImDrawList; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddTriangleFilled';
-
-procedure _ImDrawList_AddCircle(self: _PImDrawList; center: _ImVec2; radius: Single; col: _ImU32; num_segments: Integer; thickness: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddCircle';
-
-procedure _ImDrawList_AddCircleFilled(self: _PImDrawList; center: _ImVec2; radius: Single; col: _ImU32; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddCircleFilled';
-
-procedure _ImDrawList_AddNgon(self: _PImDrawList; center: _ImVec2; radius: Single; col: _ImU32; num_segments: Integer; thickness: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddNgon';
-
-procedure _ImDrawList_AddNgonFilled(self: _PImDrawList; center: _ImVec2; radius: Single; col: _ImU32; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddNgonFilled';
-
-procedure _ImDrawList_AddText_Vec2(self: _PImDrawList; pos: _ImVec2; col: _ImU32; const text_begin: PUTF8Char; const text_end: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddText_Vec2';
-
-procedure _ImDrawList_AddText_FontPtr(self: _PImDrawList; const font: _PImFont; font_size: Single; pos: _ImVec2; col: _ImU32; const text_begin: PUTF8Char; const text_end: PUTF8Char; wrap_width: Single; const cpu_fine_clip_rect: _PImVec4); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddText_FontPtr';
-
-procedure _ImDrawList_AddPolyline(self: _PImDrawList; const points: _PImVec2; num_points: Integer; col: _ImU32; flags: _ImDrawFlags; thickness: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddPolyline';
-
-procedure _ImDrawList_AddConvexPolyFilled(self: _PImDrawList; const points: _PImVec2; num_points: Integer; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddConvexPolyFilled';
-
-procedure _ImDrawList_AddBezierCubic(self: _PImDrawList; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; p4: _ImVec2; col: _ImU32; thickness: Single; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddBezierCubic';
-
-procedure _ImDrawList_AddBezierQuadratic(self: _PImDrawList; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; col: _ImU32; thickness: Single; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddBezierQuadratic';
-
-procedure _ImDrawList_AddImage(self: _PImDrawList; user_texture_id: _ImTextureID; p_min: _ImVec2; p_max: _ImVec2; uv_min: _ImVec2; uv_max: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddImage';
-
-procedure _ImDrawList_AddImageQuad(self: _PImDrawList; user_texture_id: _ImTextureID; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; p4: _ImVec2; uv1: _ImVec2; uv2: _ImVec2; uv3: _ImVec2; uv4: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddImageQuad';
-
-procedure _ImDrawList_AddImageRounded(self: _PImDrawList; user_texture_id: _ImTextureID; p_min: _ImVec2; p_max: _ImVec2; uv_min: _ImVec2; uv_max: _ImVec2; col: _ImU32; rounding: Single; flags: _ImDrawFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddImageRounded';
-
-procedure _ImDrawList_PathClear(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathClear';
-
-procedure _ImDrawList_PathLineTo(self: _PImDrawList; pos: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathLineTo';
-
-procedure _ImDrawList_PathLineToMergeDuplicate(self: _PImDrawList; pos: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathLineToMergeDuplicate';
-
-procedure _ImDrawList_PathFillConvex(self: _PImDrawList; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathFillConvex';
-
-procedure _ImDrawList_PathStroke(self: _PImDrawList; col: _ImU32; flags: _ImDrawFlags; thickness: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathStroke';
-
-procedure _ImDrawList_PathArcTo(self: _PImDrawList; center: _ImVec2; radius: Single; a_min: Single; a_max: Single; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathArcTo';
-
-procedure _ImDrawList_PathArcToFast(self: _PImDrawList; center: _ImVec2; radius: Single; a_min_of_12: Integer; a_max_of_12: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathArcToFast';
-
-procedure _ImDrawList_PathBezierCubicCurveTo(self: _PImDrawList; p2: _ImVec2; p3: _ImVec2; p4: _ImVec2; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathBezierCubicCurveTo';
-
-procedure _ImDrawList_PathBezierQuadraticCurveTo(self: _PImDrawList; p2: _ImVec2; p3: _ImVec2; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathBezierQuadraticCurveTo';
-
-procedure _ImDrawList_PathRect(self: _PImDrawList; rect_min: _ImVec2; rect_max: _ImVec2; rounding: Single; flags: _ImDrawFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PathRect';
-
-procedure _ImDrawList_AddCallback(self: _PImDrawList; callback: _ImDrawCallback; callback_data: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddCallback';
-
-procedure _ImDrawList_AddDrawCmd(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_AddDrawCmd';
-
-function _ImDrawList_CloneOutput(self: _PImDrawList): _PImDrawList; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_CloneOutput';
-
-procedure _ImDrawList_ChannelsSplit(self: _PImDrawList; count: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_ChannelsSplit';
-
-procedure _ImDrawList_ChannelsMerge(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_ChannelsMerge';
-
-procedure _ImDrawList_ChannelsSetCurrent(self: _PImDrawList; n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_ChannelsSetCurrent';
-
-procedure _ImDrawList_PrimReserve(self: _PImDrawList; idx_count: Integer; vtx_count: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PrimReserve';
-
-procedure _ImDrawList_PrimUnreserve(self: _PImDrawList; idx_count: Integer; vtx_count: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PrimUnreserve';
-
-procedure _ImDrawList_PrimRect(self: _PImDrawList; a: _ImVec2; b: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PrimRect';
-
-procedure _ImDrawList_PrimRectUV(self: _PImDrawList; a: _ImVec2; b: _ImVec2; uv_a: _ImVec2; uv_b: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PrimRectUV';
-
-procedure _ImDrawList_PrimQuadUV(self: _PImDrawList; a: _ImVec2; b: _ImVec2; c: _ImVec2; d: _ImVec2; uv_a: _ImVec2; uv_b: _ImVec2; uv_c: _ImVec2; uv_d: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PrimQuadUV';
-
-procedure _ImDrawList_PrimWriteVtx(self: _PImDrawList; pos: _ImVec2; uv: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PrimWriteVtx';
-
-procedure _ImDrawList_PrimWriteIdx(self: _PImDrawList; idx: _ImDrawIdx); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PrimWriteIdx';
-
-procedure _ImDrawList_PrimVtx(self: _PImDrawList; pos: _ImVec2; uv: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList_PrimVtx';
-
-procedure _ImDrawList__ResetForNewFrame(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__ResetForNewFrame';
-
-procedure _ImDrawList__ClearFreeMemory(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__ClearFreeMemory';
-
-procedure _ImDrawList__PopUnusedDrawCmd(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__PopUnusedDrawCmd';
-
-procedure _ImDrawList__TryMergeDrawCmds(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__TryMergeDrawCmds';
-
-procedure _ImDrawList__OnChangedClipRect(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__OnChangedClipRect';
-
-procedure _ImDrawList__OnChangedTextureID(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__OnChangedTextureID';
-
-procedure _ImDrawList__OnChangedVtxOffset(self: _PImDrawList); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__OnChangedVtxOffset';
-
-function _ImDrawList__CalcCircleAutoSegmentCount(self: _PImDrawList; radius: Single): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__CalcCircleAutoSegmentCount';
-
-procedure _ImDrawList__PathArcToFastEx(self: _PImDrawList; center: _ImVec2; radius: Single; a_min_sample: Integer; a_max_sample: Integer; a_step: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__PathArcToFastEx';
-
-procedure _ImDrawList__PathArcToN(self: _PImDrawList; center: _ImVec2; radius: Single; a_min: Single; a_max: Single; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawList__PathArcToN';
-
-function _ImDrawData_ImDrawData(): _PImDrawData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawData_ImDrawData';
-
-procedure _ImDrawData_destroy(self: _PImDrawData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawData_destroy';
-
-procedure _ImDrawData_Clear(self: _PImDrawData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawData_Clear';
-
-procedure _ImDrawData_DeIndexAllBuffers(self: _PImDrawData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawData_DeIndexAllBuffers';
-
-procedure _ImDrawData_ScaleClipRects(self: _PImDrawData; fb_scale: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawData_ScaleClipRects';
-
-function _ImFontConfig_ImFontConfig(): _PImFontConfig; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontConfig_ImFontConfig';
-
-procedure _ImFontConfig_destroy(self: _PImFontConfig); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontConfig_destroy';
-
-function _ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder(): _PImFontGlyphRangesBuilder; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder';
-
-procedure _ImFontGlyphRangesBuilder_destroy(self: _PImFontGlyphRangesBuilder); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_destroy';
-
-procedure _ImFontGlyphRangesBuilder_Clear(self: _PImFontGlyphRangesBuilder); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_Clear';
-
-function _ImFontGlyphRangesBuilder_GetBit(self: _PImFontGlyphRangesBuilder; n: NativeUInt): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_GetBit';
-
-procedure _ImFontGlyphRangesBuilder_SetBit(self: _PImFontGlyphRangesBuilder; n: NativeUInt); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_SetBit';
-
-procedure _ImFontGlyphRangesBuilder_AddChar(self: _PImFontGlyphRangesBuilder; c: _ImWchar); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_AddChar';
-
-procedure _ImFontGlyphRangesBuilder_AddText(self: _PImFontGlyphRangesBuilder; const text: PUTF8Char; const text_end: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_AddText';
-
-procedure _ImFontGlyphRangesBuilder_AddRanges(self: _PImFontGlyphRangesBuilder; const ranges: _PImWchar); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_AddRanges';
-
-procedure _ImFontGlyphRangesBuilder_BuildRanges(self: _PImFontGlyphRangesBuilder; out_ranges: _PImVector_ImWchar); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontGlyphRangesBuilder_BuildRanges';
-
-function _ImFontAtlasCustomRect_ImFontAtlasCustomRect(): _PImFontAtlasCustomRect; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlasCustomRect_ImFontAtlasCustomRect';
-
-procedure _ImFontAtlasCustomRect_destroy(self: _PImFontAtlasCustomRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlasCustomRect_destroy';
-
-function _ImFontAtlasCustomRect_IsPacked(self: _PImFontAtlasCustomRect): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlasCustomRect_IsPacked';
-
-function _ImFontAtlas_ImFontAtlas(): _PImFontAtlas; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_ImFontAtlas';
-
-procedure _ImFontAtlas_destroy(self: _PImFontAtlas); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_destroy';
-
-function _ImFontAtlas_AddFont(self: _PImFontAtlas; const font_cfg: _PImFontConfig): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_AddFont';
-
-function _ImFontAtlas_AddFontDefault(self: _PImFontAtlas; const font_cfg: _PImFontConfig): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_AddFontDefault';
-
-function _ImFontAtlas_AddFontFromFileTTF(self: _PImFontAtlas; const filename: PUTF8Char; size_pixels: Single; const font_cfg: _PImFontConfig; const glyph_ranges: _PImWchar): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_AddFontFromFileTTF';
-
-function _ImFontAtlas_AddFontFromMemoryTTF(self: _PImFontAtlas; font_data: Pointer; font_size: Integer; size_pixels: Single; const font_cfg: _PImFontConfig; const glyph_ranges: _PImWchar): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_AddFontFromMemoryTTF';
-
-function _ImFontAtlas_AddFontFromMemoryCompressedTTF(self: _PImFontAtlas; const compressed_font_data: Pointer; compressed_font_size: Integer; size_pixels: Single; const font_cfg: _PImFontConfig; const glyph_ranges: _PImWchar): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_AddFontFromMemoryCompressedTTF';
-
-function _ImFontAtlas_AddFontFromMemoryCompressedBase85TTF(self: _PImFontAtlas; const compressed_font_data_base85: PUTF8Char; size_pixels: Single; const font_cfg: _PImFontConfig; const glyph_ranges: _PImWchar): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_AddFontFromMemoryCompressedBase85TTF';
-
-procedure _ImFontAtlas_ClearInputData(self: _PImFontAtlas); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_ClearInputData';
-
-procedure _ImFontAtlas_ClearTexData(self: _PImFontAtlas); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_ClearTexData';
-
-procedure _ImFontAtlas_ClearFonts(self: _PImFontAtlas); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_ClearFonts';
-
-procedure _ImFontAtlas_Clear(self: _PImFontAtlas); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_Clear';
-
-function _ImFontAtlas_Build(self: _PImFontAtlas): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_Build';
-
-procedure _ImFontAtlas_GetTexDataAsAlpha8(self: _PImFontAtlas; out_pixels: PPByte; out_width: PInteger; out_height: PInteger; out_bytes_per_pixel: PInteger); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetTexDataAsAlpha8';
-
-procedure _ImFontAtlas_GetTexDataAsRGBA32(self: _PImFontAtlas; out_pixels: PPByte; out_width: PInteger; out_height: PInteger; out_bytes_per_pixel: PInteger); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetTexDataAsRGBA32';
-
-function _ImFontAtlas_IsBuilt(self: _PImFontAtlas): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_IsBuilt';
-
-procedure _ImFontAtlas_SetTexID(self: _PImFontAtlas; id: _ImTextureID); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_SetTexID';
-
-function _ImFontAtlas_GetGlyphRangesDefault(self: _PImFontAtlas): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetGlyphRangesDefault';
-
-function _ImFontAtlas_GetGlyphRangesKorean(self: _PImFontAtlas): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetGlyphRangesKorean';
-
-function _ImFontAtlas_GetGlyphRangesJapanese(self: _PImFontAtlas): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetGlyphRangesJapanese';
-
-function _ImFontAtlas_GetGlyphRangesChineseFull(self: _PImFontAtlas): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetGlyphRangesChineseFull';
-
-function _ImFontAtlas_GetGlyphRangesChineseSimplifiedCommon(self: _PImFontAtlas): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetGlyphRangesChineseSimplifiedCommon';
-
-function _ImFontAtlas_GetGlyphRangesCyrillic(self: _PImFontAtlas): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetGlyphRangesCyrillic';
-
-function _ImFontAtlas_GetGlyphRangesThai(self: _PImFontAtlas): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetGlyphRangesThai';
-
-function _ImFontAtlas_GetGlyphRangesVietnamese(self: _PImFontAtlas): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetGlyphRangesVietnamese';
-
-function _ImFontAtlas_AddCustomRectRegular(self: _PImFontAtlas; width: Integer; height: Integer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_AddCustomRectRegular';
-
-function _ImFontAtlas_AddCustomRectFontGlyph(self: _PImFontAtlas; font: _PImFont; id: _ImWchar; width: Integer; height: Integer; advance_x: Single; offset: _ImVec2): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_AddCustomRectFontGlyph';
-
-function _ImFontAtlas_GetCustomRectByIndex(self: _PImFontAtlas; index: Integer): _PImFontAtlasCustomRect; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetCustomRectByIndex';
-
-procedure _ImFontAtlas_CalcCustomRectUV(self: _PImFontAtlas; const rect: _PImFontAtlasCustomRect; out_uv_min: _PImVec2; out_uv_max: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_CalcCustomRectUV';
-
-function _ImFontAtlas_GetMouseCursorTexData(self: _PImFontAtlas; cursor: _ImGuiMouseCursor; out_offset: _PImVec2; out_size: _PImVec2; out_uv_border: _PImVec2; out_uv_fill: _PImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFontAtlas_GetMouseCursorTexData';
-
-function _ImFont_ImFont(): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_ImFont';
-
-procedure _ImFont_destroy(self: _PImFont); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_destroy';
-
-function _ImFont_FindGlyph(self: _PImFont; c: _ImWchar): _PImFontGlyph; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_FindGlyph';
-
-function _ImFont_FindGlyphNoFallback(self: _PImFont; c: _ImWchar): _PImFontGlyph; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_FindGlyphNoFallback';
-
-function _ImFont_GetCharAdvance(self: _PImFont; c: _ImWchar): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_GetCharAdvance';
-
-function _ImFont_IsLoaded(self: _PImFont): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_IsLoaded';
-
-function _ImFont_GetDebugName(self: _PImFont): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_GetDebugName';
-
-procedure _ImFont_CalcTextSizeA(pOut: _PImVec2; self: _PImFont; size: Single; max_width: Single; wrap_width: Single; const text_begin: PUTF8Char; const text_end: PUTF8Char; remaining: PPUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_CalcTextSizeA';
-
-function _ImFont_CalcWordWrapPositionA(self: _PImFont; scale: Single; const text: PUTF8Char; const text_end: PUTF8Char; wrap_width: Single): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_CalcWordWrapPositionA';
-
-procedure _ImFont_RenderChar(self: _PImFont; draw_list: _PImDrawList; size: Single; pos: _ImVec2; col: _ImU32; c: _ImWchar); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_RenderChar';
-
-procedure _ImFont_RenderText(self: _PImFont; draw_list: _PImDrawList; size: Single; pos: _ImVec2; col: _ImU32; clip_rect: _ImVec4; const text_begin: PUTF8Char; const text_end: PUTF8Char; wrap_width: Single; cpu_fine_clip: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_RenderText';
-
-procedure _ImFont_BuildLookupTable(self: _PImFont); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_BuildLookupTable';
-
-procedure _ImFont_ClearOutputData(self: _PImFont); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_ClearOutputData';
-
-procedure _ImFont_GrowIndex(self: _PImFont; new_size: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_GrowIndex';
-
-procedure _ImFont_AddGlyph(self: _PImFont; const src_cfg: _PImFontConfig; c: _ImWchar; x0: Single; y0: Single; x1: Single; y1: Single; u0: Single; v0: Single; u1: Single; v1: Single; advance_x: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_AddGlyph';
-
-procedure _ImFont_AddRemapChar(self: _PImFont; dst: _ImWchar; src: _ImWchar; overwrite_dst: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_AddRemapChar';
-
-procedure _ImFont_SetGlyphVisible(self: _PImFont; c: _ImWchar; visible: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_SetGlyphVisible';
-
-function _ImFont_IsGlyphRangeUnused(self: _PImFont; c_begin: Cardinal; c_last: Cardinal): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImFont_IsGlyphRangeUnused';
-
-function _ImGuiViewport_ImGuiViewport(): _PImGuiViewport; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewport_ImGuiViewport';
-
-procedure _ImGuiViewport_destroy(self: _PImGuiViewport); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewport_destroy';
-
-procedure _ImGuiViewport_GetCenter(pOut: _PImVec2; self: _PImGuiViewport); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewport_GetCenter';
-
-procedure _ImGuiViewport_GetWorkCenter(pOut: _PImVec2; self: _PImGuiViewport); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewport_GetWorkCenter';
-
-function _ImGuiPlatformIO_ImGuiPlatformIO(): _PImGuiPlatformIO; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPlatformIO_ImGuiPlatformIO';
-
-procedure _ImGuiPlatformIO_destroy(self: _PImGuiPlatformIO); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPlatformIO_destroy';
-
-function _ImGuiPlatformMonitor_ImGuiPlatformMonitor(): _PImGuiPlatformMonitor; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPlatformMonitor_ImGuiPlatformMonitor';
-
-procedure _ImGuiPlatformMonitor_destroy(self: _PImGuiPlatformMonitor); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPlatformMonitor_destroy';
-
-function _ImGuiPlatformImeData_ImGuiPlatformImeData(): _PImGuiPlatformImeData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPlatformImeData_ImGuiPlatformImeData';
-
-procedure _ImGuiPlatformImeData_destroy(self: _PImGuiPlatformImeData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPlatformImeData_destroy';
-
-function _igGetKeyIndex(key: _ImGuiKey): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetKeyIndex';
-
-function _igImHashData(const data: Pointer; data_size: NativeUInt; seed: _ImU32): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igImHashData';
-
-function _igImHashStr(const data: PUTF8Char; data_size: NativeUInt; seed: _ImU32): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igImHashStr';
-
-type
-  _igImQsort__compare_func = function(const p1: Pointer; const p2: Pointer): Integer; cdecl;
-
-procedure _igImQsort(base: Pointer; count: NativeUInt; size_of_element: NativeUInt; compare_func: _igImQsort__compare_func); cdecl;
-  external _LIB_SOKOL name _PU + 'igImQsort';
-
-function _igImAlphaBlendColors(col_a: _ImU32; col_b: _ImU32): _ImU32; cdecl;
-  external _LIB_SOKOL name _PU + 'igImAlphaBlendColors';
-
-function _igImIsPowerOfTwo_Int(v: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImIsPowerOfTwo_Int';
-
-function _igImIsPowerOfTwo_U64(v: _ImU64): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImIsPowerOfTwo_U64';
-
-function _igImUpperPowerOfTwo(v: Integer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImUpperPowerOfTwo';
-
-function _igImStricmp(const str1: PUTF8Char; const str2: PUTF8Char): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStricmp';
-
-function _igImStrnicmp(const str1: PUTF8Char; const str2: PUTF8Char; count: NativeUInt): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrnicmp';
-
-procedure _igImStrncpy(dst: PUTF8Char; const src: PUTF8Char; count: NativeUInt); cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrncpy';
-
-function _igImStrdup(const str: PUTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrdup';
-
-function _igImStrdupcpy(dst: PUTF8Char; p_dst_size: PNativeUInt; const str: PUTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrdupcpy';
-
-function _igImStrchrRange(const str_begin: PUTF8Char; const str_end: PUTF8Char; c: UTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrchrRange';
-
-function _igImStrlenW(const str: _PImWchar): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrlenW';
-
-function _igImStreolRange(const str: PUTF8Char; const str_end: PUTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStreolRange';
-
-function _igImStrbolW(const buf_mid_line: _PImWchar; const buf_begin: _PImWchar): _PImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrbolW';
-
-function _igImStristr(const haystack: PUTF8Char; const haystack_end: PUTF8Char; const needle: PUTF8Char; const needle_end: PUTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStristr';
-
-procedure _igImStrTrimBlanks(str: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrTrimBlanks';
-
-function _igImStrSkipBlank(const str: PUTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImStrSkipBlank';
-
-function _igImCharIsBlankA(c: UTF8Char): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImCharIsBlankA';
-
-function _igImCharIsBlankW(c: Cardinal): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImCharIsBlankW';
-
-function _igImFormatString(buf: PUTF8Char; buf_size: NativeUInt; const fmt: PUTF8Char): Integer varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFormatString';
-
-function _igImFormatStringV(buf: PUTF8Char; buf_size: NativeUInt; const fmt: PUTF8Char; args: Pointer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFormatStringV';
-
-procedure _igImFormatStringToTempBuffer(out_buf: PPUTF8Char; out_buf_end: PPUTF8Char; const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFormatStringToTempBuffer';
-
-procedure _igImFormatStringToTempBufferV(out_buf: PPUTF8Char; out_buf_end: PPUTF8Char; const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFormatStringToTempBufferV';
-
-function _igImParseFormatFindStart(const format: PUTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImParseFormatFindStart';
-
-function _igImParseFormatFindEnd(const format: PUTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImParseFormatFindEnd';
-
-function _igImParseFormatTrimDecorations(const format: PUTF8Char; buf: PUTF8Char; buf_size: NativeUInt): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImParseFormatTrimDecorations';
-
-procedure _igImParseFormatSanitizeForPrinting(const fmt_in: PUTF8Char; fmt_out: PUTF8Char; fmt_out_size: NativeUInt); cdecl;
-  external _LIB_SOKOL name _PU + 'igImParseFormatSanitizeForPrinting';
-
-function _igImParseFormatSanitizeForScanning(const fmt_in: PUTF8Char; fmt_out: PUTF8Char; fmt_out_size: NativeUInt): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImParseFormatSanitizeForScanning';
-
-function _igImParseFormatPrecision(const format: PUTF8Char; default_value: Integer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImParseFormatPrecision';
-
-function _igImTextCharToUtf8(out_buf: PUTF8Char; c: Cardinal): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTextCharToUtf8';
-
-function _igImTextStrToUtf8(out_buf: PUTF8Char; out_buf_size: Integer; const in_text: _PImWchar; const in_text_end: _PImWchar): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTextStrToUtf8';
-
-function _igImTextCharFromUtf8(out_char: PCardinal; const in_text: PUTF8Char; const in_text_end: PUTF8Char): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTextCharFromUtf8';
-
-function _igImTextStrFromUtf8(out_buf: _PImWchar; out_buf_size: Integer; const in_text: PUTF8Char; const in_text_end: PUTF8Char; in_remaining: PPUTF8Char): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTextStrFromUtf8';
-
-function _igImTextCountCharsFromUtf8(const in_text: PUTF8Char; const in_text_end: PUTF8Char): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTextCountCharsFromUtf8';
-
-function _igImTextCountUtf8BytesFromChar(const in_text: PUTF8Char; const in_text_end: PUTF8Char): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTextCountUtf8BytesFromChar';
-
-function _igImTextCountUtf8BytesFromStr(const in_text: _PImWchar; const in_text_end: _PImWchar): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTextCountUtf8BytesFromStr';
-
-function _igImFileOpen(const filename: PUTF8Char; const mode: PUTF8Char): _ImFileHandle; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFileOpen';
-
-function _igImFileClose(&file: _ImFileHandle): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFileClose';
-
-function _igImFileGetSize(&file: _ImFileHandle): _ImU64; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFileGetSize';
-
-function _igImFileRead(data: Pointer; size: _ImU64; count: _ImU64; &file: _ImFileHandle): _ImU64; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFileRead';
-
-function _igImFileWrite(const data: Pointer; size: _ImU64; count: _ImU64; &file: _ImFileHandle): _ImU64; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFileWrite';
-
-function _igImFileLoadToMemory(const filename: PUTF8Char; const mode: PUTF8Char; out_file_size: PNativeUInt; padding_bytes: Integer): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFileLoadToMemory';
-
-function _igImPow_Float(x: Single; y: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImPow_Float';
-
-function _igImPow_double(x: Double; y: Double): Double; cdecl;
-  external _LIB_SOKOL name _PU + 'igImPow_double';
-
-function _igImLog_Float(x: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImLog_Float';
-
-function _igImLog_double(x: Double): Double; cdecl;
-  external _LIB_SOKOL name _PU + 'igImLog_double';
-
-function _igImAbs_Int(x: Integer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImAbs_Int';
-
-function _igImAbs_Float(x: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImAbs_Float';
-
-function _igImAbs_double(x: Double): Double; cdecl;
-  external _LIB_SOKOL name _PU + 'igImAbs_double';
-
-function _igImSign_Float(x: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImSign_Float';
-
-function _igImSign_double(x: Double): Double; cdecl;
-  external _LIB_SOKOL name _PU + 'igImSign_double';
-
-function _igImRsqrt_Float(x: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImRsqrt_Float';
-
-function _igImRsqrt_double(x: Double): Double; cdecl;
-  external _LIB_SOKOL name _PU + 'igImRsqrt_double';
-
-procedure _igImMin(pOut: _PImVec2; lhs: _ImVec2; rhs: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImMin';
-
-procedure _igImMax(pOut: _PImVec2; lhs: _ImVec2; rhs: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImMax';
-
-procedure _igImClamp(pOut: _PImVec2; v: _ImVec2; mn: _ImVec2; mx: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImClamp';
-
-procedure _igImLerp_Vec2Float(pOut: _PImVec2; a: _ImVec2; b: _ImVec2; t: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igImLerp_Vec2Float';
-
-procedure _igImLerp_Vec2Vec2(pOut: _PImVec2; a: _ImVec2; b: _ImVec2; t: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImLerp_Vec2Vec2';
-
-procedure _igImLerp_Vec4(pOut: _PImVec4; a: _ImVec4; b: _ImVec4; t: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igImLerp_Vec4';
-
-function _igImSaturate(f: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImSaturate';
-
-function _igImLengthSqr_Vec2(lhs: _ImVec2): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImLengthSqr_Vec2';
-
-function _igImLengthSqr_Vec4(lhs: _ImVec4): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImLengthSqr_Vec4';
-
-function _igImInvLength(lhs: _ImVec2; fail_value: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImInvLength';
-
-function _igImFloor_Float(f: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFloor_Float';
-
-function _igImFloorSigned_Float(f: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFloorSigned_Float';
-
-procedure _igImFloor_Vec2(pOut: _PImVec2; v: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFloor_Vec2';
-
-procedure _igImFloorSigned_Vec2(pOut: _PImVec2; v: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFloorSigned_Vec2';
-
-function _igImModPositive(a: Integer; b: Integer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igImModPositive';
-
-function _igImDot(a: _ImVec2; b: _ImVec2): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImDot';
-
-procedure _igImRotate(pOut: _PImVec2; v: _ImVec2; cos_a: Single; sin_a: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igImRotate';
-
-function _igImLinearSweep(current: Single; target: Single; speed: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImLinearSweep';
-
-procedure _igImMul(pOut: _PImVec2; lhs: _ImVec2; rhs: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImMul';
-
-function _igImIsFloatAboveGuaranteedIntegerPrecision(f: Single): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImIsFloatAboveGuaranteedIntegerPrecision';
-
-procedure _igImBezierCubicCalc(pOut: _PImVec2; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; p4: _ImVec2; t: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igImBezierCubicCalc';
-
-procedure _igImBezierCubicClosestPoint(pOut: _PImVec2; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; p4: _ImVec2; p: _ImVec2; num_segments: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igImBezierCubicClosestPoint';
-
-procedure _igImBezierCubicClosestPointCasteljau(pOut: _PImVec2; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; p4: _ImVec2; p: _ImVec2; tess_tol: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igImBezierCubicClosestPointCasteljau';
-
-procedure _igImBezierQuadraticCalc(pOut: _PImVec2; p1: _ImVec2; p2: _ImVec2; p3: _ImVec2; t: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igImBezierQuadraticCalc';
-
-procedure _igImLineClosestPoint(pOut: _PImVec2; a: _ImVec2; b: _ImVec2; p: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImLineClosestPoint';
-
-function _igImTriangleContainsPoint(a: _ImVec2; b: _ImVec2; c: _ImVec2; p: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTriangleContainsPoint';
-
-procedure _igImTriangleClosestPoint(pOut: _PImVec2; a: _ImVec2; b: _ImVec2; c: _ImVec2; p: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igImTriangleClosestPoint';
-
-procedure _igImTriangleBarycentricCoords(a: _ImVec2; b: _ImVec2; c: _ImVec2; p: _ImVec2; out_u: PSingle; out_v: PSingle; out_w: PSingle); cdecl;
-  external _LIB_SOKOL name _PU + 'igImTriangleBarycentricCoords';
-
-function _igImTriangleArea(a: _ImVec2; b: _ImVec2; c: _ImVec2): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igImTriangleArea';
-
-function _igImGetDirQuadrantFromDelta(dx: Single; dy: Single): _ImGuiDir; cdecl;
-  external _LIB_SOKOL name _PU + 'igImGetDirQuadrantFromDelta';
-
-function _ImVec1_ImVec1_Nil(): _PImVec1; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec1_ImVec1_Nil';
-
-procedure _ImVec1_destroy(self: _PImVec1); cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec1_destroy';
-
-function _ImVec1_ImVec1_Float(_x: Single): _PImVec1; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec1_ImVec1_Float';
-
-function _ImVec2ih_ImVec2ih_Nil(): _PImVec2ih; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec2ih_ImVec2ih_Nil';
-
-procedure _ImVec2ih_destroy(self: _PImVec2ih); cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec2ih_destroy';
-
-function _ImVec2ih_ImVec2ih_short(_x: Smallint; _y: Smallint): _PImVec2ih; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec2ih_ImVec2ih_short';
-
-function _ImVec2ih_ImVec2ih_Vec2(rhs: _ImVec2): _PImVec2ih; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVec2ih_ImVec2ih_Vec2';
-
-function _ImRect_ImRect_Nil(): _PImRect; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_ImRect_Nil';
-
-procedure _ImRect_destroy(self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_destroy';
-
-function _ImRect_ImRect_Vec2(min: _ImVec2; max: _ImVec2): _PImRect; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_ImRect_Vec2';
-
-function _ImRect_ImRect_Vec4(v: _ImVec4): _PImRect; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_ImRect_Vec4';
-
-function _ImRect_ImRect_Float(x1: Single; y1: Single; x2: Single; y2: Single): _PImRect; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_ImRect_Float';
-
-procedure _ImRect_GetCenter(pOut: _PImVec2; self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetCenter';
-
-procedure _ImRect_GetSize(pOut: _PImVec2; self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetSize';
-
-function _ImRect_GetWidth(self: _PImRect): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetWidth';
-
-function _ImRect_GetHeight(self: _PImRect): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetHeight';
-
-function _ImRect_GetArea(self: _PImRect): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetArea';
-
-procedure _ImRect_GetTL(pOut: _PImVec2; self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetTL';
-
-procedure _ImRect_GetTR(pOut: _PImVec2; self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetTR';
-
-procedure _ImRect_GetBL(pOut: _PImVec2; self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetBL';
-
-procedure _ImRect_GetBR(pOut: _PImVec2; self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_GetBR';
-
-function _ImRect_Contains_Vec2(self: _PImRect; p: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Contains_Vec2';
-
-function _ImRect_Contains_Rect(self: _PImRect; r: _ImRect): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Contains_Rect';
-
-function _ImRect_Overlaps(self: _PImRect; r: _ImRect): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Overlaps';
-
-procedure _ImRect_Add_Vec2(self: _PImRect; p: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Add_Vec2';
-
-procedure _ImRect_Add_Rect(self: _PImRect; r: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Add_Rect';
-
-procedure _ImRect_Expand_Float(self: _PImRect; const amount: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Expand_Float';
-
-procedure _ImRect_Expand_Vec2(self: _PImRect; amount: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Expand_Vec2';
-
-procedure _ImRect_Translate(self: _PImRect; d: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Translate';
-
-procedure _ImRect_TranslateX(self: _PImRect; dx: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_TranslateX';
-
-procedure _ImRect_TranslateY(self: _PImRect; dy: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_TranslateY';
-
-procedure _ImRect_ClipWith(self: _PImRect; r: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_ClipWith';
-
-procedure _ImRect_ClipWithFull(self: _PImRect; r: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_ClipWithFull';
-
-procedure _ImRect_Floor(self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_Floor';
-
-function _ImRect_IsInverted(self: _PImRect): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_IsInverted';
-
-procedure _ImRect_ToVec4(pOut: _PImVec4; self: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'ImRect_ToVec4';
-
-function _igImBitArrayTestBit(const arr: _PImU32; n: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImBitArrayTestBit';
-
-procedure _igImBitArrayClearBit(arr: _PImU32; n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igImBitArrayClearBit';
-
-procedure _igImBitArraySetBit(arr: _PImU32; n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igImBitArraySetBit';
-
-procedure _igImBitArraySetBitRange(arr: _PImU32; n: Integer; n2: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igImBitArraySetBitRange';
-
-procedure _ImBitVector_Create(self: _PImBitVector; sz: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImBitVector_Create';
-
-procedure _ImBitVector_Clear(self: _PImBitVector); cdecl;
-  external _LIB_SOKOL name _PU + 'ImBitVector_Clear';
-
-function _ImBitVector_TestBit(self: _PImBitVector; n: Integer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImBitVector_TestBit';
-
-procedure _ImBitVector_SetBit(self: _PImBitVector; n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImBitVector_SetBit';
-
-procedure _ImBitVector_ClearBit(self: _PImBitVector; n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImBitVector_ClearBit';
-
-function _ImDrawListSharedData_ImDrawListSharedData(): _PImDrawListSharedData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSharedData_ImDrawListSharedData';
-
-procedure _ImDrawListSharedData_destroy(self: _PImDrawListSharedData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSharedData_destroy';
-
-procedure _ImDrawListSharedData_SetCircleTessellationMaxError(self: _PImDrawListSharedData; max_error: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawListSharedData_SetCircleTessellationMaxError';
-
-procedure _ImDrawDataBuilder_Clear(self: _PImDrawDataBuilder); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawDataBuilder_Clear';
-
-procedure _ImDrawDataBuilder_ClearFreeMemory(self: _PImDrawDataBuilder); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawDataBuilder_ClearFreeMemory';
-
-function _ImDrawDataBuilder_GetDrawListCount(self: _PImDrawDataBuilder): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawDataBuilder_GetDrawListCount';
-
-procedure _ImDrawDataBuilder_FlattenIntoSingleLayer(self: _PImDrawDataBuilder); cdecl;
-  external _LIB_SOKOL name _PU + 'ImDrawDataBuilder_FlattenIntoSingleLayer';
-
-function _ImGuiStyleMod_ImGuiStyleMod_Int(idx: _ImGuiStyleVar; v: Integer): _PImGuiStyleMod; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStyleMod_ImGuiStyleMod_Int';
-
-procedure _ImGuiStyleMod_destroy(self: _PImGuiStyleMod); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStyleMod_destroy';
-
-function _ImGuiStyleMod_ImGuiStyleMod_Float(idx: _ImGuiStyleVar; v: Single): _PImGuiStyleMod; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStyleMod_ImGuiStyleMod_Float';
-
-function _ImGuiStyleMod_ImGuiStyleMod_Vec2(idx: _ImGuiStyleVar; v: _ImVec2): _PImGuiStyleMod; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStyleMod_ImGuiStyleMod_Vec2';
-
-function _ImGuiComboPreviewData_ImGuiComboPreviewData(): _PImGuiComboPreviewData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiComboPreviewData_ImGuiComboPreviewData';
-
-procedure _ImGuiComboPreviewData_destroy(self: _PImGuiComboPreviewData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiComboPreviewData_destroy';
-
-function _ImGuiMenuColumns_ImGuiMenuColumns(): _PImGuiMenuColumns; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiMenuColumns_ImGuiMenuColumns';
-
-procedure _ImGuiMenuColumns_destroy(self: _PImGuiMenuColumns); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiMenuColumns_destroy';
-
-procedure _ImGuiMenuColumns_Update(self: _PImGuiMenuColumns; spacing: Single; window_reappearing: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiMenuColumns_Update';
-
-function _ImGuiMenuColumns_DeclColumns(self: _PImGuiMenuColumns; w_icon: Single; w_label: Single; w_shortcut: Single; w_mark: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiMenuColumns_DeclColumns';
-
-procedure _ImGuiMenuColumns_CalcNextTotalWidth(self: _PImGuiMenuColumns; update_offsets: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiMenuColumns_CalcNextTotalWidth';
-
-function _ImGuiInputTextState_ImGuiInputTextState(): _PImGuiInputTextState; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_ImGuiInputTextState';
-
-procedure _ImGuiInputTextState_destroy(self: _PImGuiInputTextState); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_destroy';
-
-procedure _ImGuiInputTextState_ClearText(self: _PImGuiInputTextState); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_ClearText';
-
-procedure _ImGuiInputTextState_ClearFreeMemory(self: _PImGuiInputTextState); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_ClearFreeMemory';
-
-function _ImGuiInputTextState_GetUndoAvailCount(self: _PImGuiInputTextState): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_GetUndoAvailCount';
-
-function _ImGuiInputTextState_GetRedoAvailCount(self: _PImGuiInputTextState): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_GetRedoAvailCount';
-
-procedure _ImGuiInputTextState_OnKeyPressed(self: _PImGuiInputTextState; key: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_OnKeyPressed';
-
-procedure _ImGuiInputTextState_CursorAnimReset(self: _PImGuiInputTextState); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_CursorAnimReset';
-
-procedure _ImGuiInputTextState_CursorClamp(self: _PImGuiInputTextState); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_CursorClamp';
-
-function _ImGuiInputTextState_HasSelection(self: _PImGuiInputTextState): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_HasSelection';
-
-procedure _ImGuiInputTextState_ClearSelection(self: _PImGuiInputTextState); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_ClearSelection';
-
-function _ImGuiInputTextState_GetCursorPos(self: _PImGuiInputTextState): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_GetCursorPos';
-
-function _ImGuiInputTextState_GetSelectionStart(self: _PImGuiInputTextState): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_GetSelectionStart';
-
-function _ImGuiInputTextState_GetSelectionEnd(self: _PImGuiInputTextState): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_GetSelectionEnd';
-
-procedure _ImGuiInputTextState_SelectAll(self: _PImGuiInputTextState); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputTextState_SelectAll';
-
-function _ImGuiPopupData_ImGuiPopupData(): _PImGuiPopupData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPopupData_ImGuiPopupData';
-
-procedure _ImGuiPopupData_destroy(self: _PImGuiPopupData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPopupData_destroy';
-
-function _ImGuiNextWindowData_ImGuiNextWindowData(): _PImGuiNextWindowData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNextWindowData_ImGuiNextWindowData';
-
-procedure _ImGuiNextWindowData_destroy(self: _PImGuiNextWindowData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNextWindowData_destroy';
-
-procedure _ImGuiNextWindowData_ClearFlags(self: _PImGuiNextWindowData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNextWindowData_ClearFlags';
-
-function _ImGuiNextItemData_ImGuiNextItemData(): _PImGuiNextItemData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNextItemData_ImGuiNextItemData';
-
-procedure _ImGuiNextItemData_destroy(self: _PImGuiNextItemData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNextItemData_destroy';
-
-procedure _ImGuiNextItemData_ClearFlags(self: _PImGuiNextItemData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNextItemData_ClearFlags';
-
-function _ImGuiLastItemData_ImGuiLastItemData(): _PImGuiLastItemData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiLastItemData_ImGuiLastItemData';
-
-procedure _ImGuiLastItemData_destroy(self: _PImGuiLastItemData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiLastItemData_destroy';
-
-function _ImGuiStackSizes_ImGuiStackSizes(): _PImGuiStackSizes; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStackSizes_ImGuiStackSizes';
-
-procedure _ImGuiStackSizes_destroy(self: _PImGuiStackSizes); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStackSizes_destroy';
-
-procedure _ImGuiStackSizes_SetToCurrentState(self: _PImGuiStackSizes); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStackSizes_SetToCurrentState';
-
-procedure _ImGuiStackSizes_CompareWithCurrentState(self: _PImGuiStackSizes); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStackSizes_CompareWithCurrentState';
-
-function _ImGuiPtrOrIndex_ImGuiPtrOrIndex_Ptr(ptr: Pointer): _PImGuiPtrOrIndex; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPtrOrIndex_ImGuiPtrOrIndex_Ptr';
-
-procedure _ImGuiPtrOrIndex_destroy(self: _PImGuiPtrOrIndex); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPtrOrIndex_destroy';
-
-function _ImGuiPtrOrIndex_ImGuiPtrOrIndex_Int(index: Integer): _PImGuiPtrOrIndex; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiPtrOrIndex_ImGuiPtrOrIndex_Int';
-
-function _ImGuiInputEvent_ImGuiInputEvent(): _PImGuiInputEvent; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputEvent_ImGuiInputEvent';
-
-procedure _ImGuiInputEvent_destroy(self: _PImGuiInputEvent); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiInputEvent_destroy';
-
-function _ImGuiListClipperRange_FromIndices(min: Integer; max: Integer): _ImGuiListClipperRange; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipperRange_FromIndices';
-
-function _ImGuiListClipperRange_FromPositions(y1: Single; y2: Single; off_min: Integer; off_max: Integer): _ImGuiListClipperRange; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipperRange_FromPositions';
-
-function _ImGuiListClipperData_ImGuiListClipperData(): _PImGuiListClipperData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipperData_ImGuiListClipperData';
-
-procedure _ImGuiListClipperData_destroy(self: _PImGuiListClipperData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipperData_destroy';
-
-procedure _ImGuiListClipperData_Reset(self: _PImGuiListClipperData; clipper: _PImGuiListClipper); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiListClipperData_Reset';
-
-function _ImGuiNavItemData_ImGuiNavItemData(): _PImGuiNavItemData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNavItemData_ImGuiNavItemData';
-
-procedure _ImGuiNavItemData_destroy(self: _PImGuiNavItemData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNavItemData_destroy';
-
-procedure _ImGuiNavItemData_Clear(self: _PImGuiNavItemData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiNavItemData_Clear';
-
-function _ImGuiOldColumnData_ImGuiOldColumnData(): _PImGuiOldColumnData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiOldColumnData_ImGuiOldColumnData';
-
-procedure _ImGuiOldColumnData_destroy(self: _PImGuiOldColumnData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiOldColumnData_destroy';
-
-function _ImGuiOldColumns_ImGuiOldColumns(): _PImGuiOldColumns; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiOldColumns_ImGuiOldColumns';
-
-procedure _ImGuiOldColumns_destroy(self: _PImGuiOldColumns); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiOldColumns_destroy';
-
-function _ImGuiDockNode_ImGuiDockNode(id: _ImGuiID): _PImGuiDockNode; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_ImGuiDockNode';
-
-procedure _ImGuiDockNode_destroy(self: _PImGuiDockNode); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_destroy';
-
-function _ImGuiDockNode_IsRootNode(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsRootNode';
-
-function _ImGuiDockNode_IsDockSpace(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsDockSpace';
-
-function _ImGuiDockNode_IsFloatingNode(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsFloatingNode';
-
-function _ImGuiDockNode_IsCentralNode(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsCentralNode';
-
-function _ImGuiDockNode_IsHiddenTabBar(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsHiddenTabBar';
-
-function _ImGuiDockNode_IsNoTabBar(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsNoTabBar';
-
-function _ImGuiDockNode_IsSplitNode(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsSplitNode';
-
-function _ImGuiDockNode_IsLeafNode(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsLeafNode';
-
-function _ImGuiDockNode_IsEmpty(self: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_IsEmpty';
-
-procedure _ImGuiDockNode_Rect(pOut: _PImRect; self: _PImGuiDockNode); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_Rect';
-
-procedure _ImGuiDockNode_SetLocalFlags(self: _PImGuiDockNode; flags: _ImGuiDockNodeFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_SetLocalFlags';
-
-procedure _ImGuiDockNode_UpdateMergedFlags(self: _PImGuiDockNode); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockNode_UpdateMergedFlags';
-
-function _ImGuiDockContext_ImGuiDockContext(): _PImGuiDockContext; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockContext_ImGuiDockContext';
-
-procedure _ImGuiDockContext_destroy(self: _PImGuiDockContext); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiDockContext_destroy';
-
-function _ImGuiViewportP_ImGuiViewportP(): _PImGuiViewportP; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_ImGuiViewportP';
-
-procedure _ImGuiViewportP_destroy(self: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_destroy';
-
-procedure _ImGuiViewportP_ClearRequestFlags(self: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_ClearRequestFlags';
-
-procedure _ImGuiViewportP_CalcWorkRectPos(pOut: _PImVec2; self: _PImGuiViewportP; off_min: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_CalcWorkRectPos';
-
-procedure _ImGuiViewportP_CalcWorkRectSize(pOut: _PImVec2; self: _PImGuiViewportP; off_min: _ImVec2; off_max: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_CalcWorkRectSize';
-
-procedure _ImGuiViewportP_UpdateWorkRect(self: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_UpdateWorkRect';
-
-procedure _ImGuiViewportP_GetMainRect(pOut: _PImRect; self: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_GetMainRect';
-
-procedure _ImGuiViewportP_GetWorkRect(pOut: _PImRect; self: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_GetWorkRect';
-
-procedure _ImGuiViewportP_GetBuildWorkRect(pOut: _PImRect; self: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiViewportP_GetBuildWorkRect';
-
-function _ImGuiWindowSettings_ImGuiWindowSettings(): _PImGuiWindowSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindowSettings_ImGuiWindowSettings';
-
-procedure _ImGuiWindowSettings_destroy(self: _PImGuiWindowSettings); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindowSettings_destroy';
-
-function _ImGuiWindowSettings_GetName(self: _PImGuiWindowSettings): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindowSettings_GetName';
-
-function _ImGuiSettingsHandler_ImGuiSettingsHandler(): _PImGuiSettingsHandler; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiSettingsHandler_ImGuiSettingsHandler';
-
-procedure _ImGuiSettingsHandler_destroy(self: _PImGuiSettingsHandler); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiSettingsHandler_destroy';
-
-function _ImGuiMetricsConfig_ImGuiMetricsConfig(): _PImGuiMetricsConfig; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiMetricsConfig_ImGuiMetricsConfig';
-
-procedure _ImGuiMetricsConfig_destroy(self: _PImGuiMetricsConfig); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiMetricsConfig_destroy';
-
-function _ImGuiStackLevelInfo_ImGuiStackLevelInfo(): _PImGuiStackLevelInfo; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStackLevelInfo_ImGuiStackLevelInfo';
-
-procedure _ImGuiStackLevelInfo_destroy(self: _PImGuiStackLevelInfo); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStackLevelInfo_destroy';
-
-function _ImGuiStackTool_ImGuiStackTool(): _PImGuiStackTool; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStackTool_ImGuiStackTool';
-
-procedure _ImGuiStackTool_destroy(self: _PImGuiStackTool); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiStackTool_destroy';
-
-function _ImGuiContextHook_ImGuiContextHook(): _PImGuiContextHook; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiContextHook_ImGuiContextHook';
-
-procedure _ImGuiContextHook_destroy(self: _PImGuiContextHook); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiContextHook_destroy';
-
-function _ImGuiContext_ImGuiContext(shared_font_atlas: _PImFontAtlas): _PImGuiContext; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiContext_ImGuiContext';
-
-procedure _ImGuiContext_destroy(self: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiContext_destroy';
-
-function _ImGuiWindow_ImGuiWindow(context: _PImGuiContext; const name: PUTF8Char): _PImGuiWindow; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_ImGuiWindow';
-
-procedure _ImGuiWindow_destroy(self: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_destroy';
-
-function _ImGuiWindow_GetID_Str(self: _PImGuiWindow; const str: PUTF8Char; const str_end: PUTF8Char): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_GetID_Str';
-
-function _ImGuiWindow_GetID_Ptr(self: _PImGuiWindow; const ptr: Pointer): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_GetID_Ptr';
-
-function _ImGuiWindow_GetID_Int(self: _PImGuiWindow; n: Integer): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_GetID_Int';
-
-function _ImGuiWindow_GetIDFromRectangle(self: _PImGuiWindow; r_abs: _ImRect): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_GetIDFromRectangle';
-
-procedure _ImGuiWindow_Rect(pOut: _PImRect; self: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_Rect';
-
-function _ImGuiWindow_CalcFontSize(self: _PImGuiWindow): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_CalcFontSize';
-
-function _ImGuiWindow_TitleBarHeight(self: _PImGuiWindow): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_TitleBarHeight';
-
-procedure _ImGuiWindow_TitleBarRect(pOut: _PImRect; self: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_TitleBarRect';
-
-function _ImGuiWindow_MenuBarHeight(self: _PImGuiWindow): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_MenuBarHeight';
-
-procedure _ImGuiWindow_MenuBarRect(pOut: _PImRect; self: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiWindow_MenuBarRect';
-
-function _ImGuiTabItem_ImGuiTabItem(): _PImGuiTabItem; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTabItem_ImGuiTabItem';
-
-procedure _ImGuiTabItem_destroy(self: _PImGuiTabItem); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTabItem_destroy';
-
-function _ImGuiTabBar_ImGuiTabBar(): _PImGuiTabBar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTabBar_ImGuiTabBar';
-
-procedure _ImGuiTabBar_destroy(self: _PImGuiTabBar); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTabBar_destroy';
-
-function _ImGuiTabBar_GetTabOrder(self: _PImGuiTabBar; const tab: _PImGuiTabItem): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTabBar_GetTabOrder';
-
-function _ImGuiTabBar_GetTabName(self: _PImGuiTabBar; const tab: _PImGuiTabItem): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTabBar_GetTabName';
-
-function _ImGuiTableColumn_ImGuiTableColumn(): _PImGuiTableColumn; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableColumn_ImGuiTableColumn';
-
-procedure _ImGuiTableColumn_destroy(self: _PImGuiTableColumn); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableColumn_destroy';
-
-function _ImGuiTableInstanceData_ImGuiTableInstanceData(): _PImGuiTableInstanceData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableInstanceData_ImGuiTableInstanceData';
-
-procedure _ImGuiTableInstanceData_destroy(self: _PImGuiTableInstanceData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableInstanceData_destroy';
-
-function _ImGuiTable_ImGuiTable(): _PImGuiTable; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTable_ImGuiTable';
-
-procedure _ImGuiTable_destroy(self: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTable_destroy';
-
-function _ImGuiTableTempData_ImGuiTableTempData(): _PImGuiTableTempData; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableTempData_ImGuiTableTempData';
-
-procedure _ImGuiTableTempData_destroy(self: _PImGuiTableTempData); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableTempData_destroy';
-
-function _ImGuiTableColumnSettings_ImGuiTableColumnSettings(): _PImGuiTableColumnSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableColumnSettings_ImGuiTableColumnSettings';
-
-procedure _ImGuiTableColumnSettings_destroy(self: _PImGuiTableColumnSettings); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableColumnSettings_destroy';
-
-function _ImGuiTableSettings_ImGuiTableSettings(): _PImGuiTableSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableSettings_ImGuiTableSettings';
-
-procedure _ImGuiTableSettings_destroy(self: _PImGuiTableSettings); cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableSettings_destroy';
-
-function _ImGuiTableSettings_GetColumnSettings(self: _PImGuiTableSettings): _PImGuiTableColumnSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTableSettings_GetColumnSettings';
-
-function _igGetCurrentWindowRead(): _PImGuiWindow; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCurrentWindowRead';
-
-function _igGetCurrentWindow(): _PImGuiWindow; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCurrentWindow';
-
-function _igFindWindowByID(id: _ImGuiID): _PImGuiWindow; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindWindowByID';
-
-function _igFindWindowByName(const name: PUTF8Char): _PImGuiWindow; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindWindowByName';
-
-procedure _igUpdateWindowParentAndRootLinks(window: _PImGuiWindow; flags: _ImGuiWindowFlags; parent_window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igUpdateWindowParentAndRootLinks';
-
-procedure _igCalcWindowNextAutoFitSize(pOut: _PImVec2; window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igCalcWindowNextAutoFitSize';
-
-function _igIsWindowChildOf(window: _PImGuiWindow; potential_parent: _PImGuiWindow; popup_hierarchy: Boolean; dock_hierarchy: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowChildOf';
-
-function _igIsWindowWithinBeginStackOf(window: _PImGuiWindow; potential_parent: _PImGuiWindow): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowWithinBeginStackOf';
-
-function _igIsWindowAbove(potential_above: _PImGuiWindow; potential_below: _PImGuiWindow): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowAbove';
-
-function _igIsWindowNavFocusable(window: _PImGuiWindow): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsWindowNavFocusable';
-
-procedure _igSetWindowPos_WindowPtr(window: _PImGuiWindow; pos: _ImVec2; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowPos_WindowPtr';
-
-procedure _igSetWindowSize_WindowPtr(window: _PImGuiWindow; size: _ImVec2; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowSize_WindowPtr';
-
-procedure _igSetWindowCollapsed_WindowPtr(window: _PImGuiWindow; collapsed: Boolean; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowCollapsed_WindowPtr';
-
-procedure _igSetWindowHitTestHole(window: _PImGuiWindow; pos: _ImVec2; size: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowHitTestHole';
-
-procedure _igWindowRectAbsToRel(pOut: _PImRect; window: _PImGuiWindow; r: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igWindowRectAbsToRel';
-
-procedure _igWindowRectRelToAbs(pOut: _PImRect; window: _PImGuiWindow; r: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igWindowRectRelToAbs';
-
-procedure _igFocusWindow(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igFocusWindow';
-
-procedure _igFocusTopMostWindowUnderOne(under_this_window: _PImGuiWindow; ignore_window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igFocusTopMostWindowUnderOne';
-
-procedure _igBringWindowToFocusFront(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igBringWindowToFocusFront';
-
-procedure _igBringWindowToDisplayFront(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igBringWindowToDisplayFront';
-
-procedure _igBringWindowToDisplayBack(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igBringWindowToDisplayBack';
-
-procedure _igBringWindowToDisplayBehind(window: _PImGuiWindow; above_window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igBringWindowToDisplayBehind';
-
-function _igFindWindowDisplayIndex(window: _PImGuiWindow): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindWindowDisplayIndex';
-
-function _igFindBottomMostVisibleWindowWithinBeginStack(window: _PImGuiWindow): _PImGuiWindow; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindBottomMostVisibleWindowWithinBeginStack';
-
-procedure _igSetCurrentFont(font: _PImFont); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetCurrentFont';
-
-function _igGetDefaultFont(): _PImFont; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetDefaultFont';
-
-function _igGetForegroundDrawList_WindowPtr(window: _PImGuiWindow): _PImDrawList; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetForegroundDrawList_WindowPtr';
-
-procedure _igInitialize(); cdecl;
-  external _LIB_SOKOL name _PU + 'igInitialize';
-
-procedure _igShutdown(); cdecl;
-  external _LIB_SOKOL name _PU + 'igShutdown';
-
-procedure _igUpdateInputEvents(trickle_fast_inputs: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igUpdateInputEvents';
-
-procedure _igUpdateHoveredWindowAndCaptureFlags(); cdecl;
-  external _LIB_SOKOL name _PU + 'igUpdateHoveredWindowAndCaptureFlags';
-
-procedure _igStartMouseMovingWindow(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igStartMouseMovingWindow';
-
-procedure _igStartMouseMovingWindowOrNode(window: _PImGuiWindow; node: _PImGuiDockNode; undock_floating_node: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igStartMouseMovingWindowOrNode';
-
-procedure _igUpdateMouseMovingWindowNewFrame(); cdecl;
-  external _LIB_SOKOL name _PU + 'igUpdateMouseMovingWindowNewFrame';
-
-procedure _igUpdateMouseMovingWindowEndFrame(); cdecl;
-  external _LIB_SOKOL name _PU + 'igUpdateMouseMovingWindowEndFrame';
-
-function _igAddContextHook(context: _PImGuiContext; const hook: _PImGuiContextHook): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igAddContextHook';
-
-procedure _igRemoveContextHook(context: _PImGuiContext; hook_to_remove: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igRemoveContextHook';
-
-procedure _igCallContextHooks(context: _PImGuiContext; &type: _ImGuiContextHookType); cdecl;
-  external _LIB_SOKOL name _PU + 'igCallContextHooks';
-
-procedure _igTranslateWindowsInViewport(viewport: _PImGuiViewportP; old_pos: _ImVec2; new_pos: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igTranslateWindowsInViewport';
-
-procedure _igScaleWindowsInViewport(viewport: _PImGuiViewportP; scale: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igScaleWindowsInViewport';
-
-procedure _igDestroyPlatformWindow(viewport: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'igDestroyPlatformWindow';
-
-procedure _igSetWindowViewport(window: _PImGuiWindow; viewport: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowViewport';
-
-procedure _igSetCurrentViewport(window: _PImGuiWindow; viewport: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetCurrentViewport';
-
-function _igGetViewportPlatformMonitor(viewport: _PImGuiViewport): _PImGuiPlatformMonitor; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetViewportPlatformMonitor';
-
-function _igFindHoveredViewportFromPlatformWindowStack(mouse_platform_pos: _ImVec2): _PImGuiViewportP; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindHoveredViewportFromPlatformWindowStack';
-
-procedure _igMarkIniSettingsDirty_Nil(); cdecl;
-  external _LIB_SOKOL name _PU + 'igMarkIniSettingsDirty_Nil';
-
-procedure _igMarkIniSettingsDirty_WindowPtr(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igMarkIniSettingsDirty_WindowPtr';
-
-procedure _igClearIniSettings(); cdecl;
-  external _LIB_SOKOL name _PU + 'igClearIniSettings';
-
-function _igCreateNewWindowSettings(const name: PUTF8Char): _PImGuiWindowSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'igCreateNewWindowSettings';
-
-function _igFindWindowSettings(id: _ImGuiID): _PImGuiWindowSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindWindowSettings';
-
-function _igFindOrCreateWindowSettings(const name: PUTF8Char): _PImGuiWindowSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindOrCreateWindowSettings';
-
-procedure _igAddSettingsHandler(const handler: _PImGuiSettingsHandler); cdecl;
-  external _LIB_SOKOL name _PU + 'igAddSettingsHandler';
-
-procedure _igRemoveSettingsHandler(const type_name: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igRemoveSettingsHandler';
-
-function _igFindSettingsHandler(const type_name: PUTF8Char): _PImGuiSettingsHandler; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindSettingsHandler';
-
-procedure _igSetNextWindowScroll(scroll: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNextWindowScroll';
-
-procedure _igSetScrollX_WindowPtr(window: _PImGuiWindow; scroll_x: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollX_WindowPtr';
-
-procedure _igSetScrollY_WindowPtr(window: _PImGuiWindow; scroll_y: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollY_WindowPtr';
-
-procedure _igSetScrollFromPosX_WindowPtr(window: _PImGuiWindow; local_x: Single; center_x_ratio: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollFromPosX_WindowPtr';
-
-procedure _igSetScrollFromPosY_WindowPtr(window: _PImGuiWindow; local_y: Single; center_y_ratio: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetScrollFromPosY_WindowPtr';
-
-procedure _igScrollToItem(flags: _ImGuiScrollFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igScrollToItem';
-
-procedure _igScrollToRect(window: _PImGuiWindow; rect: _ImRect; flags: _ImGuiScrollFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igScrollToRect';
-
-procedure _igScrollToRectEx(pOut: _PImVec2; window: _PImGuiWindow; rect: _ImRect; flags: _ImGuiScrollFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igScrollToRectEx';
-
-procedure _igScrollToBringRectIntoView(window: _PImGuiWindow; rect: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igScrollToBringRectIntoView';
-
-function _igGetItemID(): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetItemID';
-
-function _igGetItemStatusFlags(): _ImGuiItemStatusFlags; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetItemStatusFlags';
-
-function _igGetItemFlags(): _ImGuiItemFlags; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetItemFlags';
-
-function _igGetActiveID(): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetActiveID';
-
-function _igGetFocusID(): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFocusID';
-
-procedure _igSetActiveID(id: _ImGuiID; window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetActiveID';
-
-procedure _igSetFocusID(id: _ImGuiID; window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetFocusID';
-
-procedure _igClearActiveID(); cdecl;
-  external _LIB_SOKOL name _PU + 'igClearActiveID';
-
-function _igGetHoveredID(): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetHoveredID';
-
-procedure _igSetHoveredID(id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetHoveredID';
-
-procedure _igKeepAliveID(id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igKeepAliveID';
-
-procedure _igMarkItemEdited(id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igMarkItemEdited';
-
-procedure _igPushOverrideID(id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushOverrideID';
-
-function _igGetIDWithSeed(const str_id_begin: PUTF8Char; const str_id_end: PUTF8Char; seed: _ImGuiID): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetIDWithSeed';
-
-procedure _igItemSize_Vec2(size: _ImVec2; text_baseline_y: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igItemSize_Vec2';
-
-procedure _igItemSize_Rect(bb: _ImRect; text_baseline_y: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igItemSize_Rect';
-
-function _igItemAdd(bb: _ImRect; id: _ImGuiID; const nav_bb: _PImRect; extra_flags: _ImGuiItemFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igItemAdd';
-
-function _igItemHoverable(bb: _ImRect; id: _ImGuiID): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igItemHoverable';
-
-function _igIsClippedEx(bb: _ImRect; id: _ImGuiID): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsClippedEx';
-
-procedure _igSetLastItemData(item_id: _ImGuiID; in_flags: _ImGuiItemFlags; status_flags: _ImGuiItemStatusFlags; item_rect: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetLastItemData';
-
-procedure _igCalcItemSize(pOut: _PImVec2; size: _ImVec2; default_w: Single; default_h: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igCalcItemSize';
-
-function _igCalcWrapWidthForPos(pos: _ImVec2; wrap_pos_x: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igCalcWrapWidthForPos';
-
-procedure _igPushMultiItemsWidths(components: Integer; width_full: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushMultiItemsWidths';
-
-function _igIsItemToggledSelection(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsItemToggledSelection';
-
-procedure _igGetContentRegionMaxAbs(pOut: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetContentRegionMaxAbs';
-
-procedure _igShrinkWidths(items: _PImGuiShrinkWidthItem; count: Integer; width_excess: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igShrinkWidths';
-
-procedure _igPushItemFlag(option: _ImGuiItemFlags; enabled: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushItemFlag';
-
-procedure _igPopItemFlag(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopItemFlag';
-
-procedure _igLogBegin(&type: _ImGuiLogType; auto_open_depth: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogBegin';
-
-procedure _igLogToBuffer(auto_open_depth: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogToBuffer';
-
-procedure _igLogRenderedText(const ref_pos: _PImVec2; const text: PUTF8Char; const text_end: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogRenderedText';
-
-procedure _igLogSetNextTextDecoration(const prefix: PUTF8Char; const suffix: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igLogSetNextTextDecoration';
-
-function _igBeginChildEx(const name: PUTF8Char; id: _ImGuiID; size_arg: _ImVec2; border: Boolean; flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginChildEx';
-
-procedure _igOpenPopupEx(id: _ImGuiID; popup_flags: _ImGuiPopupFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igOpenPopupEx';
-
-procedure _igClosePopupToLevel(remaining: Integer; restore_focus_to_window_under_popup: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igClosePopupToLevel';
-
-procedure _igClosePopupsOverWindow(ref_window: _PImGuiWindow; restore_focus_to_window_under_popup: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igClosePopupsOverWindow';
-
-procedure _igClosePopupsExceptModals(); cdecl;
-  external _LIB_SOKOL name _PU + 'igClosePopupsExceptModals';
-
-function _igIsPopupOpen_ID(id: _ImGuiID; popup_flags: _ImGuiPopupFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsPopupOpen_ID';
-
-function _igBeginPopupEx(id: _ImGuiID; extra_flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginPopupEx';
-
-procedure _igBeginTooltipEx(tooltip_flags: _ImGuiTooltipFlags; extra_window_flags: _ImGuiWindowFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginTooltipEx';
-
-procedure _igGetPopupAllowedExtentRect(pOut: _PImRect; window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetPopupAllowedExtentRect';
-
-function _igGetTopMostPopupModal(): _PImGuiWindow; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetTopMostPopupModal';
-
-function _igGetTopMostAndVisiblePopupModal(): _PImGuiWindow; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetTopMostAndVisiblePopupModal';
-
-procedure _igFindBestWindowPosForPopup(pOut: _PImVec2; window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igFindBestWindowPosForPopup';
-
-procedure _igFindBestWindowPosForPopupEx(pOut: _PImVec2; ref_pos: _ImVec2; size: _ImVec2; last_dir: _PImGuiDir; r_outer: _ImRect; r_avoid: _ImRect; policy: _ImGuiPopupPositionPolicy); cdecl;
-  external _LIB_SOKOL name _PU + 'igFindBestWindowPosForPopupEx';
-
-function _igBeginViewportSideBar(const name: PUTF8Char; viewport: _PImGuiViewport; dir: _ImGuiDir; size: Single; window_flags: _ImGuiWindowFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginViewportSideBar';
-
-function _igBeginMenuEx(const &label: PUTF8Char; const icon: PUTF8Char; enabled: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginMenuEx';
-
-function _igMenuItemEx(const &label: PUTF8Char; const icon: PUTF8Char; const shortcut: PUTF8Char; selected: Boolean; enabled: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igMenuItemEx';
-
-function _igBeginComboPopup(popup_id: _ImGuiID; bb: _ImRect; flags: _ImGuiComboFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginComboPopup';
-
-function _igBeginComboPreview(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginComboPreview';
-
-procedure _igEndComboPreview(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndComboPreview';
-
-procedure _igNavInitWindow(window: _PImGuiWindow; force_reinit: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igNavInitWindow';
-
-procedure _igNavInitRequestApplyResult(); cdecl;
-  external _LIB_SOKOL name _PU + 'igNavInitRequestApplyResult';
-
-function _igNavMoveRequestButNoResultYet(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igNavMoveRequestButNoResultYet';
-
-procedure _igNavMoveRequestSubmit(move_dir: _ImGuiDir; clip_dir: _ImGuiDir; move_flags: _ImGuiNavMoveFlags; scroll_flags: _ImGuiScrollFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igNavMoveRequestSubmit';
-
-procedure _igNavMoveRequestForward(move_dir: _ImGuiDir; clip_dir: _ImGuiDir; move_flags: _ImGuiNavMoveFlags; scroll_flags: _ImGuiScrollFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igNavMoveRequestForward';
-
-procedure _igNavMoveRequestResolveWithLastItem(result: _PImGuiNavItemData); cdecl;
-  external _LIB_SOKOL name _PU + 'igNavMoveRequestResolveWithLastItem';
-
-procedure _igNavMoveRequestCancel(); cdecl;
-  external _LIB_SOKOL name _PU + 'igNavMoveRequestCancel';
-
-procedure _igNavMoveRequestApplyResult(); cdecl;
-  external _LIB_SOKOL name _PU + 'igNavMoveRequestApplyResult';
-
-procedure _igNavMoveRequestTryWrapping(window: _PImGuiWindow; move_flags: _ImGuiNavMoveFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igNavMoveRequestTryWrapping';
-
-function _igGetNavInputName(n: _ImGuiNavInput): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetNavInputName';
-
-function _igGetNavInputAmount(n: _ImGuiNavInput; mode: _ImGuiNavReadMode): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetNavInputAmount';
-
-procedure _igGetNavInputAmount2d(pOut: _PImVec2; dir_sources: _ImGuiNavDirSourceFlags; mode: _ImGuiNavReadMode; slow_factor: Single; fast_factor: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetNavInputAmount2d';
-
-function _igCalcTypematicRepeatAmount(t0: Single; t1: Single; repeat_delay: Single; repeat_rate: Single): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igCalcTypematicRepeatAmount';
-
-procedure _igActivateItem(id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igActivateItem';
-
-procedure _igSetNavWindow(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNavWindow';
-
-procedure _igSetNavID(id: _ImGuiID; nav_layer: _ImGuiNavLayer; focus_scope_id: _ImGuiID; rect_rel: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetNavID';
-
-procedure _igPushFocusScope(id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushFocusScope';
-
-procedure _igPopFocusScope(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopFocusScope';
-
-function _igGetFocusedFocusScope(): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFocusedFocusScope';
-
-function _igGetFocusScope(): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetFocusScope';
-
-function _igIsNamedKey(key: _ImGuiKey): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsNamedKey';
-
-function _igIsLegacyKey(key: _ImGuiKey): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsLegacyKey';
-
-function _igIsGamepadKey(key: _ImGuiKey): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsGamepadKey';
-
-function _igGetKeyData(key: _ImGuiKey): _PImGuiKeyData; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetKeyData';
-
-procedure _igSetItemUsingMouseWheel(); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetItemUsingMouseWheel';
-
-procedure _igSetActiveIdUsingNavAndKeys(); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetActiveIdUsingNavAndKeys';
-
-function _igIsActiveIdUsingNavDir(dir: _ImGuiDir): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsActiveIdUsingNavDir';
-
-function _igIsActiveIdUsingNavInput(input: _ImGuiNavInput): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsActiveIdUsingNavInput';
-
-function _igIsActiveIdUsingKey(key: _ImGuiKey): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsActiveIdUsingKey';
-
-procedure _igSetActiveIdUsingKey(key: _ImGuiKey); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetActiveIdUsingKey';
-
-function _igIsMouseDragPastThreshold(button: _ImGuiMouseButton; lock_threshold: Single): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsMouseDragPastThreshold';
-
-function _igIsNavInputDown(n: _ImGuiNavInput): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsNavInputDown';
-
-function _igIsNavInputTest(n: _ImGuiNavInput; rm: _ImGuiNavReadMode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsNavInputTest';
-
-function _igGetMergedModFlags(): _ImGuiModFlags; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetMergedModFlags';
-
-function _igIsKeyPressedMap(key: _ImGuiKey; &repeat: Boolean): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsKeyPressedMap';
-
-procedure _igDockContextInitialize(ctx: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextInitialize';
-
-procedure _igDockContextShutdown(ctx: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextShutdown';
-
-procedure _igDockContextClearNodes(ctx: _PImGuiContext; root_id: _ImGuiID; clear_settings_refs: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextClearNodes';
-
-procedure _igDockContextRebuildNodes(ctx: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextRebuildNodes';
-
-procedure _igDockContextNewFrameUpdateUndocking(ctx: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextNewFrameUpdateUndocking';
-
-procedure _igDockContextNewFrameUpdateDocking(ctx: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextNewFrameUpdateDocking';
-
-procedure _igDockContextEndFrame(ctx: _PImGuiContext); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextEndFrame';
-
-function _igDockContextGenNodeID(ctx: _PImGuiContext): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextGenNodeID';
-
-procedure _igDockContextQueueDock(ctx: _PImGuiContext; target: _PImGuiWindow; target_node: _PImGuiDockNode; payload: _PImGuiWindow; split_dir: _ImGuiDir; split_ratio: Single; split_outer: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextQueueDock';
-
-procedure _igDockContextQueueUndockWindow(ctx: _PImGuiContext; window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextQueueUndockWindow';
-
-procedure _igDockContextQueueUndockNode(ctx: _PImGuiContext; node: _PImGuiDockNode); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextQueueUndockNode';
-
-function _igDockContextCalcDropPosForDocking(target: _PImGuiWindow; target_node: _PImGuiDockNode; payload: _PImGuiWindow; split_dir: _ImGuiDir; split_outer: Boolean; out_pos: _PImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockContextCalcDropPosForDocking';
-
-function _igDockNodeBeginAmendTabBar(node: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockNodeBeginAmendTabBar';
-
-procedure _igDockNodeEndAmendTabBar(); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockNodeEndAmendTabBar';
-
-function _igDockNodeGetRootNode(node: _PImGuiDockNode): _PImGuiDockNode; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockNodeGetRootNode';
-
-function _igDockNodeIsInHierarchyOf(node: _PImGuiDockNode; parent: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockNodeIsInHierarchyOf';
-
-function _igDockNodeGetDepth(const node: _PImGuiDockNode): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockNodeGetDepth';
-
-function _igDockNodeGetWindowMenuButtonId(const node: _PImGuiDockNode): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockNodeGetWindowMenuButtonId';
-
-function _igGetWindowDockNode(): _PImGuiDockNode; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowDockNode';
-
-function _igGetWindowAlwaysWantOwnTabBar(window: _PImGuiWindow): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowAlwaysWantOwnTabBar';
-
-procedure _igBeginDocked(window: _PImGuiWindow; p_open: PBoolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginDocked';
-
-procedure _igBeginDockableDragDropSource(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginDockableDragDropSource';
-
-procedure _igBeginDockableDragDropTarget(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginDockableDragDropTarget';
-
-procedure _igSetWindowDock(window: _PImGuiWindow; dock_id: _ImGuiID; cond: _ImGuiCond); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowDock';
-
-procedure _igDockBuilderDockWindow(const window_name: PUTF8Char; node_id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderDockWindow';
-
-function _igDockBuilderGetNode(node_id: _ImGuiID): _PImGuiDockNode; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderGetNode';
-
-function _igDockBuilderGetCentralNode(node_id: _ImGuiID): _PImGuiDockNode; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderGetCentralNode';
-
-function _igDockBuilderAddNode(node_id: _ImGuiID; flags: _ImGuiDockNodeFlags): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderAddNode';
-
-procedure _igDockBuilderRemoveNode(node_id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderRemoveNode';
-
-procedure _igDockBuilderRemoveNodeDockedWindows(node_id: _ImGuiID; clear_settings_refs: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderRemoveNodeDockedWindows';
-
-procedure _igDockBuilderRemoveNodeChildNodes(node_id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderRemoveNodeChildNodes';
-
-procedure _igDockBuilderSetNodePos(node_id: _ImGuiID; pos: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderSetNodePos';
-
-procedure _igDockBuilderSetNodeSize(node_id: _ImGuiID; size: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderSetNodeSize';
-
-function _igDockBuilderSplitNode(node_id: _ImGuiID; split_dir: _ImGuiDir; size_ratio_for_node_at_dir: Single; out_id_at_dir: _PImGuiID; out_id_at_opposite_dir: _PImGuiID): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderSplitNode';
-
-procedure _igDockBuilderCopyDockSpace(src_dockspace_id: _ImGuiID; dst_dockspace_id: _ImGuiID; in_window_remap_pairs: _PImVector_const_charPtr); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderCopyDockSpace';
-
-procedure _igDockBuilderCopyNode(src_node_id: _ImGuiID; dst_node_id: _ImGuiID; out_node_remap_pairs: _PImVector_ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderCopyNode';
-
-procedure _igDockBuilderCopyWindowSettings(const src_name: PUTF8Char; const dst_name: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderCopyWindowSettings';
-
-procedure _igDockBuilderFinish(node_id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igDockBuilderFinish';
-
-function _igIsDragDropActive(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsDragDropActive';
-
-function _igBeginDragDropTargetCustom(bb: _ImRect; id: _ImGuiID): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginDragDropTargetCustom';
-
-procedure _igClearDragDrop(); cdecl;
-  external _LIB_SOKOL name _PU + 'igClearDragDrop';
-
-function _igIsDragDropPayloadBeingAccepted(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igIsDragDropPayloadBeingAccepted';
-
-procedure _igSetWindowClipRectBeforeSetChannel(window: _PImGuiWindow; clip_rect: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igSetWindowClipRectBeforeSetChannel';
-
-procedure _igBeginColumns(const str_id: PUTF8Char; count: Integer; flags: _ImGuiOldColumnFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginColumns';
-
-procedure _igEndColumns(); cdecl;
-  external _LIB_SOKOL name _PU + 'igEndColumns';
-
-procedure _igPushColumnClipRect(column_index: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushColumnClipRect';
-
-procedure _igPushColumnsBackground(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPushColumnsBackground';
-
-procedure _igPopColumnsBackground(); cdecl;
-  external _LIB_SOKOL name _PU + 'igPopColumnsBackground';
-
-function _igGetColumnsID(const str_id: PUTF8Char; count: Integer): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColumnsID';
-
-function _igFindOrCreateColumns(window: _PImGuiWindow; id: _ImGuiID): _PImGuiOldColumns; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindOrCreateColumns';
-
-function _igGetColumnOffsetFromNorm(const columns: _PImGuiOldColumns; offset_norm: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColumnOffsetFromNorm';
-
-function _igGetColumnNormFromOffset(const columns: _PImGuiOldColumns; offset: Single): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetColumnNormFromOffset';
-
-procedure _igTableOpenContextMenu(column_n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableOpenContextMenu';
-
-procedure _igTableSetColumnWidth(column_n: Integer; width: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetColumnWidth';
-
-procedure _igTableSetColumnSortDirection(column_n: Integer; sort_direction: _ImGuiSortDirection; append_to_sort_specs: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetColumnSortDirection';
-
-function _igTableGetHoveredColumn(): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetHoveredColumn';
-
-function _igTableGetHeaderRowHeight(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetHeaderRowHeight';
-
-procedure _igTablePushBackgroundChannel(); cdecl;
-  external _LIB_SOKOL name _PU + 'igTablePushBackgroundChannel';
-
-procedure _igTablePopBackgroundChannel(); cdecl;
-  external _LIB_SOKOL name _PU + 'igTablePopBackgroundChannel';
-
-function _igGetCurrentTable(): _PImGuiTable; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetCurrentTable';
-
-function _igTableFindByID(id: _ImGuiID): _PImGuiTable; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableFindByID';
-
-function _igBeginTableEx(const name: PUTF8Char; id: _ImGuiID; columns_count: Integer; flags: _ImGuiTableFlags; outer_size: _ImVec2; inner_width: Single): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginTableEx';
-
-procedure _igTableBeginInitMemory(table: _PImGuiTable; columns_count: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableBeginInitMemory';
-
-procedure _igTableBeginApplyRequests(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableBeginApplyRequests';
-
-procedure _igTableSetupDrawChannels(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetupDrawChannels';
-
-procedure _igTableUpdateLayout(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableUpdateLayout';
-
-procedure _igTableUpdateBorders(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableUpdateBorders';
-
-procedure _igTableUpdateColumnsWeightFromWidth(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableUpdateColumnsWeightFromWidth';
-
-procedure _igTableDrawBorders(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableDrawBorders';
-
-procedure _igTableDrawContextMenu(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableDrawContextMenu';
-
-procedure _igTableMergeDrawChannels(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableMergeDrawChannels';
-
-function _igTableGetInstanceData(table: _PImGuiTable; instance_no: Integer): _PImGuiTableInstanceData; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetInstanceData';
-
-procedure _igTableSortSpecsSanitize(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSortSpecsSanitize';
-
-procedure _igTableSortSpecsBuild(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSortSpecsBuild';
-
-function _igTableGetColumnNextSortDirection(column: _PImGuiTableColumn): _ImGuiSortDirection; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetColumnNextSortDirection';
-
-procedure _igTableFixColumnSortDirection(table: _PImGuiTable; column: _PImGuiTableColumn); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableFixColumnSortDirection';
-
-function _igTableGetColumnWidthAuto(table: _PImGuiTable; column: _PImGuiTableColumn): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetColumnWidthAuto';
-
-procedure _igTableBeginRow(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableBeginRow';
-
-procedure _igTableEndRow(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableEndRow';
-
-procedure _igTableBeginCell(table: _PImGuiTable; column_n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableBeginCell';
-
-procedure _igTableEndCell(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableEndCell';
-
-procedure _igTableGetCellBgRect(pOut: _PImRect; const table: _PImGuiTable; column_n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetCellBgRect';
-
-function _igTableGetColumnName_TablePtr(const table: _PImGuiTable; column_n: Integer): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetColumnName_TablePtr';
-
-function _igTableGetColumnResizeID(const table: _PImGuiTable; column_n: Integer; instance_no: Integer): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetColumnResizeID';
-
-function _igTableGetMaxColumnWidth(const table: _PImGuiTable; column_n: Integer): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetMaxColumnWidth';
-
-procedure _igTableSetColumnWidthAutoSingle(table: _PImGuiTable; column_n: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetColumnWidthAutoSingle';
-
-procedure _igTableSetColumnWidthAutoAll(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSetColumnWidthAutoAll';
-
-procedure _igTableRemove(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableRemove';
-
-procedure _igTableGcCompactTransientBuffers_TablePtr(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGcCompactTransientBuffers_TablePtr';
-
-procedure _igTableGcCompactTransientBuffers_TableTempDataPtr(table: _PImGuiTableTempData); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGcCompactTransientBuffers_TableTempDataPtr';
-
-procedure _igTableGcCompactSettings(); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGcCompactSettings';
-
-procedure _igTableLoadSettings(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableLoadSettings';
-
-procedure _igTableSaveSettings(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSaveSettings';
-
-procedure _igTableResetSettings(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableResetSettings';
-
-function _igTableGetBoundSettings(table: _PImGuiTable): _PImGuiTableSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableGetBoundSettings';
-
-procedure _igTableSettingsAddSettingsHandler(); cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSettingsAddSettingsHandler';
-
-function _igTableSettingsCreate(id: _ImGuiID; columns_count: Integer): _PImGuiTableSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSettingsCreate';
-
-function _igTableSettingsFindByID(id: _ImGuiID): _PImGuiTableSettings; cdecl;
-  external _LIB_SOKOL name _PU + 'igTableSettingsFindByID';
-
-function _igBeginTabBarEx(tab_bar: _PImGuiTabBar; bb: _ImRect; flags: _ImGuiTabBarFlags; dock_node: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igBeginTabBarEx';
-
-function _igTabBarFindTabByID(tab_bar: _PImGuiTabBar; tab_id: _ImGuiID): _PImGuiTabItem; cdecl;
-  external _LIB_SOKOL name _PU + 'igTabBarFindTabByID';
-
-function _igTabBarFindMostRecentlySelectedTabForActiveWindow(tab_bar: _PImGuiTabBar): _PImGuiTabItem; cdecl;
-  external _LIB_SOKOL name _PU + 'igTabBarFindMostRecentlySelectedTabForActiveWindow';
-
-procedure _igTabBarAddTab(tab_bar: _PImGuiTabBar; tab_flags: _ImGuiTabItemFlags; window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igTabBarAddTab';
-
-procedure _igTabBarRemoveTab(tab_bar: _PImGuiTabBar; tab_id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igTabBarRemoveTab';
-
-procedure _igTabBarCloseTab(tab_bar: _PImGuiTabBar; tab: _PImGuiTabItem); cdecl;
-  external _LIB_SOKOL name _PU + 'igTabBarCloseTab';
-
-procedure _igTabBarQueueReorder(tab_bar: _PImGuiTabBar; const tab: _PImGuiTabItem; offset: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igTabBarQueueReorder';
-
-procedure _igTabBarQueueReorderFromMousePos(tab_bar: _PImGuiTabBar; const tab: _PImGuiTabItem; mouse_pos: _ImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igTabBarQueueReorderFromMousePos';
-
-function _igTabBarProcessReorder(tab_bar: _PImGuiTabBar): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTabBarProcessReorder';
-
-function _igTabItemEx(tab_bar: _PImGuiTabBar; const &label: PUTF8Char; p_open: PBoolean; flags: _ImGuiTabItemFlags; docked_window: _PImGuiWindow): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTabItemEx';
-
-procedure _igTabItemCalcSize(pOut: _PImVec2; const &label: PUTF8Char; has_close_button: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igTabItemCalcSize';
-
-procedure _igTabItemBackground(draw_list: _PImDrawList; bb: _ImRect; flags: _ImGuiTabItemFlags; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igTabItemBackground';
-
-procedure _igTabItemLabelAndCloseButton(draw_list: _PImDrawList; bb: _ImRect; flags: _ImGuiTabItemFlags; frame_padding: _ImVec2; const &label: PUTF8Char; tab_id: _ImGuiID; close_button_id: _ImGuiID; is_contents_visible: Boolean; out_just_closed: PBoolean; out_text_clipped: PBoolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igTabItemLabelAndCloseButton';
-
-procedure _igRenderText(pos: _ImVec2; const text: PUTF8Char; const text_end: PUTF8Char; hide_text_after_hash: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderText';
-
-procedure _igRenderTextWrapped(pos: _ImVec2; const text: PUTF8Char; const text_end: PUTF8Char; wrap_width: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderTextWrapped';
-
-procedure _igRenderTextClipped(pos_min: _ImVec2; pos_max: _ImVec2; const text: PUTF8Char; const text_end: PUTF8Char; const text_size_if_known: _PImVec2; align: _ImVec2; const clip_rect: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderTextClipped';
-
-procedure _igRenderTextClippedEx(draw_list: _PImDrawList; pos_min: _ImVec2; pos_max: _ImVec2; const text: PUTF8Char; const text_end: PUTF8Char; const text_size_if_known: _PImVec2; align: _ImVec2; const clip_rect: _PImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderTextClippedEx';
-
-procedure _igRenderTextEllipsis(draw_list: _PImDrawList; pos_min: _ImVec2; pos_max: _ImVec2; clip_max_x: Single; ellipsis_max_x: Single; const text: PUTF8Char; const text_end: PUTF8Char; const text_size_if_known: _PImVec2); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderTextEllipsis';
-
-procedure _igRenderFrame(p_min: _ImVec2; p_max: _ImVec2; fill_col: _ImU32; border: Boolean; rounding: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderFrame';
-
-procedure _igRenderFrameBorder(p_min: _ImVec2; p_max: _ImVec2; rounding: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderFrameBorder';
-
-procedure _igRenderColorRectWithAlphaCheckerboard(draw_list: _PImDrawList; p_min: _ImVec2; p_max: _ImVec2; fill_col: _ImU32; grid_step: Single; grid_off: _ImVec2; rounding: Single; flags: _ImDrawFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderColorRectWithAlphaCheckerboard';
-
-procedure _igRenderNavHighlight(bb: _ImRect; id: _ImGuiID; flags: _ImGuiNavHighlightFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderNavHighlight';
-
-function _igFindRenderedTextEnd(const text: PUTF8Char; const text_end: PUTF8Char): PUTF8Char; cdecl;
-  external _LIB_SOKOL name _PU + 'igFindRenderedTextEnd';
-
-procedure _igRenderMouseCursor(pos: _ImVec2; scale: Single; mouse_cursor: _ImGuiMouseCursor; col_fill: _ImU32; col_border: _ImU32; col_shadow: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderMouseCursor';
-
-procedure _igRenderArrow(draw_list: _PImDrawList; pos: _ImVec2; col: _ImU32; dir: _ImGuiDir; scale: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderArrow';
-
-procedure _igRenderBullet(draw_list: _PImDrawList; pos: _ImVec2; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderBullet';
-
-procedure _igRenderCheckMark(draw_list: _PImDrawList; pos: _ImVec2; col: _ImU32; sz: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderCheckMark';
-
-procedure _igRenderArrowPointingAt(draw_list: _PImDrawList; pos: _ImVec2; half_sz: _ImVec2; direction: _ImGuiDir; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderArrowPointingAt';
-
-procedure _igRenderArrowDockMenu(draw_list: _PImDrawList; p_min: _ImVec2; sz: Single; col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderArrowDockMenu';
-
-procedure _igRenderRectFilledRangeH(draw_list: _PImDrawList; rect: _ImRect; col: _ImU32; x_start_norm: Single; x_end_norm: Single; rounding: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderRectFilledRangeH';
-
-procedure _igRenderRectFilledWithHole(draw_list: _PImDrawList; outer: _ImRect; inner: _ImRect; col: _ImU32; rounding: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igRenderRectFilledWithHole';
-
-function _igCalcRoundingFlagsForRectInRect(r_in: _ImRect; r_outer: _ImRect; threshold: Single): _ImDrawFlags; cdecl;
-  external _LIB_SOKOL name _PU + 'igCalcRoundingFlagsForRectInRect';
-
-procedure _igTextEx(const text: PUTF8Char; const text_end: PUTF8Char; flags: _ImGuiTextFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igTextEx';
-
-function _igButtonEx(const &label: PUTF8Char; size_arg: _ImVec2; flags: _ImGuiButtonFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igButtonEx';
-
-function _igCloseButton(id: _ImGuiID; pos: _ImVec2): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCloseButton';
-
-function _igCollapseButton(id: _ImGuiID; pos: _ImVec2; dock_node: _PImGuiDockNode): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCollapseButton';
-
-function _igArrowButtonEx(const str_id: PUTF8Char; dir: _ImGuiDir; size_arg: _ImVec2; flags: _ImGuiButtonFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igArrowButtonEx';
-
-procedure _igScrollbar(axis: _ImGuiAxis); cdecl;
-  external _LIB_SOKOL name _PU + 'igScrollbar';
-
-function _igScrollbarEx(bb: _ImRect; id: _ImGuiID; axis: _ImGuiAxis; p_scroll_v: _PImS64; avail_v: _ImS64; contents_v: _ImS64; flags: _ImDrawFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igScrollbarEx';
-
-function _igImageButtonEx(id: _ImGuiID; texture_id: _ImTextureID; size: _ImVec2; uv0: _ImVec2; uv1: _ImVec2; padding: _ImVec2; bg_col: _ImVec4; tint_col: _ImVec4): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igImageButtonEx';
-
-procedure _igGetWindowScrollbarRect(pOut: _PImRect; window: _PImGuiWindow; axis: _ImGuiAxis); cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowScrollbarRect';
-
-function _igGetWindowScrollbarID(window: _PImGuiWindow; axis: _ImGuiAxis): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowScrollbarID';
-
-function _igGetWindowResizeCornerID(window: _PImGuiWindow; n: Integer): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowResizeCornerID';
-
-function _igGetWindowResizeBorderID(window: _PImGuiWindow; dir: _ImGuiDir): _ImGuiID; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetWindowResizeBorderID';
-
-procedure _igSeparatorEx(flags: _ImGuiSeparatorFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igSeparatorEx';
-
-function _igCheckboxFlags_S64Ptr(const &label: PUTF8Char; flags: _PImS64; flags_value: _ImS64): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCheckboxFlags_S64Ptr';
-
-function _igCheckboxFlags_U64Ptr(const &label: PUTF8Char; flags: _PImU64; flags_value: _ImU64): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igCheckboxFlags_U64Ptr';
-
-function _igButtonBehavior(bb: _ImRect; id: _ImGuiID; out_hovered: PBoolean; out_held: PBoolean; flags: _ImGuiButtonFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igButtonBehavior';
-
-function _igDragBehavior(id: _ImGuiID; data_type: _ImGuiDataType; p_v: Pointer; v_speed: Single; const p_min: Pointer; const p_max: Pointer; const format: PUTF8Char; flags: _ImGuiSliderFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDragBehavior';
-
-function _igSliderBehavior(bb: _ImRect; id: _ImGuiID; data_type: _ImGuiDataType; p_v: Pointer; const p_min: Pointer; const p_max: Pointer; const format: PUTF8Char; flags: _ImGuiSliderFlags; out_grab_bb: _PImRect): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSliderBehavior';
-
-function _igSplitterBehavior(bb: _ImRect; id: _ImGuiID; axis: _ImGuiAxis; size1: PSingle; size2: PSingle; min_size1: Single; min_size2: Single; hover_extend: Single; hover_visibility_delay: Single; bg_col: _ImU32): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igSplitterBehavior';
-
-function _igTreeNodeBehavior(id: _ImGuiID; flags: _ImGuiTreeNodeFlags; const &label: PUTF8Char; const label_end: PUTF8Char): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeBehavior';
-
-function _igTreeNodeBehaviorIsOpen(id: _ImGuiID; flags: _ImGuiTreeNodeFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTreeNodeBehaviorIsOpen';
-
-procedure _igTreePushOverrideID(id: _ImGuiID); cdecl;
-  external _LIB_SOKOL name _PU + 'igTreePushOverrideID';
-
-function _igDataTypeGetInfo(data_type: _ImGuiDataType): _PImGuiDataTypeInfo; cdecl;
-  external _LIB_SOKOL name _PU + 'igDataTypeGetInfo';
-
-function _igDataTypeFormatString(buf: PUTF8Char; buf_size: Integer; data_type: _ImGuiDataType; const p_data: Pointer; const format: PUTF8Char): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igDataTypeFormatString';
-
-procedure _igDataTypeApplyOp(data_type: _ImGuiDataType; op: Integer; output: Pointer; const arg_1: Pointer; const arg_2: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igDataTypeApplyOp';
-
-function _igDataTypeApplyFromText(const buf: PUTF8Char; data_type: _ImGuiDataType; p_data: Pointer; const format: PUTF8Char): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDataTypeApplyFromText';
-
-function _igDataTypeCompare(data_type: _ImGuiDataType; const arg_1: Pointer; const arg_2: Pointer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igDataTypeCompare';
-
-function _igDataTypeClamp(data_type: _ImGuiDataType; p_data: Pointer; const p_min: Pointer; const p_max: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igDataTypeClamp';
-
-function _igInputTextEx(const &label: PUTF8Char; const hint: PUTF8Char; buf: PUTF8Char; buf_size: Integer; size_arg: _ImVec2; flags: _ImGuiInputTextFlags; callback: _ImGuiInputTextCallback; user_data: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igInputTextEx';
-
-function _igTempInputText(bb: _ImRect; id: _ImGuiID; const &label: PUTF8Char; buf: PUTF8Char; buf_size: Integer; flags: _ImGuiInputTextFlags): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTempInputText';
-
-function _igTempInputScalar(bb: _ImRect; id: _ImGuiID; const &label: PUTF8Char; data_type: _ImGuiDataType; p_data: Pointer; const format: PUTF8Char; const p_clamp_min: Pointer; const p_clamp_max: Pointer): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTempInputScalar';
-
-function _igTempInputIsActive(id: _ImGuiID): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'igTempInputIsActive';
-
-function _igGetInputTextState(id: _ImGuiID): _PImGuiInputTextState; cdecl;
-  external _LIB_SOKOL name _PU + 'igGetInputTextState';
-
-procedure _igColorTooltip(const text: PUTF8Char; const col: PSingle; flags: _ImGuiColorEditFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igColorTooltip';
-
-procedure _igColorEditOptionsPopup(const col: PSingle; flags: _ImGuiColorEditFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igColorEditOptionsPopup';
-
-procedure _igColorPickerOptionsPopup(const ref_col: PSingle; flags: _ImGuiColorEditFlags); cdecl;
-  external _LIB_SOKOL name _PU + 'igColorPickerOptionsPopup';
-
-type
-  _igPlotEx__values_getter = function(data: Pointer; idx: Integer): Single; cdecl;
-
-function _igPlotEx(plot_type: _ImGuiPlotType; const &label: PUTF8Char; values_getter: _igPlotEx__values_getter; data: Pointer; values_count: Integer; values_offset: Integer; const overlay_text: PUTF8Char; scale_min: Single; scale_max: Single; frame_size: _ImVec2): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'igPlotEx';
-
-procedure _igShadeVertsLinearColorGradientKeepAlpha(draw_list: _PImDrawList; vert_start_idx: Integer; vert_end_idx: Integer; gradient_p0: _ImVec2; gradient_p1: _ImVec2; col0: _ImU32; col1: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igShadeVertsLinearColorGradientKeepAlpha';
-
-procedure _igShadeVertsLinearUV(draw_list: _PImDrawList; vert_start_idx: Integer; vert_end_idx: Integer; a: _ImVec2; b: _ImVec2; uv_a: _ImVec2; uv_b: _ImVec2; clamp: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igShadeVertsLinearUV';
-
-procedure _igGcCompactTransientMiscBuffers(); cdecl;
-  external _LIB_SOKOL name _PU + 'igGcCompactTransientMiscBuffers';
-
-procedure _igGcCompactTransientWindowBuffers(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igGcCompactTransientWindowBuffers';
-
-procedure _igGcAwakeTransientWindowBuffers(window: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igGcAwakeTransientWindowBuffers';
-
-procedure _igDebugLog(const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugLog';
-
-procedure _igDebugLogV(const fmt: PUTF8Char; args: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugLogV';
-
-procedure _igErrorCheckEndFrameRecover(log_callback: _ImGuiErrorLogCallback; user_data: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igErrorCheckEndFrameRecover';
-
-procedure _igErrorCheckEndWindowRecover(log_callback: _ImGuiErrorLogCallback; user_data: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igErrorCheckEndWindowRecover';
-
-procedure _igDebugDrawItemRect(col: _ImU32); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugDrawItemRect';
-
-procedure _igDebugStartItemPicker(); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugStartItemPicker';
-
-procedure _igShowFontAtlas(atlas: _PImFontAtlas); cdecl;
-  external _LIB_SOKOL name _PU + 'igShowFontAtlas';
-
-procedure _igDebugHookIdInfo(id: _ImGuiID; data_type: _ImGuiDataType; const data_id: Pointer; const data_id_end: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugHookIdInfo';
-
-procedure _igDebugNodeColumns(columns: _PImGuiOldColumns); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeColumns';
-
-procedure _igDebugNodeDockNode(node: _PImGuiDockNode; const &label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeDockNode';
-
-procedure _igDebugNodeDrawList(window: _PImGuiWindow; viewport: _PImGuiViewportP; const draw_list: _PImDrawList; const &label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeDrawList';
-
-procedure _igDebugNodeDrawCmdShowMeshAndBoundingBox(out_draw_list: _PImDrawList; const draw_list: _PImDrawList; const draw_cmd: _PImDrawCmd; show_mesh: Boolean; show_aabb: Boolean); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeDrawCmdShowMeshAndBoundingBox';
-
-procedure _igDebugNodeFont(font: _PImFont); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeFont';
-
-procedure _igDebugNodeFontGlyph(font: _PImFont; const glyph: _PImFontGlyph); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeFontGlyph';
-
-procedure _igDebugNodeStorage(storage: _PImGuiStorage; const &label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeStorage';
-
-procedure _igDebugNodeTabBar(tab_bar: _PImGuiTabBar; const &label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeTabBar';
-
-procedure _igDebugNodeTable(table: _PImGuiTable); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeTable';
-
-procedure _igDebugNodeTableSettings(settings: _PImGuiTableSettings); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeTableSettings';
-
-procedure _igDebugNodeInputTextState(state: _PImGuiInputTextState); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeInputTextState';
-
-procedure _igDebugNodeWindow(window: _PImGuiWindow; const &label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeWindow';
-
-procedure _igDebugNodeWindowSettings(settings: _PImGuiWindowSettings); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeWindowSettings';
-
-procedure _igDebugNodeWindowsList(windows: _PImVector_ImGuiWindowPtr; const &label: PUTF8Char); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeWindowsList';
-
-procedure _igDebugNodeWindowsListByBeginStackParent(windows: _PPImGuiWindow; windows_size: Integer; parent_in_begin_stack: _PImGuiWindow); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeWindowsListByBeginStackParent';
-
-procedure _igDebugNodeViewport(viewport: _PImGuiViewportP); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugNodeViewport';
-
-procedure _igDebugRenderViewportThumbnail(draw_list: _PImDrawList; viewport: _PImGuiViewportP; bb: _ImRect); cdecl;
-  external _LIB_SOKOL name _PU + 'igDebugRenderViewportThumbnail';
-
-function _igImFontAtlasGetBuilderForStbTruetype(): _PImFontBuilderIO; cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasGetBuilderForStbTruetype';
-
-procedure _igImFontAtlasBuildInit(atlas: _PImFontAtlas); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasBuildInit';
-
-procedure _igImFontAtlasBuildSetupFont(atlas: _PImFontAtlas; font: _PImFont; font_config: _PImFontConfig; ascent: Single; descent: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasBuildSetupFont';
-
-procedure _igImFontAtlasBuildPackCustomRects(atlas: _PImFontAtlas; stbrp_context_opaque: Pointer); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasBuildPackCustomRects';
-
-procedure _igImFontAtlasBuildFinish(atlas: _PImFontAtlas); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasBuildFinish';
-
-procedure _igImFontAtlasBuildRender8bppRectFromString(atlas: _PImFontAtlas; x: Integer; y: Integer; w: Integer; h: Integer; const in_str: PUTF8Char; in_marker_char: UTF8Char; in_marker_pixel_value: Byte); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasBuildRender8bppRectFromString';
-
-procedure _igImFontAtlasBuildRender32bppRectFromString(atlas: _PImFontAtlas; x: Integer; y: Integer; w: Integer; h: Integer; const in_str: PUTF8Char; in_marker_char: UTF8Char; in_marker_pixel_value: Cardinal); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasBuildRender32bppRectFromString';
-
-procedure _igImFontAtlasBuildMultiplyCalcLookupTable(out_table: PByte; in_multiply_factor: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasBuildMultiplyCalcLookupTable';
-
-procedure _igImFontAtlasBuildMultiplyRectAlpha8(table: PByte; pixels: PByte; x: Integer; y: Integer; w: Integer; h: Integer; stride: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'igImFontAtlasBuildMultiplyRectAlpha8';
-
-/////////////////////////hand written functions
-procedure _igLogText(const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'igLogText';
-
-procedure _ImGuiTextBuffer_appendf(buffer: _PImGuiTextBuffer; const fmt: PUTF8Char) varargs; cdecl;
-  external _LIB_SOKOL name _PU + 'ImGuiTextBuffer_appendf';
-
-function _igGET_FLT_MAX(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGET_FLT_MAX';
-
-function _igGET_FLT_MIN(): Single; cdecl;
-  external _LIB_SOKOL name _PU + 'igGET_FLT_MIN';
-
-function _ImVector_ImWchar_create(): _PImVector_ImWchar; cdecl;
-  external _LIB_SOKOL name _PU + 'ImVector_ImWchar_create';
-
-procedure _ImVector_ImWchar_destroy(self: _PImVector_ImWchar); cdecl;
-  external _LIB_SOKOL name _PU + 'ImVector_ImWchar_destroy';
-
-procedure _ImVector_ImWchar_Init(p: _PImVector_ImWchar); cdecl;
-  external _LIB_SOKOL name _PU + 'ImVector_ImWchar_Init';
-
-procedure _ImVector_ImWchar_UnInit(p: _PImVector_ImWchar); cdecl;
-  external _LIB_SOKOL name _PU + 'ImVector_ImWchar_UnInit';
+  _sspine_context = record
+    id: UInt32;
+  end;
+
+  _sspine_atlas = record
+    id: UInt32;
+  end;
+
+  _sspine_skeleton = record
+    id: UInt32;
+  end;
+
+  _sspine_instance = record
+    id: UInt32;
+  end;
+
+  _sspine_skinset = record
+    id: UInt32;
+  end;
+
+  _sspine_image = record
+    atlas_id: UInt32;
+    index: Integer;
+  end;
+
+  _sspine_atlas_page = record
+    atlas_id: UInt32;
+    index: Integer;
+  end;
+
+  _sspine_anim = record
+    skeleton_id: UInt32;
+    index: Integer;
+  end;
+
+  _sspine_bone = record
+    skeleton_id: UInt32;
+    index: Integer;
+  end;
+
+  _sspine_slot = record
+    skeleton_id: UInt32;
+    index: Integer;
+  end;
+
+  _sspine_event = record
+    skeleton_id: UInt32;
+    index: Integer;
+  end;
+
+  _sspine_iktarget = record
+    skeleton_id: UInt32;
+    index: Integer;
+  end;
+
+  _sspine_skin = record
+    skeleton_id: UInt32;
+    index: Integer;
+  end;
+
+  _sspine_range = record
+    ptr: Pointer;
+    size: NativeUInt;
+  end;
+
+  _sspine_vec2 = record
+    x: Single;
+    y: Single;
+  end;
+
+  _sspine_mat4 = record
+    m: array [0..15] of Single;
+  end;
+
+  _sspine_color = _sg_color;
+
+  _sspine_string = record
+    valid: Boolean;
+    truncated: Boolean;
+    len: UInt8;
+    cstr: array [0..60] of UTF8Char;
+  end;
+
+  _sspine_layer_transform = record
+    size: _sspine_vec2;
+    origin: _sspine_vec2;
+  end;
+
+  _sspine_bone_transform = record
+    position: _sspine_vec2;
+    rotation: Single;
+    scale: _sspine_vec2;
+    shear: _sspine_vec2;
+  end;
+
+  _sspine_context_desc = record
+    max_vertices: Integer;
+    max_commands: Integer;
+    color_format: _sg_pixel_format;
+    depth_format: _sg_pixel_format;
+    sample_count: Integer;
+    color_write_mask: _sg_color_mask;
+  end;
+
+  _sspine_context_info = record
+    num_vertices: Integer;
+    num_indices: Integer;
+    num_commands: Integer;
+  end;
+
+  _sspine_image_info = record
+    valid: Boolean;
+    sgimage: _sg_image;
+    sgview: _sg_view;
+    sgsampler: _sg_sampler;
+    min_filter: _sg_filter;
+    mag_filter: _sg_filter;
+    mipmap_filter: _sg_filter;
+    wrap_u: _sg_wrap;
+    wrap_v: _sg_wrap;
+    width: Integer;
+    height: Integer;
+    premul_alpha: Boolean;
+    filename: _sspine_string;
+  end;
+
+  _sspine_atlas_overrides = record
+    min_filter: _sg_filter;
+    mag_filter: _sg_filter;
+    mipmap_filter: _sg_filter;
+    wrap_u: _sg_wrap;
+    wrap_v: _sg_wrap;
+    premul_alpha_enabled: Boolean;
+    premul_alpha_disabled: Boolean;
+  end;
+
+  _sspine_atlas_desc = record
+    data: _sspine_range;
+    &override: _sspine_atlas_overrides;
+  end;
+
+  _sspine_atlas_page_info = record
+    valid: Boolean;
+    atlas: _sspine_atlas;
+    image: _sspine_image_info;
+    overrides: _sspine_atlas_overrides;
+  end;
+
+  _sspine_skeleton_desc = record
+    atlas: _sspine_atlas;
+    prescale: Single;
+    anim_default_mix: Single;
+    json_data: PUTF8Char;
+    binary_data: _sspine_range;
+  end;
+
+  _sspine_skinset_desc = record
+    skeleton: _sspine_skeleton;
+    skins: array [0..31] of _sspine_skin;
+  end;
+
+  _sspine_anim_info = record
+    valid: Boolean;
+    index: Integer;
+    duration: Single;
+    name: _sspine_string;
+  end;
+
+  _sspine_bone_info = record
+    valid: Boolean;
+    index: Integer;
+    parent_bone: _sspine_bone;
+    length: Single;
+    pose: _sspine_bone_transform;
+    color: _sspine_color;
+    name: _sspine_string;
+  end;
+
+  _sspine_slot_info = record
+    valid: Boolean;
+    index: Integer;
+    bone: _sspine_bone;
+    color: _sspine_color;
+    attachment_name: _sspine_string;
+    name: _sspine_string;
+  end;
+
+  _sspine_iktarget_info = record
+    valid: Boolean;
+    index: Integer;
+    target_bone: _sspine_bone;
+    name: _sspine_string;
+  end;
+
+  _sspine_skin_info = record
+    valid: Boolean;
+    index: Integer;
+    name: _sspine_string;
+  end;
+
+  _sspine_event_info = record
+    valid: Boolean;
+    index: Integer;
+    int_value: Integer;
+    float_value: Single;
+    volume: Single;
+    balance: Single;
+    name: _sspine_string;
+    string_value: _sspine_string;
+    audio_path: _sspine_string;
+  end;
+
+  _sspine_triggered_event_info = record
+    valid: Boolean;
+    event: _sspine_event;
+    time: Single;
+    int_value: Integer;
+    float_value: Single;
+    volume: Single;
+    balance: Single;
+    string_value: _sspine_string;
+  end;
+
+  _sspine_instance_desc = record
+    skeleton: _sspine_skeleton;
+  end;
+
+  _sspine_allocator = record
+    alloc_fn: function(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
+    free_fn: procedure(ptr: Pointer; user_data: Pointer); cdecl;
+    user_data: Pointer;
+  end;
+
+  _sspine_logger = record
+    func: procedure(const tag: PUTF8Char; log_level: UInt32; log_item_id: UInt32; const message_or_null: PUTF8Char; line_nr: UInt32; const filename_or_null: PUTF8Char; user_data: Pointer); cdecl;
+    user_data: Pointer;
+  end;
+
+  _sspine_desc = record
+    max_vertices: Integer;
+    max_commands: Integer;
+    context_pool_size: Integer;
+    atlas_pool_size: Integer;
+    skeleton_pool_size: Integer;
+    skinset_pool_size: Integer;
+    instance_pool_size: Integer;
+    color_format: _sg_pixel_format;
+    depth_format: _sg_pixel_format;
+    sample_count: Integer;
+    color_write_mask: _sg_color_mask;
+    allocator: _sspine_allocator;
+    logger: _sspine_logger;
+  end;
 
 function _fonsCreateInternal(params: _PFONSparams): _PFONScontext; cdecl;
   external _LIB_SOKOL name _PU + 'fonsCreateInternal';
@@ -9974,9 +4233,6 @@ function _fonsValidateTexture(s: _PFONScontext; dirty: PInteger): Integer; cdecl
 
 procedure _fonsDrawDebug(s: _PFONScontext; x: Single; y: Single); cdecl;
   external _LIB_SOKOL name _PU + 'fonsDrawDebug';
-
-function _fonsAddFontMem(stash: _PFONScontext; const name: PUTF8Char; data: PByte; dataSize: Integer; freeData: Integer): Integer; cdecl;
-  external _LIB_SOKOL name _PU + 'fonsAddFontMem';
 
 function _stbtt_BakeFontBitmap(const data: PByte; offset: Integer; pixel_height: Single; pixels: PByte; pw: Integer; ph: Integer; first_char: Integer; num_chars: Integer; chardata: _Pstbtt_bakedchar): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_BakeFontBitmap';
@@ -10154,11 +4410,20 @@ procedure _sg_push_debug_group(const name: PUTF8Char); cdecl;
 procedure _sg_pop_debug_group(); cdecl;
   external _LIB_SOKOL name _PU + 'sg_pop_debug_group';
 
+function _sg_add_commit_listener(listener: _sg_commit_listener): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_add_commit_listener';
+
+function _sg_remove_commit_listener(listener: _sg_commit_listener): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_remove_commit_listener';
+
 function _sg_make_buffer(const desc: _Psg_buffer_desc): _sg_buffer; cdecl;
   external _LIB_SOKOL name _PU + 'sg_make_buffer';
 
 function _sg_make_image(const desc: _Psg_image_desc): _sg_image; cdecl;
   external _LIB_SOKOL name _PU + 'sg_make_image';
+
+function _sg_make_sampler(const desc: _Psg_sampler_desc): _sg_sampler; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_make_sampler';
 
 function _sg_make_shader(const desc: _Psg_shader_desc): _sg_shader; cdecl;
   external _LIB_SOKOL name _PU + 'sg_make_shader';
@@ -10166,8 +4431,8 @@ function _sg_make_shader(const desc: _Psg_shader_desc): _sg_shader; cdecl;
 function _sg_make_pipeline(const desc: _Psg_pipeline_desc): _sg_pipeline; cdecl;
   external _LIB_SOKOL name _PU + 'sg_make_pipeline';
 
-function _sg_make_pass(const desc: _Psg_pass_desc): _sg_pass; cdecl;
-  external _LIB_SOKOL name _PU + 'sg_make_pass';
+function _sg_make_view(const desc: _Psg_view_desc): _sg_view; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_make_view';
 
 procedure _sg_destroy_buffer(buf: _sg_buffer); cdecl;
   external _LIB_SOKOL name _PU + 'sg_destroy_buffer';
@@ -10175,14 +4440,17 @@ procedure _sg_destroy_buffer(buf: _sg_buffer); cdecl;
 procedure _sg_destroy_image(img: _sg_image); cdecl;
   external _LIB_SOKOL name _PU + 'sg_destroy_image';
 
+procedure _sg_destroy_sampler(smp: _sg_sampler); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_destroy_sampler';
+
 procedure _sg_destroy_shader(shd: _sg_shader); cdecl;
   external _LIB_SOKOL name _PU + 'sg_destroy_shader';
 
 procedure _sg_destroy_pipeline(pip: _sg_pipeline); cdecl;
   external _LIB_SOKOL name _PU + 'sg_destroy_pipeline';
 
-procedure _sg_destroy_pass(pass: _sg_pass); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_destroy_pass';
+procedure _sg_destroy_view(view: _sg_view); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_destroy_view';
 
 procedure _sg_update_buffer(buf: _sg_buffer; const data: _Psg_range); cdecl;
   external _LIB_SOKOL name _PU + 'sg_update_buffer';
@@ -10199,13 +4467,7 @@ function _sg_query_buffer_overflow(buf: _sg_buffer): Boolean; cdecl;
 function _sg_query_buffer_will_overflow(buf: _sg_buffer; size: NativeUInt): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_buffer_will_overflow';
 
-procedure _sg_begin_default_pass(const pass_action: _Psg_pass_action; width: Integer; height: Integer); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_begin_default_pass';
-
-procedure _sg_begin_default_passf(const pass_action: _Psg_pass_action; width: Single; height: Single); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_begin_default_passf';
-
-procedure _sg_begin_pass(pass: _sg_pass; const pass_action: _Psg_pass_action); cdecl;
+procedure _sg_begin_pass(const pass: _Psg_pass); cdecl;
   external _LIB_SOKOL name _PU + 'sg_begin_pass';
 
 procedure _sg_apply_viewport(x: Integer; y: Integer; width: Integer; height: Integer; origin_top_left: Boolean); cdecl;
@@ -10226,11 +4488,17 @@ procedure _sg_apply_pipeline(pip: _sg_pipeline); cdecl;
 procedure _sg_apply_bindings(const bindings: _Psg_bindings); cdecl;
   external _LIB_SOKOL name _PU + 'sg_apply_bindings';
 
-procedure _sg_apply_uniforms(stage: _sg_shader_stage; ub_index: Integer; const data: _Psg_range); cdecl;
+procedure _sg_apply_uniforms(ub_slot: Integer; const data: _Psg_range); cdecl;
   external _LIB_SOKOL name _PU + 'sg_apply_uniforms';
 
 procedure _sg_draw(base_element: Integer; num_elements: Integer; num_instances: Integer); cdecl;
   external _LIB_SOKOL name _PU + 'sg_draw';
+
+procedure _sg_draw_ex(base_element: Integer; num_elements: Integer; num_instances: Integer; base_vertex: Integer; base_instance: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_draw_ex';
+
+procedure _sg_dispatch(num_groups_x: Integer; num_groups_y: Integer; num_groups_z: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_dispatch';
 
 procedure _sg_end_pass(); cdecl;
   external _LIB_SOKOL name _PU + 'sg_end_pass';
@@ -10253,11 +4521,20 @@ function _sg_query_limits(): _sg_limits; cdecl;
 function _sg_query_pixelformat(fmt: _sg_pixel_format): _sg_pixelformat_info; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_pixelformat';
 
+function _sg_query_row_pitch(fmt: _sg_pixel_format; width: Integer; row_align_bytes: Integer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_row_pitch';
+
+function _sg_query_surface_pitch(fmt: _sg_pixel_format; width: Integer; height: Integer; row_align_bytes: Integer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_surface_pitch';
+
 function _sg_query_buffer_state(buf: _sg_buffer): _sg_resource_state; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_buffer_state';
 
 function _sg_query_image_state(img: _sg_image): _sg_resource_state; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_image_state';
+
+function _sg_query_sampler_state(smp: _sg_sampler): _sg_resource_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_sampler_state';
 
 function _sg_query_shader_state(shd: _sg_shader): _sg_resource_state; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_shader_state';
@@ -10265,8 +4542,8 @@ function _sg_query_shader_state(shd: _sg_shader): _sg_resource_state; cdecl;
 function _sg_query_pipeline_state(pip: _sg_pipeline): _sg_resource_state; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_pipeline_state';
 
-function _sg_query_pass_state(pass: _sg_pass): _sg_resource_state; cdecl;
-  external _LIB_SOKOL name _PU + 'sg_query_pass_state';
+function _sg_query_view_state(view: _sg_view): _sg_resource_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_view_state';
 
 function _sg_query_buffer_info(buf: _sg_buffer): _sg_buffer_info; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_buffer_info';
@@ -10274,14 +4551,35 @@ function _sg_query_buffer_info(buf: _sg_buffer): _sg_buffer_info; cdecl;
 function _sg_query_image_info(img: _sg_image): _sg_image_info; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_image_info';
 
+function _sg_query_sampler_info(smp: _sg_sampler): _sg_sampler_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_sampler_info';
+
 function _sg_query_shader_info(shd: _sg_shader): _sg_shader_info; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_shader_info';
 
 function _sg_query_pipeline_info(pip: _sg_pipeline): _sg_pipeline_info; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_pipeline_info';
 
-function _sg_query_pass_info(pass: _sg_pass): _sg_pass_info; cdecl;
-  external _LIB_SOKOL name _PU + 'sg_query_pass_info';
+function _sg_query_view_info(view: _sg_view): _sg_view_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_view_info';
+
+function _sg_query_buffer_desc(buf: _sg_buffer): _sg_buffer_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_buffer_desc';
+
+function _sg_query_image_desc(img: _sg_image): _sg_image_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_desc';
+
+function _sg_query_sampler_desc(smp: _sg_sampler): _sg_sampler_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_sampler_desc';
+
+function _sg_query_shader_desc(shd: _sg_shader): _sg_shader_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_shader_desc';
+
+function _sg_query_pipeline_desc(pip: _sg_pipeline): _sg_pipeline_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_pipeline_desc';
+
+function _sg_query_view_desc(view: _sg_view): _sg_view_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_view_desc';
 
 function _sg_query_buffer_defaults(const desc: _Psg_buffer_desc): _sg_buffer_desc; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_buffer_defaults';
@@ -10289,14 +4587,56 @@ function _sg_query_buffer_defaults(const desc: _Psg_buffer_desc): _sg_buffer_des
 function _sg_query_image_defaults(const desc: _Psg_image_desc): _sg_image_desc; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_image_defaults';
 
+function _sg_query_sampler_defaults(const desc: _Psg_sampler_desc): _sg_sampler_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_sampler_defaults';
+
 function _sg_query_shader_defaults(const desc: _Psg_shader_desc): _sg_shader_desc; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_shader_defaults';
 
 function _sg_query_pipeline_defaults(const desc: _Psg_pipeline_desc): _sg_pipeline_desc; cdecl;
   external _LIB_SOKOL name _PU + 'sg_query_pipeline_defaults';
 
-function _sg_query_pass_defaults(const desc: _Psg_pass_desc): _sg_pass_desc; cdecl;
-  external _LIB_SOKOL name _PU + 'sg_query_pass_defaults';
+function _sg_query_view_defaults(const desc: _Psg_view_desc): _sg_view_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_view_defaults';
+
+function _sg_query_buffer_size(buf: _sg_buffer): NativeUInt; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_buffer_size';
+
+function _sg_query_buffer_usage(buf: _sg_buffer): _sg_buffer_usage; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_buffer_usage';
+
+function _sg_query_image_type(img: _sg_image): _sg_image_type; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_type';
+
+function _sg_query_image_width(img: _sg_image): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_width';
+
+function _sg_query_image_height(img: _sg_image): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_height';
+
+function _sg_query_image_num_slices(img: _sg_image): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_num_slices';
+
+function _sg_query_image_num_mipmaps(img: _sg_image): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_num_mipmaps';
+
+function _sg_query_image_pixelformat(img: _sg_image): _sg_pixel_format; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_pixelformat';
+
+function _sg_query_image_usage(img: _sg_image): _sg_image_usage; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_usage';
+
+function _sg_query_image_sample_count(img: _sg_image): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_image_sample_count';
+
+function _sg_query_view_type(view: _sg_view): _sg_view_type; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_view_type';
+
+function _sg_query_view_image(view: _sg_view): _sg_image; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_view_image';
+
+function _sg_query_view_buffer(view: _sg_view): _sg_buffer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_view_buffer';
 
 function _sg_alloc_buffer(): _sg_buffer; cdecl;
   external _LIB_SOKOL name _PU + 'sg_alloc_buffer';
@@ -10304,92 +4644,200 @@ function _sg_alloc_buffer(): _sg_buffer; cdecl;
 function _sg_alloc_image(): _sg_image; cdecl;
   external _LIB_SOKOL name _PU + 'sg_alloc_image';
 
+function _sg_alloc_sampler(): _sg_sampler; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_alloc_sampler';
+
 function _sg_alloc_shader(): _sg_shader; cdecl;
   external _LIB_SOKOL name _PU + 'sg_alloc_shader';
 
 function _sg_alloc_pipeline(): _sg_pipeline; cdecl;
   external _LIB_SOKOL name _PU + 'sg_alloc_pipeline';
 
-function _sg_alloc_pass(): _sg_pass; cdecl;
-  external _LIB_SOKOL name _PU + 'sg_alloc_pass';
+function _sg_alloc_view(): _sg_view; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_alloc_view';
 
-procedure _sg_dealloc_buffer(buf_id: _sg_buffer); cdecl;
+procedure _sg_dealloc_buffer(buf: _sg_buffer); cdecl;
   external _LIB_SOKOL name _PU + 'sg_dealloc_buffer';
 
-procedure _sg_dealloc_image(img_id: _sg_image); cdecl;
+procedure _sg_dealloc_image(img: _sg_image); cdecl;
   external _LIB_SOKOL name _PU + 'sg_dealloc_image';
 
-procedure _sg_dealloc_shader(shd_id: _sg_shader); cdecl;
+procedure _sg_dealloc_sampler(smp: _sg_sampler); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_dealloc_sampler';
+
+procedure _sg_dealloc_shader(shd: _sg_shader); cdecl;
   external _LIB_SOKOL name _PU + 'sg_dealloc_shader';
 
-procedure _sg_dealloc_pipeline(pip_id: _sg_pipeline); cdecl;
+procedure _sg_dealloc_pipeline(pip: _sg_pipeline); cdecl;
   external _LIB_SOKOL name _PU + 'sg_dealloc_pipeline';
 
-procedure _sg_dealloc_pass(pass_id: _sg_pass); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_dealloc_pass';
+procedure _sg_dealloc_view(view: _sg_view); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_dealloc_view';
 
-procedure _sg_init_buffer(buf_id: _sg_buffer; const desc: _Psg_buffer_desc); cdecl;
+procedure _sg_init_buffer(buf: _sg_buffer; const desc: _Psg_buffer_desc); cdecl;
   external _LIB_SOKOL name _PU + 'sg_init_buffer';
 
-procedure _sg_init_image(img_id: _sg_image; const desc: _Psg_image_desc); cdecl;
+procedure _sg_init_image(img: _sg_image; const desc: _Psg_image_desc); cdecl;
   external _LIB_SOKOL name _PU + 'sg_init_image';
 
-procedure _sg_init_shader(shd_id: _sg_shader; const desc: _Psg_shader_desc); cdecl;
+procedure _sg_init_sampler(smg: _sg_sampler; const desc: _Psg_sampler_desc); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_init_sampler';
+
+procedure _sg_init_shader(shd: _sg_shader; const desc: _Psg_shader_desc); cdecl;
   external _LIB_SOKOL name _PU + 'sg_init_shader';
 
-procedure _sg_init_pipeline(pip_id: _sg_pipeline; const desc: _Psg_pipeline_desc); cdecl;
+procedure _sg_init_pipeline(pip: _sg_pipeline; const desc: _Psg_pipeline_desc); cdecl;
   external _LIB_SOKOL name _PU + 'sg_init_pipeline';
 
-procedure _sg_init_pass(pass_id: _sg_pass; const desc: _Psg_pass_desc); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_init_pass';
+procedure _sg_init_view(view: _sg_view; const desc: _Psg_view_desc); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_init_view';
 
-function _sg_uninit_buffer(buf_id: _sg_buffer): Boolean; cdecl;
+procedure _sg_uninit_buffer(buf: _sg_buffer); cdecl;
   external _LIB_SOKOL name _PU + 'sg_uninit_buffer';
 
-function _sg_uninit_image(img_id: _sg_image): Boolean; cdecl;
+procedure _sg_uninit_image(img: _sg_image); cdecl;
   external _LIB_SOKOL name _PU + 'sg_uninit_image';
 
-function _sg_uninit_shader(shd_id: _sg_shader): Boolean; cdecl;
+procedure _sg_uninit_sampler(smp: _sg_sampler); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_uninit_sampler';
+
+procedure _sg_uninit_shader(shd: _sg_shader); cdecl;
   external _LIB_SOKOL name _PU + 'sg_uninit_shader';
 
-function _sg_uninit_pipeline(pip_id: _sg_pipeline): Boolean; cdecl;
+procedure _sg_uninit_pipeline(pip: _sg_pipeline); cdecl;
   external _LIB_SOKOL name _PU + 'sg_uninit_pipeline';
 
-function _sg_uninit_pass(pass_id: _sg_pass): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'sg_uninit_pass';
+procedure _sg_uninit_view(view: _sg_view); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_uninit_view';
 
-procedure _sg_fail_buffer(buf_id: _sg_buffer); cdecl;
+procedure _sg_fail_buffer(buf: _sg_buffer); cdecl;
   external _LIB_SOKOL name _PU + 'sg_fail_buffer';
 
-procedure _sg_fail_image(img_id: _sg_image); cdecl;
+procedure _sg_fail_image(img: _sg_image); cdecl;
   external _LIB_SOKOL name _PU + 'sg_fail_image';
 
-procedure _sg_fail_shader(shd_id: _sg_shader); cdecl;
+procedure _sg_fail_sampler(smp: _sg_sampler); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_fail_sampler';
+
+procedure _sg_fail_shader(shd: _sg_shader); cdecl;
   external _LIB_SOKOL name _PU + 'sg_fail_shader';
 
-procedure _sg_fail_pipeline(pip_id: _sg_pipeline); cdecl;
+procedure _sg_fail_pipeline(pip: _sg_pipeline); cdecl;
   external _LIB_SOKOL name _PU + 'sg_fail_pipeline';
 
-procedure _sg_fail_pass(pass_id: _sg_pass); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_fail_pass';
+procedure _sg_fail_view(view: _sg_view); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_fail_view';
 
-function _sg_setup_context(): _sg_context; cdecl;
-  external _LIB_SOKOL name _PU + 'sg_setup_context';
+procedure _sg_enable_stats(); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_enable_stats';
 
-procedure _sg_activate_context(ctx_id: _sg_context); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_activate_context';
+procedure _sg_disable_stats(); cdecl;
+  external _LIB_SOKOL name _PU + 'sg_disable_stats';
 
-procedure _sg_discard_context(ctx_id: _sg_context); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_discard_context';
+function _sg_stats_enabled(): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_stats_enabled';
+
+function _sg_query_stats(): _sg_stats; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_query_stats';
 
 function _sg_d3d11_device(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sg_d3d11_device';
+
+function _sg_d3d11_device_context(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_d3d11_device_context';
+
+function _sg_d3d11_query_buffer_info(buf: _sg_buffer): _sg_d3d11_buffer_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_d3d11_query_buffer_info';
+
+function _sg_d3d11_query_image_info(img: _sg_image): _sg_d3d11_image_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_d3d11_query_image_info';
+
+function _sg_d3d11_query_sampler_info(smp: _sg_sampler): _sg_d3d11_sampler_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_d3d11_query_sampler_info';
+
+function _sg_d3d11_query_shader_info(shd: _sg_shader): _sg_d3d11_shader_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_d3d11_query_shader_info';
+
+function _sg_d3d11_query_pipeline_info(pip: _sg_pipeline): _sg_d3d11_pipeline_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_d3d11_query_pipeline_info';
+
+function _sg_d3d11_query_view_info(view: _sg_view): _sg_d3d11_view_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_d3d11_query_view_info';
 
 function _sg_mtl_device(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sg_mtl_device';
 
 function _sg_mtl_render_command_encoder(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sg_mtl_render_command_encoder';
+
+function _sg_mtl_compute_command_encoder(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_mtl_compute_command_encoder';
+
+function _sg_mtl_command_queue(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_mtl_command_queue';
+
+function _sg_mtl_query_buffer_info(buf: _sg_buffer): _sg_mtl_buffer_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_mtl_query_buffer_info';
+
+function _sg_mtl_query_image_info(img: _sg_image): _sg_mtl_image_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_mtl_query_image_info';
+
+function _sg_mtl_query_sampler_info(smp: _sg_sampler): _sg_mtl_sampler_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_mtl_query_sampler_info';
+
+function _sg_mtl_query_shader_info(shd: _sg_shader): _sg_mtl_shader_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_mtl_query_shader_info';
+
+function _sg_mtl_query_pipeline_info(pip: _sg_pipeline): _sg_mtl_pipeline_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_mtl_query_pipeline_info';
+
+function _sg_wgpu_device(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_device';
+
+function _sg_wgpu_queue(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_queue';
+
+function _sg_wgpu_command_encoder(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_command_encoder';
+
+function _sg_wgpu_render_pass_encoder(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_render_pass_encoder';
+
+function _sg_wgpu_compute_pass_encoder(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_compute_pass_encoder';
+
+function _sg_wgpu_query_buffer_info(buf: _sg_buffer): _sg_wgpu_buffer_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_query_buffer_info';
+
+function _sg_wgpu_query_image_info(img: _sg_image): _sg_wgpu_image_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_query_image_info';
+
+function _sg_wgpu_query_sampler_info(smp: _sg_sampler): _sg_wgpu_sampler_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_query_sampler_info';
+
+function _sg_wgpu_query_shader_info(shd: _sg_shader): _sg_wgpu_shader_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_query_shader_info';
+
+function _sg_wgpu_query_pipeline_info(pip: _sg_pipeline): _sg_wgpu_pipeline_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_query_pipeline_info';
+
+function _sg_wgpu_query_view_info(view: _sg_view): _sg_wgpu_view_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_wgpu_query_view_info';
+
+function _sg_gl_query_buffer_info(buf: _sg_buffer): _sg_gl_buffer_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_gl_query_buffer_info';
+
+function _sg_gl_query_image_info(img: _sg_image): _sg_gl_image_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_gl_query_image_info';
+
+function _sg_gl_query_sampler_info(smp: _sg_sampler): _sg_gl_sampler_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_gl_query_sampler_info';
+
+function _sg_gl_query_shader_info(shd: _sg_shader): _sg_gl_shader_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_gl_query_shader_info';
+
+function _sg_gl_query_view_info(view: _sg_view): _sg_gl_view_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sg_gl_query_view_info';
 
 procedure _sbasisu_setup(); cdecl;
   external _LIB_SOKOL name _PU + 'sbasisu_setup';
@@ -10412,6 +4860,12 @@ function _sbasisu_pixelformat(has_alpha: Boolean): _sg_pixel_format; cdecl;
 function _sokol_main(argc: Integer; argv: PPUTF8Char): _sapp_desc; cdecl;
   external _LIB_SOKOL name _PU + 'sokol_main';
 
+function _sapp_get_environment(): _sapp_environment; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_get_environment';
+
+function _sapp_acquire_swapchain(): _sapp_swapchain; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_acquire_swapchain';
+
 function _sapp_isvalid(): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_isvalid';
 
@@ -10427,10 +4881,10 @@ function _sapp_height(): Integer; cdecl;
 function _sapp_heightf(): Single; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_heightf';
 
-function _sapp_color_format(): Integer; cdecl;
+function _sapp_color_format(): _sapp_pixel_format; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_color_format';
 
-function _sapp_depth_format(): Integer; cdecl;
+function _sapp_depth_format(): _sapp_pixel_format; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_depth_format';
 
 function _sapp_sample_count(): Integer; cdecl;
@@ -10472,6 +4926,12 @@ procedure _sapp_set_mouse_cursor(cursor: _sapp_mouse_cursor); cdecl;
 function _sapp_get_mouse_cursor(): _sapp_mouse_cursor; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_get_mouse_cursor';
 
+function _sapp_bind_mouse_cursor_image(cursor: _sapp_mouse_cursor; const desc: _Psapp_image_desc): _sapp_mouse_cursor; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_bind_mouse_cursor_image';
+
+procedure _sapp_unbind_mouse_cursor_image(cursor: _sapp_mouse_cursor); cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_unbind_mouse_cursor_image';
+
 function _sapp_userdata(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_userdata';
 
@@ -10495,6 +4955,9 @@ function _sapp_frame_count(): UInt64; cdecl;
 
 function _sapp_frame_duration(): Double; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_frame_duration';
+
+function _sapp_frame_duration_unfiltered(): Double; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_frame_duration_unfiltered';
 
 procedure _sapp_set_clipboard_string(const str: PUTF8Char); cdecl;
   external _LIB_SOKOL name _PU + 'sapp_set_clipboard_string';
@@ -10523,9 +4986,6 @@ function _sapp_egl_get_display(): Pointer; cdecl;
 function _sapp_egl_get_context(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_egl_get_context';
 
-function _sapp_gles2(): Boolean; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_gles2';
-
 procedure _sapp_html5_ask_leave_site(ask: Boolean); cdecl;
   external _LIB_SOKOL name _PU + 'sapp_html5_ask_leave_site';
 
@@ -10535,53 +4995,38 @@ function _sapp_html5_get_dropped_file_size(index: Integer): UInt32; cdecl;
 procedure _sapp_html5_fetch_dropped_file(const request: _Psapp_html5_fetch_request); cdecl;
   external _LIB_SOKOL name _PU + 'sapp_html5_fetch_dropped_file';
 
-function _sapp_metal_get_device(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_metal_get_device';
-
-function _sapp_metal_get_renderpass_descriptor(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_metal_get_renderpass_descriptor';
-
-function _sapp_metal_get_drawable(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_metal_get_drawable';
-
 function _sapp_macos_get_window(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_macos_get_window';
 
 function _sapp_ios_get_window(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_ios_get_window';
 
-function _sapp_d3d11_get_device(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_d3d11_get_device';
-
-function _sapp_d3d11_get_device_context(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_d3d11_get_device_context';
-
 function _sapp_d3d11_get_swap_chain(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_d3d11_get_swap_chain';
-
-function _sapp_d3d11_get_render_target_view(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_d3d11_get_render_target_view';
-
-function _sapp_d3d11_get_depth_stencil_view(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_d3d11_get_depth_stencil_view';
 
 function _sapp_win32_get_hwnd(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_win32_get_hwnd';
 
-function _sapp_wgpu_get_device(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_wgpu_get_device';
+function _sapp_gl_get_major_version(): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_gl_get_major_version';
 
-function _sapp_wgpu_get_render_view(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_wgpu_get_render_view';
+function _sapp_gl_get_minor_version(): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_gl_get_minor_version';
 
-function _sapp_wgpu_get_resolve_view(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_wgpu_get_resolve_view';
+function _sapp_gl_is_gles(): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_gl_is_gles';
 
-function _sapp_wgpu_get_depth_stencil_view(): Pointer; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_wgpu_get_depth_stencil_view';
+function _sapp_x11_get_window(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_x11_get_window';
+
+function _sapp_x11_get_display(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_x11_get_display';
 
 function _sapp_android_get_native_activity(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'sapp_android_get_native_activity';
+
+function _sapp_android_get_native_window(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'sapp_android_get_native_window';
 
 procedure _sargs_setup(const desc: _Psargs_desc); cdecl;
   external _LIB_SOKOL name _PU + 'sargs_setup';
@@ -10652,8 +5097,14 @@ function _saudio_expect(): Integer; cdecl;
 function _saudio_push(const frames: PSingle; num_frames: Integer): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'saudio_push';
 
-function _sapp_sgcontext(): _sg_context_desc; cdecl;
-  external _LIB_SOKOL name _PU + 'sapp_sgcontext';
+function _sglue_environment(): _sg_environment; cdecl;
+  external _LIB_SOKOL name _PU + 'sglue_environment';
+
+function _sglue_swapchain(): _sg_swapchain; cdecl;
+  external _LIB_SOKOL name _PU + 'sglue_swapchain';
+
+procedure _slog_func(const tag: PUTF8Char; log_level: UInt32; log_item: UInt32; const &message: PUTF8Char; line_nr: UInt32; const filename: PUTF8Char; user_data: Pointer); cdecl;
+  external _LIB_SOKOL name _PU + 'slog_func';
 
 procedure _stm_setup(); cdecl;
   external _LIB_SOKOL name _PU + 'stm_setup';
@@ -10684,6 +5135,51 @@ function _stm_us(ticks: UInt64): Double; cdecl;
 
 function _stm_ns(ticks: UInt64): Double; cdecl;
   external _LIB_SOKOL name _PU + 'stm_ns';
+
+procedure _sappimgui_setup(); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_setup';
+
+procedure _sappimgui_shutdown(); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_shutdown';
+
+procedure _sappimgui_track_frame(); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_track_frame';
+
+procedure _sappimgui_track_event(const ev: _Psapp_event); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_track_event';
+
+procedure _sappimgui_draw(); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw';
+
+procedure _sappimgui_draw_menu(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_menu';
+
+procedure _sappimgui_draw_hud_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_hud_window_content';
+
+procedure _sappimgui_draw_publicstate_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_publicstate_window_content';
+
+procedure _sappimgui_draw_event_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_event_window_content';
+
+procedure _sappimgui_draw_hud_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_hud_window';
+
+procedure _sappimgui_draw_publicstate_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_publicstate_window';
+
+procedure _sappimgui_draw_event_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_event_window';
+
+procedure _sappimgui_draw_hud_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_hud_menu_item';
+
+procedure _sappimgui_draw_publicstate_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_publicstate_menu_item';
+
+procedure _sappimgui_draw_event_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sappimgui_draw_event_menu_item';
 
 function _sg_make_color_4b(r: UInt8; g: UInt8; b: UInt8; a: UInt8): _sg_color; cdecl;
   external _LIB_SOKOL name _PU + 'sg_make_color_4b';
@@ -10741,6 +5237,18 @@ function _sdtx_default_context(): _sdtx_context; cdecl;
 
 procedure _sdtx_draw(); cdecl;
   external _LIB_SOKOL name _PU + 'sdtx_draw';
+
+procedure _sdtx_context_draw(ctx: _sdtx_context); cdecl;
+  external _LIB_SOKOL name _PU + 'sdtx_context_draw';
+
+procedure _sdtx_draw_layer(layer_id: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sdtx_draw_layer';
+
+procedure _sdtx_context_draw_layer(ctx: _sdtx_context; layer_id: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sdtx_context_draw_layer';
+
+procedure _sdtx_layer(layer_id: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sdtx_layer';
 
 procedure _sdtx_font(font_index: Integer); cdecl;
   external _LIB_SOKOL name _PU + 'sdtx_font';
@@ -10805,6 +5313,9 @@ function _sdtx_printf(const fmt: PUTF8Char): Integer varargs; cdecl;
 function _sdtx_vprintf(const fmt: PUTF8Char; args: Pointer): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sdtx_vprintf';
 
+function _sdtx_get_cleared_fmt_buffer(): _sdtx_range; cdecl;
+  external _LIB_SOKOL name _PU + 'sdtx_get_cleared_fmt_buffer';
+
 function _sfons_create(const desc: _Psfons_desc_t): _PFONScontext; cdecl;
   external _LIB_SOKOL name _PU + 'sfons_create';
 
@@ -10817,56 +5328,131 @@ procedure _sfons_flush(ctx: _PFONScontext); cdecl;
 function _sfons_rgba(r: UInt8; g: UInt8; b: UInt8; a: UInt8): UInt32; cdecl;
   external _LIB_SOKOL name _PU + 'sfons_rgba';
 
-procedure _sg_imgui_init(ctx: _Psg_imgui_t; const desc: _Psg_imgui_desc_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_init';
+procedure _sfb_setup(const desc: _Psfb_desc); cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_setup';
 
-procedure _sg_imgui_discard(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_discard';
+procedure _sfb_shutdown(); cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_shutdown';
 
-procedure _sg_imgui_draw(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw';
+function _sfb_make_framebuffer(const desc: _Psfb_framebuffer_desc): _sfb_framebuffer; cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_make_framebuffer';
 
-procedure _sg_imgui_draw_buffers_content(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_buffers_content';
+procedure _sfb_destroy_framebuffer(fb: _sfb_framebuffer); cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_destroy_framebuffer';
 
-procedure _sg_imgui_draw_images_content(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_images_content';
+function _sfb_resize(fb: _sfb_framebuffer; const desc: _Psfb_resize_desc): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_resize';
 
-procedure _sg_imgui_draw_shaders_content(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_shaders_content';
+procedure _sfb_update(fb: _sfb_framebuffer; const desc: _Psfb_update_desc); cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_update';
 
-procedure _sg_imgui_draw_pipelines_content(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_pipelines_content';
+procedure _sfb_render(fb: _sfb_framebuffer); cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_render';
 
-procedure _sg_imgui_draw_passes_content(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_passes_content';
+procedure _sfb_render_ex(fb: _sfb_framebuffer; const desc: _Psfb_render_desc); cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_render_ex';
 
-procedure _sg_imgui_draw_capture_content(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_capture_content';
+function _sfb_query_framebuffer_state(fb: _sfb_framebuffer): _sfb_resource_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_query_framebuffer_state';
 
-procedure _sg_imgui_draw_capabilities_content(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_capabilities_content';
+function _sfb_query_framebuffer_info(fb: _sfb_framebuffer): _sfb_framebuffer_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_query_framebuffer_info';
 
-procedure _sg_imgui_draw_buffers_window(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_buffers_window';
+function _sfb_query_framebuffer_desc(fb: _sfb_framebuffer): _sfb_framebuffer_desc; cdecl;
+  external _LIB_SOKOL name _PU + 'sfb_query_framebuffer_desc';
 
-procedure _sg_imgui_draw_images_window(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_images_window';
+procedure _sgimgui_setup(const desc: _Psgimgui_desc_t); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_setup';
 
-procedure _sg_imgui_draw_shaders_window(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_shaders_window';
+procedure _sgimgui_shutdown(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_shutdown';
 
-procedure _sg_imgui_draw_pipelines_window(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_pipelines_window';
+procedure _sgimgui_draw(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw';
 
-procedure _sg_imgui_draw_passes_window(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_passes_window';
+procedure _sgimgui_draw_menu(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_menu';
 
-procedure _sg_imgui_draw_capture_window(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_capture_window';
+procedure _sgimgui_draw_buffer_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_buffer_window_content';
 
-procedure _sg_imgui_draw_capabilities_window(ctx: _Psg_imgui_t); cdecl;
-  external _LIB_SOKOL name _PU + 'sg_imgui_draw_capabilities_window';
+procedure _sgimgui_draw_image_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_image_window_content';
+
+procedure _sgimgui_draw_sampler_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_sampler_window_content';
+
+procedure _sgimgui_draw_shader_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_shader_window_content';
+
+procedure _sgimgui_draw_pipeline_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_pipeline_window_content';
+
+procedure _sgimgui_draw_view_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_view_window_content';
+
+procedure _sgimgui_draw_capture_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_capture_window_content';
+
+procedure _sgimgui_draw_capabilities_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_capabilities_window_content';
+
+procedure _sgimgui_draw_frame_stats_window_content(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_frame_stats_window_content';
+
+procedure _sgimgui_draw_buffer_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_buffer_window';
+
+procedure _sgimgui_draw_image_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_image_window';
+
+procedure _sgimgui_draw_sampler_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_sampler_window';
+
+procedure _sgimgui_draw_shader_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_shader_window';
+
+procedure _sgimgui_draw_pipeline_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_pipeline_window';
+
+procedure _sgimgui_draw_view_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_view_window';
+
+procedure _sgimgui_draw_capture_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_capture_window';
+
+procedure _sgimgui_draw_capabilities_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_capabilities_window';
+
+procedure _sgimgui_draw_frame_stats_window(const title: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_frame_stats_window';
+
+procedure _sgimgui_draw_buffer_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_buffer_menu_item';
+
+procedure _sgimgui_draw_image_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_image_menu_item';
+
+procedure _sgimgui_draw_sampler_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_sampler_menu_item';
+
+procedure _sgimgui_draw_shader_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_shader_menu_item';
+
+procedure _sgimgui_draw_pipeline_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_pipeline_menu_item';
+
+procedure _sgimgui_draw_view_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_view_menu_item';
+
+procedure _sgimgui_draw_capture_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_capture_menu_item';
+
+procedure _sgimgui_draw_capabilities_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_capabilities_menu_item';
+
+procedure _sgimgui_draw_frame_stats_menu_item(const &label: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'sgimgui_draw_frame_stats_menu_item';
 
 procedure _sgl_setup(const desc: _Psgl_desc_t); cdecl;
   external _LIB_SOKOL name _PU + 'sgl_setup';
@@ -10901,6 +5487,24 @@ function _sgl_get_context(): _sgl_context; cdecl;
 function _sgl_default_context(): _sgl_context; cdecl;
   external _LIB_SOKOL name _PU + 'sgl_default_context';
 
+function _sgl_num_vertices(): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_num_vertices';
+
+function _sgl_num_commands(): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_num_commands';
+
+procedure _sgl_draw(); cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_draw';
+
+procedure _sgl_context_draw(ctx: _sgl_context); cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_context_draw';
+
+procedure _sgl_draw_layer(layer_id: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_draw_layer';
+
+procedure _sgl_context_draw_layer(ctx: _sgl_context; layer_id: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_context_draw_layer';
+
 function _sgl_make_pipeline(const desc: _Psg_pipeline_desc): _sgl_pipeline; cdecl;
   external _LIB_SOKOL name _PU + 'sgl_make_pipeline';
 
@@ -10931,8 +5535,11 @@ procedure _sgl_enable_texture(); cdecl;
 procedure _sgl_disable_texture(); cdecl;
   external _LIB_SOKOL name _PU + 'sgl_disable_texture';
 
-procedure _sgl_texture(img: _sg_image); cdecl;
+procedure _sgl_texture(tex_view: _sg_view; smp: _sg_sampler); cdecl;
   external _LIB_SOKOL name _PU + 'sgl_texture';
+
+procedure _sgl_layer(layer_id: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_layer';
 
 procedure _sgl_load_default_pipeline(); cdecl;
   external _LIB_SOKOL name _PU + 'sgl_load_default_pipeline';
@@ -11111,12 +5718,6 @@ procedure _sgl_v3f_t2f_c1i(x: Single; y: Single; z: Single; u: Single; v: Single
 procedure _sgl_end(); cdecl;
   external _LIB_SOKOL name _PU + 'sgl_end';
 
-procedure _sgl_draw(); cdecl;
-  external _LIB_SOKOL name _PU + 'sgl_draw';
-
-procedure _sgl_context_draw(ctx: _sgl_context); cdecl;
-  external _LIB_SOKOL name _PU + 'sgl_context_draw';
-
 procedure _simgui_setup(const desc: _Psimgui_desc_t); cdecl;
   external _LIB_SOKOL name _PU + 'simgui_setup';
 
@@ -11126,6 +5727,45 @@ procedure _simgui_new_frame(const desc: _Psimgui_frame_desc_t); cdecl;
 procedure _simgui_render(); cdecl;
   external _LIB_SOKOL name _PU + 'simgui_render';
 
+function _simgui_imtextureid(tex_view: _sg_view): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_imtextureid';
+
+function _simgui_imtextureid_with_sampler(tex_view: _sg_view; smp: _sg_sampler): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_imtextureid_with_sampler';
+
+function _simgui_texture_view_from_imtextureid(imtex_id: UInt64): _sg_view; cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_texture_view_from_imtextureid';
+
+function _simgui_sampler_from_imtextureid(imtex_id: UInt64): _sg_sampler; cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_sampler_from_imtextureid';
+
+procedure _simgui_add_focus_event(focus: Boolean); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_focus_event';
+
+procedure _simgui_add_mouse_pos_event(x: Single; y: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_mouse_pos_event';
+
+procedure _simgui_add_touch_pos_event(x: Single; y: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_touch_pos_event';
+
+procedure _simgui_add_mouse_button_event(mouse_button: Integer; down: Boolean); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_mouse_button_event';
+
+procedure _simgui_add_mouse_wheel_event(wheel_x: Single; wheel_y: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_mouse_wheel_event';
+
+procedure _simgui_add_key_event(imgui_key: Integer; down: Boolean); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_key_event';
+
+procedure _simgui_add_input_character(c: UInt32); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_input_character';
+
+procedure _simgui_add_input_characters_utf8(const c: PUTF8Char); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_input_characters_utf8';
+
+procedure _simgui_add_touch_button_event(mouse_button: Integer; down: Boolean); cdecl;
+  external _LIB_SOKOL name _PU + 'simgui_add_touch_button_event';
+
 function _simgui_handle_event(const ev: _Psapp_event): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'simgui_handle_event';
 
@@ -11134,6 +5774,9 @@ function _simgui_map_keycode(keycode: _sapp_keycode): Integer; cdecl;
 
 procedure _simgui_shutdown(); cdecl;
   external _LIB_SOKOL name _PU + 'simgui_shutdown';
+
+function _slbx_letterbox(width: Integer; height: Integer; const desc: _Pslbx_letterbox_desc): _slbx_viewport; cdecl;
+  external _LIB_SOKOL name _PU + 'slbx_letterbox';
 
 function _smemtrack_info(): _smemtrack_info_t; cdecl;
   external _LIB_SOKOL name _PU + 'smemtrack_info';
@@ -11183,20 +5826,20 @@ function _sshape_vertex_buffer_desc(const buf: _Psshape_buffer_t): _sg_buffer_de
 function _sshape_index_buffer_desc(const buf: _Psshape_buffer_t): _sg_buffer_desc; cdecl;
   external _LIB_SOKOL name _PU + 'sshape_index_buffer_desc';
 
-function _sshape_buffer_layout_desc(): _sg_buffer_layout_desc; cdecl;
-  external _LIB_SOKOL name _PU + 'sshape_buffer_layout_desc';
+function _sshape_vertex_buffer_layout_state(): _sg_vertex_buffer_layout_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sshape_vertex_buffer_layout_state';
 
-function _sshape_position_attr_desc(): _sg_vertex_attr_desc; cdecl;
-  external _LIB_SOKOL name _PU + 'sshape_position_attr_desc';
+function _sshape_position_vertex_attr_state(): _sg_vertex_attr_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sshape_position_vertex_attr_state';
 
-function _sshape_normal_attr_desc(): _sg_vertex_attr_desc; cdecl;
-  external _LIB_SOKOL name _PU + 'sshape_normal_attr_desc';
+function _sshape_normal_vertex_attr_state(): _sg_vertex_attr_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sshape_normal_vertex_attr_state';
 
-function _sshape_texcoord_attr_desc(): _sg_vertex_attr_desc; cdecl;
-  external _LIB_SOKOL name _PU + 'sshape_texcoord_attr_desc';
+function _sshape_texcoord_vertex_attr_state(): _sg_vertex_attr_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sshape_texcoord_vertex_attr_state';
 
-function _sshape_color_attr_desc(): _sg_vertex_attr_desc; cdecl;
-  external _LIB_SOKOL name _PU + 'sshape_color_attr_desc';
+function _sshape_color_vertex_attr_state(): _sg_vertex_attr_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sshape_color_vertex_attr_state';
 
 function _sshape_color_4f(r: Single; g: Single; b: Single; a: Single): UInt32; cdecl;
   external _LIB_SOKOL name _PU + 'sshape_color_4f';
@@ -11215,6 +5858,342 @@ function _sshape_mat4(m: PSingle): _sshape_mat4_t; cdecl;
 
 function _sshape_mat4_transpose(m: PSingle): _sshape_mat4_t; cdecl;
   external _LIB_SOKOL name _PU + 'sshape_mat4_transpose';
+
+procedure _sspine_setup(const desc: _Psspine_desc); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_setup';
+
+procedure _sspine_shutdown(); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_shutdown';
+
+function _sspine_make_context(const desc: _Psspine_context_desc): _sspine_context; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_make_context';
+
+procedure _sspine_destroy_context(ctx: _sspine_context); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_destroy_context';
+
+procedure _sspine_set_context(ctx: _sspine_context); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_context';
+
+function _sspine_get_context(): _sspine_context; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_context';
+
+function _sspine_default_context(): _sspine_context; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_default_context';
+
+function _sspine_get_context_info(ctx: _sspine_context): _sspine_context_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_context_info';
+
+function _sspine_make_atlas(const desc: _Psspine_atlas_desc): _sspine_atlas; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_make_atlas';
+
+function _sspine_make_skeleton(const desc: _Psspine_skeleton_desc): _sspine_skeleton; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_make_skeleton';
+
+function _sspine_make_skinset(const desc: _Psspine_skinset_desc): _sspine_skinset; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_make_skinset';
+
+function _sspine_make_instance(const desc: _Psspine_instance_desc): _sspine_instance; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_make_instance';
+
+procedure _sspine_destroy_atlas(atlas: _sspine_atlas); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_destroy_atlas';
+
+procedure _sspine_destroy_skeleton(skeleton: _sspine_skeleton); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_destroy_skeleton';
+
+procedure _sspine_destroy_skinset(skinset: _sspine_skinset); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_destroy_skinset';
+
+procedure _sspine_destroy_instance(instance: _sspine_instance); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_destroy_instance';
+
+procedure _sspine_set_skinset(instance: _sspine_instance; skinset: _sspine_skinset); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_skinset';
+
+procedure _sspine_update_instance(instance: _sspine_instance; delta_time: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_update_instance';
+
+function _sspine_num_triggered_events(instance: _sspine_instance): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_triggered_events';
+
+function _sspine_get_triggered_event_info(instance: _sspine_instance; triggered_event_index: Integer): _sspine_triggered_event_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_triggered_event_info';
+
+procedure _sspine_draw_instance_in_layer(instance: _sspine_instance; layer: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_draw_instance_in_layer';
+
+procedure _sspine_context_draw_instance_in_layer(ctx: _sspine_context; instance: _sspine_instance; layer: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_context_draw_instance_in_layer';
+
+function _sspine_layer_transform_to_mat4(const tform: _Psspine_layer_transform): _sspine_mat4; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_layer_transform_to_mat4';
+
+procedure _sspine_draw_layer(layer: Integer; const tform: _Psspine_layer_transform); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_draw_layer';
+
+procedure _sspine_context_draw_layer(ctx: _sspine_context; layer: Integer; const tform: _Psspine_layer_transform); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_context_draw_layer';
+
+function _sspine_get_context_resource_state(context: _sspine_context): _sspine_resource_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_context_resource_state';
+
+function _sspine_get_atlas_resource_state(atlas: _sspine_atlas): _sspine_resource_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_atlas_resource_state';
+
+function _sspine_get_skeleton_resource_state(skeleton: _sspine_skeleton): _sspine_resource_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_skeleton_resource_state';
+
+function _sspine_get_skinset_resource_state(skinset: _sspine_skinset): _sspine_resource_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_skinset_resource_state';
+
+function _sspine_get_instance_resource_state(instance: _sspine_instance): _sspine_resource_state; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_instance_resource_state';
+
+function _sspine_context_valid(context: _sspine_context): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_context_valid';
+
+function _sspine_atlas_valid(atlas: _sspine_atlas): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_atlas_valid';
+
+function _sspine_skeleton_valid(skeleton: _sspine_skeleton): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_skeleton_valid';
+
+function _sspine_instance_valid(instance: _sspine_instance): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_instance_valid';
+
+function _sspine_skinset_valid(skinset: _sspine_skinset): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_skinset_valid';
+
+function _sspine_get_skeleton_atlas(skeleton: _sspine_skeleton): _sspine_atlas; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_skeleton_atlas';
+
+function _sspine_get_instance_skeleton(instance: _sspine_instance): _sspine_skeleton; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_instance_skeleton';
+
+function _sspine_num_images(atlas: _sspine_atlas): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_images';
+
+function _sspine_image_by_index(atlas: _sspine_atlas; index: Integer): _sspine_image; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_image_by_index';
+
+function _sspine_image_valid(image: _sspine_image): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_image_valid';
+
+function _sspine_image_equal(first: _sspine_image; second: _sspine_image): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_image_equal';
+
+function _sspine_get_image_info(image: _sspine_image): _sspine_image_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_image_info';
+
+function _sspine_num_atlas_pages(atlas: _sspine_atlas): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_atlas_pages';
+
+function _sspine_atlas_page_by_index(atlas: _sspine_atlas; index: Integer): _sspine_atlas_page; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_atlas_page_by_index';
+
+function _sspine_atlas_page_valid(page: _sspine_atlas_page): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_atlas_page_valid';
+
+function _sspine_atlas_page_equal(first: _sspine_atlas_page; second: _sspine_atlas_page): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_atlas_page_equal';
+
+function _sspine_get_atlas_page_info(page: _sspine_atlas_page): _sspine_atlas_page_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_atlas_page_info';
+
+procedure _sspine_set_position(instance: _sspine_instance; position: _sspine_vec2); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_position';
+
+procedure _sspine_set_scale(instance: _sspine_instance; scale: _sspine_vec2); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_scale';
+
+procedure _sspine_set_color(instance: _sspine_instance; color: _sspine_color); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_color';
+
+function _sspine_get_position(instance: _sspine_instance): _sspine_vec2; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_position';
+
+function _sspine_get_scale(instance: _sspine_instance): _sspine_vec2; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_scale';
+
+function _sspine_get_color(instance: _sspine_instance): _sspine_color; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_color';
+
+function _sspine_num_anims(skeleton: _sspine_skeleton): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_anims';
+
+function _sspine_anim_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): _sspine_anim; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_anim_by_name';
+
+function _sspine_anim_by_index(skeleton: _sspine_skeleton; index: Integer): _sspine_anim; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_anim_by_index';
+
+function _sspine_anim_valid(anim: _sspine_anim): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_anim_valid';
+
+function _sspine_anim_equal(first: _sspine_anim; second: _sspine_anim): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_anim_equal';
+
+function _sspine_get_anim_info(anim: _sspine_anim): _sspine_anim_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_anim_info';
+
+procedure _sspine_clear_animation_tracks(instance: _sspine_instance); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_clear_animation_tracks';
+
+procedure _sspine_clear_animation_track(instance: _sspine_instance; track_index: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_clear_animation_track';
+
+procedure _sspine_set_animation(instance: _sspine_instance; anim: _sspine_anim; track_index: Integer; loop: Boolean); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_animation';
+
+procedure _sspine_add_animation(instance: _sspine_instance; anim: _sspine_anim; track_index: Integer; loop: Boolean; delay: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_add_animation';
+
+procedure _sspine_set_empty_animation(instance: _sspine_instance; track_index: Integer; mix_duration: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_empty_animation';
+
+procedure _sspine_add_empty_animation(instance: _sspine_instance; track_index: Integer; mix_duration: Single; delay: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_add_empty_animation';
+
+function _sspine_num_bones(skeleton: _sspine_skeleton): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_bones';
+
+function _sspine_bone_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): _sspine_bone; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_by_name';
+
+function _sspine_bone_by_index(skeleton: _sspine_skeleton; index: Integer): _sspine_bone; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_by_index';
+
+function _sspine_bone_valid(bone: _sspine_bone): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_valid';
+
+function _sspine_bone_equal(first: _sspine_bone; second: _sspine_bone): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_equal';
+
+function _sspine_get_bone_info(bone: _sspine_bone): _sspine_bone_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_info';
+
+procedure _sspine_set_bone_transform(instance: _sspine_instance; bone: _sspine_bone; const transform: _Psspine_bone_transform); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_bone_transform';
+
+procedure _sspine_set_bone_position(instance: _sspine_instance; bone: _sspine_bone; position: _sspine_vec2); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_bone_position';
+
+procedure _sspine_set_bone_rotation(instance: _sspine_instance; bone: _sspine_bone; rotation: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_bone_rotation';
+
+procedure _sspine_set_bone_scale(instance: _sspine_instance; bone: _sspine_bone; scale: _sspine_vec2); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_bone_scale';
+
+procedure _sspine_set_bone_shear(instance: _sspine_instance; bone: _sspine_bone; shear: _sspine_vec2); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_bone_shear';
+
+function _sspine_get_bone_transform(instance: _sspine_instance; bone: _sspine_bone): _sspine_bone_transform; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_transform';
+
+function _sspine_get_bone_position(instance: _sspine_instance; bone: _sspine_bone): _sspine_vec2; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_position';
+
+function _sspine_get_bone_rotation(instance: _sspine_instance; bone: _sspine_bone): Single; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_rotation';
+
+function _sspine_get_bone_scale(instance: _sspine_instance; bone: _sspine_bone): _sspine_vec2; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_scale';
+
+function _sspine_get_bone_shear(instance: _sspine_instance; bone: _sspine_bone): _sspine_vec2; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_shear';
+
+function _sspine_get_bone_world_position(instance: _sspine_instance; bone: _sspine_bone): _sspine_vec2; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_world_position';
+
+function _sspine_bone_local_to_world(instance: _sspine_instance; bone: _sspine_bone; local_pos: _sspine_vec2): _sspine_vec2; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_local_to_world';
+
+function _sspine_bone_world_to_local(instance: _sspine_instance; bone: _sspine_bone; world_pos: _sspine_vec2): _sspine_vec2; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_world_to_local';
+
+function _sspine_num_slots(skeleton: _sspine_skeleton): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_slots';
+
+function _sspine_slot_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): _sspine_slot; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_slot_by_name';
+
+function _sspine_slot_by_index(skeleton: _sspine_skeleton; index: Integer): _sspine_slot; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_slot_by_index';
+
+function _sspine_slot_valid(slot: _sspine_slot): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_slot_valid';
+
+function _sspine_slot_equal(first: _sspine_slot; second: _sspine_slot): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_slot_equal';
+
+function _sspine_get_slot_info(slot: _sspine_slot): _sspine_slot_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_slot_info';
+
+procedure _sspine_set_slot_color(instance: _sspine_instance; slot: _sspine_slot; color: _sspine_color); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_slot_color';
+
+function _sspine_get_slot_color(instance: _sspine_instance; slot: _sspine_slot): _sspine_color; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_slot_color';
+
+function _sspine_num_events(skeleton: _sspine_skeleton): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_events';
+
+function _sspine_event_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): _sspine_event; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_event_by_name';
+
+function _sspine_event_by_index(skeleton: _sspine_skeleton; index: Integer): _sspine_event; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_event_by_index';
+
+function _sspine_event_valid(event: _sspine_event): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_event_valid';
+
+function _sspine_event_equal(first: _sspine_event; second: _sspine_event): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_event_equal';
+
+function _sspine_get_event_info(event: _sspine_event): _sspine_event_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_event_info';
+
+function _sspine_num_iktargets(skeleton: _sspine_skeleton): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_iktargets';
+
+function _sspine_iktarget_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): _sspine_iktarget; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_iktarget_by_name';
+
+function _sspine_iktarget_by_index(skeleton: _sspine_skeleton; index: Integer): _sspine_iktarget; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_iktarget_by_index';
+
+function _sspine_iktarget_valid(iktarget: _sspine_iktarget): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_iktarget_valid';
+
+function _sspine_iktarget_equal(first: _sspine_iktarget; second: _sspine_iktarget): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_iktarget_equal';
+
+function _sspine_get_iktarget_info(iktarget: _sspine_iktarget): _sspine_iktarget_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_iktarget_info';
+
+procedure _sspine_set_iktarget_world_pos(instance: _sspine_instance; iktarget: _sspine_iktarget; world_pos: _sspine_vec2); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_iktarget_world_pos';
+
+function _sspine_num_skins(skeleton: _sspine_skeleton): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_num_skins';
+
+function _sspine_skin_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): _sspine_skin; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_skin_by_name';
+
+function _sspine_skin_by_index(skeleton: _sspine_skeleton; index: Integer): _sspine_skin; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_skin_by_index';
+
+function _sspine_skin_valid(skin: _sspine_skin): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_skin_valid';
+
+function _sspine_skin_equal(first: _sspine_skin; second: _sspine_skin): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_skin_equal';
+
+function _sspine_get_skin_info(skin: _sspine_skin): _sspine_skin_info; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_skin_info';
+
+procedure _sspine_set_skin(instance: _sspine_instance; skin: _sspine_skin); cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_set_skin';
 
 implementation
 

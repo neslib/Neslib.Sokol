@@ -27,8 +27,8 @@
         sg_setup(&(sg_desc){
             //...
             .allocator = {
-                .alloc = smemtrack_alloc,
-                .free = smemtrack_free,
+                .alloc_fn = smemtrack_alloc,
+                .free_fn = smemtrack_free,
             }
         });
 
@@ -115,7 +115,7 @@ SOKOL_MEMTRACK_API_DECL void smemtrack_free(void* ptr, void* user_data);
 #endif
 #ifndef SOKOL_DEBUG
     #ifndef NDEBUG
-        #define SOKOL_DEBUG (1)
+        #define SOKOL_DEBUG
     #endif
 #endif
 #ifndef _SOKOL_PRIVATE

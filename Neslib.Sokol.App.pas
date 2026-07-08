@@ -16,23 +16,27 @@ uses
   Neslib.Sokol.Api;
 
 type
-  { Supported color formats for the application window.
-    Is a subset of the TPixelFormat enum in the Neslib.Sokol.Gfx unit. }
-  TColorFormat = (
+  { Defines the pixel format for swapchain surfaces.
+
+    NOTE: DO NOT directly cast this enum to Neslib.Sokol.Gfx's TPixelFormat;
+    The enum values are totally different! }
+  TAppPixelFormat = (
+    Default      = __SAPP_PIXELFORMAT_DEFAULT,
+    None         = _SAPP_PIXELFORMAT_NONE,
+
     { 8-bit color channels in RGBA order.
       Used for OpenGL (Android) backends. }
-    RGBA8 = _SG_PIXELFORMAT_RGBA8,
+    RGBA8        = _SAPP_PIXELFORMAT_RGBA8,
+    SRGB8A8      = _SAPP_PIXELFORMAT_SRGB8A8,
 
     { 8-bit color channels in BGRA order.
       Used for DirectX (Windows) and Metal (iOS/macOS) backends. }
-    BGRA8 = _SG_PIXELFORMAT_BGRA8);
+    BGRA8        = _SAPP_PIXELFORMAT_BGRA8,
+    SBGR8A8      = _SAPP_PIXELFORMAT_SBGR8A8,
 
-type
-  { Supported depth formats for the application window.
-    Is a subset of the TPixelFormat enum in the Neslib.Sokol.Gfx unit. }
-  TDepthFormat = (
-    Depth        = _SG_PIXELFORMAT_DEPTH,
-    DepthStencil = _SG_PIXELFORMAT_DEPTH_STENCIL);
+    RGBA16F      = _SAPP_PIXELFORMAT_RGBA16F,
+    Depth        = _SAPP_PIXELFORMAT_DEPTH,
+    DepthStencil = _SAPP_PIXELFORMAT_DEPTH_STENCIL);
 
 type
   { Predefined cursor image definitions. }
@@ -48,7 +52,23 @@ type
     ResizeNWSE   = _SAPP_MOUSECURSOR_RESIZE_NWSE,
     ResizeNESW   = _SAPP_MOUSECURSOR_RESIZE_NESW,
     ResizeAll    = _SAPP_MOUSECURSOR_RESIZE_ALL,
-    NotAllowed   = _SAPP_MOUSECURSOR_NOT_ALLOWED);
+    NotAllowed   = _SAPP_MOUSECURSOR_NOT_ALLOWED,
+    Custom0      = _SAPP_MOUSECURSOR_CUSTOM_0,
+    Custom1      = _SAPP_MOUSECURSOR_CUSTOM_1,
+    Custom2      = _SAPP_MOUSECURSOR_CUSTOM_2,
+    Custom3      = _SAPP_MOUSECURSOR_CUSTOM_3,
+    Custom4      = _SAPP_MOUSECURSOR_CUSTOM_4,
+    Custom5      = _SAPP_MOUSECURSOR_CUSTOM_5,
+    Custom6      = _SAPP_MOUSECURSOR_CUSTOM_6,
+    Custom7      = _SAPP_MOUSECURSOR_CUSTOM_7,
+    Custom8      = _SAPP_MOUSECURSOR_CUSTOM_8,
+    Custom9      = _SAPP_MOUSECURSOR_CUSTOM_9,
+    Custom10     = _SAPP_MOUSECURSOR_CUSTOM_10,
+    Custom11     = _SAPP_MOUSECURSOR_CUSTOM_11,
+    Custom12     = _SAPP_MOUSECURSOR_CUSTOM_12,
+    Custom13     = _SAPP_MOUSECURSOR_CUSTOM_13,
+    Custom14     = _SAPP_MOUSECURSOR_CUSTOM_14,
+    Custom15     = _SAPP_MOUSECURSOR_CUSTOM_15);
 
 type
   { Mouse buttons }
@@ -276,27 +296,177 @@ type
     Menu             = 348);
 
 type
-  { This is used to describe image data (at first, window icons, later maybe
-    cursor images).
+  { Log levels }
+  TLogLevel = (Panic, Error, Warning, Info);
 
-    Note that the actual image pixel format depends on the use case:
-    - window icon pixels are RGBA8
-    - cursor images are ??? (FIXME) }
+type
+  { Log items }
+  TLogItem = (
+    Ok,
+    MallocFailed,
+    SwapchainDepthformatInvalid,
+    MacosInvalidNsopenglProfile,
+    MetalCreateSwapchainDepthTextureFailed,
+    MetalCreateSwapchainMsaaTextureFailed,
+    Win32LoadOpengl32DllFailed,
+    Win32CreateHelperWindowFailed,
+    Win32HelperWindowGetdcFailed,
+    Win32DummyContextSetPixelformatFailed,
+    Win32CreateDummyContextFailed,
+    Win32DummyContextMakeCurrentFailed,
+    Win32GetPixelformatAttribFailed,
+    Win32WglFindPixelformatFailed,
+    Win32WglDescribePixelformatFailed,
+    Win32WglSetPixelformatFailed,
+    Win32WglArbCreateContextRequired,
+    Win32WglArbCreateContextProfileRequired,
+    Win32WglOpenglVersionNotSupported,
+    Win32WglOpenglProfileNotSupported,
+    Win32WglIncompatibleDeviceContext,
+    Win32WglCreateContextAttribsFailedOther,
+    Win32D3d11CreateDeviceAndSwapchainWithDebugFailed,
+    Win32D3d11GetIdxgifactoryFailed,
+    Win32D3d11GetIdxgiadapterFailed,
+    Win32D3d11QueryInterfaceIdxgidevice1Failed,
+    Win32RegisterRawInputDevicesFailedMouseLock,
+    Win32RegisterRawInputDevicesFailedMouseUnlock,
+    Win32GetRawInputDataFailed,
+    Win32DestroyiconForCursorFailed,
+    LinuxGlxLoadLibglFailed,
+    LinuxGlxLoadEntryPointsFailed,
+    LinuxGlxExtensionNotFound,
+    LinuxGlxQueryVersionFailed,
+    LinuxGlxVersionTooLow,
+    LinuxGlxNoGlxfbconfigs,
+    LinuxGlxNoSuitableGlxfbconfig,
+    LinuxGlxGetVisualFromFbconfigFailed,
+    LinuxGlxRequiredExtensionsMissing,
+    LinuxGlxCreateContextFailed,
+    LinuxGlxCreateWindowFailed,
+    LinuxX11CreateWindowFailed,
+    LinuxEglBindOpenglApiFailed,
+    LinuxEglBindOpenglEsApiFailed,
+    LinuxEglGetDisplayFailed,
+    LinuxEglInitializeFailed,
+    LinuxEglNoConfigs,
+    LinuxEglNoNativeVisual,
+    LinuxEglGetVisualInfoFailed,
+    LinuxEglCreateWindowSurfaceFailed,
+    LinuxEglCreateContextFailed,
+    LinuxEglMakeCurrentFailed,
+    LinuxX11OpenDisplayFailed,
+    LinuxX11QuerySystemDpiFailed,
+    LinuxX11DroppedFileUriWrongScheme,
+    LinuxX11FailedToBecomeOwnerOfClipboard,
+    AndroidUnsupportedInputEventInputCb,
+    AndroidUnsupportedInputEventMainCb,
+    AndroidReadMsgFailed,
+    AndroidWriteMsgFailed,
+    AndroidMsgCreate,
+    AndroidMsgResume,
+    AndroidMsgPause,
+    AndroidMsgFocus,
+    AndroidMsgNoFocus,
+    AndroidMsgSetNativeWindow,
+    AndroidMsgSetInputQueue,
+    AndroidMsgDestroy,
+    AndroidUnknownMsg,
+    AndroidLoopThreadStarted,
+    AndroidLoopThreadDone,
+    AndroidNativeActivityOnstart,
+    AndroidNativeActivityOnresume,
+    AndroidNativeActivityOnsaveinstancestate,
+    AndroidNativeActivityOnwindowfocuschanged,
+    AndroidNativeActivityOnpause,
+    AndroidNativeActivityOnstop,
+    AndroidNativeActivityOnnativewindowcreated,
+    AndroidNativeActivityOnnativewindowdestroyed,
+    AndroidNativeActivityOninputqueuecreated,
+    AndroidNativeActivityOninputqueuedestroyed,
+    AndroidNativeActivityOnconfigurationchanged,
+    AndroidNativeActivityOnlowmemory,
+    AndroidNativeActivityOndestroy,
+    AndroidNativeActivityDone,
+    AndroidNativeActivityOncreate,
+    AndroidCreateThreadPipeFailed,
+    AndroidNativeActivityCreateSuccess,
+    AndroidChoreographerEnabled,
+    AndroidChoreographerUnavailable,
+    WgpuDeviceLost,
+    WgpuDeviceLog,
+    WgpuDeviceUncapturedError,
+    WgpuSwapchainCreateSurfaceFailed,
+    WgpuSwapchainSurfaceGetCapabilitiesFailed,
+    WgpuSwapchainCreateDepthStencilTextureFailed,
+    WgpuSwapchainCreateDepthStencilViewFailed,
+    WgpuSwapchainCreateMsaaTextureFailed,
+    WgpuSwapchainCreateMsaaViewFailed,
+    WgpuSwapchainGetcurrenttextureFailed,
+    WgpuRequestDeviceStatusError,
+    WgpuRequestDeviceStatusUnknown,
+    WgpuRequestAdapterStatusUnavailable,
+    WgpuRequestAdapterStatusError,
+    WgpuRequestAdapterStatusUnknown,
+    WgpuCreateInstanceFailed,
+    VulkanRequiredInstanceExtensionFunctionMissing,
+    VulkanAllocDeviceMemoryNoSuitableMemoryType,
+    VulkanAllocateMemoryFailed,
+    VulkanCreateInstanceFailed,
+    VulkanEnumeratePhysicalDevicesFailed,
+    VulkanNoPhysicalDevicesFound,
+    VulkanNoSuitablePhysicalDeviceFound,
+    VulkanCreateDeviceFailedExtensionNotPresent,
+    VulkanCreateDeviceFailedFeatureNotPresent,
+    VulkanCreateDeviceFailedInitializationFailed,
+    VulkanCreateDeviceFailedOther,
+    VulkanCreateSurfaceFailed,
+    VulkanCreateSwapchainFailed,
+    VulkanSwapchainCreateImageViewFailed,
+    VulkanSwapchainCreateImageFailed,
+    VulkanSwapchainAllocImageDeviceMemoryFailed,
+    VulkanSwapchainBindImageMemoryFailed,
+    VulkanAcquireNextImageFailed,
+    VulkanQueuePresentFailed,
+    ImageDataSizeMismatch,
+    DroppedFilePathTooLong,
+    ClipboardStringTooBig);
+
+type
+  _TLogItemHelper = record helper for TLogItem
+  public
+    function ToString: String;
+  end;
+
+type
+  { This is used to describe image data (window icons and cursor images).
+
+    The pixel format is RGBA8.
+
+    CursorHotspotX and Y are used only for cursors, to define which pixel
+    of the image should be aligned with the mouse position. }
   TImageDesc = record
   public
     Width: Integer;
     Height: Integer;
+    CursorHotspotX: Integer;
+    CursorHotspotY: Integer;
     Data: Pointer;
     Size: Integer;
   public
     constructor Create(const AWidth, AHeight: Integer;
-      const AData: Pointer; const ASize: Integer); overload;
+      const AData: Pointer; const ASize: Integer;
+      const ACursorHotspotX: Integer = 0;
+      const ACursorHotspotY: Integer = 0); overload;
     constructor Create(const AWidth, AHeight: Integer;
-      const APixels: TBytes); overload;
+      const APixels: TBytes; const ACursorHotspotX: Integer = 0;
+      const ACursorHotspotY: Integer = 0); overload;
     procedure Init(const AWidth, AHeight: Integer;
-      const AData: Pointer; const ASize: Integer); overload;
+      const AData: Pointer; const ASize: Integer;
+      const ACursorHotspotX: Integer = 0;
+      const ACursorHotspotY: Integer = 0); overload;
     procedure Init(const AWidth, AHeight: Integer;
-      const APixels: TBytes); overload;
+      const APixels: TBytes; const ACursorHotspotX: Integer = 0;
+      const ACursorHotspotY: Integer = 0); overload;
   end;
   PImageDesc = ^TImageDesc;
 
@@ -325,6 +495,273 @@ type
   PIconDesc = ^TIconDesc;
 
 type
+  TAppEnvironmentDefaults = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_environment_defaults;
+    function GetColorFormat: TAppPixelFormat; inline;
+    function GetDepthFormat: TAppPixelFormat; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property ColorFormat: TAppPixelFormat read GetColorFormat;
+    property DepthFormat: TAppPixelFormat read GetDepthFormat;
+    property SampleCount: Integer read FHandle.sample_count;
+  end;
+  PAppEnvironmentDefaults = ^TAppEnvironmentDefaults;
+
+type
+  TAppMetalEnvironment = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_metal_environment;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { For iOS and macOS, the Object ID of the Metal device object.
+      Returns nil when Metal is not supported or not used. }
+    property Device: Pointer read FHandle.device;
+  end;
+  PAppMetalEnvironment = ^TAppMetalEnvironment;
+
+type
+  TAppD3D11Environment = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_d3d11_environment;
+    function GetDevice: IInterface; inline;
+    function GetDeviceContext: IInterface; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { For Windows, returns the ID3D11Device object.
+      Returns nil when Direct3D11 is not supported or not used. }
+    property Device: IInterface read GetDevice;
+
+    { For Windows, returns the ID3D11DeviceContext object.
+      Returns nil when Direct3D11 is not supported or not used. }
+    property DeviceContext: IInterface read GetDeviceContext;
+  end;
+  PAppD3D11Environment = ^TAppD3D11Environment;
+
+type
+  TAppVulkanEnvironment = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_vulkan_environment;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Instance: Pointer read FHandle.instance;
+    property PhysicalDevice: Pointer read FHandle.physical_device;
+    property Device: Pointer read FHandle.device;
+    property Queue: Pointer read FHandle.queue;
+    property QueueFamilyIndex: Cardinal read FHandle.queue_family_index;
+  end;
+  PAppVulkanEnvironment = ^TAppVulkanEnvironment;
+
+type
+  { Used to provide runtime environment information to the outside world (like
+    default pixel formats and the backend 3D API device pointer) via a call to
+    TApplication.Environment.
+
+    NOTE: when using Neslib.Sokol.Gfx, don't assume that TAppEnvironment is
+    binary compatible with TAppEnvironment! Always use a translation function
+    like TEnvironment.FromAppEnvironment (from the Neslib.Sokol.Glue unit)! }
+  TAppEnvironment = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_environment;
+    function GetDefaults: PAppEnvironmentDefaults; inline;
+    function GetMetal: PAppMetalEnvironment; inline;
+    function GetD3D11: PAppD3D11Environment; inline;
+    function GetVulkan: PAppVulkanEnvironment; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Defaults: PAppEnvironmentDefaults read GetDefaults;
+    property Metal: PAppMetalEnvironment read GetMetal;
+    property D3D11: PAppD3D11Environment read GetD3D11;
+    property Vulkan: PAppVulkanEnvironment read GetVulkan;
+  end;
+
+type
+  TAppMetalSwapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_metal_swapchain;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { For iOS and macOS, the Object ID of the current Metal drawable
+      (CAMetalDrawable, *not* MTLDrawable). }
+    property CurrentDrawable: Pointer read FHandle.current_drawable;
+
+    { For iOS and macOS, the Object ID of the current Metal depth stencil
+      texture (MTLTexture). }
+    property DepthStencilTexture: Pointer read FHandle.depth_stencil_texture;
+
+    { For iOS and macOS, the Object ID of the current Metal MSAA color
+      texture (MTLTexture). }
+    property MsaaColorTexture: Pointer read FHandle.msaa_color_texture;
+  end;
+  PAppMetalSwapchain = ^TAppMetalSwapchain;
+
+type
+  TAppD3D11Swapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_d3d11_swapchain;
+    function GetDepthStencilView: IInterface; inline;
+    function GetRenderView: IInterface; inline;
+    function GetResolveView: IInterface; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { ID3D11RenderTargetView }
+    property RenderView: IInterface read GetRenderView;
+
+    { ID3D11RenderTargetView }
+    property ResolveView: IInterface read GetResolveView;
+
+    { ID3D11DepthStencilView }
+    property DepthStencilView: IInterface read GetDepthStencilView;
+  end;
+  PAppD3D11Swapchain = ^TAppD3D11Swapchain;
+
+type
+  TAppVulkanSwapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_vulkan_swapchain;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { vkImage }
+    property RenderImage: Pointer read FHandle.render_image;
+
+    { vkImageView }
+    property RenderView: Pointer read FHandle.render_view;
+
+    { vkImage }
+    property ResolveImage: Pointer read FHandle.resolve_image;
+
+    { vkImageView }
+    property ResolveView: Pointer read FHandle.resolve_view;
+
+    { vkImage }
+    property DepthStencilImage: Pointer read FHandle.depth_stencil_image;
+
+    { vkImageView }
+    property DepthStencilView: Pointer read FHandle.depth_stencil_view;
+
+    { vkSemaphore }
+    property RenderFinishedSemaphore: Pointer read FHandle.render_finished_semaphore;
+
+    { vkSemaphore }
+    property PresentCompleteSemaphore: Pointer read FHandle.present_complete_semaphore;
+  end;
+  PAppVulkanSwapchain = ^TAppVulkanSwapchain;
+
+type
+  TAppGLSwapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_gl_swapchain;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { GL framebuffer object }
+    property FrameBuffer: Cardinal read FHandle.framebuffer;
+  end;
+  PAppGLSwapchain = ^TAppGLSwapchain;
+
+type
+  { Provides swapchain information for the next swapchain render pass,
+    result of TApplication.AcquireSwapchain.
+
+    NOTE: TApplication.AcquireSwapchainmust be called exactly once per frame,
+    and ideally right before the swapchain render pass (e.g. not earlier
+    in the frame).
+
+    NOTE: when using Neslib.Sokol.Gfx, don't assume that the TAppSwapchain
+    record has the same memory layout as TSwapchain! Use
+    TSwapchain.FromAppSwapchain (in the Neslib.Sokol.Glue unit) to convert. }
+  TAppSwapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sapp_swapchain;
+    function GetColorFormat: TAppPixelFormat; inline;
+    function GetDepthFormat: TAppPixelFormat; inline;
+    function GetMetal: PAppMetalSwapchain; inline;
+    function GetD3D11: PAppD3D11Swapchain; inline;
+    function GetVulkan: PAppVulkanSwapchain; inline;
+    function GetGL: PAppGLSwapchain; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Invalid: Boolean read FHandle.invalid;
+    property Width: Integer read FHandle.width;
+    property Height: Integer read FHandle.height;
+    property SampleCount: Integer read FHandle.sample_count;
+    property ColorFormat: TAppPixelFormat read GetColorFormat;
+    property DepthFormat: TAppPixelFormat read GetDepthFormat;
+    property Metal: PAppMetalSwapchain read GetMetal;
+    property D3D11: PAppD3D11Swapchain read GetD3D11;
+    property Vulkan: PAppVulkanSwapchain read GetVulkan;
+    property GL: PAppGLSwapchain read GetGL;
+  end;
+
+type
+  { Custom log function.
+    * ATag: always 'sapp'
+    * ALevel: log level
+    * AItem: log item
+    * AMessage: log message. May be empty in Release mode.
+    * ALineNr: line number in original sokol_app.h file.
+    * AFilename: source filename. May be empty in Release mode. }
+  TLogFunc = procedure(const ATag: String; const ALevel: TLogLevel;
+      const AItem: TLogItem; const AMessage: String; const ALineNr: Integer;
+      const AFilename: String) of object;
+
+type
+  { Used in TAppConfig to provide a logging function. Please be aware that
+    without logging function, Neslib.Sokol.App will be completely silent, e.g.
+    it will not report errors or warnings. For maximum error verbosity, compile
+    in debug mode and install a logger (for instance the standard logging
+    function from Neslib.Sokol.Log). }
+  TAppLogger = record
+  public
+    Func: TLogFunc;
+  end;
+
+type
+  TAppGLDesc = record
+  public
+    { Override GL/GLES major and minor version (defaults: GL4.1 (macOS) or
+      GL4.3, GLES3.1 (Android) or GLES3.0 }
+    MajorVersion: Integer;
+    MinorVersion: Integer;
+  end;
+
+type
+  TAppWin32Desc = record
+  public
+    { If True, set the output console codepage to UTF-8 }
+    ConsoleUtf8: Boolean;
+
+    { If True, attach stdout/stderr to a new console window }
+    ConsoleCreate: Boolean;
+
+    { If True, attach stdout/stderr to parent process }
+    ConsoleAttach: Boolean;
+  end;
+
+type
+  TAppIOSDesc = record
+  public
+    { If True, showing the iOS keyboard shrinks the canvas }
+    KeyboardResizesCanvas: Boolean;
+  end;
+
+type
+  TAppMetalDesc = record
+  public
+    { Feeds into CAMetalLayer.displaySyncEnabled }
+    DisableDisplaySync: Boolean;
+  end;
+
+type
   { Application configuration. You can override the TApplication.Configure
     method to customize this configuration. }
   TAppConfig = record
@@ -343,13 +780,27 @@ type
       Default: 0 }
     Height: Integer;
 
+    { TAppPixelFormat.None, .Depth or .DepthStencil.
+      Default: TAppPixelFormat.Depth }
+    DepthFormat: TAppPixelFormat;
+
     { MSAA sample count.
       Default: 1 }
     SampleCount: Integer;
 
     { Preferred swap interval (if supported by platform).
-      Default: 0 }
+      Default: 1 }
     SwapInterval: Integer;
+
+    { Request sRGB framebuffer }
+    sRgb: Boolean;
+
+    { Request HDR framebuffer (highly experimental, only supported on
+      macOS+Metal) }
+    Hdr: Boolean;
+
+    { Optional and with differing behaviour, consider this a debugging feature! }
+    DisableVSync: Boolean;
 
     { Whether the rendering canvas is full-resolution on High-DPI displays.
       See the documentation of TApplication for more information about
@@ -360,11 +811,6 @@ type
     { Whether the window should be created in fullscreen mode.
       Default: False }
     FullScreen: Boolean;
-
-    { Whether the framebuffer should have an alpha channel (ignored on some
-      platforms).
-      Default: False }
-    Alpha: Boolean;
 
     { Enable clipboard access.
       Default: False }
@@ -397,55 +843,17 @@ type
       Default: False }
     UseDelphiMemoryManager: Boolean;
 
-    (****************************)
-    (* Android specific options *)
-    (****************************)
+    { Logging callback override (default: NO LOGGING!) }
+    Logger: TAppLogger;
 
-    { If True, setup GLES2 even if GLES3 is available.
-      Default: False }
-    AndroidForceGles2: Boolean;
+    (******************************************)
+    (* Backend- and platform-specific options *)
+    (******************************************)
 
-    (****************************)
-    (* Windows specific options *)
-    (****************************)
-
-    { On Windows, regular windowed applications don't show any stdout/stderr
-      text output, which can be a bit of a hassle for debugging or generally
-      logging text to the console. Also, console output by default uses a local
-      codepage setting and thus international UTF-8 encoded text is printed
-      as garbage.
-
-      To help with these issues, the app can be configured at startup via the
-      following Windows-specificflags: }
-
-    { When set to True, the output console codepage will be switched to UTF-8
-      (and restored to the original codepage on exit).
-      Default: False }
-    WinConsoleUtf8: Boolean;
-
-    { When set to True, a new console window will be created and stdout/stderr
-      will be redirected to that console window. It doesn't matter if the
-      application is started from the command line or via double-click.
-      Default: False }
-    WinConsoleCreate: Boolean;
-
-    { When set to True, stdout and stderr will be attached to the console of the
-      parent process (if the parent process actually has a console). This means
-      that if the application was started in a command line window, stdout and
-      stderr output will be printed to the terminal, just like a regular command
-      line program. But if the application is started via double-click, it will
-      behave like a regular UI application, and stdout/stderr will not be
-      visible.
-      Default: False }
-    WinConsoleAttach: Boolean;
-
-    (************************)
-    (* iOS specific options *)
-    (************************)
-
-    { If True, showing the iOS keyboard shrinks the canvas.
-      Default: False }
-    iOSKeyboardResizesCanvas: Boolean;
+    GL: TAppGLDesc;
+    Metal: TAppMetalDesc;
+    Win32: TAppWin32Desc;
+    iOS: TAppIOSDesc;
   public
     { Intializes with default values }
     procedure Init;
@@ -622,9 +1030,10 @@ type
   TApplication = class abstract
   {$REGION 'Internal Declarations'}
   private class var
-    FInstance: TApplication;
-    FDesc: _sapp_desc;
-    FEventHandlers: TList<TEventHandler>;
+    GInstance: TApplication;
+    GDesc: _sapp_desc;
+    GLogFunc: TLogFunc;
+    GEventHandlers: TList<TEventHandler>;
   private
     FConfig: TAppConfig;
     FWindowTitle: UTF8String;
@@ -632,22 +1041,19 @@ type
     class function GetFramebufferHeight: Integer; inline; static;
     class function GetFramebufferWidth: Integer; inline; static;
     class function GetFrameDuration: Double; inline; static;
-    class function GetColorFormat: TColorFormat; inline; static;
-    class function GetDepthFormat: TDepthFormat; inline; static;
+    class function GetFrameDurationUnfiltered: Double; inline; static;
+    class function GetColorFormat: TAppPixelFormat; inline; static;
+    class function GetDepthFormat: TAppPixelFormat; inline; static;
     class function GetSampleCount: Integer; inline; static;
     class function GetEglContext: Pointer; inline; static;
     class function GetEglDisplay: Pointer; inline; static;
-    class function GetUsesGles2: Boolean; inline; static;
-    class function GetMetalDevice: Pointer; inline; static;
     class function GetNativeWindow: THandle; inline; static;
-    class function GetMetalDrawableStatic: Pointer; inline; static;
-    class function GetMetalRenderpassDescriptorStatic: Pointer; inline; static;
-    class function GetD3D11Device: IInterface; inline; static;
-    class function GetD3D11DeviceContext: IInterface; inline; static;
-    class function GetD3D11DepthStencilViewStatic: IInterface; static;
-    class function GetD3D11RenderTargetViewStatic: IInterface; static;
     class function GetD3D11SwapChain: IInterface; inline; static;
+    class function GetGLMajorVersion: Integer; inline; static;
+    class function GetGLMinorVersion: Integer; inline; static;
+    class function GetGLIsGLES: Boolean; inline; static;
     class function GetAndroidNativeActivity: THandle; inline; static;
+    class function GetAndroidNativeWindow: THandle; inline; static;
     class function GetKeyboardVisible: Boolean; inline; static;
     class procedure SetKeyboardVisible(const AValue: Boolean); inline; static;
     class function GetMouseCursorVisible: Boolean; inline; static;
@@ -663,6 +1069,7 @@ type
     class function GetFullScreen: Boolean; inline; static;
     class procedure SetFullScreen(const AValue: Boolean); inline; static;
     class function GetFrameCount: Int64; inline; static;
+    class function GetEnvironment: TAppEnvironment; inline; static;
     procedure SetWindowTitle(const AValue: String); inline;
   private
     { Sokol callbacks }
@@ -671,12 +1078,16 @@ type
     class procedure CleanupCallback(AUserData: Pointer); cdecl; static;
     class procedure EventCallback(const AEvent: _Psapp_event;
       AUserData: Pointer); cdecl; static;
-    class procedure FailCallback(const AMsg: PUTF8Char;
-      AUserData: Pointer); cdecl; static;
+    class procedure LogCallback(const ATag: PUTF8Char; ALogLevel,
+      ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+      const AFilenameOrNull: PUTF8Char; AUserData: Pointer); cdecl; static;
   private
+    class var FInstance: TApplication;
     procedure HandleEvent(const AEvent: _Psapp_event);
     procedure HandleClipboardPasted;
     procedure HandleFilesDropped(const AX, AY: Single);
+    class procedure FailCallback(const AMsg: PUTF8Char; AUserData: Pointer); static;
+    procedure FatalError(const AMsg: String);
   protected
     procedure Run;
   public
@@ -715,29 +1126,6 @@ type
       method.
       Does nothing by default. }
     procedure Cleanup; virtual;
-
-    { Override this method to handle a fatal error during start which doesn't
-      allow the program to continue. You could for example show the error
-      message to the user.
-      By default, it logs the message using TApplication.Log }
-    procedure FatalError(const AMsg: String); virtual;
-
-    { Override to return the ObjectID of a custom Metal drawable on macOS.
-      By default, it returns an internally created Metal drawable. }
-    function GetMetalDrawable: Pointer; virtual;
-
-    { Override to return the ObjectID of a custom Metal renderpass descriptor on
-      macOS.
-      By default, it returns an internally created Metal renderpass descriptor. }
-    function GetMetalRenderpassDescriptor: Pointer; virtual;
-
-    { Override to return a custom Direct3D render target view on Windows.
-      By default, it returns an internally created render target view. }
-    function GetD3D11RenderTargetView: IInterface; virtual;
-
-    { Override to return a custom Direct3D depth stencil view on Windows.
-      By default, it returns an internally created depth stencil view. }
-    function GetD3D11DepthStencilView: IInterface; virtual;
   protected
     (************************************************************************)
     (* Events.                                                              *)
@@ -961,6 +1349,10 @@ type
     { Destructor }
     destructor Destroy; override;
 
+    { Acquire swapchain info for the next swapchain render pass, call exactly
+      once per frame }
+    class function AcquireSwapchain: TAppSwapchain; inline; static;
+
     { Logs a message to debug output.
 
       Parameters:
@@ -1019,6 +1411,13 @@ type
       sample application. }
     class procedure SetAppIcon(const AIcon: TIconDesc); inline; static;
 
+    { Associate a custom mouse cursor image to a TMouseCursor enum entry }
+    class function BindMouseCursorImage(const ACursor: TMouseCursor;
+      const ADesc: TImageDesc): TMouseCursor; static;
+
+    { Restore the TMouseCursor enum entry to it's default system appearance }
+    class procedure UnbindMouseCursorImage(const ACursor: TMouseCursor); inline; static;
+
     { Without special quit handling, an application will quit 'gracefully' when
       the user clicks the window close-button unless a platform's application
       model prevents this (e.g. on web or mobile).
@@ -1070,6 +1469,9 @@ type
     { True after the app has fully initialized. }
     class property IsValid: Boolean read GetIsValid;
 
+    { Get runtime environment information }
+    class property Environment: TAppEnvironment read GetEnvironment;
+
     { The current window title (desktop platforms only) }
     property WindowTitle: String read FConfig.WindowTitle write SetWindowTitle;
 
@@ -1080,10 +1482,10 @@ type
     class property FramebufferHeight: Integer read GetFramebufferHeight;
 
     { The color pixelformat of the default framebuffer }
-    class property ColorFormat: TColorFormat read GetColorFormat;
+    class property ColorFormat: TAppPixelFormat read GetColorFormat;
 
     { The depth pixelformat of the default framebuffer }
-    class property DepthFormat: TDepthFormat read GetDepthFormat;
+    class property DepthFormat: TAppPixelFormat read GetDepthFormat;
 
     { True when high-DPI was requested and actually running in a high-DPI
       scenario. }
@@ -1113,9 +1515,11 @@ type
     { The current frame counter }
     class property FrameCount: Int64 read GetFrameCount;
 
-    { The frame duration in seconds averaged over a number of frames to smooth
-      out any jittering spikes. }
+    { The averaged/smoothed frame duration in seconds. }
     class property FrameDuration: Double read GetFrameDuration;
+
+    { 'Raw' unfiltered frame duration in seconds }
+    class property FrameDurationUnfiltered: Double read GetFrameDurationUnfiltered;
 
     { Whether the onscreen keyboard is visible (on mobile devices). }
     class property KeyboardVisible: Boolean read GetKeyboardVisible write SetKeyboardVisible;
@@ -1194,11 +1598,6 @@ type
     { The EGLContext object on EGL backends }
     class property EglContext: Pointer read GetEglContext;
 
-    { True if a GLES2 context has been created on Android. This is useful when a
-      GLES3 context was requested but is not available so that the app had to
-      fallback to GLES2. }
-    class property UsesGles2: Boolean read GetUsesGles2;
-
     { Handle of the native window. This value depends on the platform:
       * Windows: returns a HWND.
       * macOS: returns the Object ID of the NSWindow.
@@ -1206,42 +1605,26 @@ type
       * Android: returns 0 }
     class property NativeWindow: THandle read GetNativeWindow;
 
-    { For iOS and macOS, the Object ID of the Metal device object.
-      Returns nil when Metal is not supported or not used. }
-    class property MetalDevice: Pointer read GetMetalDevice;
-
-    { For iOS and macOS, the Object ID of the Metal renderpass descriptor for
-      this frame.
-      Returns nil when Metal is not supported or not used. }
-    class property MetalRenderpassDescriptor: Pointer read GetMetalRenderpassDescriptorStatic;
-
-    { For iOS and macOS, the Object ID of the current Metal drawable.
-      Returns nil when Metal is not supported or not used. }
-    class property MetalDrawable: Pointer read GetMetalDrawableStatic;
-
-    { For Windows, returns the ID3D11Device object.
-      Returns nil when Direct3D11 is not supported or not used. }
-    class property D3D11Device: IInterface read GetD3D11Device;
-
-    { The For Windows, returns the ID3D11DeviceContext object.
-      Returns nil when Direct3D11 is not supported or not used. }
-    class property D3D11DeviceContext: IInterface read GetD3D11DeviceContext;
-
-    { For Windows, the ID3D11RenderTargetView object.
-      Returns nil when Direct3D11 is not supported or not used. }
-    class property D3D11RenderTargetView: IInterface read GetD3D11RenderTargetViewStatic;
-
-    { For Windows, the ID3D11DepthStencilView object.
-      Returns nil when Direct3D11 is not supported or not used. }
-    class property D3D11DepthStencilView: IInterface read GetD3D11DepthStencilViewStatic;
-
     { For Windows, the ID3D11SwapChain object.
       Returns nil when Direct3D11 is not supported or not used. }
     class property D3D11SwapChain: IInterface read GetD3D11SwapChain;
 
+    { GL major version }
+    class property GLMajorVersion: Integer read GetGLMajorVersion;
+
+    { GL minor version }
+    class property GLMinorVersion: Integer read GetGLMinorVersion;
+
+    { Whether the context is GLES }
+    class property GLIsGLES: Boolean read GetGLIsGLES;
+
     { For Android, get the native activity pointer (PANativeActivity).
       Returns 0 otherwise }
     class property AndroidNativeActivity: THandle read GetAndroidNativeActivity;
+
+    { For Android, get the native window handle (PANativeWindow).
+      Returns 0 otherwise }
+    class property AndroidNativeWindow: THandle read GetAndroidNativeWindow;
 
     { Global application instance }
     class property Instance: TApplication read FInstance;
@@ -1454,6 +1837,143 @@ begin
   {$ENDIF}
 end;
 
+{ _TLogItemHelper }
+
+function _TLogItemHelper.ToString: String;
+const
+  STRINGS: array [TLogItem] of String = (
+    'Ok',
+    'memory allocation failed',
+    'TAppConfig.Swapchain.DepthFormat must be TAppPixelFormat.Default, TAppPixelFormat.None, TAppPixelFormat.Depth or TAppPixelFormat.DepthSencil',
+    'macos: invalid NSOpenGLProfile (valid choices are 1.0 and 4.1)',
+    'metal: failed to create swapchain depth-buffer texture',
+    'metal: failed to create swapchain msaa texture',
+    'failed loading opengl32.dll',
+    'failed to create helper window',
+    'failed to get helper window DC',
+    'failed to set pixel format for dummy GL context',
+    'failed to create dummy GL context',
+    'failed to make dummy GL context current',
+    'failed to get WGL pixel format attribute',
+    'failed to find matching WGL pixel format',
+    'failed to get pixel format descriptor',
+    'failed to set selected pixel format',
+    'ARB_create_context required',
+    'ARB_create_context_profile required',
+    'requested OpenGL version not supported by GL driver (ERROR_INVALID_VERSION_ARB)',
+    'requested OpenGL profile not support by GL driver (ERROR_INVALID_PROFILE_ARB)',
+    'CreateContextAttribsARB failed with ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB',
+    'CreateContextAttribsARB failed for other reason',
+    'D3D11CreateDeviceAndSwapChain() with D3D11_CREATE_DEVICE_DEBUG failed, retrying without debug flag.',
+    'could not obtain IDXGIFactory object',
+    'could not obtain IDXGIAdapter object',
+    'could not obtain IDXGIDevice1 interface',
+    'RegisterRawInputDevices() failed (on mouse lock)',
+    'RegisterRawInputDevices() failed (on mouse unlock)',
+    'GetRawInputData() failed',
+    'DestroyIcon() for a cursor image failed',
+    'failed to load libGL',
+    'failed to load GLX entry points',
+    'GLX extension not found',
+    'failed to query GLX version',
+    'GLX version too low (need at least 1.3)',
+    'glXGetFBConfigs() returned no configs',
+    'failed to find a suitable GLXFBConfig',
+    'glXGetVisualFromFBConfig failed',
+    'GLX extensions ARB_create_context and ARB_create_context_profile missing',
+    'Failed to create GL context via glXCreateContextAttribsARB',
+    'glXCreateWindow() failed',
+    'XCreateWindow() failed',
+    'eglBindAPI(EGL_OPENGL_API) failed',
+    'eglBindAPI(EGL_OPENGL_ES_API) failed',
+    'eglGetDisplay() failed',
+    'eglInitialize() failed',
+    'eglChooseConfig() returned no configs',
+    'eglGetConfigAttrib() for EGL_NATIVE_VISUAL_ID failed',
+    'XGetVisualInfo() failed',
+    'eglCreateWindowSurface() failed',
+    'eglCreateContext() failed',
+    'eglMakeCurrent() failed',
+    'XOpenDisplay() failed',
+    'failed to query system dpi value, assuming default 96.0',
+    'dropped file URL doesn''t start with ''file://''',
+    'X11: Failed to become owner of clipboard selection',
+    'unsupported input event encountered in _sapp_android_input_cb()',
+    'unsupported input event encountered in _sapp_android_main_cb()',
+    'failed to read message in _sapp_android_main_cb()',
+    'failed to write message in _sapp_android_msg',
+    'MSG_CREATE',
+    'MSG_RESUME',
+    'MSG_PAUSE',
+    'MSG_FOCUS',
+    'MSG_NO_FOCUS',
+    'MSG_SET_NATIVE_WINDOW',
+    'MSG_SET_INPUT_QUEUE',
+    'MSG_DESTROY',
+    'unknown msg type received',
+    'loop thread started',
+    'loop thread done',
+    'NativeActivity onStart()',
+    'NativeActivity onResume',
+    'NativeActivity onSaveInstanceState',
+    'NativeActivity onWindowFocusChanged',
+    'NativeActivity onPause',
+    'NativeActivity onStop()',
+    'NativeActivity onNativeWindowCreated',
+    'NativeActivity onNativeWindowDestroyed',
+    'NativeActivity onInputQueueCreated',
+    'NativeActivity onInputQueueDestroyed',
+    'NativeActivity onConfigurationChanged',
+    'NativeActivity onLowMemory',
+    'NativeActivity onDestroy',
+    'NativeActivity done',
+    'NativeActivity onCreate',
+    'failed to create thread pipe',
+    'NativeActivity successfully created',
+    'Choreographer frame loop enabled',
+    'Choreographer unavailable, using poll loop',
+    'wgpu: device lost',
+    'wgpu: device log',
+    'wgpu: uncaptured error',
+    'wgpu: failed to create surface for swapchain',
+    'wgpu: wgpuSurfaceGetCapabilities failed',
+    'wgpu: failed to create depth-stencil texture for swapchain',
+    'wgpu: failed to create view object for swapchain depth-stencil texture',
+    'wgpu: failed to create msaa texture for swapchain',
+    'wgpu: failed to create view object for swapchain msaa texture',
+    'wgpu: wgpuSurfaceGetCurrentTexture() failed',
+    'wgpu: requesting device failed with status ''error''',
+    'wgpu: requesting device failed with status ''unknown''',
+    'wgpu: requesting adapter failed with ''unavailable''',
+    'wgpu: requesting adapter failed with status ''error''',
+    'wgpu: requesting adapter failed with status ''unknown''',
+    'wgpu: failed to create instance',
+    'vulkan: could not lookup a required instance extension function pointer',
+    'vulkan: could not find suitable memory type',
+    'vulkan: vkAllocateMemory() failed!',
+    'vulkan: vkCreateInstance failed',
+    'vulkan: vkEnumeratePhysicalDevices failed',
+    'vulkan: vkEnumeratePhysicalDevices return no devices',
+    'vulkan: no suitable physical device found',
+    'vulkan: vkCreateDevice failed (extension not present)',
+    'vulkan: vkCreateDevice failed (feature not present)',
+    'vulkan: vkCreateDevice failed (initialization failed)',
+    'vulkan: vkCreateDevice failed (other)',
+    'vulkan: vkCreate*SurfaceKHR failed',
+    'vulkan: vkCreateSwapchainKHR failed',
+    'vulkan: vkCreateImageView for swapchain image failed',
+    'vulkan: vkCreateImage for depth-stencil image failed',
+    'vulkan: failed to allocate device memory for depth-stencil image',
+    'vulkan: vkBindImageMemory() for depth-stencil image failed',
+    'vulkan: vkAcquireNextImageKHR failed',
+    'vulkan: vkQueuePresentKHR failed',
+    'image data size mismatch (must be width*height*4 bytes)',
+    'dropped file path too long (sapp_desc.max_dropped_filed_path_length)',
+    'clipboard string didn''t fit into clipboard buffer');
+begin
+  Result := STRINGS[Self];
+end;
+
 { TTouchPoint }
 
 function TTouchPoint.GetToolType: TAndroidToolType;
@@ -1469,30 +1989,34 @@ end;
 { TImageDesc }
 
 constructor TImageDesc.Create(const AWidth, AHeight: Integer;
-  const AData: Pointer; const ASize: Integer);
+  const AData: Pointer; const ASize, ACursorHotspotX, ACursorHotspotY: Integer);
 begin
-  Init(AWidth, AHeight, AData, ASize);
+  Init(AWidth, AHeight, AData, ASize, ACursorHotspotX, ACursorHotspotY);
 end;
 
 constructor TImageDesc.Create(const AWidth, AHeight: Integer;
-  const APixels: TBytes);
+  const APixels: TBytes; const ACursorHotspotX, ACursorHotspotY: Integer);
 begin
-  Init(AWidth, AHeight, Pointer(APixels), Length(APixels));
+  Init(AWidth, AHeight, Pointer(APixels), Length(APixels), ACursorHotspotX,
+    ACursorHotspotY);
 end;
 
 procedure TImageDesc.Init(const AWidth, AHeight: Integer; const AData: Pointer;
-  const ASize: Integer);
+  const ASize, ACursorHotspotX, ACursorHotspotY: Integer);
 begin
   Width := AWidth;
   Height := AHeight;
+  CursorHotspotX := ACursorHotspotX;
+  CursorHotspotY := ACursorHotspotY;
   Data := AData;
   Size := ASize;
 end;
 
 procedure TImageDesc.Init(const AWidth, AHeight: Integer;
-  const APixels: TBytes);
+  const APixels: TBytes; const ACursorHotspotX, ACursorHotspotY: Integer);
 begin
-  Init(AWidth, AHeight, Pointer(APixels), Length(APixels));
+  Init(AWidth, AHeight, Pointer(APixels), Length(APixels), ACursorHotspotX,
+    ACursorHotspotY);
 end;
 
 { TIconDesc }
@@ -1507,6 +2031,101 @@ begin
   FillChar(Self, SizeOf(Self), 0);
 end;
 
+{ TAppEnvironmentDefaults }
+
+function TAppEnvironmentDefaults.GetColorFormat: TAppPixelFormat;
+begin
+  Result := TAppPixelFormat(FHandle.color_format);
+end;
+
+function TAppEnvironmentDefaults.GetDepthFormat: TAppPixelFormat;
+begin
+  Result := TAppPixelFormat(FHandle.depth_format);
+end;
+
+{ TAppD3D11Environment }
+
+function TAppD3D11Environment.GetDevice: IInterface;
+begin
+  Result := IInterface(FHandle.device);
+end;
+
+function TAppD3D11Environment.GetDeviceContext: IInterface;
+begin
+  Result := IInterface(FHandle.device_context);
+end;
+
+{ TAppEnvironment }
+
+function TAppEnvironment.GetD3D11: PAppD3D11Environment;
+begin
+  Result := @FHandle.d3d11;
+end;
+
+function TAppEnvironment.GetDefaults: PAppEnvironmentDefaults;
+begin
+  Result := @FHandle.defaults;
+end;
+
+function TAppEnvironment.GetMetal: PAppMetalEnvironment;
+begin
+  Result := @FHandle.metal;
+end;
+
+function TAppEnvironment.GetVulkan: PAppVulkanEnvironment;
+begin
+  Result := @FHandle.vulkan;
+end;
+
+{ TAppD3D11Swapchain }
+
+function TAppD3D11Swapchain.GetDepthStencilView: IInterface;
+begin
+  Result := IInterface(FHandle.depth_stencil_view);
+end;
+
+function TAppD3D11Swapchain.GetRenderView: IInterface;
+begin
+  Result := IInterface(FHandle.render_view);
+end;
+
+function TAppD3D11Swapchain.GetResolveView: IInterface;
+begin
+  Result := IInterface(FHandle.resolve_view);
+end;
+
+{ TAppSwapchain }
+
+function TAppSwapchain.GetColorFormat: TAppPixelFormat;
+begin
+  Result := TAppPixelFormat(FHandle.color_format);
+end;
+
+function TAppSwapchain.GetD3D11: PAppD3D11Swapchain;
+begin
+  Result := @FHandle.d3d11;
+end;
+
+function TAppSwapchain.GetDepthFormat: TAppPixelFormat;
+begin
+  Result := TAppPixelFormat(FHandle.depth_format);
+end;
+
+function TAppSwapchain.GetGL: PAppGLSwapchain;
+begin
+  Result := @FHandle.gl;
+end;
+
+function TAppSwapchain.GetMetal: PAppMetalSwapchain;
+begin
+  Result := @FHandle.metal;
+end;
+
+function TAppSwapchain.GetVulkan: PAppVulkanSwapchain;
+begin
+  Result := @FHandle.vulkan;
+end;
+
 { TAppConfig }
 
 procedure TAppConfig.Init;
@@ -1514,6 +2133,7 @@ begin
   FillChar(Self, SizeOf(Self), 0);
   WindowTitle := 'Neslib.Sokol Application';
   SampleCount := 1;
+  SwapInterval := 1;
   MaxClipboardSize := 8192;
   MaxDroppedFiles := 1;
   MaxDroppedFilePathLength := 2048;
@@ -1555,11 +2175,29 @@ end;
 
 { TApplication }
 
+class function TApplication.AcquireSwapchain: TAppSwapchain;
+begin
+  Result.FHandle := _sapp_acquire_swapchain;
+end;
+
 class procedure TApplication.AddEventHandler(
   const AHandler: TEventHandler);
 begin
-  if (not FEventHandlers.Contains(AHandler)) then
-    FEventHandlers.Add(AHandler);
+  if (not GEventHandlers.Contains(AHandler)) then
+    GEventHandlers.Add(AHandler);
+end;
+
+class function TApplication.BindMouseCursorImage(const ACursor: TMouseCursor;
+  const ADesc: TImageDesc): TMouseCursor;
+begin
+  var Desc: _sapp_image_desc;
+  Desc.width := ADesc.Width;
+  Desc.height := ADesc.Height;
+  Desc.cursor_hotspot_x := ADesc.CursorHotspotX;
+  Desc.cursor_hotspot_y := ADesc.CursorHotspotY;
+  Desc.pixels.ptr := ADesc.Data;
+  Desc.pixels.size := ADesc.Size;
+  Result := TMouseCursor(_sapp_bind_mouse_cursor_image(Ord(ACursor), @Desc));
 end;
 
 procedure TApplication.Cleanup;
@@ -1588,10 +2226,13 @@ end;
 
 class constructor TApplication.Create;
 begin
-  FEventHandlers := TList<TEventHandler>.Create;
+  GEventHandlers := TList<TEventHandler>.Create;
 end;
 
 constructor TApplication.Create;
+var
+  LogFunc: TLogFunc;
+  LogMethod: TMethod absolute LogFunc;
 begin
   inherited Create;
   FConfig.Init;
@@ -1599,59 +2240,73 @@ begin
 
   FWindowTitle := UTF8String(FConfig.WindowTitle);
 
-  FDesc.user_data := Self;
-  FDesc.init_userdata_cb := InitCallback;
-  FDesc.frame_userdata_cb := FrameCallback;
-  FDesc.cleanup_userdata_cb := CleanupCallback;
-  FDesc.event_userdata_cb := EventCallback;
-  FDesc.fail_userdata_cb := FailCallback;
+  GDesc.user_data := Self;
+  GDesc.init_userdata_cb := InitCallback;
+  GDesc.frame_userdata_cb := FrameCallback;
+  GDesc.cleanup_userdata_cb := CleanupCallback;
+  GDesc.event_userdata_cb := EventCallback;
 
-  FDesc.width := Max(FConfig.Width, 0);
-  FDesc.height := Max(FConfig.Height, 0);
-  FDesc.sample_count := Max(FConfig.SampleCount, 1);
-  FDesc.swap_interval := Max(FConfig.SwapInterval, 1);
-  FDesc.high_dpi := FConfig.HighDpi;
-  FDesc.fullscreen := FConfig.FullScreen;
-  FDesc.alpha := FConfig.Alpha;
-  FDesc.window_title := PUTF8Char(FWindowTitle);
-  FDesc.enable_clipboard := FConfig.EnableClipboard;
-  FDesc.clipboard_size := FConfig.MaxClipboardSize;
-  FDesc.enable_dragndrop := FConfig.EnableDragDrop;
-  FDesc.max_dropped_files := FConfig.MaxDroppedFiles;
-  FDesc.max_dropped_file_path_length := FConfig.MaxDroppedFilePathLength;
+  GDesc.width := Max(FConfig.Width, 0);
+  GDesc.height := Max(FConfig.Height, 0);
+  GDesc.depth_format := Ord(FConfig.DepthFormat);
+  GDesc.sample_count := Max(FConfig.SampleCount, 1);
+  GDesc.swap_interval := Max(FConfig.SwapInterval, 1);
+  GDesc.srgb := FConfig.sRgb;
+  GDesc.hdr := FConfig.Hdr;
+  GDesc.disable_vsync := FConfig.DisableVSync;
+  GDesc.high_dpi := FConfig.HighDpi;
+  GDesc.fullscreen := FConfig.FullScreen;
+  GDesc.window_title := PUTF8Char(FWindowTitle);
+  GDesc.enable_clipboard := FConfig.EnableClipboard;
+  GDesc.clipboard_size := FConfig.MaxClipboardSize;
+  GDesc.enable_dragndrop := FConfig.EnableDragDrop;
+  GDesc.max_dropped_files := FConfig.MaxDroppedFiles;
+  GDesc.max_dropped_file_path_length := FConfig.MaxDroppedFilePathLength;
+  if Assigned(FConfig.Logger.Func) then
+  begin
+    LogFunc := FConfig.Logger.Func;
+    GDesc.logger.func := LogCallback;
+    GDesc.logger.user_data := LogMethod.Data;
+  end;
 
-  FDesc.icon.sokol_default := FConfig.Icon.UseDefault;
+  GDesc.gl.major_version := FConfig.GL.MajorVersion;
+  GDesc.gl.minor_version := FConfig.GL.MinorVersion;
+
+  GDesc.metal.disable_display_sync := FConfig.Metal.DisableDisplaySync;
+
+  GDesc.win32.console_utf8 := FConfig.Win32.ConsoleUtf8;
+  GDesc.win32.console_create := FConfig.Win32.ConsoleCreate;
+  GDesc.win32.console_attach := FConfig.Win32.ConsoleAttach;
+
+  GDesc.ios.keyboard_resizes_canvas := FConfig.iOS.KeyboardResizesCanvas;
+
+  GDesc.icon.sokol_default := FConfig.Icon.UseDefault;
   if (not FConfig.Icon.UseDefault) then
   begin
     for var I := 0 to TIconDesc.MAX_IMAGES - 1 do
     begin
-      FDesc.icon.images[I].width := FConfig.Icon.Images[I].Width;
-      FDesc.icon.images[I].height := FConfig.Icon.Images[I].Height;
-      FDesc.icon.images[I].pixels.ptr := FConfig.Icon.Images[I].Data;
-      FDesc.icon.images[I].pixels.size := FConfig.Icon.Images[I].Size;
+      GDesc.icon.images[I].width := FConfig.Icon.Images[I].Width;
+      GDesc.icon.images[I].height := FConfig.Icon.Images[I].Height;
+      GDesc.icon.images[I].pixels.ptr := FConfig.Icon.Images[I].Data;
+      GDesc.icon.images[I].pixels.size := FConfig.Icon.Images[I].Size;
     end;
   end;
 
   {$IFDEF SOKOL_MEM_TRACK}
-  FDesc.allocator.alloc := _MemTrackAlloc;
-  FDesc.allocator.free := _MemTrackFree;
+  GDesc.allocator.alloc := _MemTrackAlloc;
+  GDesc.allocator.free := _MemTrackFree;
   {$ELSE}
   if (FConfig.UseDelphiMemoryManager) then
   begin
-    FDesc.allocator.alloc := _AllocCallback;
-    FDesc.allocator.free := _FreeCallback;
+    GDesc.allocator.alloc_fn := _AllocCallback;
+    GDesc.allocator.free_fn := _FreeCallback;
   end;
   {$ENDIF}
-
-  FDesc.gl_force_gles2 := FConfig.AndroidForceGles2;
-  FDesc.win32_console_utf8 := FConfig.WinConsoleUtf8;
-  FDesc.win32_console_create := FConfig.WinConsoleCreate;
-  FDesc.win32_console_attach := FConfig.WinConsoleAttach;
 end;
 
 class destructor TApplication.Destroy;
 begin
-  FreeAndNil(FEventHandlers);
+  FreeAndNil(GEventHandlers);
 end;
 
 destructor TApplication.Destroy;
@@ -1695,44 +2350,19 @@ begin
   Result := THandle(_sapp_android_get_native_activity);
 end;
 
+class function TApplication.GetAndroidNativeWindow: THandle;
+begin
+  Result := THandle(_sapp_android_get_native_window);
+end;
+
 class function TApplication.GetClipboardString: String;
 begin
   Result := String(UTF8String(_sapp_get_clipboard_string));
 end;
 
-class function TApplication.GetColorFormat: TColorFormat;
+class function TApplication.GetColorFormat: TAppPixelFormat;
 begin
-  Result := TColorFormat(_sapp_color_format);
-end;
-
-function TApplication.GetD3D11DepthStencilView: IInterface;
-begin
-  Result := IInterface(_sapp_d3d11_get_depth_stencil_view);
-end;
-
-class function TApplication.GetD3D11DepthStencilViewStatic: IInterface;
-begin
-  Result := FInstance.GetD3D11RenderTargetView;
-end;
-
-class function TApplication.GetD3D11Device: IInterface;
-begin
-  Result := IInterface(_sapp_d3d11_get_device);
-end;
-
-class function TApplication.GetD3D11DeviceContext: IInterface;
-begin
-  Result := IInterface(_sapp_d3d11_get_device_context);
-end;
-
-function TApplication.GetD3D11RenderTargetView: IInterface;
-begin
-  Result := IInterface(_sapp_d3d11_get_render_target_view);
-end;
-
-class function TApplication.GetD3D11RenderTargetViewStatic: IInterface;
-begin
-  Result := FInstance.GetD3D11RenderTargetView;
+  Result := TAppPixelFormat(_sapp_color_format);
 end;
 
 class function TApplication.GetD3D11SwapChain: IInterface;
@@ -1740,9 +2370,9 @@ begin
   Result := IInterface(_sapp_d3d11_get_swap_chain);
 end;
 
-class function TApplication.GetDepthFormat: TDepthFormat;
+class function TApplication.GetDepthFormat: TAppPixelFormat;
 begin
-  Result := TDepthFormat(_sapp_depth_format);
+  Result := TAppPixelFormat(_sapp_depth_format);
 end;
 
 class function TApplication.GetDpiScale: Single;
@@ -1760,9 +2390,14 @@ begin
   Result := _sapp_egl_get_display;
 end;
 
+class function TApplication.GetEnvironment: TAppEnvironment;
+begin
+  Result.FHandle := _sapp_get_environment;
+end;
+
 class function TApplication.GetEventHandlers: TArray<TEventHandler>;
 begin
-  Result := FEventHandlers.ToArray;
+  Result := GEventHandlers.ToArray;
 end;
 
 class function TApplication.GetFramebufferHeight: Integer;
@@ -1785,9 +2420,29 @@ begin
   Result := _sapp_frame_duration;
 end;
 
+class function TApplication.GetFrameDurationUnfiltered: Double;
+begin
+  Result := _sapp_frame_duration_unfiltered;
+end;
+
 class function TApplication.GetFullScreen: Boolean;
 begin
   Result := _sapp_is_fullscreen;
+end;
+
+class function TApplication.GetGLIsGLES: Boolean;
+begin
+  Result := _sapp_gl_is_gles;
+end;
+
+class function TApplication.GetGLMajorVersion: Integer;
+begin
+  Result := _sapp_gl_get_major_version;
+end;
+
+class function TApplication.GetGLMinorVersion: Integer;
+begin
+  Result := _sapp_gl_get_minor_version;
 end;
 
 class function TApplication.GetHighDpi: Boolean;
@@ -1803,31 +2458,6 @@ end;
 class function TApplication.GetKeyboardVisible: Boolean;
 begin
   Result := _sapp_keyboard_shown;
-end;
-
-class function TApplication.GetMetalDevice: Pointer;
-begin
-  Result := _sapp_metal_get_device;
-end;
-
-function TApplication.GetMetalDrawable: Pointer;
-begin
-  Result := _sapp_metal_get_drawable;
-end;
-
-class function TApplication.GetMetalDrawableStatic: Pointer;
-begin
-  Result := FInstance.GetMetalDrawable;
-end;
-
-function TApplication.GetMetalRenderpassDescriptor: Pointer;
-begin
-  Result := _sapp_metal_get_renderpass_descriptor;
-end;
-
-class function TApplication.GetMetalRenderpassDescriptorStatic: Pointer;
-begin
-  Result := FInstance.GetMetalRenderpassDescriptor;
 end;
 
 class function TApplication.GetMouseCursor: TMouseCursor;
@@ -1863,11 +2493,6 @@ begin
   Result := _sapp_sample_count;
 end;
 
-class function TApplication.GetUsesGles2: Boolean;
-begin
-  Result := _sapp_gles2;
-end;
-
 procedure TApplication.HandleClipboardPasted;
 begin
   ClipboardPasted(String(UTF8String(_sapp_get_clipboard_string)));
@@ -1877,7 +2502,7 @@ procedure TApplication.HandleEvent(const AEvent: _Psapp_event);
 var
   Touches: TTouches;
 begin
-  for var Handler in FEventHandlers do
+  for var Handler in GEventHandlers do
   begin
     if Handler(PEvent(AEvent)^) then
       Exit;
@@ -2048,6 +2673,21 @@ begin
   Log(Format(AMsg, AArgs));
 end;
 
+class procedure TApplication.LogCallback(const ATag: PUTF8Char; ALogLevel,
+  ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+  const AFilenameOrNull: PUTF8Char; AUserData: Pointer);
+var
+  LogFunc: TLogFunc;
+  LogMethod: TMethod absolute LogFunc;
+begin
+  Assert(Assigned(GLogFunc));
+  LogFunc := GLogFunc;
+  LogMethod.Data := AUserData;
+  LogFunc(String(UTF8String(ATag)), TLogLevel(ALogLevel), TLogItem(ALogItemId),
+    String(UTF8String(AMessageOrNull)), ALineNr,
+    String(UTF8String(AFilenameOrNull)));
+end;
+
 procedure TApplication.KeyChar(const AChar: UCS4Char;
   const AModifiers: TModifiers; const AKeyRepeat: Boolean);
 begin
@@ -2115,7 +2755,7 @@ end;
 class procedure TApplication.RemoveEventHandler(
   const AHandler: TEventHandler);
 begin
-  FEventHandlers.Remove(AHandler);
+  GEventHandlers.Remove(AHandler);
 end;
 
 class procedure TApplication.RequestQuit;
@@ -2144,7 +2784,7 @@ begin
   { On Android, the application loop is handled by the native activity
     callback. }
   {$IFNDEF ANDROID}
-  _sapp_run(@FDesc);
+  _sapp_run(@GDesc);
   {$ENDIF}
 end;
 
@@ -2228,6 +2868,12 @@ end;
 procedure TApplication.TouchesMoved(const ATouches: TTouches);
 begin
   { No default implementation }
+end;
+
+class procedure TApplication.UnbindMouseCursorImage(
+  const ACursor: TMouseCursor);
+begin
+  _sapp_unbind_mouse_cursor_image(Ord(ACursor));
 end;
 
 procedure TApplication.Unfocused;

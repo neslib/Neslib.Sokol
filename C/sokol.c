@@ -28,12 +28,15 @@
 //#include "sokol/sokol_fetch.h"
 #include "sokol/sokol_gfx.h"
 #include "sokol/sokol_glue.h"
+#include "sokol/sokol_log.h"
 #include "sokol/sokol_time.h"
 #include "sokol/util/sokol_color.h"
 #include "sokol/util/sokol_debugtext.h"
 #include "sokol/util/sokol_gl.h"
 #include "sokol/deps/fontstash.h"
 #include "sokol/util/sokol_fontstash.h"
+#include "sokol/util/sokol_framebuffer.h"
+#include "sokol/util/sokol_letterbox.h"
 
 /* On macOS, Sokol must be compiled in C++ mode (-xobjective-c++)
    because sokol_app.h includes Metal, which requires C++. 
@@ -48,6 +51,7 @@ extern "C" {
 #include "sokol/deps/cimgui.h"
 #include "sokol/util/sokol_imgui.h"
 #include "sokol/util/sokol_gfx_imgui.h"
+#include "sokol/util/sokol_app_imgui.h"
 
 #if defined(__APPLE__)
 }
@@ -58,3 +62,5 @@ extern "C" {
 //#include "sokol/deps/nuklear.h"
 //#include "sokol/util/sokol_nuklear.h"
 #include "sokol/util/sokol_shape.h"
+#include "sokol/spine/spine.h"
+#include "sokol/util/sokol_spine.h"

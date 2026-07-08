@@ -8,11 +8,11 @@ It can be used as an entry point for cross-platform applications that do *not* u
 This unit provides a minimalistic cross-platform API which implements the 'application-wrapper' parts of a 3D application:
 
 * a common application entry function
-* creates a window and 3D-API context/device with a 'default framebuffer'
+* creates a window and 3D-API context/device with a swapchain surface, depth-stencil-buffer surface and optionally MSAA surface
 * makes the rendered frame visible
 * provides keyboard-, mouse- and low-level touch-events
 * platforms: Windows, MacOS, iOS, Android
-* 3D-APIs: D3D11, Metal, GLES-2, GLES-3
+* 3D-APIs: Metal, D3D11, GL4.1, GL4.3, GLES3, NOAPI
 
 This unit does not have any dependencies and can be used with your own rendering code or in combination with [Neslib.Sokol.Gfx](Neslib.Sokol.Gfx.md) for rendering. You should *not* use this unit inside a VCL or FMX application, since this unit provides its own application loop. You should also not use any VCL or FMX units if your Sokol application.
 
@@ -20,49 +20,47 @@ If you plan to use [Neslib.Sokol.Gfx](Neslib.Sokol.Gfx.md) (which you probably w
 
 ## Feature/Platform Matrix
 
-|                 | Windows | macOS  | iOS  | Android |
-| --------------- | ------- | ------ | ---- | ------- |
-| GLES-2          | ---     | ---    | ---  | YES     |
-| GLES-3          | ---     | ---    | ---  | YES     |
-| Metal           | ---     | YES    | YES  | ---     |
-| D3D11           | YES     | ---    | ---  | ---     |
-| KeyDown         | YES     | YES    | SOME | TODO    |
-| KeyUp           | YES     | YES    | SOME | TODO    |
-| KeyChar         | YES     | YES    | YES  | TODO    |
-| MouseDown       | YES     | YES    | ---  | ---     |
-| MouseUp         | YES     | YES    | ---  | ---     |
-| MouseScroll     | YES     | YES    | ---  | ---     |
-| MouseMove       | YES     | YES    | ---  | ---     |
-| MouseEnter      | YES     | YES    | ---  | ---     |
-| MouseLeave      | YES     | YES    | ---  | ---     |
-| TouchesBegan    | ---     | ---    | YES  | YES     |
-| TouchedMoved    | ---     | ---    | YES  | YES     |
-| TouchesEnded    | ---     | ---    | YES  | YES     |
-| ToucesCancelled | ---     | ---    | YES  | YES     |
-| Resized         | YES     | YES    | YES  | YES     |
-| Iconified       | YES     | YES    | ---  | ---     |
-| Restored        | YES     | YES    | ---  | ---     |
-| Focused         | YES     | YES    | ---  | ---     |
-| Unfocused       | YES     | YES    | ---  | ---     |
-| Suspended       | ---     | ---    | YES  | YES     |
-| Resumed         | ---     | ---    | YES  | YES     |
-| QuitRequested   | YES     | YES    | ---  | ---     |
-| IME             | TODO    | TODO?  | ???  | TODO    |
-| Key repeat flag | YES     | YES    | ---  | ---     |
-| Windowed        | YES     | YES    | ---  | ---     |
-| Fullscreen      | YES     | YES    | YES  | YES     |
-| Mouse hide      | YES     | YES    | ---  | ---     |
-| Mouse lock      | YES     | YES    | ---  | ---     |
-| Set cursor type | YES     | YES    | ---  | ---     |
-| Screen keyboard | ---     | ---    | YES  | TODO    |
-| Swap interval   | YES     | YES    | YES  | TODO    |
-| High-DPI        | YES     | YES    | YES  | YES     |
-| Clipboard       | YES     | YES    | ---  | ---     |
-| MSAA            | YES     | YES    | YES  | YES     |
-| Drag'n'drop     | YES     | YES    | ---  | ---     |
-| Window icon     | YES     | YES(1) | ---  | ---     |
+|                    | Windows | macOS  | iOS    | Android |
+| ------------------ | ------- | ------ | ------ | ------- |
+| GL 4.x             | YES     | YES    | ---    | ---     |
+| GLES3              | ---     | ---    | YES    | YES     |
+| Metal              | ---     | YES    | YES    | ---     |
+| D3D11              | YES     | ---    | ---    | ---     |
+| Vulkan(1)          | YES     | ---    | ---    | ---     |
+| No Api             | YES     | TODO   | ---    | ---     |
+| Key & Char Events  | YES     | YES    | ---    | ---     |
+| Mouse events       | YES     | YES    | ---    | ---     |
+| Touch events       | ---     | ---    | YES    | YES     |
+| Resized event      | YES     | YES    | YES    | YES     |
+| Iconified/Restored | YES     | YES    | ---    | ---     |
+| Focused/Unfocused  | YES     | YES    | ---    | ---     |
+| Suspended/Resumed  | ---     | ---    | YES    | YES     |
+| Programmatic quit  | YES     | YES    | ---    | ---     |
+| Key repeat flag    | YES     | YES    | ---    | ---     |
+| Windowed           | YES     | YES    | ---    | ---     |
+| Fullscreen         | YES     | YES    | YES    | YES     |
+| Depth format       | YES     | YES    | YES    | YES     |
+| Mouse hide         | YES     | YES    | ---    | ---     |
+| Mouse lock         | YES     | YES    | ---    | ---     |
+| Set cursor type    | YES     | YES    | ---    | ---     |
+| Screen keyboard    | ---     | ---    | YES    | ---     |
+| High DPI           | YES     | YES    | YES    | YES     |
+| Clipboard          | YES     | YES    | ---    | ---     |
+| MSAA               | YES     | YES    | YES    | YES     |
+| Drag'n'drop        | YES     | YES    | ---    | ---     |
+| Window icon        | YES     | YES(2) | ---    | ---     |
+| sRGB framebuffer   | YES     | YES    | YES    | YES     |
+| HDR framebuffer    | ---     | YES(3) | YES(3) | ---     |
+| Composite mode     | ---     | YES(3) | ---    | ---     |
+| Disable vsync      | YES     | (4)    | ---    | ---     |
+| Swap interval      | YES(5)  | YES(6) | YES    | ---     |
 
-(1) macOS has no regular window icons, instead the dock icon is changed
+1. Vulkan support is highly experimental and has serious frame pacing issues on Windows+NVIDIA with FIFO presentation mode
+2. macOS has no regular window icons, instead the dock icon is changed
+3. only supported on Metal, but not GL/GLES3
+4. on macOS+Metal, rendering is currently always vsync-throttled because CADisplayLink drives the frame loop, and this doesn't allow running faster than vsync, on macOS+GL, setting the swap interval has no effect since macOS 13
+5. swap interval not supported on Vulkan
+6. on macOS+GL, setting the swap interval has no effect since macOS 13
 
 ## Example
 A simple clear-loop sample using Neslib.Sokol.App and [Neslib.Sokol.Gfx](Neslib.Sokol.Gfx.md):
@@ -190,6 +188,8 @@ For more examples, take a look at the demo projects in the Samples directory. In
   **Do not** call any Sokol functions from inside Configure, since the application will not be initialized at this point.
 
   The Width and Height settings are the preferred size of the 3D rendering canvas. The actual size may differ from this depending on platform and other circumstances. Also the canvas size may change at any time (for instance when the user resizes the application window, or rotates the mobile device). You can just keep Width and Height zero-initialized to open a default-sized window (what "default-size" exactly means is platform-specific, but usually it's a size that covers most of, but not all, of the display).
+  To get any logging output in case of errors, you need to provide a log callback by setting `AConfig.Logging.Func`.
+  There are many more setup parameters, but these are the most important. For a complete list, see the `TAppConfig` record.
 
 * Override any other methods to initialize and cleanup resources, render frames and handle events. All these methods will be called from the same thread, but this may be different from the main thread. Some methods of interest are:
 
@@ -197,13 +197,13 @@ For more examples, take a look at the demo projects in the Samples directory. In
 
     - `FrameBufferWidth`, `FrameBufferHeight`: the current width and height of the default framebuffer in pixels. This may change from one frame to the next, and it may be different from the initial size provided in the `TAppConfig` record struct.
       
-    - `FrameDuration`: the frame duration in seconds averaged over a number of frames to smooth out any jittering spikes.
+    - `FrameDuration`: a smoothed frame duration.
+      
+    - `FrameDurationUnfiltered`: the unfiltered frame duration with varying degree of jitter (depending on platform and backend).
       
     - `ColorFormat`, `DepthFormat`: the color and depth-stencil pixel formats of the default framebuffer.
       
     - `SampleCount`: the MSAA sample count of the default framebuffer.
-
-    - `UsesGles2`: True if a GLES-2 context has been created. This is useful when a GLES-3 context was requested but is not available so that the app had to fallback to GLES-2.
 
 * `TApplication.Frame`: This is called once per frame (usually called 60 times per second). This is where your application would update most of its state and perform all rendering. Note that the size of the rendering framebuffer might have changed since the frame callback was called last. Use the `FramebufferWidth` and `FramebufferHeight` properties each frame to get the current size.
 

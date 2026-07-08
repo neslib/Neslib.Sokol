@@ -30,24 +30,30 @@
 
     OVERVIEW
     ========
-    The sokol core headers should not depend on each other, but sometimes
-    it's useful to have a set of helper functions as "glue" between
-    two or more sokol headers.
-
-    This is what sokol_glue.h is for. Simply include the header after other
-    sokol headers (both for the implementation and declaration), and
-    depending on what headers have been included before, sokol_glue.h
-    will make available "glue functions".
+    sokol_glue.h provides glue helper functions between sokol_gfx.h and sokol_app.h,
+    so that sokol_gfx.h doesn't need to depend on sokol_app.h but can be
+    used with different window system glue libraries.
 
     PROVIDED FUNCTIONS
     ==================
 
-    - if sokol_app.h and sokol_gfx.h is included:
+    sg_environment sglue_environment(void)
 
-        sg_context_desc sapp_sgcontext(void):
+        Returns an sg_environment struct initialized by calling sokol_app.h
+        functions. Use this in the sg_setup() call like this:
 
-            Returns an initialized sg_context_desc function initialized
-            by calling sokol_app.h functions.
+        sg_setup(&(sg_desc){
+            .environment = sglue_environment(),
+            ...
+        });
+
+    sg_swapchain sglue_swapchain(void)
+
+        Returns an sg_swapchain struct initialized by calling sokol_app.h
+        functions. Use this in sg_begin_pass() for a 'swapchain pass' like
+        this:
+
+        sg_begin_pass(&(sg_pass){ .swapchain = sglue_swapchain(), ... });
 
     LICENSE
     =======
@@ -89,13 +95,16 @@
 #endif
 #endif
 
+#ifndef SOKOL_GFX_INCLUDED
+#error "Please include sokol_gfx.h before sokol_glue.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined(SOKOL_GFX_INCLUDED) && defined(SOKOL_APP_INCLUDED)
-SOKOL_GLUE_API_DECL sg_context_desc sapp_sgcontext(void);
-#endif
+SOKOL_GLUE_API_DECL sg_environment sglue_environment(void);
+SOKOL_GLUE_API_DECL sg_swapchain sglue_swapchain(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -107,31 +116,97 @@ SOKOL_GLUE_API_DECL sg_context_desc sapp_sgcontext(void);
 #define SOKOL_GLUE_IMPL_INCLUDED (1)
 #include <string.h> /* memset */
 
-#ifndef SOKOL_API_IMPL
-    #define SOKOL_API_IMPL
+#ifndef SOKOL_APP_INCLUDED
+#error "Please include sokol_app.h before the sokol_glue.h implementation"
 #endif
 
-#if defined(SOKOL_GFX_INCLUDED) && defined(SOKOL_APP_INCLUDED)
-SOKOL_API_IMPL sg_context_desc sapp_sgcontext(void) {
-    sg_context_desc desc;
-    memset(&desc, 0, sizeof(desc));
-    desc.color_format = (sg_pixel_format) sapp_color_format();
-    desc.depth_format = (sg_pixel_format) sapp_depth_format();
-    desc.sample_count = sapp_sample_count();
-    desc.gl.force_gles2 = sapp_gles2();
-    desc.metal.device = sapp_metal_get_device();
-    desc.metal.renderpass_descriptor_cb = sapp_metal_get_renderpass_descriptor;
-    desc.metal.drawable_cb = sapp_metal_get_drawable;
-    desc.d3d11.device = sapp_d3d11_get_device();
-    desc.d3d11.device_context = sapp_d3d11_get_device_context();
-    desc.d3d11.render_target_view_cb = sapp_d3d11_get_render_target_view;
-    desc.d3d11.depth_stencil_view_cb = sapp_d3d11_get_depth_stencil_view;
-    desc.wgpu.device = sapp_wgpu_get_device();
-    desc.wgpu.render_view_cb = sapp_wgpu_get_render_view;
-    desc.wgpu.resolve_view_cb = sapp_wgpu_get_resolve_view;
-    desc.wgpu.depth_stencil_view_cb = sapp_wgpu_get_depth_stencil_view;
-    return desc;
-}
+#ifndef SOKOL_API_IMPL
+#define SOKOL_API_IMPL
 #endif
+
+#ifndef _SOKOL_PRIVATE
+    #if defined(__GNUC__) || defined(__clang__)
+        #define _SOKOL_PRIVATE __attribute__((unused)) static
+    #else
+        #define _SOKOL_PRIVATE static
+    #endif
+#endif
+
+#ifndef SOKOL_ASSERT
+    #include <assert.h>
+    #define SOKOL_ASSERT(c) assert(c)
+#endif
+#ifndef SOKOL_UNREACHABLE
+    #define SOKOL_UNREACHABLE SOKOL_ASSERT(false)
+#endif
+
+_SOKOL_PRIVATE sg_pixel_format _sglue_to_sgpixelformat(sapp_pixel_format fmt) {
+    switch (fmt) {
+        case SAPP_PIXELFORMAT_NONE: return SG_PIXELFORMAT_NONE;
+        case SAPP_PIXELFORMAT_RGBA8: return SG_PIXELFORMAT_RGBA8;
+        case SAPP_PIXELFORMAT_SRGB8A8: return SG_PIXELFORMAT_SRGB8A8;
+        case SAPP_PIXELFORMAT_BGRA8: return SG_PIXELFORMAT_BGRA8;
+        case SAPP_PIXELFORMAT_SBGR8A8: return SG_PIXELFORMAT_SBGR8A8;
+        case SAPP_PIXELFORMAT_RGBA16F: return SG_PIXELFORMAT_RGBA16F;
+        case SAPP_PIXELFORMAT_DEPTH_STENCIL: return SG_PIXELFORMAT_DEPTH_STENCIL;
+        case SAPP_PIXELFORMAT_DEPTH: return SG_PIXELFORMAT_DEPTH;
+        default:
+            SOKOL_UNREACHABLE;
+            return SG_PIXELFORMAT_NONE;
+    }
+}
+
+SOKOL_API_IMPL sg_environment sglue_environment(void) {
+    sg_environment res;
+    memset(&res, 0, sizeof(res));
+    const sapp_environment env = sapp_get_environment();
+    res.defaults.color_format = _sglue_to_sgpixelformat(env.defaults.color_format);
+    res.defaults.depth_format = _sglue_to_sgpixelformat(env.defaults.depth_format);
+    res.defaults.sample_count = env.defaults.sample_count;
+    res.metal.device = env.metal.device;
+    res.d3d11.device = env.d3d11.device;
+    res.d3d11.device_context = env.d3d11.device_context;
+    res.wgpu.device = env.wgpu.device;
+    res.vulkan.instance = env.vulkan.instance;
+    res.vulkan.physical_device = env.vulkan.physical_device;
+    res.vulkan.device = env.vulkan.device;
+    res.vulkan.queue = env.vulkan.queue;
+    res.vulkan.queue_family_index = env.vulkan.queue_family_index;
+    return res;
+}
+
+SOKOL_API_IMPL sg_swapchain sglue_swapchain(void) {
+    sg_swapchain res;
+    memset(&res, 0, sizeof(res));
+    const sapp_swapchain sc = sapp_acquire_swapchain();
+    res.invalid = sc.invalid;
+    if (res.invalid) {
+        return res;
+    }
+    res.width = sc.width;
+    res.height = sc.height;
+    res.sample_count = sc.sample_count;
+    res.color_format = _sglue_to_sgpixelformat(sc.color_format);
+    res.depth_format = _sglue_to_sgpixelformat(sc.depth_format);
+    res.metal.current_drawable = sc.metal.current_drawable;
+    res.metal.depth_stencil_texture = sc.metal.depth_stencil_texture;
+    res.metal.msaa_color_texture = sc.metal.msaa_color_texture;
+    res.d3d11.render_view = sc.d3d11.render_view;
+    res.d3d11.resolve_view = sc.d3d11.resolve_view;
+    res.d3d11.depth_stencil_view = sc.d3d11.depth_stencil_view;
+    res.wgpu.render_view = sc.wgpu.render_view;
+    res.wgpu.resolve_view = sc.wgpu.resolve_view;
+    res.wgpu.depth_stencil_view = sc.wgpu.depth_stencil_view;
+    res.vulkan.render_image = sc.vulkan.render_image;
+    res.vulkan.render_view = sc.vulkan.render_view;
+    res.vulkan.resolve_image = sc.vulkan.resolve_image;
+    res.vulkan.resolve_view = sc.vulkan.resolve_view;
+    res.vulkan.depth_stencil_image = sc.vulkan.depth_stencil_image;
+    res.vulkan.depth_stencil_view = sc.vulkan.depth_stencil_view;
+    res.vulkan.render_finished_semaphore = sc.vulkan.render_finished_semaphore;
+    res.vulkan.present_complete_semaphore = sc.vulkan.present_complete_semaphore;
+    res.gl.framebuffer = sc.gl.framebuffer;
+    return res;
+}
 
 #endif /* SOKOL_GLUE_IMPL */

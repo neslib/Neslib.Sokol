@@ -5,6 +5,8 @@ TargetPasFile=..\..\Neslib.Sokol.Api.pas
 UseUnits=
 LibraryConstant=LIB_SOKOL
 DebugDefine=DEBUG
+ExcludedHeaders=
+CTypesToDelphiMap=
 
 [Platform.Win32]
 Enabled=1
@@ -71,7 +73,13 @@ EnumHandling=ConvertToConst
 UnconvertibleHandling=Ignore
 
 [Ignore]
-Count=2
+Count=5
 Item0=_SDTX_DEFAULT_CONTEXT
 Item1=_SGL_DEFAULT_CONTEXT
+Item2=_CIMGUI_IMPL_API
+Item3=_ImTextureID_Invalid
+Item4=_ImDrawCallback_ResetRenderState
+
+[PostProcess]
+Script=00000000
 
