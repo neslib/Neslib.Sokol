@@ -54,17 +54,21 @@ type
 
 const
   { Various compile-time constants }
-  INVALID_ID              = _SG_INVALID_ID;
-  NUM_SHADER_STAGES       = _SG_NUM_SHADER_STAGES;
-  NUM_INFLIGHT_FRAMES     = _SG_NUM_INFLIGHT_FRAMES;
-  MAX_COLOR_ATTACHMENTS   = _SG_MAX_COLOR_ATTACHMENTS;
-  MAX_SHADERSTAGE_BUFFERS = _SG_MAX_SHADERSTAGE_BUFFERS;
-  MAX_SHADERSTAGE_IMAGES  = _SG_MAX_SHADERSTAGE_IMAGES;
-  MAX_SHADERSTAGE_UBS     = _SG_MAX_SHADERSTAGE_UBS;
-  MAX_UB_MEMBERS          = _SG_MAX_UB_MEMBERS;
-  MAX_VERTEX_ATTRIBUTES   = _SG_MAX_VERTEX_ATTRIBUTES;
-  MAX_MIPMAPS             = _SG_MAX_MIPMAPS;
-  MAX_TEXTUREARRAY_LAYERS = _SG_MAX_TEXTUREARRAY_LAYERS;
+  INVALID_ID                                    = _SG_INVALID_ID;
+  NUM_INFLIGHT_FRAMES                           = _SG_NUM_INFLIGHT_FRAMES;
+  MAX_COLOR_ATTACHMENTS                         = _SG_MAX_COLOR_ATTACHMENTS;
+  MAX_UNIFORMBLOCK_MEMBERS                      = _SG_MAX_UNIFORMBLOCK_MEMBERS;
+  MAX_VERTEX_ATTRIBUTES                         = _SG_MAX_VERTEX_ATTRIBUTES;
+  MAX_MIPMAPS                                   = _SG_MAX_MIPMAPS;
+  MAX_VERTEXBUFFER_BINDSLOTS                    = _SG_MAX_VERTEXBUFFER_BINDSLOTS;
+  MAX_UNIFORMBLOCK_BINDSLOTS                    = _SG_MAX_UNIFORMBLOCK_BINDSLOTS;
+  MAX_VIEW_BINDSLOTS                            = _SG_MAX_VIEW_BINDSLOTS;
+  MAX_SAMPLER_BINDSLOTS                         = _SG_MAX_SAMPLER_BINDSLOTS;
+  MAX_TEXTURE_SAMPLER_PAIRS                     = _SG_MAX_TEXTURE_SAMPLER_PAIRS;
+  MAX_PORTABLE_COLOR_ATTACHMENTS                = _SG_MAX_PORTABLE_COLOR_ATTACHMENTS;
+  MAX_PORTABLE_TEXTURE_BINDINGS_PER_STAGE       = _SG_MAX_PORTABLE_TEXTURE_BINDINGS_PER_STAGE;
+  MAX_PORTABLE_STORAGEBUFFER_BINDINGS_PER_STAGE = _SG_MAX_PORTABLE_STORAGEBUFFER_BINDINGS_PER_STAGE;
+  MAX_PORTABLE_STORAGEIMAGE_BINDINGS_PER_STAGE  = _SG_MAX_PORTABLE_STORAGEIMAGE_BINDINGS_PER_STAGE;
 
 type
   { A floating-point RGBA color value }
@@ -73,28 +77,28 @@ type
 
 type
   { The active 3D-API backend, use the property TGfx.Backend to get the
-    currently active backend.
-
-    Note that Gles2 will be returned on Android if Gles3 was requested, but the
-    runtime platform doesn't support GLES3 and we had to fallback to GLES2. }
+    currently active backend. }
   TBackend = (
-    { Windows: OpenGL 3.3 (currently not used in favor of D3D11) }
-    GLCore33   = _SG_BACKEND_GLCORE33,
+    { OpenGL }
+    GLCore     = _SG_BACKEND_GLCORE,
 
-    { Android: GLES-2 }
-    Gles2      = _SG_BACKEND_GLES2,
-
-    { Android: GLES-3 }
+    { OpenGL-ES3 }
     Gles3      = _SG_BACKEND_GLES3,
 
-    { Windows: DirectX 11 }
+    { DirectX 11 (Windows) }
     D3D11      = _SG_BACKEND_D3D11,
 
-    { iOS: Metal }
+    { Metal (iOS) }
     MetalIOS   = _SG_BACKEND_METAL_IOS,
 
-    { macOS: Metal }
-    MetalMacOS = _SG_BACKEND_METAL_MACOS);
+    { Metal (macOS) }
+    MetalMacOS = _SG_BACKEND_METAL_MACOS,
+
+    { Vulkan }
+    Vulkan     = _SG_BACKEND_VULKAN,
+
+    { Dummy }
+    Dummy      = _SG_BACKEND_DUMMY);
 
 type
   { Adds functionality to TBackend }
@@ -104,7 +108,7 @@ type
     function GetIsGL: Boolean; inline;
   {$ENDREGION 'Internal Declarations'}
   public
-    { Whether this is an OpenGL backend (GLCore33, Gles2 or Gles3) }
+    { Whether this is an OpenGL backend (GLCore or Gles3) }
     property IsGL: Boolean read GetIsGL;
   end;
 
@@ -118,43 +122,40 @@ type
 
     A pixelformat name consist of three parts:
 
-        - components (R, RG, RGB or RGBA)
-        - bit width per component (8, 16 or 32)
-        - component data type:
-            - unsigned normalized (no postfix)
-            - signed normalized (SN postfix)
-            - unsigned integer (UI postfix)
-            - signed integer (SI postfix)
-            - float (F postfix)
+      - components (R, RG, RGB or RGBA)
+      - bit width per component (8, 16 or 32)
+      - component data type:
+          - unsigned normalized (no postfix)
+          - signed normalized (SN postfix)
+          - unsigned integer (UI postfix)
+          - signed integer (SI postfix)
+          - float (F postfix)
 
     Not all pixel formats can be used for everything. Use the record helper to
     inspect the capabilities of a given pixelformat:
 
-        - Sample: the pixelformat can be sampled as texture at least with
-                  nearest filtering
-        - Filter: the pixelformat can be sampled as texture with linear
-                  filtering
-        - Render: the pixelformat can be used for render targets
-        - Blend:  blending is supported when using the pixelformat for
-                  render targets
-        - Msaa:   multisample-antialiasing is supported when using the
-                  pixelformat for render targets
-        - Depth:  the pixelformat can be used for depth-stencil attachments
-
-    When targeting GLES2, the only safe formats to use as texture are R8 and
-    Rgba8. For rendering in GLES2, only Rgba8 is safe. All other formats must be
-    checked using the record helper.
+      - Sample       : the pixelformat can be sampled as texture at least with
+                       nearest filtering
+      - Filter       : the pixelformat can be sampled as texture with linear
+                       filtering
+      - Render       : the pixelformat can be used as render-pass attachment
+      - Blend        : blending is supported when used as render-pass attachment
+      - Msaa         : multisample-antialiasing is supported when used as
+                       render-pass attachment
+      - IsDepth      : the pixelformat can be used for depth-stencil attachments
+      - IsCompressed : this is a block-compressed format
+      - CanRead      : supports compute shader read access
+      - CanWrite     : supports compute shader write access
+      - BytesPerPixel: the numbers of bytes in a pixel (0 for compressed
+                       formats)
 
     The default pixel format for texture images is Rgba8.
 
-    The default pixel format for render target images is platform-dependent:
-        - for Metal and D3D11 it is Bgra8
-        - for GL backends it is Rgba8
-
-    This is mainly because of the default framebuffer which is setup outside
-    of this unit. On some backends, using BGRA for the default frame buffer
-    allows more efficient frame flips. For your own offscreen-render-targets,
-    use whatever renderable pixel format is convenient for you. }
+    The default pixel format for render target images is platform-dependent
+    and taken from the TEnvironment record passed into TGfx.Setup. Typically
+    the default formats are:
+      - for Metal and D3D11 it is Bgra8
+      - for GL backends it is Rgba8 }
   TPixelFormat = (
     Default       = __SG_PIXELFORMAT_DEFAULT,
     None          = _SG_PIXELFORMAT_NONE,
@@ -183,12 +184,15 @@ type
     Rg16SI        = _SG_PIXELFORMAT_RG16SI,
     Rg16F         = _SG_PIXELFORMAT_RG16F,
     Rgba8         = _SG_PIXELFORMAT_RGBA8,
+    sRgb8A8       = _SG_PIXELFORMAT_SRGB8A8,
     Rgba8SN       = _SG_PIXELFORMAT_RGBA8SN,
     Rgba8UI       = _SG_PIXELFORMAT_RGBA8UI,
     Rgba8SI       = _SG_PIXELFORMAT_RGBA8SI,
     Bgra8         = _SG_PIXELFORMAT_BGRA8,
+    sBgr8A8       = _SG_PIXELFORMAT_SBGR8A8,
     Rgb10A2       = _SG_PIXELFORMAT_RGB10A2,
     Rg11B10F      = _SG_PIXELFORMAT_RG11B10F,
+    Rgb9E5        = _SG_PIXELFORMAT_RGB9E5,
 
     Rg32UI        = _SG_PIXELFORMAT_RG32UI,
     Rg32SI        = _SG_PIXELFORMAT_RG32SI,
@@ -209,6 +213,7 @@ type
     Bc1Rgba       = _SG_PIXELFORMAT_BC1_RGBA,
     Bc2Rgba       = _SG_PIXELFORMAT_BC2_RGBA,
     Bc3Rgba       = _SG_PIXELFORMAT_BC3_RGBA,
+    Bc3sRgba      = _SG_PIXELFORMAT_BC3_SRGBA,
     Bc4R          = _SG_PIXELFORMAT_BC4_R,
     Bc4RSN        = _SG_PIXELFORMAT_BC4_RSN,
     Bc5Rg         = _SG_PIXELFORMAT_BC5_RG,
@@ -216,15 +221,19 @@ type
     Bc6HRgbF      = _SG_PIXELFORMAT_BC6H_RGBF,
     Bc6HRgbUF     = _SG_PIXELFORMAT_BC6H_RGBUF,
     Bc7Rgba       = _SG_PIXELFORMAT_BC7_RGBA,
-    PvrtcRgb2Bpp  = _SG_PIXELFORMAT_PVRTC_RGB_2BPP,
-    PvrtcRgb4Bpp  = _SG_PIXELFORMAT_PVRTC_RGB_4BPP,
-    PvrtcRgba2Bpp = _SG_PIXELFORMAT_PVRTC_RGBA_2BPP,
-    PvrtcRgba4Bpp = _SG_PIXELFORMAT_PVRTC_RGBA_4BPP,
+    Bc7sRgba      = _SG_PIXELFORMAT_BC7_SRGBA,
     Etc2Rgb8      = _SG_PIXELFORMAT_ETC2_RGB8,
+    Etc2sRgb8     = _SG_PIXELFORMAT_ETC2_SRGB8,
     Etc2Rgb8A1    = _SG_PIXELFORMAT_ETC2_RGB8A1,
     Etc2Rgba8     = _SG_PIXELFORMAT_ETC2_RGBA8,
-    Etc2Rg11      = _SG_PIXELFORMAT_ETC2_RG11,
-    Etc2Rg11SN    = _SG_PIXELFORMAT_ETC2_RG11SN);
+    Etc2sRgb8A8   = _SG_PIXELFORMAT_ETC2_SRGB8A8,
+    EacR11        = _SG_PIXELFORMAT_EAC_R11,
+    EacR11SN      = _SG_PIXELFORMAT_EAC_R11SN,
+    EacRG11       = _SG_PIXELFORMAT_EAC_RG11,
+    EacRG11SN     = _SG_PIXELFORMAT_EAC_RG11SN,
+
+    Astc4x4Rgba   = _SG_PIXELFORMAT_ASTC_4x4_RGBA,
+    Astc4x4sRgba  = _SG_PIXELFORMAT_ASTC_4x4_SRGBA);
 
 type
   {  Runtime information about a pixel format }
@@ -240,50 +249,51 @@ type
     function GetMsaa: Boolean; inline;
     function GetRender: Boolean; inline;
     function GetSample: Boolean; inline;
+    function GetIsCompressed: Boolean; inline;
+    function GetCanRead: Boolean; inline;
+    function GetCanWrite: Boolean; inline;
+    function GetBytesPerPixel: Integer; inline;
   private
     class procedure InitInfo; static;
   {$ENDREGION 'Internal Declarations'}
   public
-    { Pixel format can be sampled in shaders }
+    { Pixel format can be sampled in shaders at least with nearest filtering }
     property Sample: Boolean read GetSample;
 
-    { Pixel format can be sampled with filtering }
+    { Pixel format can be sampled with linear filtering }
     property Filter: Boolean read GetFilter;
 
-    { Pixel format can be used as render target }
+    { Pixel format can be used as render-pass attachment }
     property Render: Boolean read GetRender;
 
-    { Alpha-blending is supported }
+    { Pixel format supports alpha-blending when used as render-pass attachment }
     property Blend: Boolean read GetBlend;
 
-    { Pixel format can be used as MSAA render target }
+    { Pixel format supports MSAA when used as render-pass attachment }
     property Msaa: Boolean read GetMsaa;
 
     { Pixel format is a depth format }
     property IsDepth: Boolean read GetDepth;
+
+    { True if this is a hardware-compressed format }
+    property IsCompressed: Boolean read GetIsCompressed;
+
+    { True if format supports compute shader read access }
+    property CanRead: Boolean read GetCanRead;
+
+    { True if format supports compute shader write access }
+    property CanWrite: Boolean read GetCanWrite;
+
+    { Number of bytes per pixel. This is 0 for compressed formats. }
+    property BytesPerPixel: Integer read GetBytesPerPixel;
   end;
 
 type
   { Runtime information about available optional features, returned by
     TGfx.Features. }
   TFeature = (
-    { Hardware instancing supported }
-    Instancing,
-
-    { Framebuffer and texture origin is in top left corner }
+    { Framebuffer- and texture-origin is in top left corner }
     OriginTopLeft,
-
-    { Offscreen render passes can have multiple render targets attached }
-    MultipleRenderTargets,
-
-    { Offscreen render passes support MSAA antialiasing }
-    MsaaRenderTargets,
-
-    { Creation of TImageType.ThreeD images is supported }
-    ImageType3D,
-
-    { Creation of TImageType.Array images is supported }
-    ImageTypeArray,
 
     { Border color and clamp-to-border UV-wrap mode is supported }
     ImageClampToBorder,
@@ -293,7 +303,31 @@ type
 
     { Multiple-render-target rendering can use per-render-target color write
       masks }
-    MrtIndependentWriteMask);
+    MrtIndependentWriteMask,
+
+    { Storage buffers and compute shaders are supported }
+    Compute,
+
+    { If set, multisampled images can be bound as textures }
+    MsaaTextureBindings,
+
+    { Cannot use the same buffer for vertex and indices }
+    SeparateBufferTypes,
+
+    { Draw with (base vertex > 0) and (base instance = 0) supported }
+    DrawBaseVertex,
+
+    { Draw with (base instance > 0) supported }
+    DrawBaseInstance,
+
+    { Dual-source-blending supported }
+    DualSourceBlending,
+
+    { TVertexFormat.Int10N2 is supported }
+    VertexFormatInt10N2,
+
+    { Supports 'proper' texture views (GL 4.3+) }
+    GLTextureViews);
   TFeatures = set of TFeature;
 
 type
@@ -319,12 +353,35 @@ type
     { Max number of layers in TImageType.Array images }
     property MaxImageArrayLayers: Integer read FHandle.max_image_array_layers;
 
-    { Maximum number of vertex attributes (<= MAX_VERTEX_ATTRIBUTES on some
-      GLES2 implementations) }
+    { Max number of vertex attributes, clamped to MAX_VERTEX_ATTRIBUTES }
     property MaxVertexAttrs: Integer read FHandle.max_vertex_attrs;
 
-    { Maximum number of vertex uniform vectors (GLES2/3 only) }
-    property MaxVertexUniformVectors: Integer read FHandle.gl_max_vertex_uniform_vectors;
+    { Max number of render pass color attachments, clamped to
+      MAX_COLOR_ATTACHMENTS }
+    property MaxColorAttachments: Integer read FHandle.max_color_attachments;
+
+    { Max number of texture bindings per shader stage, clamped to
+      MAX_VIEW_BINDSLOTS }
+    property MaxTextureBindingsPerStage: Integer read FHandle.max_texture_bindings_per_stage;
+
+    { Max number of storage buffer bindings per shader stage, clamped to
+      MAX_VIEW_BINDSLOTS }
+    property MaxStorageBufferBindingsPerStage: Integer read FHandle.max_storage_buffer_bindings_per_stage;
+
+    { Max number of storage image bindings per shader stage, clamped to
+      MAX_VIEW_BINDSLOTS }
+    property MaxStorageImageBindingsPerStage: Integer read FHandle.max_storage_image_bindings_per_stage;
+
+    { GL_MAX_VERTEX_UNIFORM_COMPONENTS (only on GL backends) }
+    property GLMaxVertexUniformComponents: Integer read FHandle.gl_max_vertex_uniform_components;
+
+    { GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS (only on GL backends) }
+    property GLMaxCombinedTextureImageUnits: Integer read FHandle.gl_max_combined_texture_image_units;
+
+    { 8 on feature level 11.0, otherwise 32 (clamped to MAX_VIEW_BINDSLOTS) }
+    property D3D11MaxUnorderedAccessViews: Integer read FHandle.d3d11_max_unordered_access_views;
+
+    property VKMinUniformBufferOffsetAlignment: Integer read FHandle.vk_min_uniform_buffer_offset_alignment;
   end;
   PLimits = ^TLimits;
 
@@ -359,51 +416,9 @@ type
     Invalid   = _SG_RESOURCESTATE_INVALID);
 
 type
-  { A resource usage hint describing the update strategy of buffers and images.
-    This is used in the TBufferDesc.Usage and TImageDesc.Usage fields when
-    creating buffers and images.
-
-    The rendering backends use this hint to prevent that the CPU needs to wait
-    for the GPU when attempting to update a resource that might be currently
-    accessed by the GPU.
-
-    Resource content is updated with the functions TBuffer.Update or
-    TBuffer.Append for buffer objects, and TImage.Update for image objects. For
-    the Update methods, only one update is allowed per frame and resource
-    object, while TBuffer.Append can be called multiple times per frame on the
-    same buffer. The application must update all data required for rendering
-    (this means that the update data can be smaller than the resource size, if
-    only a part of the overall resource size is used for rendering, you only
-    need to make sure that the data that *is* used is valid).
-
-    The default usage is Immutable. }
-  TUsage = (
-    { The resource will never be updated with new data, instead the content of
-      the resource must be provided on creation. }
-    Immutable = _SG_USAGE_IMMUTABLE,
-
-    { The resource will be updated infrequently with new data (this could range
-      from "once after creation", to "quite often but not every frame"). }
-    &Dynamic   = _SG_USAGE_DYNAMIC,
-
-    { The resource will be updated each frame with new content. }
-    Stream     = _SG_USAGE_STREAM);
-
-type
-  { Indicates whether a buffer contains vertex- or index-data, used in the
-    TBufferDesc.BufferType member when creating a buffer.
-
-    The default value is VertexBuffer. }
-  TBufferType = (
-    { For vertex buffers }
-    VertexBuffer = _SG_BUFFERTYPE_VERTEXBUFFER,
-
-    { For index buffers }
-    IndexBuffer  = _SG_BUFFERTYPE_INDEXBUFFER);
-
-type
   { Indicates whether indexed rendering (fetching vertex-indices from an index
     buffer) is used, and if yes, the index data type (16- or 32-bits).
+
     This is used in the TPipelineDesc.IndexType member when creating a pipeline
     object.
 
@@ -420,10 +435,10 @@ type
 
 type
   { Indicates the basic type of an image object (2D-texture, cubemap, 3D-texture
-    or 2D-array-texture). 3D- and array-textures are not supported on the GLES2
-    backend (use TGfx.Features to check for support). The image type is used
-    in the TImageDesc.ImageType member when creating an image, and in
-    TShaderImageDesc when describing a shader's texture sampler binding.
+    or 2D-array-texture). Used in the TImageDesc.ImageType member when creating
+    an image, and in TShaderImageDesc to describe a sampled texture in the
+    shader (both must match and will be checked in the validation layer when
+    calling TGfx.ApplyBindings).
 
     The default image type when creating an image is TwoD. }
   TImageType = (
@@ -440,57 +455,53 @@ type
     &Array = _SG_IMAGETYPE_ARRAY);
 
 type
-  { Indicates the basic data type of a shader's texture sampler which can be
-    float, unsigned integer or signed integer. The sampler type is used in the
-    TShaderImageDesc to describe the sampler type of a shader's texture sampler
-    binding.
+  { The basic data type of a texture sample as expected by a shader. Must be
+    provided in TShaderImage and used by the validation layer in
+    TGfx.ApplyBindings to check if the provided image object is compatible with
+    what the shader expects.
 
-    The default sampler type is Float. }
-  TSamplerType = (
+    NOTE that the following texture pixel formats require the use
+    of TImageSamplerType.UnfilterableFloat, combined with a sampler of type
+    TSampleType.NonFiltering:
+
+    - TPixelFormat.R32F
+    - TPixelFormat.Rg32F
+    - TPixelFormat.Rgba32F
+
+    (when using the Sokol shader compiler, also check out the meta tags
+    `@image_sample_type` and `@sampler_type`). }
+  TImageSampleType = (
     { Floating-point }
-    Float       = _SG_SAMPLERTYPE_FLOAT,
+    Float             = _SG_IMAGESAMPLETYPE_FLOAT,
+
+    { Depth }
+    Depth             = _SG_IMAGESAMPLETYPE_DEPTH,
 
     { Signed integer }
-    SignedInt   = _SG_SAMPLERTYPE_SINT,
+    SignedInt         = _SG_IMAGESAMPLETYPE_SINT,
 
     { Unsigned integer }
-    UnsignedInt = _SG_SAMPLERTYPE_UINT);
+    UnsignedInt       = _SG_IMAGESAMPLETYPE_UINT,
+
+    { Unfilterable floating-point }
+    UnfilterableFloat = _SG_IMAGESAMPLETYPE_UNFILTERABLE_FLOAT);
 
 type
-  { The cubemap faces. Use these as indices in the TImageDesc.Content array. }
-  TCubeFace = (
-    { Positive X-axis }
-    PosX = _SG_CUBEFACE_POS_X,
+  { The basic type of a texture sampler (sampling vs comparison) as defined in a
+    shader. Must be provided in TShaderSamplerDesc.
 
-    { Negative X-axis }
-    NegX = _SG_CUBEFACE_NEG_X,
+    TImageSampleType and TSamplerType for a texture/sampler pair must be
+    compatible with each other, specifically only the following pairs are allowed:
 
-    { Positive Y-axis }
-    PosY = _SG_CUBEFACE_POS_Y,
-
-    { Negative Y-axis }
-    NegY = _SG_CUBEFACE_NEG_Y,
-
-    { Positive Z-axis }
-    PosZ = _SG_CUBEFACE_POS_Z,
-
-    { Negative Z-axis }
-    NegZ = _SG_CUBEFACE_NEG_Z);
-
-type
-  { There are 2 shader stages: vertex- and fragment-shader-stage.
-    Each shader stage consists of:
-
-    - one slot for a shader function (provided as source- or byte-code)
-    - MAX_SHADERSTAGE_UBS slots for uniform blocks
-    - MAX_SHADERSTAGE_IMAGES slots for images used as textures by the shader
-      function }
-  TShaderStage = (
-    { Vertex shader }
-    VertexShader   = _SG_SHADERSTAGE_VS,
-
-    { Fragment shader }
-    FragmentShader = _SG_SHADERSTAGE_FS);
+    - TImageSampleType.Float => TSamplerType.Filtering or TSamplerType.NonFiltering
+    - TImageSampleType.UnfilterableFloat => TSamplerType.NonFiltering
+    - TImageSampleType.SignedInt => TSamplerType.NonFiltering
+    - TImageSampleType.UnsignedInt => TSamplerType.NonFiltering
+    - TImageSampleType.Depth => TSamplerType.Comparison }
+  TSamplerType = (
+    Filtering    = _SG_SAMPLERTYPE_FILTERING,
+    NonFiltering = _SG_SAMPLERTYPE_NONFILTERING,
+    Comparison   = _SG_SAMPLERTYPE_COMPARISON);
 
 type
   { This is the common subset of 3D primitive types supported across all 3D
@@ -519,8 +530,8 @@ type
 
 type
   { The filtering mode when sampling a texture image. This is used in the
-    TImageDesc.MinFilter and TImageDesc.MagFilter fields when creating an image
-    object.
+    TSamplerDesc.MinFilter, TSamplerDesc.MagFilter and TSamplerDesc.MipmapFilter
+    members when creating a sampler object.
 
     The default filter mode is Nearest. }
   TFilter = (
@@ -530,23 +541,7 @@ type
 
     { Linear filtering.
       Slower, but higher quality. }
-    Linear               = _SG_FILTER_LINEAR,
-
-    { When mipmaps are used, uses nearest filtering for each mipmap level,
-      and nearest filtering between mipmap levels. }
-    NearestMipmapNearest = _SG_FILTER_NEAREST_MIPMAP_NEAREST,
-
-    { When mipmaps are used, uses nearest filtering for each mipmap level,
-      and linear filtering between mipmap levels. }
-    NearestMipmapLinear  = _SG_FILTER_NEAREST_MIPMAP_LINEAR,
-
-    { When mipmaps are used, uses linear filtering for each mipmap level,
-      and nearest filtering between mipmap levels. }
-    LinearMipmapNearest  = _SG_FILTER_LINEAR_MIPMAP_NEAREST,
-
-    { When mipmaps are used, uses linear filtering for each mipmap level,
-      and linear filtering between mipmap levels. }
-    LinearMipmapLinear   = _SG_FILTER_LINEAR_MIPMAP_LINEAR);
+    Linear               = _SG_FILTER_LINEAR);
 
 type
   { The texture coordinates wrapping mode when sampling a texture image. This is
@@ -559,17 +554,7 @@ type
     for support, use TGfx.Features and check the ImageClampToBorder flag.
 
     Platforms which don't support ClampToBorder will silently fall back to
-    ClampToEdge without a validation error.
-
-    Platforms which support clamp-to-border are:
-
-        - Metal on macOS
-        - D3D11 on Windows
-
-    Platforms which do not support clamp-to-border:
-
-        - GLES2/3 on Android
-        - Metal on iOS }
+    ClampToEdge without a validation error. }
   TWrap = (
     { Repeat texture }
     Repeating      = _SG_WRAP_REPEAT,
@@ -600,24 +585,41 @@ type
 
 type
   { The data type of a vertex component. This is used to describe the layout of
-    vertex data when creating a pipeline object. }
+    input vertex data when creating a pipeline object.
+
+    NOTE that specific mapping rules exist from the CPU-side vertex formats to
+    the vertex attribute base type in the vertex shader code (see doc header
+    section 'On Vertex Formats'). }
   TVertexFormat = (
     Invalid  = _SG_VERTEXFORMAT_INVALID,
     Float    = _SG_VERTEXFORMAT_FLOAT,
     Float2   = _SG_VERTEXFORMAT_FLOAT2,
     Float3   = _SG_VERTEXFORMAT_FLOAT3,
     Float4   = _SG_VERTEXFORMAT_FLOAT4,
+    Int      = _SG_VERTEXFORMAT_INT,
+    Int2     = _SG_VERTEXFORMAT_INT2,
+    Int3     = _SG_VERTEXFORMAT_INT3,
+    Int4     = _SG_VERTEXFORMAT_INT4,
+    UInt     = _SG_VERTEXFORMAT_UINT,
+    UInt2    = _SG_VERTEXFORMAT_UINT2,
+    UInt3    = _SG_VERTEXFORMAT_UINT3,
+    UInt4    = _SG_VERTEXFORMAT_UINT4,
     Byte4    = _SG_VERTEXFORMAT_BYTE4,
     Byte4N   = _SG_VERTEXFORMAT_BYTE4N,
     UByte4   = _SG_VERTEXFORMAT_UBYTE4,
     UByte4N  = _SG_VERTEXFORMAT_UBYTE4N,
     Short2   = _SG_VERTEXFORMAT_SHORT2,
     Short2N  = _SG_VERTEXFORMAT_SHORT2N,
+    UShort2  = _SG_VERTEXFORMAT_USHORT2,
     UShort2N = _SG_VERTEXFORMAT_USHORT2N,
     Short4   = _SG_VERTEXFORMAT_SHORT4,
     Short4N  = _SG_VERTEXFORMAT_SHORT4N,
+    UShort4  = _SG_VERTEXFORMAT_USHORT4,
     UShort4N = _SG_VERTEXFORMAT_USHORT4N,
-    UInt10N2 = _SG_VERTEXFORMAT_UINT10_N2);
+    Int10N2  = _SG_VERTEXFORMAT_INT10_N2,
+    UInt10N2 = _SG_VERTEXFORMAT_UINT10_N2,
+    Half2    = _SG_VERTEXFORMAT_HALF2,
+    Half4    = _SG_VERTEXFORMAT_HALF4);
 
 type
   { Defines whether the input pointer of a vertex input stream is advanced
@@ -635,7 +637,9 @@ type
 
 type
   { The data type of a uniform block member. This is used to describe the
-    internal layout of uniform blocks when creating a shader object. }
+    internal layout of uniform blocks when creating a shader object. This is
+    only required for the GL backend, all other backends will ignore the
+    interior layout of uniform blocks.}
   TUniformType = (
     Invalid = _SG_UNIFORMTYPE_INVALID,
     Float   = _SG_UNIFORMTYPE_FLOAT,
@@ -649,31 +653,16 @@ type
     Mat4    = _SG_UNIFORMTYPE_MAT4);
 
 type
-  { A hint for the interior memory layout of uniform blocks. This is only really
-    relevant for the GLES backend where the internal layout of uniform blocks
-    must be known. For all other backends the internal memory layout of uniform
-    blocks doesn't matter; this unit will just pass uniform data as a single
-    memory blob to the 3D backend.
+  { A hint for the interior memory layout of uniform blocks. This is only
+    relevant for the GL backend where the internal layout of uniform blocks must
+    be known to Neslib.Sokol.Gfx. For all other backends the internal memory
+    layout of uniform blocks doesn't matter, Neslib.Sokol.Gfx will just pass
+    uniform data as an opaque memory blob to the 3D backend.
 
     The default is Native.
 
-    SG_UNIFORMLAYOUT_STD140
-        The memory layout is a subset of std140. Arrays are only
-        allowed for the FLOAT4, INT4 and MAT4. Alignment is as
-        is as follows:
-
-            FLOAT, INT:         4 byte alignment
-            FLOAT2, INT2:       8 byte alignment
-            FLOAT3, INT3:       16 byte alignment(!)
-            FLOAT4, INT4:       16 byte alignment
-            MAT4:               16 byte alignment
-            FLOAT4[], INT4[]:   16 byte alignment
-
-        The overall size of the uniform block must be a multiple
-        of 16.
-
-    For more information search for 'UNIFORM DATA LAYOUT' in the documentation block
-    at the start of the header. }
+    For more information search for 'Uniform Data Layout' in the documentation
+    block at the start of the header. }
   TUniformLayout = (
     { Native layout means that a 'backend-native' memory layout is used. For the
       GL backend this means that uniforms are packed tightly in memory (e.g.
@@ -683,12 +672,12 @@ type
     { The memory layout is a subset of std140. Arrays are only allowed for the
       Float4, Int4 and Mat4 types. Alignment is as is as follows:
 
-            Float, Int:         4 byte alignment
-            Float2, Int2:       8 byte alignment
-            Float3, Int3:       16 byte alignment(!)
-            Float4, Int4:       16 byte alignment
-            Mat4:               16 byte alignment
-            Float4[], Int4[]:   16 byte alignment
+        Float, Int:         4 byte alignment
+        Float2, Int2:       8 byte alignment
+        Float3, Int3:       16 byte alignment(!)
+        Float4, Int4:       16 byte alignment
+        Mat4:               16 byte alignment
+        Float4[], Int4[]:   16 byte alignment
 
       The overall size of the uniform block must be a multiple of 16. }
     Std140 = _SG_UNIFORMLAYOUT_STD140);
@@ -721,8 +710,11 @@ type
     ClockWise        = _SG_FACEWINDING_CW);
 
 type
-  { The compare-function for depth- and stencil-ref tests. This is used when
-    creating pipeline objects in the members:
+  { The compare-function for configuring depth- and stencil-ref tests in
+    pipeline objects, and for texture samplers which perform a comparison
+    instead of regular sampling operation.
+
+    Used in the following records:
 
     TPipelineDesc
         .Depth
@@ -731,7 +723,11 @@ type
             .Front.Compare
             .Back.Compare
 
-    The default compare func for depth- and stencil-tests is Always. }
+    TSamplerDesc
+        .Compare
+
+    The default compare func for depth- and stencil-tests is Always.
+    The default compare func for samplers is Never. }
   TCompareFunc = (
     Never          = _SG_COMPAREFUNC_NEVER,
     Less           = _SG_COMPAREFUNC_LESS,
@@ -745,7 +741,7 @@ type
 type
   { The operation performed on a currently stored stencil-value when a
     comparison test passes or fails. This is used when creating a pipeline
-    object in the members:
+    object in the following TPipelineDesc members:
 
     TPipelineDesc
         .Stencil
@@ -781,8 +777,9 @@ type
                 .SrcFactorAlpha
                 .DstFactorAlpha
 
-    The default value is One for source factors, and Zero for destination
-    factors. }
+    The default value is One for source factors, and for the destination Zero if
+    the associated blend-op is Add, Subtract or ReverseSubtract or One if the
+    associated blend-op is Min or Max. }
   TBlendFactor = (
     Zero               = _SG_BLENDFACTOR_ZERO,
     One                = _SG_BLENDFACTOR_ONE,
@@ -798,7 +795,11 @@ type
     BlendColor         = _SG_BLENDFACTOR_BLEND_COLOR,
     OneMinusBlendColor = _SG_BLENDFACTOR_ONE_MINUS_BLEND_COLOR,
     BlendAlpha         = _SG_BLENDFACTOR_BLEND_ALPHA,
-    OneMinusBlendAlpha = _SG_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA);
+    OneMinusBlendAlpha = _SG_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA,
+    Src1Color          = _SG_BLENDFACTOR_SRC1_COLOR,
+    OneMinusSrc1Color  = _SG_BLENDFACTOR_ONE_MINUS_SRC1_COLOR,
+    Src1Alpha          = _SG_BLENDFACTOR_SRC1_ALPHA,
+    OneMinusSrc1Alpha  = _SG_BLENDFACTOR_ONE_MINUS_SRC1_ALPHA);
 
 type
   { Describes how the source and destination values are combined in the
@@ -816,7 +817,9 @@ type
     Default         = __SG_BLENDOP_DEFAULT,
     Add             = _SG_BLENDOP_ADD,
     Subtract        = _SG_BLENDOP_SUBTRACT,
-    ReverseSubtract = _SG_BLENDOP_REVERSE_SUBTRACT);
+    ReverseSubtract = _SG_BLENDOP_REVERSE_SUBTRACT,
+    Min             = _SG_BLENDOP_MIN,
+    Max             = _SG_BLENDOP_MAX);
 
 type
   { Selects the active color channels when writing a fragment color to the
@@ -846,75 +849,107 @@ type
     Rgba = _SG_COLORMASK_RGBA);
 
 type
-  { Defines what action should be performed at the start of a render pass.
+  { Defines the load action that should be performed at the start of a render
+    pass. This is used in the TPassAction record.
 
-    This is used in the TPassAction record.
-
-    The default action for all pass attachments is Clear, with the clear color
-    Rgba = {0.5, 0.5, 0.5, 1.0], Depth = 1.0 and Stencil = 0.
+    The default load action for all pass attachments is Clear, with the clear
+    color Rgba = {0.5, 0.5, 0.5, 1.0], Depth = 1.0 and Stencil = 0.
 
     If you want to override the default behaviour, it is important to not only
     set the clear color, but the 'action' field as well. }
   {$MINENUMSIZE 4}
-  TAction = (
-    { Clear the render target image }
-    Clear    = _SG_ACTION_CLEAR,
+  TLoadAction = (
+    { Clear the render target }
+    Clear    = _SG_LOADACTION_CLEAR,
 
-    { Load the previous content of the render target image }
-    Load     = _SG_ACTION_LOAD,
+    { Load the previous content of the render target }
+    Load     = _SG_LOADACTION_LOAD,
 
-    { Leave the render target image content undefined }
-    DontCare = _SG_ACTION_DONTCARE);
+    { Leave the render target in an undefined state }
+    DontCare = _SG_LOADACTION_DONTCARE);
   {$MINENUMSIZE 1}
 
 type
-  { TPassAction record defines the actions to be performed at the start of a
-    rendering pass in the methods TGfx.BeginPass and TGfx.BeginDefaultPass.
-    A separate action and clear values can be defined for each color attachment,
-    and for the depth-stencil attachment.
+  { Defines the store action that should be performed at the end of a render
+    pass. }
+  TStoreAction = (
+    { Store the rendered content to the color attachment image }
+    Store    = _SG_STOREACTION_STORE,
 
-    The default clear values are:
-      - Red:    0.5
-      - Green:  0.5
-      - Blue:   0.5
-      - Alpha:  1.0
-      - Depth:  1.0
-      - Stencil: 0 }
+    { Allows the GPU to discard the rendered content }
+    DontCare = _SG_STOREACTION_DONTCARE);
+
+type
   TColorAttachmentAction = record
   public
-    Action: TAction;
-    Value: TColor;
+    { Default: Clear }
+    LoadAction: TLoadAction;
+
+    { Default: Store }
+    StoreAction: TStoreAction;
+
+    { Default: (0.5, 0.5, 0.5, 1.0) }
+    ClearValue: TColor;
   public
-    constructor Create(const AAction: TAction; const AValue: TColor); overload;
-    constructor Create(const AAction: TAction; const AR, AG, AB: Single;
+    constructor Create(const ALoadAction: TLoadAction;
+      const AStoreAction: TStoreAction; const AClearValue: TColor); overload;
+    constructor Create(const ALoadAction: TLoadAction;
+      const AStoreAction: TStoreAction; const AR, AG, AB: Single;
       const AA: Single = 1); overload;
 
-    procedure Init(const AAction: TAction; const AValue: TColor); overload; inline;
-    procedure Init(const AAction: TAction; const AR, AG, AB: Single;
+    procedure Init(const ALoadAction: TLoadAction;
+      const AStoreAction: TStoreAction; const AClearValue: TColor); overload; inline;
+    procedure Init(const ALoadAction: TLoadAction;
+      const AStoreAction: TStoreAction; const AR, AG, AB: Single;
       const AA: Single = 1); overload; inline;
   end;
   PColorAttachmentAction = ^TColorAttachmentAction;
 
   TDepthAttachmentAction = record
   public
-    Action: TAction;
-    Value: Single;
+    { Default: Clear }
+    LoadAction: TLoadAction;
+
+    { Default: DontCare }
+    StoreAction: TStoreAction;
+
+    { Default: 1.0 }
+    ClearValue: Single;
   public
-    constructor Create(const AAction: TAction; const AValue: Single);
-    procedure Init(const AAction: TAction; const AValue: Single); inline;
+    constructor Create(const ALoadAction: TLoadAction;
+      const AStoreAction: TStoreAction; const AClearValue: Single);
+    procedure Init(const ALoadAction: TLoadAction;
+      const AStoreAction: TStoreAction; const AClearValue: Single); inline;
   end;
   PDepthAttachmentAction = ^TDepthAttachmentAction;
 
   TStencilAttachmentAction = record
   public
-    Action: TAction;
-    Value: Byte;
+    { Default: Clear }
+    LoadAction: TLoadAction;
+
+    { Default: DontCare }
+    StoreAction: TStoreAction;
+
+    { Default: 0 }
+    ClearValue: Byte;
   public
-    constructor Create(const AAction: TAction; const AValue: Byte);
-    procedure Init(const AAction: TAction; const AValue: Byte); inline;
+    constructor Create(const ALoadAction: TLoadAction;
+      const AStoreAction: TStoreAction; const AClearValue: Byte);
+    procedure Init(const ALoadAction: TLoadAction;
+      const AStoreAction: TStoreAction; const AClearValue: Byte); inline;
   end;
   PStencilAttachmentAction = ^TStencilAttachmentAction;
 
+  { TPassAction record defines the actions to be performed at the start of a
+    rendering pass.
+
+    - at the start of the pass: whether the render attachments should be
+      cleared, loaded with their previous content, or start in an undefined
+      state
+    - for clear operations: the clear value (color, depth, or stencil values)
+    - at the end of the pass: whether the rendering result should be stored back
+      into the render attachment or discarded }
   TPassAction = record
   {$REGION 'Internal Declarations'}
   private
@@ -940,6 +975,176 @@ type
   PPassAction = ^TPassAction;
 
 type
+  TMetalSwapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_metal_swapchain;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { For iOS and macOS, the Object ID of the current Metal drawable
+      (CAMetalDrawable, *not* MTLDrawable). }
+    property CurrentDrawable: Pointer read FHandle.current_drawable write FHandle.current_drawable;
+
+    { For iOS and macOS, the Object ID of the current Metal depth stencil
+      texture (MTLTexture). }
+    property DepthStencilTexture: Pointer read FHandle.depth_stencil_texture write FHandle.depth_stencil_texture;
+
+    { For iOS and macOS, the Object ID of the current Metal MSAA color
+      texture (MTLTexture). }
+    property MsaaColorTexture: Pointer read FHandle.msaa_color_texture write FHandle.msaa_color_texture;
+  end;
+  PMetalSwapchain = ^TMetalSwapchain;
+
+type
+  TD3D11Swapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_swapchain;
+    function GetDepthStencilView: IInterface; inline;
+    procedure SetDepthStencilView(const AValue: IInterface); inline;
+    function GetRenderView: IInterface; inline;
+    procedure SetRenderView(const AValue: IInterface); inline;
+    function GetResolveView: IInterface; inline;
+    procedure SetResolveView(const AValue: IInterface); inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { ID3D11RenderTargetView }
+    property RenderView: IInterface read GetRenderView write SetRenderView;
+
+    { ID3D11RenderTargetView }
+    property ResolveView: IInterface read GetResolveView write SetResolveView;
+
+    { ID3D11DepthStencilView }
+    property DepthStencilView: IInterface read GetDepthStencilView write SetDepthStencilView;
+  end;
+  PD3D11Swapchain = ^TD3D11Swapchain;
+
+type
+  TVulkanSwapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_vulkan_swapchain;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { vkImage }
+    property RenderImage: Pointer read FHandle.render_image write FHandle.render_image;
+
+    { vkImageView }
+    property RenderView: Pointer read FHandle.render_view write FHandle.render_view;
+
+    { vkImage }
+    property ResolveImage: Pointer read FHandle.resolve_image write FHandle.resolve_image;
+
+    { vkImageView }
+    property ResolveView: Pointer read FHandle.resolve_view write FHandle.resolve_view;
+
+    { vkImage }
+    property DepthStencilImage: Pointer read FHandle.depth_stencil_image write FHandle.depth_stencil_image;
+
+    { vkImageView }
+    property DepthStencilView: Pointer read FHandle.depth_stencil_view write FHandle.depth_stencil_view;
+
+    { vkSemaphore }
+    property RenderFinishedSemaphore: Pointer read FHandle.render_finished_semaphore write FHandle.render_finished_semaphore;
+
+    { vkSemaphore }
+    property PresentCompleteSemaphore: Pointer read FHandle.present_complete_semaphore write FHandle.present_complete_semaphore;
+  end;
+  PVulkanSwapchain = ^TVulkanSwapchain;
+
+type
+  TGLSwapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_gl_swapchain;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { GL framebuffer object }
+    property FrameBuffer: Cardinal read FHandle.framebuffer write FHandle.framebuffer;
+  end;
+  PGLSwapchain = ^TGLSwapchain;
+
+type
+  { Used in TGfx.BeginPass to provide details about an external swapchain
+    (pixel formats, sample count and backend-API specific render surface
+    objects).
+
+    The following information must be provided:
+
+    - the width and height of the swapchain surfaces in number of pixels,
+    - the pixel format of the render- and optional msaa-resolve-surface
+    - the pixel format of the optional depth- or depth-stencil-surface
+    - the MSAA sample count for the render and depth-stencil surface
+
+    If the pixel formats and MSAA sample counts are left zero-initialized,
+    their defaults are taken from the TEnvironment record provided in the
+    TGfx.Setup call.
+
+    The width and height *must* be > 0.
+
+    The Boolean `TSwapchain.Invalid` is used to communicate an invalid swapchain
+    state to Neslib.Sokol.Gfx (for instance the swapchain code outside of
+    Neslib.Sokol.Gfx not being able to create swapchain surfaces). When the
+    .Invalid Boolean is set to True, all other TSwapchain members must be zeroed
+    (checked in the validation layer), and all rendering in this swapchain-pass
+    will be silently skipped.
+
+    For valid swapchains, the following backend API specific objects must be
+    passed in:
+
+    GL:
+      - on all GL backends, a GL framebuffer object must be provided. This can
+        be zero for the default framebuffer.
+
+    D3D11:
+      - an ID3D11RenderTargetView for the rendering surface, without MSAA
+        rendering this surface will also be displayed
+      - an optional ID3D11DepthStencilView for the depth- or depth/stencil
+        buffer surface
+      - when MSAA rendering is used, another ID3D11RenderTargetView which serves
+        as MSAA resolve target and will be displayed
+
+    Metal (NOTE that the roles of provided surfaces is slightly different
+    than on D3D11 in case of MSAA vs non-MSAA rendering):
+
+      - A current CAMetalDrawable (NOT an MTLDrawable!) which will be presented.
+        This will either be rendered to directly (if no MSAA is used), or serve
+        as MSAA-resolve target.
+      - an optional MTLTexture for the depth- or depth-stencil buffer
+      - an optional multisampled MTLTexture which serves as intermediate
+        rendering surface which will then be resolved into the CAMetalDrawable.
+
+    On all other backends you shouldn't need to mess with the reference count.
+
+    It's a good practice to write a helper function which returns an initialized
+    TSwapchain record, which can then be plugged directly into TPass.Swapchain.
+    Look at the function Swapchain in the Neslib.Sokol.Glue as an example. }
+  TSwapchain = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_swapchain;
+    function GetColorFormat: TPixelFormat; inline;
+    function GetDepthFormat: TPixelFormat; inline;
+    function GetMetal: PMetalSwapchain; inline;
+    function GetD3D11: PD3D11Swapchain; inline;
+    function GetVulkan: PVulkanSwapchain; inline;
+    function GetGL: PGLSwapchain; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Invalid: Boolean read FHandle.invalid;
+    property Width: Integer read FHandle.width;
+    property Height: Integer read FHandle.height;
+    property SampleCount: Integer read FHandle.sample_count;
+    property ColorFormat: TPixelFormat read GetColorFormat;
+    property DepthFormat: TPixelFormat read GetDepthFormat;
+    property Metal: PMetalSwapchain read GetMetal;
+    property D3D11: PD3D11Swapchain read GetD3D11;
+    property Vulkan: PVulkanSwapchain read GetVulkan;
+    property GL: PGLSwapchain read GetGL;
+  end;
+  PSwapchain = ^TSwapchain;
+
+type
   { These records contain various internal resource attributes which might be
     useful for debug-inspection. Please don't rely on the actual content of
     those records too much, as they are quite closely tied to Sokol internals
@@ -957,8 +1162,7 @@ type
     { Type-neutral resource id (e.g. TBuffer.Id) }
     property ResourceId: UInt32 read FHandle.res_id;
 
-    { The context this resource belongs to }
-    property ContextId: UInt32 read FHandle.ctx_id;
+    property UninitCount: UInt32 read FHandle.uninit_count;
   end;
   PSlotInfo = ^TSlotInfo;
 
@@ -1010,14 +1214,20 @@ type
 
     { Currently active write-slot for dynamically updated images }
     property ActiveSlot: Integer read FHandle.active_slot;
-
-    { Image width }
-    property Width: Integer read FHandle.width;
-
-    { Image height }
-    property Height: Integer read FHandle.height;
   end;
   PImageInfo = ^TImageInfo;
+
+  TSamplerInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_sampler_info;
+    function GetSlot: TSlotInfo; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { Resource pool slot info }
+    property Slot: TSlotInfo read GetSlot;
+  end;
+  PSamplerInfo = ^TSamplerInfo;
 
   TShaderInfo = record
   {$REGION 'Internal Declarations'}
@@ -1043,17 +1253,422 @@ type
   end;
   PPipelineInfo = ^TPipelineInfo;
 
-  TPassInfo = record
+  TViewInfo = record
   {$REGION 'Internal Declarations'}
   private
-    FHandle: _sg_pass_info;
+    FHandle: _sg_pipeline_info;
     function GetSlot: TSlotInfo; inline;
   {$ENDREGION 'Internal Declarations'}
   public
     { Resource pool slot info }
     property Slot: TSlotInfo read GetSlot;
   end;
-  PPassInfo = ^TPassInfo;
+  PViewInfo = ^TViewInfo;
+
+type
+  TFrameStatsGL = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_gl;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumBindBuffer: Cardinal read FHandle.num_bind_buffer;
+    property NumActiveTexture: Cardinal read FHandle.num_active_texture;
+    property NumBindTexture: Cardinal read FHandle.num_bind_texture;
+    property NumBindSampler: Cardinal read FHandle.num_bind_sampler;
+    property NumBindImageTexture: Cardinal read FHandle.num_bind_image_texture;
+    property NumUseProgram: Cardinal read FHandle.num_use_program;
+    property NumRenderState: Cardinal read FHandle.num_render_state;
+    property NumVertexAttribPointer: Cardinal read FHandle.num_vertex_attrib_pointer;
+    property NumVertexAttribDivisor: Cardinal read FHandle.num_vertex_attrib_divisor;
+    property NumEnableVertexAttribArray: Cardinal read FHandle.num_enable_vertex_attrib_array;
+    property NumDisableVertexAttribArray: Cardinal read FHandle.num_disable_vertex_attrib_array;
+    property NumUniform: Cardinal read FHandle.num_uniform;
+    property NumMemoryBarriers: Cardinal read FHandle.num_memory_barriers;
+  end;
+  PFrameStatsGL = ^TFrameStatsGL;
+
+type
+  TFrameStatsD3D11Pass = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_d3d11_pass;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumOmSetRenderTargets: Cardinal read FHandle.num_om_set_render_targets;
+    property NumClearRenderTargetView: Cardinal read FHandle.num_clear_render_target_view;
+    property NumClearDepthStencilView: Cardinal read FHandle.num_clear_depth_stencil_view;
+    property NumResolveSubresource: Cardinal read FHandle.num_resolve_subresource;
+  end;
+  PFrameStatsD3D11Pass = ^TFrameStatsD3D11Pass;
+
+type
+  TFrameStatsD3D11Pipeline = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_d3d11_pipeline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumResetState: Cardinal read FHandle.num_rs_set_state;
+    property NumOmSetDepthStencilState: Cardinal read FHandle.num_om_set_depth_stencil_state;
+    property NumOmSetBlendState: Cardinal read FHandle.num_om_set_blend_state;
+    property NumIaSetPrimitiveTopology: Cardinal read FHandle.num_ia_set_primitive_topology;
+    property NumIaSetInputLayout: Cardinal read FHandle.num_ia_set_input_layout;
+    property NumVsSetShader: Cardinal read FHandle.num_vs_set_shader;
+    property NumVsSetConstantBuffers: Cardinal read FHandle.num_vs_set_constant_buffers;
+    property NumPsSetShader: Cardinal read FHandle.num_ps_set_shader;
+    property NumPsSetConstantBuffers: Cardinal read FHandle.num_ps_set_constant_buffers;
+    property NumCsSetShader: Cardinal read FHandle.num_cs_set_shader;
+    property NumCsSetConstantBuffers: Cardinal read FHandle.num_cs_set_constant_buffers;
+  end;
+  PFrameStatsD3D11Pipeline = ^TFrameStatsD3D11Pipeline;
+
+type
+  TFrameStatsD3D11Bindings = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_d3d11_bindings;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumIaSetVertexBuffers: Cardinal read FHandle.num_ia_set_vertex_buffers;
+    property NumIaSetIndexBuffer: Cardinal read FHandle.num_ia_set_index_buffer;
+    property NumVsSetShaderResources: Cardinal read FHandle.num_vs_set_shader_resources;
+    property NumVsSetSamplers: Cardinal read FHandle.num_vs_set_samplers;
+    property NumPsSetShaderResources: Cardinal read FHandle.num_ps_set_shader_resources;
+    property NumPsSetSamplers: Cardinal read FHandle.num_ps_set_samplers;
+    property NumCsSetShaderResources: Cardinal read FHandle.num_cs_set_shader_resources;
+    property NumCsSetSamplers: Cardinal read FHandle.num_cs_set_samplers;
+    property NumCsSetUnorderedAccessViews: Cardinal read FHandle.num_cs_set_unordered_access_views;
+  end;
+  PFrameStatsD3D11Bindings = ^TFrameStatsD3D11Bindings;
+
+type
+  TFrameStatsD3D11Uniforms = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_d3d11_uniforms;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumUpdateSubresource: Cardinal read FHandle.num_update_subresource;
+  end;
+  PFrameStatsD3D11Uniforms = ^TFrameStatsD3D11Uniforms;
+
+type
+  TFrameStatsD3D11Draw = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_d3d11_draw;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumDrawIndexedInstanced: Cardinal read FHandle.num_draw_indexed_instanced;
+    property NumDrawIndexed: Cardinal read FHandle.num_draw_indexed;
+    property NumDrawInstanced: Cardinal read FHandle.num_draw_instanced;
+    property NumDraw: Cardinal read FHandle.num_draw;
+  end;
+  PFrameStatsD3D11Draw = ^TFrameStatsD3D11Draw;
+
+type
+  TFrameStatsD3D11 = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_d3d11;
+    function GetPass: PFrameStatsD3D11Pass; inline;
+    function GetPipeline: PFrameStatsD3D11Pass; inline;
+    function GetBindings: PFrameStatsD3D11Bindings; inline;
+    function GetUniforms: PFrameStatsD3D11Uniforms; inline;
+    function GetDraw: PFrameStatsD3D11Draw; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Pass: PFrameStatsD3D11Pass read GetPass;
+    property Pipeline: PFrameStatsD3D11Pass read GetPipeline;
+    property Bindings: PFrameStatsD3D11Bindings read GetBindings;
+    property Uniforms: PFrameStatsD3D11Uniforms read GetUniforms;
+    property Draw: PFrameStatsD3D11Draw read GetDraw;
+    property NumMap: Cardinal read FHandle.num_map;
+    property NumUnmap: Cardinal read FHandle.num_unmap;
+  end;
+  PFrameStatsD3D11 = ^TFrameStatsD3D11;
+
+type
+  TFrameStatsMetalIdPool = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_metal_idpool;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumAdded: Cardinal read FHandle.num_added;
+    property NumReleased: Cardinal read FHandle.num_released;
+    property NumGarbageCollected: Cardinal read FHandle.num_garbage_collected;
+  end;
+  PFrameStatsMetalIdPool = ^TFrameStatsMetalIdPool;
+
+type
+  TFrameStatsMetalPipeline = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_metal_pipeline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumSetBlendColor: Cardinal read FHandle.num_set_blend_color;
+    property NumSetCullMode: Cardinal read FHandle.num_set_cull_mode;
+    property NumSetFrontFacingWinding: Cardinal read FHandle.num_set_front_facing_winding;
+    property NumSetStencilReferenceValue: Cardinal read FHandle.num_set_stencil_reference_value;
+    property NumSetDepthBias: Cardinal read FHandle.num_set_depth_bias;
+    property NumSetRenderPipeline_state: Cardinal read FHandle.num_set_render_pipeline_state;
+    property NumSetDepthStencilState: Cardinal read FHandle.num_set_depth_stencil_state;
+  end;
+  PFrameStatsMetalPipeline = ^TFrameStatsMetalPipeline;
+
+type
+  TFrameStatsMetalBindings = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_metal_bindings;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumSetVertexBuffer: Cardinal read FHandle.num_set_vertex_buffer;
+    property NumSetVertexBufferOffset: Cardinal read FHandle.num_set_vertex_buffer_offset;
+    property NumSkipRedundantVertexBuffer: Cardinal read FHandle.num_skip_redundant_vertex_buffer;
+    property NumSetVertexTexture: Cardinal read FHandle.num_set_vertex_texture;
+    property NumSkipRedundantVertexTexture: Cardinal read FHandle.num_skip_redundant_vertex_texture;
+    property NumSetVertexSamplerState: Cardinal read FHandle.num_set_vertex_sampler_state;
+    property NumSkipRedundantVertexSamplerState: Cardinal read FHandle.num_skip_redundant_vertex_sampler_state;
+    property NumSetFragmentBuffer: Cardinal read FHandle.num_set_fragment_buffer;
+    property NumSetFragmentBufferOffset: Cardinal read FHandle.num_set_fragment_buffer_offset;
+    property NumSkipRedundantFragmentBuffer: Cardinal read FHandle.num_skip_redundant_fragment_buffer;
+    property NumSetFragmentTexture: Cardinal read FHandle.num_set_fragment_texture;
+    property NumSkipRedundantFragmentTexture: Cardinal read FHandle.num_skip_redundant_fragment_texture;
+    property NumSetFragmentSamplerState: Cardinal read FHandle.num_set_fragment_sampler_state;
+    property NumSkipRedundantFragmentSamplerState: Cardinal read FHandle.num_skip_redundant_fragment_sampler_state;
+    property NumSetComputeBuffer: Cardinal read FHandle.num_set_compute_buffer;
+    property NumSetComputeBufferOffset: Cardinal read FHandle.num_set_compute_buffer_offset;
+    property NumSkipRedundantComputeBuffer: Cardinal read FHandle.num_skip_redundant_compute_buffer;
+    property NumSetComputeTexture: Cardinal read FHandle.num_set_compute_texture;
+    property NumSkipRedundantComputeTexture: Cardinal read FHandle.num_skip_redundant_compute_texture;
+    property NumSetComputeSamplerState: Cardinal read FHandle.num_set_compute_sampler_state;
+    property NumSkipRedundantComputeSamplerState: Cardinal read FHandle.num_skip_redundant_compute_sampler_state;
+  end;
+  PFrameStatsMetalBindings = ^TFrameStatsMetalBindings;
+
+type
+  TFrameStatsMetalUniforms = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_metal_uniforms;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumSetVertexBufferOffset: Cardinal read FHandle.num_set_vertex_buffer_offset;
+    property NumSetFragmentBufferOffset: Cardinal read FHandle.num_set_fragment_buffer_offset;
+    property NumSetComputeBufferOffset: Cardinal read FHandle.num_set_compute_buffer_offset;
+  end;
+  PFrameStatsMetalUniforms = ^TFrameStatsMetalUniforms;
+
+type
+  TFrameStatsMetal = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_metal;
+    function GetIdPool: PFrameStatsMetalIdPool; inline;
+    function GetPipeline: PFrameStatsMetalPipeline; inline;
+    function GetBindings: PFrameStatsMetalBindings; inline;
+    function GetUniforms: PFrameStatsMetalUniforms; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property IdPool: PFrameStatsMetalIdPool read GetIdPool;
+    property Pipeline: PFrameStatsMetalPipeline read GetPipeline;
+    property Bindings: PFrameStatsMetalBindings read GetBindings;
+    property Uniforms: PFrameStatsMetalUniforms read GetUniforms;
+  end;
+  PFrameStatsMetal = ^TFrameStatsMetal;
+
+type
+  TFrameStatsVulkan = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats_vk;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property NumCmdPipelineBarrier: Cardinal read FHandle.num_cmd_pipeline_barrier;
+    property NumAllocateMemory: Cardinal read FHandle.num_allocate_memory;
+    property NumFreeMemory: Cardinal read FHandle.num_free_memory;
+    property SizeAllocateMemory: Cardinal read FHandle.size_allocate_memory;
+    property NumDeleteQueueAdded: Cardinal read FHandle.num_delete_queue_added;
+    property NumDeleteQueueCollected: Cardinal read FHandle.num_delete_queue_collected;
+    property NumCmdCopyBuffer: Cardinal read FHandle.num_cmd_copy_buffer;
+    property NumCmdCopyBufferToImage: Cardinal read FHandle.num_cmd_copy_buffer_to_image;
+    property NumCmdSetDescriptorBufferOffsets: Cardinal read FHandle.num_cmd_set_descriptor_buffer_offsets;
+    property SizeDescriptorBufferWrites: Cardinal read FHandle.size_descriptor_buffer_writes;
+  end;
+  PFrameStatsVulkan = ^TFrameStatsVulkan;
+
+type
+  TFrameResourceStats = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_resource_stats;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { Number of allocated objects in current frame }
+    property Allocated: Cardinal read FHandle.allocated;
+
+    { Number of deallocated object in current frame }
+    property Deallocated: Cardinal read FHandle.deallocated;
+
+    { Number of initialized objects in current frame }
+    property Inited: Cardinal read FHandle.inited;
+
+    { Number of deinitialized objects in current frame }
+    property Uninited: Cardinal read FHandle.uninited;
+  end;
+  PFrameResourceStats = ^TFrameResourceStats;
+
+type
+  TTotalResourceStats = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_total_resource_stats;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { Number of live objects in pool }
+    property Alive: Cardinal read FHandle.alive;
+
+    { Number of free objects in pool }
+    property Free: Cardinal read FHandle.free;
+
+    { Total number of object allocations }
+    property Allocated: Cardinal read FHandle.allocated;
+
+    { Total number of object deallocations }
+    property Deallocated: Cardinal read FHandle.deallocated;
+
+    { Total number of object initializations }
+    property Inited: Cardinal read FHandle.inited;
+
+    { Total number of object deinitializations }
+    property Uninited: Cardinal read FHandle.uninited;
+  end;
+  PTotalResourceStats = ^TTotalResourceStats;
+
+type
+  TTotalStats = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_total_stats;
+    function GetBuffers: PTotalResourceStats; inline;
+    function GetImages: PTotalResourceStats; inline;
+    function GetSamplers: PTotalResourceStats; inline;
+    function GetViews: PTotalResourceStats; inline;
+    function GetShaders: PTotalResourceStats; inline;
+    function GetPipelines: PTotalResourceStats; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Buffers: PTotalResourceStats read GetBuffers;
+    property Images: PTotalResourceStats read GetImages;
+    property Samplers: PTotalResourceStats read GetSamplers;
+    property Views: PTotalResourceStats read GetViews;
+    property Shaders: PTotalResourceStats read GetShaders;
+    property Pipelines: PTotalResourceStats read GetPipelines;
+  end;
+  PTotalStats = ^TTotalStats;
+
+type
+  TFrameStats = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_frame_stats;
+    function GetBuffers: PFrameResourceStats; inline;
+    function GetImages: PFrameResourceStats; inline;
+    function GetSamplers: PFrameResourceStats; inline;
+    function GetViews: PFrameResourceStats; inline;
+    function GetShaders: PFrameResourceStats; inline;
+    function GetPipelines: PFrameResourceStats; inline;
+    function GetGL: PFrameStatsGL; inline;
+    function GetD3D11: PFrameStatsD3D11; inline;
+    function GetMetal: PFrameStatsMetal; inline;
+    function GetVulkan: PFrameStatsVulkan; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { Current frame counter, starts at 0 }
+    property FrameIndex: Cardinal read FHandle.frame_index;
+
+    property NumPasses: Cardinal read FHandle.num_passes;
+    property NumApplyViewport: Cardinal read FHandle.num_apply_viewport;
+    property NumApplyScissorRect: Cardinal read FHandle.num_apply_scissor_rect;
+    property NumApplyPipeline: Cardinal read FHandle.num_apply_pipeline;
+    property NumApplyBindings: Cardinal read FHandle.num_apply_bindings;
+    property NumApplyUniforms: Cardinal read FHandle.num_apply_uniforms;
+    property NumDraw: Cardinal read FHandle.num_draw;
+    property NumDrawEx: Cardinal read FHandle.num_draw_ex;
+    property NumDispatch: Cardinal read FHandle.num_dispatch;
+    property NumUpdateBuffer: Cardinal read FHandle.num_update_buffer;
+    property NumAppendBuffer: Cardinal read FHandle.num_append_buffer;
+    property NumUpdateImage: Cardinal read FHandle.num_update_image;
+
+    property SizeApplyUniforms: Cardinal read FHandle.size_apply_uniforms;
+    property SizeUpdateBuffer: Cardinal read FHandle.size_update_buffer;
+    property SizeAppendBuffer: Cardinal read FHandle.size_append_buffer;
+    property SizeUpdateImage: Cardinal read FHandle.size_update_image;
+
+    property Buffers: PFrameResourceStats read GetBuffers;
+    property Images: PFrameResourceStats read GetImages;
+    property Samplers: PFrameResourceStats read GetSamplers;
+    property Views: PFrameResourceStats read GetViews;
+    property Shaders: PFrameResourceStats read GetShaders;
+    property Pipelines: PFrameResourceStats read GetPipelines;
+
+    property GL: PFrameStatsGL read GetGL;
+    property D3D11: PFrameStatsD3D11 read GetD3D11;
+    property Metal: PFrameStatsMetal read GetMetal;
+    property Vulkan: PFrameStatsVulkan read GetVulkan;
+  end;
+  PFrameStats = ^TFrameStats;
+
+type
+  { Allows to track generic and backend-specific rendering stats,
+    obtained via TStats.Query }
+  TStats = record
+  public
+    PrevFrame: TFrameStats;
+    CurFrame: TFrameStats;
+    Total: TTotalStats;
+  end;
+  PStats = ^TStats;
+
+type
+  { Describes how a buffer object is going to be used }
+  TBufferUsage = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_buffer_usage;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { The buffer will be bound as vertex buffer via TBindings.VertexBuffers.
+      Default True. }
+    property VertexBuffer: Boolean read FHandle.vertex_buffer write FHandle.vertex_buffer;
+
+    { The buffer will be bound as index buffer via TBindings.IndexBuffer.
+      Default False. }
+    property IndexBuffer: Boolean read FHandle.index_buffer write FHandle.index_buffer;
+
+    { The buffer will be bound as storage buffer via storage-buffer-view in
+      TBindings.Views[].
+      Default False. }
+    property StorageBuffer: Boolean read FHandle.storage_buffer write FHandle.storage_buffer;
+
+    { The buffer content will never be updated from the CPU side (but may be
+      written to by a compute shader).
+      Default True. }
+    property Immutable: Boolean read FHandle.immutable write FHandle.immutable;
+
+    { The buffer content will be infrequently updated from the CPU side.
+      Default False. }
+    property DynamicUpdate: Boolean read FHandle.dynamic_update write FHandle.dynamic_update;
+
+    { The buffer content will be updated each frame from the CPU side.
+      Default False. }
+    property StreamUpdate: Boolean read FHandle.stream_update write FHandle.stream_update;
+  end;
+  PBufferUsage = ^TBufferUsage;
 
 type
   { Creation parameters for TBuffer objects.
@@ -1061,24 +1676,29 @@ type
     The default configuration is:
 
     .Size:       0       (*must* be >0 for buffers without data)
-    .BufferType: VertexBuffer
-    .Usage:      Immutable
-    .Data        []      (*must* be valid for immutable buffers)
-    .TraceLabel  ''      (optional string label for trace hooks)
-
-    The label will be ignored. It is only useful when hooking into
-    TBuffer.Create or TBuffer.Init via the TGfx.InstallTraceHooks method.
+    .Usage:      .VertexBuffer = True, .Immutable = True
+    .Data        []      (*must* be valid for immutable buffers without storage
+                          buffer usage)
+    .TraceLabel  ''      (optional string label)
 
     For immutable buffers which are initialized with initial data, keep the
     .Size field zero-initialized, and set the size together with the pointer to
     the initial data in the .Data field.
 
-    For mutable buffers without initial data, keep the .Data field empty, and
-    set the buffer size in the .Size field instead.
+    For immutable or mutable buffers without initial data, keep the .Data field
+    empty, and set the buffer size in the .Size field instead.
 
     You can also set both size values, but currently both size values must be
     identical (this may change in the future when the dynamic resource
     management may become more flexible).
+
+    NOTE: Immutable buffers without storage-buffer-usage *must* be created with
+    initial content. This restriction doesn't apply to storage buffer usage,
+    because storage buffers may also get their initial content by running
+    a compute shader on them.
+
+    NOTE: Buffers without initial data will have undefined content, e.g.
+    do *not* expect the buffer to be zero-initialized!
 
     ADVANCED TOPIC: Injecting native 3D-API buffers:
 
@@ -1091,11 +1711,11 @@ type
 
     You must still provide all other record fields except the .Data field, and
     these must match the creation parameters of the native buffers you provide.
-    For TUsage.Immutable, only provide a single native 3D-API buffer, otherwise
-    you need to provide NUM_INFLIGHT_FRAMES buffers (only for GL and Metal, not
-    D3D11). Providing multiple buffers for GL and Metal is necessary because
-    Sokol will rotate through them when calling TBuffer.Update to prevent
-    lock-stalls.
+    For TBufferDesc.Usage.Immutable buffers, only provide a single native 3D-API
+    buffer, otherwise you need to provide NUM_INFLIGHT_FRAMES buffers (only for
+    GL and Metal, not D3D11). Providing multiple buffers for GL and Metal is
+    necessary because Sokol will rotate through them when calling TBuffer.Update
+    to prevent lock-stalls.
 
     Note that it is expected that immutable injected buffer have already been
     initialized with content, and the .Content field must be 0!
@@ -1109,11 +1729,12 @@ type
   {$ENDREGION 'Internal Declarations'}
   public
     Size: NativeUInt;
-    BufferType: TBufferType;
-    Usage: TUsage;
+    Usage: TBufferUsage;
     Data: TRange;
 
     TraceLabel: String;
+
+    (* Optionally inject backend-specific resources: *)
 
     { GL specific }
     GLBuffers: array [0..NUM_INFLIGHT_FRAMES - 1] of UInt32;
@@ -1179,25 +1800,95 @@ type
   PBuffer = ^TBuffer;
 
 type
-  { Defines the content of an image through a 2D array TBytes buffers.
-    The first array dimension is the cubemap face, and the second array
-    dimension the mipmap level. }
+  { Describes the intended usage of an image object.
+
+    Note that creating a texture view from the image to be used for
+    texture-sampling in vertex-, fragment- or compute-shaders is always
+    implicitly allowed. }
+  TImageUsage = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_image_usage;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { The image can be used as parent resource of a storage-image-view, which
+      allows compute shaders to write to the image in a compute pass (for
+      read-only access in compute shaders bind the image via a texture view
+      instead.
+      Default: False }
+    property StorageImage: Boolean read FHandle.storage_image write FHandle.storage_image;
+
+    { The image can be used as parent resource of a color-attachment-view, which
+      is then passed into TGfx.BeginPass via TPass.Attachments.Colors[] so that
+      fragment shaders can render into the image.
+      Default: False }
+    property ColorAttachment: Boolean read FHandle.color_attachment write FHandle.color_attachment;
+
+    { The image can be used as parent resource of a resolve-attachment-view,
+      which is then passed into TGfx.BeginPass via TPass.Attachments.Resolves[]
+      as target for an MSAA-resolve operation in TGfx.EndPass.
+      Default: False }
+    property ResolveAttachment: Boolean read FHandle.resolve_attachment write FHandle.resolve_attachment;
+
+    { The image can be used as parent resource of a depth-stencil-attachmnet-view
+      which is then passes into TGfx.BeginPass via TPass.Attachments.DepthStencil
+      as depth-stencil-buffer.
+      Default: False }
+    property DepthStencilAttachment: Boolean read FHandle.depth_stencil_attachment write FHandle.depth_stencil_attachment;
+
+    { The image content cannot be updated from the CPU side (but may be updated
+      by the GPU in a render- or compute-pass).
+      Default: True }
+    property Immutable: Boolean read FHandle.immutable write FHandle.immutable;
+
+    { The image content is updated infrequently by the CPU via TImage.Update.
+      Default: False }
+    property DynamicUpdate: Boolean read FHandle.dynamic_update write FHandle.dynamic_update;
+
+    { The image content is updated each frame by the CPU via TImage.Update.
+      Default: False }
+    property StreamUpdate: Boolean read FHandle.stream_update write FHandle.stream_update;
+  end;
+  PImageUsage = ^TImageUsage;
+
+type
+  { Defines the content of an array of TRange records, each range pointing to
+    the pixel data for one mip-level. For array-, cubemap- and 3D-images each
+    mip-level contains all slice-surfaces for that mip-level in a single tightly
+    packed memory block.
+
+    The size of a single surface in a mip-level for a regular 2D texture
+    can be computed via:
+
+      TPixelFormat.SurfacePitch(MipWidth, MipHeight, 1);
+
+    For array- and 3d-images the size of a single miplevel is:
+
+        NumSlices * TPixelFormat.SurfacePitch(MipWidth, MipHeight, 1);
+
+    For cubemap-images the size of a single mip-level is:
+
+        6 * TPixelFormat.SurfacePitchy(MipWidth, MipHeight, 1);
+
+    The order of cubemap-faces is in a mip-level data chunk is:
+
+        [0] => +X
+        [1] => -X
+        [2] => +Y
+        [3] => -Y
+        [4] => +Z
+        [5] => -Z }
   TImageData = record
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_image_data);
     procedure InitFrom(const ASrc: _sg_image_data);
-    function GetSubImage(const AMipmapLevel: Integer): TRange; inline;
-    procedure SubImage(const AMipmapLevel: Integer; const AValue: TRange); inline;
   {$ENDREGION 'Internal Declarations'}
   public
     class function Create: TImageData; static;
     procedure Init; inline;
   public
-    SubImagesCube: array [TCubeFace, 0..MAX_MIPMAPS - 1] of TRange;
-
-    { Same sub images, but for 2D images }
-    property SubImages[const AMipmapLevel: Integer]: TRange read GetSubImage write SubImage; default;
+    MipLevels: array [0..MAX_MIPMAPS - 1] of TRange;
   end;
   PImageData = ^TImageData;
 
@@ -1207,43 +1898,36 @@ type
     The default configuration is:
 
     .ImageType:         TwoD
-    .RenderTarget:      False
+    .Usage:             .Immutable = True
     .Width              0 (must be set to >0)
     .Height             0 (must be set to >0)
     .NumSlices          1 (3D textures: depth; array textures: number of layers)
     .NumMipmaps:        1
-    .Usage:             Immutable
-    .PixelFormat:       Rgba8 for textures, or TGfxDesc.Context.ColorFormat for render targets
-    .SampleCount:       1 for textures, or TGfxDesc.Context.SampleCount for render targets
-    .MinFilter:         Nearest
-    .MagFilter:         Nearest
-    .WrapU:             Repeating
-    .WrapV:             Repeating
-    .WrapW:             Repeating
-    .BorderColor        OpaqueBlack
-    .MaxAnisotropy      1 (must be 1..16)
-    .MinLod             0.0
-    .MaxLod             Single.MaxValue
+    .PixelFormat:       Rgba8 for textures, or TGfxDesc.Environment.Defaults.ColorFormat
+                        for render targets
+    .SampleCount:       1 for textures, or TGfxDesc.Environment.Defaults.SampleCount
+                        for render targets
     .Data               a TImageData record to define the initial content
     .TraceLabel         '' (optional string label for trace hooks)
 
     Q: Why is the default SampleCount for render targets identical with the
-    "default sample count" from TGfxDesc.Context.SampleCount?
+    "default sample count" from TGfxDesc.Environment.Defaults.SampleCount?
 
     A: So that it matches the default sample count in pipeline objects. Even
     though it is a bit strange/confusing that offscreen render targets by default
-    get the same sample count as the default framebuffer, but it's better that
-    an offscreen render target created with default parameters matches
-    a pipeline object created with default parameters.
+    get the same sample count as 'default swapchains', but it's better that an
+    offscreen render target created with default parameters matches a pipeline
+    object created with default parameters.
 
     NOTE:
 
-    TImageType.Array and TImageType.ThreeD are not supported on GLES2.
-    Use TGfx.Features at runtime to check if array- and 3D-textures are
-    supported.
+    Regular images used as texture binding with Usage.Immutable must be fully
+    initialized by providing a valid .Data member which points to initialization
+    data.
 
-    Images with usage Immutable must be fully initialized by providing a valid
-    .Data field with the initialization data.
+    Images with Usage.*Attachment or Usage.StorageImage must *not* be created
+    with initial content. Be aware that the initial content of pass attachment
+    and storage images is undefined (not guaranteed to be zeroed).
 
     ADVANCED TOPIC: Injecting native 3D-API textures:
 
@@ -1253,16 +1937,10 @@ type
     .GLTextures[0..NUM_INFLIGHT_FRAMES - 1]
     .MtlTextures[0..NUM_INFLIGHT_FRAMES - 1]
     .D3D11Texture
-    .D3D11ShaderResourceView
 
     For GL, you can also specify the texture target or leave it empty to use
     the default texture target for the image type (GL_TEXTURE_2D for
     TImageType.TwoD etc)
-
-    For D3D11, you can provide either a D3D11 texture, or a
-    shader-resource-view, or both. If only a texture is provided, a matching
-    shader-resource-view will be created. If only a shader-resource-view is
-    provided, the texture will be looked up from the shader-resource-view.
 
     The same rules apply as for injecting native buffers (see TBufferDesc
     documentation for more details). }
@@ -1274,25 +1952,17 @@ type
   {$ENDREGION 'Internal Declarations'}
   public
     ImageType: TImageType;
-    RenderTarget: Boolean;
+    Usage: TImageUsage;
     Width: Integer;
     Height: Integer;
     NumSlices: Integer;
     NumMipmaps: Integer;
-    Usage: TUsage;
     PixelFormat: TPixelFormat;
     SampleCount: Integer;
-    MinFilter: TFilter;
-    MagFilter: TFilter;
-    WrapU: TWrap;
-    WrapV: TWrap;
-    WrapW: TWrap;
-    BorderColor: TBorderColor;
-    MaxAnisotropy: UInt32;
-    MinLod: Single;
-    MaxLod: Single;
     Data: TImageData;
     TraceLabel: String;
+
+    (* Optionally inject backend-specific resources: *)
 
     { GL specific }
     GLTextures: array [0..NUM_INFLIGHT_FRAMES - 1] of UInt32;
@@ -1303,7 +1973,6 @@ type
 
     { D3D11 specific }
     D3D11Texture: IInterface;
-    D3D11ShaderResourceView: IInterface;
   public
     { Initializes with default values }
     class function Create: TImageDesc; inline; static;
@@ -1312,7 +1981,7 @@ type
   PImageDesc = ^TImageDesc;
 
 type
-  { Texture and render target resource.
+  { Images used as textures and render-pass attachments.
 
     An image can be created synchronously or asynchronously.
     For synchronous creation, use Create/Init and Free.
@@ -1353,140 +2022,568 @@ type
   PImage = ^TImage;
 
 type
-  { Defines all creation parameters for shader programs, used as input to
-    TShader:
+  { Creation parameters for TSampler objects. Defaults:
 
-    - reflection information for vertex attributes (vertex shader inputs):
-        - vertex attribute name (required for GLES2, optional for GLES3 and GL)
-        - a semantic name and index (required for D3D11)
-    - for each shader-stage (vertex and fragment):
-        - the shader source or bytecode
-        - an optional entry function name
-        - an optional compile target (only for D3D11 when source is provided,
-          defaults are "vs_4_0" and "ps_4_0")
-        - reflection info for each uniform block used by the shader stage:
-            - the size of the uniform block in bytes
-            - a memory layout hint (native vs std140, only required for GL
-              backends)
-            - reflection info for each uniform block member (only required for
-              GL backends):
-                - member name
-                - member type (TUniformType)
-                - if the member is an array, the number of array items
-        - reflection info for the texture images used by the shader stage:
-            - the image type (TImageType)
-            - the sampler type (TSamplerType default is TSamplerType.Float)
-            - the name of the texture sampler (required for GLES2, optional
-              everywhere else)
+    .MinFilter:         TFilter.Nearest
+    .MagFilter:         TFilter.Nearest
+    .MipmapFilter:      TFilter.Nearest
+    .WrapU:             TWrap.Repeating
+    .WrapV:             TWrap.Repeating
+    .WrapW:             TWrap.Repeating (only TImageType.ThreeD)
+    .MinLod:            0.0
+    .MaxLod:            Single.MaxValue
+    .BorderColor        OpaqueBlack
+    .Compare            TCompareFunc.Never
+    .MaxAnisotropy      1 (must be 1..16) }
+  TSamplerDesc = record
+  {$REGION 'Internal Declarations'}
+  public
+    procedure _Convert(out ADst: _sg_sampler_desc);
+    procedure _InitFrom(out ASrc: _sg_sampler_desc);
+  {$ENDREGION 'Internal Declarations'}
+  public
+    MinFilter: TFilter;
+    MagFilter: TFilter;
+    MipmapFilter: TFilter;
+    WrapU: TWrap;
+    WrapV: TWrap;
+    WrapW: TWrap;
+    MinLod: Single;
+    MaxLod: SIngle;
+    BorderColor: TBorderColor;
+    Compare: TCompareFunc;
+    MaxAnisotropy: Integer;
+    TraceLabel: String;
+
+    (* Optionally inject backend-specific resources: *)
+
+    { GL specific }
+    GLSampler: UInt32;
+
+    { Metal specific }
+    MtlSampler: Pointer;
+
+    { D3D11 specific }
+    D3D11Sampler: IInterface;
+  public
+    { Initializes with default values }
+    class function Create: TSamplerDesc; inline; static;
+    procedure Init;
+  end;
+  PSamplerDesc = ^TSamplerDesc;
+
+type
+  { Sampler objects describing how a texture is sampled in a shader.
+
+    A sampler can be created synchronously or asynchronously.
+    For synchronous creation, use Create/Init and Free.
+    For asynchronous creation, use Allocate, Setup, Teardown, Deallocate and
+    Fail. }
+  TSampler = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_sampler;
+  {$ENDREGION 'Internal Declarations'}
+  end;
+  PSampler = ^TSampler;
+
+type
+  { Allows to query the type of a view object via TView.ViewType }
+  TViewType = (
+    Invalid                = _SG_VIEWTYPE_INVALID,
+    StorageBuffer          = _SG_VIEWTYPE_STORAGEBUFFER,
+    StorageImage           = _SG_VIEWTYPE_STORAGEIMAGE,
+    Texture                = _SG_VIEWTYPE_TEXTURE,
+    ColorAttachment        = _SG_VIEWTYPE_COLORATTACHMENT,
+    ResolveAttachment      = _SG_VIEWTYPE_RESOLVEATTACHMENT,
+    DepthStencilAttachment = _SG_VIEWTYPE_DEPTHSTENCILATTACHMENT);
+
+type
+  TBufferViewDesc = record
+  public
+    Buffer: TBuffer;
+    Offset: Integer;
+  end;
+  PBufferViewDesc = ^TBufferViewDesc;
+
+type
+  TImageViewDesc = record
+  public
+    Image: TImage;
+    MipLevel: Integer;
+
+    { Cube texture: face;
+      Array texture: layer;
+      3D texture: depth-slice }
+    Slice: Integer;
+  end;
+  PImageViewDesc = ^TImageViewDesc;
+
+type
+  TTextureViewRange = record
+  public
+    Base: Integer;
+    Count: Integer;
+  end;
+  PTextureViewRange = ^TTextureViewRange;
+
+type
+  TTextureViewDesc = record
+  public
+    Image: TImage;
+    MipLevels: TTextureViewRange;
+
+    { Cube texture: face;
+      Array texture: layer;
+      3D texture: depth-slice }
+    Slices: TTextureViewRange;
+  end;
+  PTextureViewDesc = ^TTextureViewDesc;
+
+type
+  { Creation params for TView objects.
+
+    View objects are passed into TGfx.ApplyBindings (for texture-,
+    storage-buffer- and storage-image views), and TGfx.BeginPass (for color-,
+    resolve- and depth-stencil-attachment views).
+
+    The view type is determined by initializing one of the sub-records of
+    TViewDesc:
+
+    .Texture            a texture-view object will be created
+        .Image          the TImage parent resource
+        .MipLevels      optional mip-level range, keep zero-initialized for the
+                        entire mipmap chain
+            .Base       the first mip level
+            .Count      number of mip levels, keeping this zero-initialized means
+                        'all remaining mip levels'
+        .Slices         optional slice range, keep zero-initialized to include
+                        all slices
+            .Base       the first slice
+            .Count      number of slices, keeping this zero-initializied means
+                        'all remaining slices'
+
+    .StorageBuffer      a storage-buffer-view object will be created
+        .Buffer         the TBuffer parent resource, must have been created
+                        with `TBufferDesc.Usage.StorageBuffer = True`
+        .Offset         optional 256-byte aligned byte-offset into the buffer
+
+    .StorageImage       a storage-image-view object will be created
+        .Image          the TImage parent resource, must have been created
+                        with `TImageDesc.Usage.StorageImage = True`
+        .MipLevel       selects the mip-level for the compute shader to write
+        .Slice          selects the slice for the compute shader to write
+
+    .ColorAttachment    a color-attachment-view object will be created
+        .Image          the TImage parent resource, must have been created
+                        with `TImageDesc.Usage.ColorAttachment = True`
+        .MipLevel       selects the mip-level to render into
+        .Slice          selects the slice to render into
+
+    .ResolveAttachment  a resolve-attachment-view object will be created
+        .Image          the TImage parent resource, must have been created
+                        with `TImageDesc.Usage.ResolveAttachment = True`
+        .MipLevel       selects the mip-level to msaa-resolve into
+        .Slice          selects the slice to msaa-resolve into
+
+    .DepthStencilAttachment  a depth-stencil-attachment-view object will be created
+        .Image          the TImage parent resource, must have been created
+                        with `TImageDesc.Usage.DepthStencilAttachment = True`
+        .MipLevel       selects the mip-level to render into
+        .Slice          selects the slice to render into }
+  TViewDesc = record
+  public
+    Texture: TTextureViewDesc;
+    StorageBuffer: TBufferViewDesc;
+    StorageImage: TImageViewDesc;
+    ColorAttachment: TImageViewDesc;
+    ResolveAttachment: TImageViewDesc;
+    DepthStencilAttachment: TImageViewDesc;
+    TraceLabel: AnsiString;
+  end;
+
+type
+  { A resource view object used for bindings and render-pass attachments.
+
+    A resource view can be created synchronously or asynchronously.
+    For synchronous creation, use Create/Init and Free.
+    For asynchronous creation, use Allocate, Setup, Teardown, Deallocate and
+    Fail. }
+  TView = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_view;
+  {$ENDREGION 'Internal Declarations'}
+  end;
+  PView = ^TView;
+
+type
+  TShaderStage = (
+    None     = _SG_SHADERSTAGE_NONE,
+    Vertex   = _SG_SHADERSTAGE_VERTEX,
+    Fragment = _SG_SHADERSTAGE_FRAGMENT,
+    Compute  = _SG_SHADERSTAGE_COMPUTE);
+
+type
+  TShaderFunction = record
+  public
+    Source: AnsiString;
+    ByteCode: TRange;
+    Entry: AnsiString;
+
+    { Default: 'vs_4_0' or 'ps_4_0' }
+    D3D11Target: AnsiString;
+
+    D3D11FilePath: AnsiString;
+  end;
+  PShaderFunction = ^TShaderFunction;
+
+type
+  TShaderAttrBaseType = (
+    Undefined   = _SG_SHADERATTRBASETYPE_UNDEFINED,
+    Float       = _SG_SHADERATTRBASETYPE_FLOAT,
+    SignedInt   = _SG_SHADERATTRBASETYPE_SINT,
+    UnsignedInt = _SG_SHADERATTRBASETYPE_UINT);
+
+type
+  TShaderVertexAttr = record
+  public
+    { Default: Undefined (disables validation) }
+    BaseType: TShaderAttrBaseType;
+
+    { [optional] GLSL attribute name }
+    GlslName: AnsiString;
+
+    { HLSL semantic name }
+    HlslSemName: AnsiString;
+
+    { HLSL semantic index }
+    HlslSemIndex: Byte;
+  end;
+  PShaderVertexAttr = ^TShaderVertexAttr;
+
+type
+  TGlslShaderUniform = record
+  public
+    UniformType: TUniformType;
+
+    { 0 or 1 for scalars, >1 for arrays }
+    ArrayCount: Word;
+
+    { glsl name binding is required on GL 4.1 and GLES 3 }
+    GlslName: AnsiString;
+  end;
+  PGlslShaderUniform = ^TGlslShaderUniform;
+
+type
+  TShaderUniformBlock = record
+  public
+    Stage: TShaderStage;
+    Size: Integer;
+
+    { HLSL register(bn) }
+    HlslRegisterBN: Byte;
+
+    { MSL [[buffer(n)]] }
+    MslBufferN: Byte;
+
+    { WGSL @group(0) @binding(n) }
+    WgslGroup0BindingN: Byte;
+
+    { Vulkan GLSL layout(set=0, binding=n) }
+    SpirvSet0BindingN: Byte;
+
+    Layout: TUniformLayout;
+    GlslUniforms: array [0..MAX_UNIFORMBLOCK_MEMBERS - 1] of TGlslShaderUniform;
+  end;
+  PShaderUniformBlock = ^TShaderUniformBlock;
+
+type
+  TShaderTextureView = record
+  public
+    Stage: TShaderStage;
+    ImageType: TImageType;
+    SampleType: TImageSampleType;
+    MultiSampled: Boolean;
+
+    { HLSL register(tn) bind slot }
+    HlslRegisterTN: Byte;
+
+    { MSL [[texture(n)]] bind slot }
+    MslTextureN: Byte;
+
+    { WGSL @group(1) @binding(n) bind slot }
+    WgslGroup1BindingN: Byte;
+
+    { Vulkan GLSL layout(set=1, binding=0) }
+    SpirvSet1BindingN: Byte;
+  end;
+  PShaderTextureView = ^TShaderTextureView;
+
+type
+  TShaderStorageBufferView = record
+  public
+    Stage: TShaderStage;
+    ReadOnly: Boolean;
+
+    { HLSL register(tn) bind slot (for readonly access) }
+    HlslRegisterTN: Byte;
+
+    { HLSL register(un) bind slot (for read/write access) }
+    HlslRegisterUN: Byte;
+
+    { MSL [[buffer(n)]] bind slot }
+    MslBufferN: Byte;
+
+    { WGSL @group(1) @binding(n) bind slot }
+    WgslGroup1BindingN: Byte;
+
+    { Vulkan GLSL layout(set=1, binding=0) }
+    SpirvSet1BindingN: Byte;
+
+    { GLSL layout(binding=n) }
+    GlslBindingN: Byte;
+  end;
+  PShaderStorageBufferView = ^TShaderStorageBufferView;
+
+type
+  TShaderStorageImageView = record
+  public
+    Stage: TShaderStage;
+    ImageType: TImageType;
+
+    { Shader-access pixel format }
+    AccessFormat: TPixelFormat;
+
+    { False means read/write access }
+    WriteOnly: Boolean;
+
+    { HLSL register(un) bind slot}
+    HlslRegisterUN: Byte;
+
+    { MSL [[texture(n)]] bind slot }
+    MslTextureN: Byte;
+
+    { WGSL @group(2) @binding(n) bind slot }
+    WgslGroup1BindingN: Byte;
+
+    { Vulkan GLSL layout(set=1, binding=0) }
+    SpirvSet1BindingN: Byte;
+
+    { GLSL layout(binding=n) }
+    GlslBindingN: Byte;
+  end;
+  PShaderStorageImageView = ^TShaderStorageImageView;
+
+type
+  TShaderView = record
+  public
+    Texture: TShaderTextureView;
+    StorageBuffer: TShaderStorageBufferView;
+    StorageImage: TShaderStorageImageView;
+  end;
+  PShaderView = ^TShaderView;
+
+type
+  TShaderSampler = record
+  public
+    Stage: TShaderStage;
+    SamplerType: TSamplerType;
+
+    { HLSL register(sn) bind slot}
+    HlslRegisterSN: Byte;
+
+    { MSL [[sampler(n)]] bind slot }
+    MslSamplerN: Byte;
+
+    { WGSL @group(1) @binding(n) bind slot }
+    WgslGroup1BindingN: Byte;
+
+    { Vulkan GLSL layout(set=1, binding=0) }
+    SpirvSet1BindingN: Byte;
+  end;
+  PShaderSampler = ^TShaderSampler;
+
+type
+  TShaderTextureSamplerPair = record
+  public
+    Stage: TShaderStage;
+
+    { Must be TViewType.Texture }
+    ViewSlot: TViewType;
+
+    SamplerSlot: Byte;
+
+    { glsl name binding required because of GL 4.1 and GLES 3 }
+    GlslName: AnsiString;
+  end;
+  PShaderTextureSamplerPair = ^TShaderTextureSamplerPair;
+
+type
+  TMtlShaderThreadsPerThreadgroup = record
+  public
+    X: Integer;
+    Y: Integer;
+    Z: Integer;
+  end;
+  PMtlShaderThreadsPerThreadgroup = ^TMtlShaderThreadsPerThreadgroup;
+
+type
+  { Used as parameter of TShader.Create/Init to create a shader object which
+    communicates shader source or bytecode and shader interface reflection
+    information to Sokol.
+
+    If you use the Sokol shader compilier you can ignore the following
+    information since the TShaderDesc record will be code-generated.
+
+    Otherwise you need to provide the following information to the
+    TShader.Create/Init call:
+
+    - a vertex- and fragment-shader function:
+      - the shader source or bytecode
+      - an optional entry point name
+      - for D3D11: an optional compile target when source code is provided
+        (the defaults are "vs_4_0" and "ps_4_0")
+
+    - ...or alternatively, a compute function:
+      - the shader source or bytecode
+      - an optional entry point name
+      - for D3D11: an optional compile target when source code is provided
+        (the default is "cs_5_0")
+
+    - vertex attributes required by some backends (not for compute shaders):
+      - the vertex attribute base type (undefined, float, signed int, unsigned int),
+        this information is only used in the validation layer to check that the
+        pipeline object vertex formats are compatible with the input vertex attribute
+        type used in the vertex shader. NOTE that the default base type
+        'undefined' skips the validation layer check.
+      - for the GL backend: optional vertex attribute names used for name lookup
+      - for the D3D11 backend: semantic names and indices
+
+    - only for compute shaders on the Metal backend:
+      - the workgroup size aka 'threads per thread-group'
+
+        In other 3D APIs this is declared in the shader code:
+        - GLSL: `layout(local_size_x=x, local_size_y=y, local_size_y=z) in;`
+        - HLSL: `[numthreads(x, y, z)]`
+        - WGSL: `@workgroup_size(x, y, z)`
+        ...but in Metal the workgroup size is declared on the CPU side
+
+    - reflection information for each uniform block binding used by the shader:
+      - the shader stage the uniform block appears in (TShaderStage.()
+      - the size in bytes of the uniform block
+      - backend-specific bindslots:
+        - HLSL: the constant buffer register `register(b0..7)`
+        - MSL: the buffer attribute `[[buffer(0..7)]]`
+        - WGSL: the binding in `@group(0) @binding(0..15)`
+      - GLSL only: a description of the uniform block interior
+        - the memory layout standard (TUniformLayout.*)
+        - for each member in the uniform block:
+          - the member type (TUniform.*)
+          - if the member is an array, the array count
+          - the member name
+
+    - reflection information for each texture-, storage-buffer and
+      storage-image bindings by the shader, each with an associated
+      view type:
+      - texture bindings => texture views
+      - storage-buffer bindings => storage-buffer views
+      - storage-image bindings => storage-image views
+
+    - texture bindings must provide the following information:
+      - the shader stage the texture binding appears in (TShaderStage.*)
+      - the image type (TImageType.*)
+      - the image-sample type (TImageSampleType.*)
+      - whether the texture is multisampled
+      - backend specific bindslots:
+        - HLSL: the texture register `register(t0..31)`
+        - MSL: the texture attribute `[[texture(0..31)]]`
+        - WGSL: the binding in `@group(1) @binding(0..127)`
+
+    - storage-buffer bindings must provide the following information:
+      - the shader stage the storage buffer appears in (TShaderStage.*)
+      - whether the storage buffer is readonly
+      - backend specific bindslots:
+        - HLSL:
+          - for storage buffer bindings: `register(t0..31)`
+          - for read/write storage buffer bindings: `register(u0..31)`
+        - MSL: the buffer attribute `[[buffer(8..23)]]`
+        - WGSL: the binding in `@group(1) @binding(0..127)`
+        - GL: the binding in `layout(binding=0..TLimits.MaxStorageBufferBindingsPerStage)`
+
+    - storage-image bindings must provide the following information:
+      - the shader stage (*must* be TShaderStage.Compute)
+      - whether the storage image is writeonly or readwrite (for readonly
+        access use a regular texture binding instead)
+      - the image type expected by the shader (TImageType.*)
+      - the access pixel format expected by the shader (TPixelFormat.*),
+        note that only a subset of pixel formats is allowed for storage image
+        bindings
+      - backend specific bindslots:
+        - HLSL: the UAV register `register(u0..31)`
+        - MSL: the texture attribute `[[texture(0..31)]]`
+        - WGSL: the binding in `@group(1) @binding(0..127)`
+        - GLSL: the binding in `layout(binding=0..TLimits.MaxStorageBufferBindingsPerStage, [access_format])`
+
+    - reflection information for each sampler used by the shader:
+      - the shader stage the sampler appears in (TShaderStage.*)
+      - the sampler type (TSamplerType.*)
+      - backend specific bindslots:
+        - HLSL: the sampler register `register(s0..11)`
+        - MSL: the sampler attribute `[[sampler(0..11)]]`
+        - WGSL: the binding in `@group(0) @binding(0..127)`
+
+    - reflection information for each texture-sampler pair used by
+      the shader:
+      - the shader stage (TShaderStage.*)
+      - the texture's array index in the TShaderDesc.Views[] array
+      - the sampler's array index in the TShaderDesc.Samplers[] array
+      - GLSL only: the name of the combined image-sampler object
+
+    The number and order of items in the TShaderDesc.Attrs[] array corresponds
+    to the items in TPipelineDesc.Layout.Attrs.
+
+      - TShaderDesc.Attrs[N] => TPipelineDesc.Layout.Attrs[N]
+
+    NOTE that vertex attribute indices currently cannot have gaps.
+
+    The items index in the TShaderDesc.UniformBlocks[] array corresponds
+    to the AUBSlot arg in TGfx.ApplyUniforms:
+
+        - TShaderDesc.UniformBlocks[N] => TGfx.ApplyUniforms(N, ...)
+
+    The items in the TShaderDesc.Views[] array directly map to the views in the
+    TBindings.Views[] array!
 
     For all GL backends, shader source-code must be provided. For D3D11 and
     Metal, either shader source-code or byte-code can be provided.
 
+    NOTE that the uniform-block, view and sampler arrays may have gaps. This
+    allows to use the same TBindings struct for different but related
+    shader variations.
+
     For D3D11, if source code is provided, the d3dcompiler_47.dll will be loaded
     on demand. If this fails, shader creation will fail. When compiling HLSL
     source code, you can provide an optional target string via
-    TShaderStageDesc.D3D11Target. The default target is 'vs_5_0' for the
-    vertex shader stage and 'ps_5_0' for the pixel shader stage. }
-  TShaderAttrDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_shader_attr_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    { GLSL vertex attribute name (only strictly required for GLES2) }
-    Name: String;
-
-    { HLSL semantic name }
-    SemanticName: String;
-
-    { HLSL semantic index }
-    SemanticIndex: Integer;
-  public
-    constructor Create(const AName, ASemanticName: String;
-      const ASemanticIndex: Integer);
-    procedure Init(const AName, ASemanticName: String;
-      const ASemanticIndex: Integer); inline;
-  end;
-  PShaderAttrDesc = ^TShaderAttrDesc;
-
-  TShaderUniformDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_shader_uniform_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    Name: String;
-    UniformType: TUniformType;
-    ArrayCount: Integer;
-  public
-    constructor Create(const AName: String; const AUniformType: TUniformType;
-      const AArrayCount: Integer);
-    procedure Init(const AName: String; const AUniformType: TUniformType;
-      const AArrayCount: Integer); inline;
-  end;
-  PShaderUniformDesc = ^TShaderUniformDesc;
-
-  TShaderUniformBlockDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_shader_uniform_block_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    Size: NativeUInt;
-    Layout: TUniformLayout;
-    Uniforms: array [0..MAX_UB_MEMBERS - 1] of TShaderUniformDesc;
-  public
-    constructor Create(const ASize: NativeUInt; const ALayout: TUniformLayout);
-    procedure Init(const ASize: NativeUInt; const ALayout: TUniformLayout); inline;
-  end;
-  PShaderUniformBlockDesc = ^TShaderUniformBlockDesc;
-
-  TShaderImageDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_shader_image_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    Name: String;
-    ImageType: TImageType;
-    SamplerType: TSamplerType;
-  public
-    constructor Create(const AName: String; const AImageType: TImageType;
-      const ASamplerType: TSamplerType);
-    procedure Init(const AName: String; const AImageType: TImageType;
-      const ASamplerType: TSamplerType); inline;
-  end;
-  PShaderImageDesc = ^TShaderImageDesc;
-
-  TShaderStageDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_shader_stage_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    Source: String;
-    Bytecode: TRange;
-    Entry: String;
-    D3D11Target: String;
-    UniformBlocks: array [0..MAX_SHADERSTAGE_UBS - 1] of TShaderUniformBlockDesc;
-    Images: array [0..MAX_SHADERSTAGE_IMAGES - 1] of TShaderImageDesc;
-  public
-    constructor Create(const ASource: String; const ABytecode: TRange;
-      const AEntry, AD3D11Target: String);
-    procedure Init(const ASource: String; const ABytecode: TRange;
-      const AEntry, AD3D11Target: String); inline;
-  end;
-  PShaderStageDesc = ^TShaderStageDesc;
-
+    TShaderStageDesc.D3D11Target, the default target is "vs_4_0" for the
+    vertex shader stage and "ps_4_0" for the pixel shader stage.
+    You may optionally provide the file path to enable the default #include
+    handler behavior when compiling source code. }
   TShaderDesc = record
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_shader_desc);
   {$ENDREGION 'Internal Declarations'}
   public
-    Attrs: array [0..MAX_VERTEX_ATTRIBUTES - 1] of TShaderAttrDesc;
-    VertexShader: TShaderStageDesc;
-    FragmentShader: TShaderStageDesc;
+    VertexFunc: TShaderFunction;
+    FragmentFunc: TShaderFunction;
+    ComputeFunc: TShaderFunction;
+    Attrs: array [0..MAX_VERTEX_ATTRIBUTES - 1] of TShaderVertexAttr;
+    UniformBlocks: array [0..MAX_UNIFORMBLOCK_BINDSLOTS - 1] of TShaderUniformBlock;
+    Views: array [0..MAX_VIEW_BINDSLOTS - 1] of TShaderView;
+    Samplers: array [0..MAX_SAMPLER_BINDSLOTS - 1] of TShaderSampler;
+    TextureSamplerPairs: array [0..MAX_TEXTURE_SAMPLER_PAIRS - 1] of TShaderTextureSamplerPair;
+    MtlThreadsPerThreadgroup: TMtlShaderThreadsPerThreadgroup;
     TraceLabel: String;
   public
     { Initializes with default values }
@@ -1501,31 +2598,13 @@ type
   TNativeShaderDesc = _sg_shader_desc;
   PNativeShaderDesc = _Psg_shader_desc;
 
-  _sg_shader_attr_desc_helper = record helper for _sg_shader_attr_desc
-  public
-    procedure Init(const AName, ASemanticName: PUTF8Char;
-      const ASemanticIndex: Integer); inline;
-  end;
-
   _sg_shader_desc_helper = record helper for _sg_shader_desc
   public
     procedure Init;
   end;
 
-  _sg_shader_image_desc_helper = record helper for _sg_shader_image_desc
-  public
-    procedure Init(const AName: PUTF8Char; const AImageType: _sg_image_type;
-      const ASamplerType: _sg_sampler_type); inline;
-  end;
-
-  _sg_shader_uniform_desc_helper = record helper for _sg_shader_uniform_desc
-  public
-    procedure Init(const AName: PUTF8Char; const AType: _sg_uniform_type;
-      const AArrayCount: Integer); inline;
-  end;
-
 type
-  { Vertex- and fragment-shader and uniform block resource.
+  { Vertex- and fragment-shaders and shader interface information.
 
     An shader can be created synchronously or asynchronously.
     For synchronous creation, use Create/Init and Free.
@@ -1565,76 +2644,10 @@ type
   PShader = ^TShader;
 
 type
-  { Defines all creation parameters for a TPipeline object:
-
-    - the vertex layout for all input vertex buffers
-    - a shader object
-    - the 3D primitive type (points, lines, triangles, ...)
-    - the index type (none, 16- or 32-bit)
-    - all the fixed-function-pipeline state (depth-, stencil-, blend-state,
-      etc...)
-
-    If the vertex data has no gaps between vertex components, you can omit
-    the .Layout.Buffers[].Stride and Layout.Attrs[].Offset items (leave them
-    default-initialized to 0). Sokol will then compute the offsets and strides
-    from the vertex component formats (.Layout.Attrs[].Format).
-    Please note that ALL vertex attribute offsets must be 0 in order for the
-    automatic offset computation to kick in.
-
-    The default configuration is as follows:
-
-    .Shader:                empty (must be initialized with a valid TShader!)
-    .Layout:
-        .Buffers[]:         vertex buffer layouts
-            .Stride:        0 (if no stride is given it will be computed)
-            .StepFunc       TVertexStep.PerVertex
-            .StepRate       1
-        .Attrs[]:           vertex attribute declarations
-            .BufferIndex    0 the vertex buffer bind slot
-            .Offset         0 (offsets can be omitted if the vertex layout has
-                            no gaps)
-            .Format         TVertexFormat.Invalid (must be initialized!)
-    .Depth:
-        .PixelFormat:       TGfxDesc.Context.DepthFormat
-        .Compare:           TCompareFunc.Always
-        .WriteEnabled:      False
-        .Bias:              0.0
-        .BiasSlopeScale:    0.0
-        .BiasClamp:         0.0
-    .Stencil:
-        .Enabled:           False
-        .Front/Back:
-            .Compare:       TCompareFunc.Always
-            .DepthFailOp:   TStencilOp.Keep
-            .PassOp:        TStencilOp.Keep
-            .Compare:       TCompareFunc.Always
-        .ReadMask:          0
-        .WriteMask:         0
-        .Ref:               0
-    .ColorCount             1
-    .Colors[0..ColorCount - 1]
-        .PixelFormat        TGfxDesc.Context.ColorFormat
-        .WriteMask:         TColorMask.Rgba
-        .Blend:
-            .Enabled:           False
-            .SrcFactorRgb:      TBlendFactor.One
-            .DstFactorRgb:      TBlendFactor.Zero
-            .OpRgb:             TBlendOp.Add
-            .SrcFactorAlpha:    TBlendFactor.One
-            .DstFactorAlpha:    TBlendFactor.Zero
-            .OpAlpha:           TBlendOp.Add
-    .PrimitiveType:             TPrimitiveType.Triangles
-    .IndexType:                 TIndexType.None
-    .CullMode:                  TCullMode.None
-    .FaceWinding:               TFaceWinding.ClockWise
-    .SampleCount:               TGfxDesc.Context.SampleCount
-    .BlendColor:                TAlphaColors.Null
-    .AlphaToCoverageEnabled:    False
-    .TraceLabel                 '' (optional string label for trace hooks) }
-  TBufferLayoutDesc = record
+  TVertexBufferLayoutState = record
   {$REGION 'Internal Declarations'}
   private
-    procedure Convert(out ADst: _sg_buffer_layout_desc);
+    procedure Convert(out ADst: _sg_vertex_buffer_layout_state);
   {$ENDREGION 'Internal Declarations'}
   public
     Stride: Integer;
@@ -1646,12 +2659,13 @@ type
     procedure Init(const AStride: Integer; const AStepFunc: TVertexStep;
       const AStepRate: Integer); inline;
   end;
-  PBufferLayoutDesc = ^TBufferLayoutDesc;
+  PVertexBufferLayoutState = ^TVertexBufferLayoutState;
 
-  TVertexAttrDesc = record
+type
+  TVertexAttrState = record
   {$REGION 'Internal Declarations'}
   private
-    procedure Convert(out ADst: _sg_vertex_attr_desc);
+    procedure Convert(out ADst: _sg_vertex_attr_state);
   {$ENDREGION 'Internal Declarations'}
   public
     BufferIndex: Integer;
@@ -1663,22 +2677,24 @@ type
     procedure Init(const ABufferIndex, AOffset: Integer;
       const AFormat: TVertexFormat); inline;
   end;
-  PVertexAttrDesc = ^TVertexAttrDesc;
+  PVertexAttrState = ^TVertexAttrState;
 
-  TLayoutDesc = record
+type
+  TVertexLayoutState = record
   {$REGION 'Internal Declarations'}
   private
-    procedure Convert(out ADst: _sg_layout_desc);
+    procedure Convert(out ADst: _sg_vertex_layout_state);
   {$ENDREGION 'Internal Declarations'}
   public
-    Buffers: array [0..MAX_SHADERSTAGE_BUFFERS - 1] of TBufferLayoutDesc;
-    Attrs: array [0..MAX_VERTEX_ATTRIBUTES - 1] of TVertexAttrDesc;
+    Buffers: array [0..MAX_VERTEXBUFFER_BINDSLOTS - 1] of TVertexBufferLayoutState;
+    Attrs: array [0..MAX_VERTEX_ATTRIBUTES - 1] of TVertexAttrState;
   public
-    class function Create: TLayoutDesc; static;
+    class function Create: TVertexLayoutState; static;
     procedure Init; inline;
   end;
-  PLayoutDesc = ^TLayoutDesc;
+  PVertexLayoutState = ^TVertexLayoutState;
 
+type
   TStencilFaceState = record
   {$REGION 'Internal Declarations'}
   private
@@ -1697,6 +2713,7 @@ type
   end;
   PStencilFaceState = ^TStencilFaceState;
 
+type
   TStencilState = record
   {$REGION 'Internal Declarations'}
   private
@@ -1717,6 +2734,7 @@ type
   end;
   PStencilState = ^TStencilState;
 
+type
   TDepthState = record
   {$REGION 'Internal Declarations'}
   private
@@ -1739,6 +2757,7 @@ type
   end;
   PDepthState = ^TDepthState;
 
+type
   TBlendState = record
   {$REGION 'Internal Declarations'}
   private
@@ -1764,10 +2783,11 @@ type
   end;
   PBlendState = ^TBlendState;
 
-  TColorState = record
+type
+  TColorTargetState = record
   {$REGION 'Internal Declarations'}
   private
-    procedure Convert(out ADst: _sg_color_state);
+    procedure Convert(out ADst: _sg_color_target_state);
   {$ENDREGION 'Internal Declarations'}
   public
     PixelFormat: TPixelFormat;
@@ -1779,20 +2799,102 @@ type
     procedure Init(const APixelFormat: TPixelFormat;
       const AWriteMask: TColorMask); inline;
   end;
-  PColorState = ^TColorState;
+  PColorTargetState = ^TColorTargetState;
 
+type
+  { Defines all creation parameters for a TPipeline object:
+
+    Pipeline objects come in two flavours:
+
+    - render pipelines for use in render passes
+    - compute pipelines for use in compute passes
+
+    A compute pipeline only requires a compute shader object but no 'render
+    state', while a render pipeline requires a vertex/fragment shader object and
+    additional render state declarations:
+
+    - the vertex layout for all input vertex buffers
+    - a shader object
+    - the 3D primitive type (points, lines, triangles, ...)
+    - the index type (none, 16- or 32-bit)
+    - all the fixed-function-pipeline state (depth-, stencil-, blend-state,
+      etc...)
+
+    If the vertex data has no gaps between vertex components, you can omit
+    the .Layout.Buffers[].Stride and Layout.Attrs[].Offset items (leave them
+    default-initialized to 0). Sokol will then compute the offsets and strides
+    from the vertex component formats (.Layout.Attrs[].Format).
+    Please note that ALL vertex attribute offsets must be 0 in order for the
+    automatic offset computation to kick in.
+
+    Note that if you use vertex-pulling from storage buffers instead of
+    fixed-function vertex input you can simply omit the entire nested .Layout
+    record.
+
+    The default configuration is as follows:
+
+    .Compute:               False (must be set to True for a compute pipeline_
+    .Shader:                empty (must be initialized with a valid TShader!)
+    .Layout:
+        .Buffers[]:         vertex buffer layouts
+            .Stride:        0 (if no stride is given it will be computed)
+            .StepFunc       TVertexStep.PerVertex
+            .StepRate       1
+        .Attrs[]:           vertex attribute declarations
+            .BufferIndex    0 the vertex buffer bind slot
+            .Offset         0 (offsets can be omitted if the vertex layout has
+                            no gaps)
+            .Format         TVertexFormat.Invalid (must be initialized!)
+    .Depth:
+        .PixelFormat:       TGfxDesc.Context.DepthFormat
+        .Compare:           TCompareFunc.Always
+        .WriteEnabled:      False
+        .Bias:              0.0
+        .BiasSlopeScale:    0.0
+        .BiasClamp:         0.0
+    .Stencil:
+        .Enabled:           False
+        .Front/Back:
+            .Compare:       TCompareFunc.Always
+            .FailOp:        TStencilOp.Keep
+            .DepthFailOp:   TStencilOp.Keep
+            .PassOp:        TStencilOp.Keep
+        .ReadMask:          0
+        .WriteMask:         0
+        .Ref:               0
+    .ColorCount             1
+    .Colors[0..ColorCount - 1]
+        .PixelFormat        TGfxDesc.Context.ColorFormat
+        .WriteMask:         TColorMask.Rgba
+        .Blend:
+            .Enabled:           False
+            .SrcFactorRgb:      TBlendFactor.One
+            .DstFactorRgb:      TBlendFactor.Zero
+            .OpRgb:             TBlendOp.Add
+            .SrcFactorAlpha:    TBlendFactor.One
+            .DstFactorAlpha:    TBlendFactor.Zero
+            .OpAlpha:           TBlendOp.Add
+    .PrimitiveType:             TPrimitiveType.Triangles
+    .IndexType:                 TIndexType.None
+    .CullMode:                  TCullMode.None
+    .FaceWinding:               TFaceWinding.ClockWise
+    .SampleCount:               TGfxDesc.Context.SampleCount
+    .BlendColor:                TAlphaColors.Null
+    .AlphaToCoverageEnabled:    False
+    .TraceLabel                 '' (optional string label for trace hooks) }
   TPipelineDesc = record
   {$REGION 'Internal Declarations'}
   public
     procedure _Convert(out ADst: _sg_pipeline_desc);
   {$ENDREGION 'Internal Declarations'}
   public
+    Compute: Boolean;
     Shader: TShader;
-    Layout: TLayoutDesc;
+    Layout: TVertexLayoutState;
     Depth: TDepthState;
     Stencil: TStencilState;
     ColorCount: Integer;
-    Colors: array [0..MAX_COLOR_ATTACHMENTS - 1] of TColorState;
+    Colors: array [0..MAX_COLOR_ATTACHMENTS - 1] of TColorTargetState;
     PrimitiveType: TPrimitiveType;
     IndexType: TIndexType;
     CullMode: TCullMode;
@@ -1846,6 +2948,74 @@ type
   end;
   PPipeline = ^TPipeline;
 
+type
+  { Used in TPass to provide render pass attachment views. Each type of pass
+    attachment has it corresponding view type:
+
+    TAttachments.colors[]:
+      populate with color-attachment views, e.g.
+      TViewDesc.ColorAttachment := ...
+
+    TAttachments.Resolves[]:
+      populate with resolve-attachment views, e.g.:
+      TViewDesc.ResolveAttachment := ...
+
+    TAttachments.DepthStencil:
+      populate with depth-stencil-attachment views, e.g.:
+      TViewDesc.DepthStencilAttachment := ... }
+  TAttachments = record
+  public
+    Colors: array [0..MAX_COLOR_ATTACHMENTS - 1] of TView;
+    Resolves: array [0..MAX_COLOR_ATTACHMENTS - 1] of TView;
+    DepthStencil: TView;
+  end;
+  PAttachments = ^TAttachments;
+
+type
+  { The TPass record is passed as argument into the TGfx.BeginPass method.
+
+    For a swapchain render pass, provide a TPassAction and TSwapchain record
+    (for instance via the Swapchain helper function from Neslib.Sokol.Glue:
+
+      var Pass := TPass.Create;
+      Pass.Action := ...
+      Pass.Swapchain := Swapchain;
+      TGfx.BeginPass(Pass);
+
+    For an offscreen render pass, provide an TPassAction record with attachment
+    view objects:
+
+      var Pass := TPass.Create;
+      Pass.Action := ...
+      Pass.Attachments.Colors := ...
+      Pass.Attachments.Resolves := ...
+      Pass.Attachments.DepthStencil := ...
+      TGfx.BeginPass(Pass);
+
+    You can also omit the .Action member to get default pass action behaviour
+    (clear to Color=grey, Depth=1 and Stencil=0).
+
+    For a compute pass, just set the TPass.Compute Boolean to True. }
+  TPass = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_pass;
+    FTraceLabel: String;
+    function GetAction: PPassAction; inline;
+    function GetAttachments: PAttachments; inline;
+    function GetSwapchain: PSwapchain; inline;
+    procedure SetTraceLabel(const AValue: String); inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Compute: Boolean read FHandle.compute write FHandle.compute;
+    property Action: PPassAction read GetAction;
+    property Attachments: PAttachments read GetAttachments;
+    property Swapchain: PSwapchain read GetSwapchain;
+    property TraceLabel: String read FTraceLabel write SetTraceLabel;
+  end;
+  PPass = ^TPass;
+
+  .. at sg_log_item --> TGfxLogItem
 type
   { Creation parameters for a TPass object.
 
@@ -1937,66 +3107,104 @@ type
   PPass = ^TPass;
 
 type
-  { A 'context handle' for switching between 3D-API contexts.
-    This is an optional type. }
-  TContext = record
-  {$REGION 'Internal Declarations'}
-  private
-    FHandle: _sg_context;
-  {$ENDREGION 'Internal Declarations'}
-  public
-    class function Create: TContext; inline; static;
-    procedure Init;
-    procedure Free; inline;
+  { Defines the resource bindings for the next draw call.
 
-    { Operations }
-    procedure Activate; inline;
-
-    { The resource Id }
-    property Id: Cardinal read FHandle.id write FHandle.id;
-  end;
-  PContext = ^TContext;
-
-type
-  { Defines the resource binding slots of the render pipeline, used as argument
-    to the TGfx.ApplyBindings method.
+    To update the resource bindings, call TGfx.ApplyBindings with a populated
+    TBindings struct. Note that TGfx.ApplyBindings must be called after
+    TGfx.ApplyPipeline and that bindings are not preserved across
+    TGfx.ApplyPipeline calls, even when the new pipeline uses the same 'bindings
+    layout'.
 
     A resource binding struct contains:
 
     - 1..N vertex buffers
-    - 0..N vertex buffer offsets
+    - 1..N vertex buffer offsets
     - 0..1 index buffers
     - 0..1 index buffer offsets
-    - 0..N vertex shader stage images
-    - 0..N fragment shader stage images
+    - 0..N resource views (texture-, storage-image, storage-buffer-views)
+    - 0..N samplers
 
-    The max number of vertex buffer and shader stage images are defined by the
-    MAX_SHADERSTAGE_BUFFERS and MAX_SHADERSTAGE_IMAGES configuration constants.
+    Where 'N' is defined in the following constants:
 
-    The optional buffer offsets can be used to put different unrelated chunks of
-    vertex- and/or index-data into the same buffer objects. }
+    - MAX_VERTEXBUFFER_BINDSLOTS
+    - MAX_VIEW_BINDSLOTS
+    - MAX_SAMPLER_BINDSLOTS
+
+    Note that inside compute passes vertex- and index-buffer-bindings are
+    disallowed.
+
+    When using the Sokol shader compiler for shader authoring, the
+    `layout(binding=N)` for texture-, storage-image- and storage-buffer-bindings
+    directly maps to the views-array index, for instance the following vertex-
+    and fragment-shader interface for the Sokol shader compiler:
+
+      @vs vs
+      layout(binding=0) uniform vs_params ...;
+      layout(binding=0) readonly buffer ssbo  ...;
+      layout(binding=1) uniform texture2D vs_tex;
+      layout(binding=0) uniform sampler vs_smp;
+      ...
+      @end
+
+      @fs fs
+      layout(binding=1) uniform fs_params ...;
+      layout(binding=2) uniform texture2D fs_tex;
+      layout(binding=1) uniform sampler fs_smp;
+      ...
+      @end
+
+    ...would map to the following TBindings record:
+
+      var Bnd: TBindings;
+      Bnd.VertexBuffers[0] = ...;
+      Bnd.Views[0] = ssbo_view;
+      Bnd.Views[1] = vs_tex_view;
+      Bnd.Views[2] = fs_tex_view;
+      Bnd.Samplers[0] = vs_smp;
+      Bnd.Samplers[1] = fs_smp;
+
+    ...alternatively you can use code-generated slot indices:
+
+      var Bnd: TBindings;
+      Bnd.VertexBuffers[0] = ...;
+      Bnd.Views[VIEW_ssbo] = ssbo_view;
+      Bnd.Views[VIEW_vs_tex] = vs_tex_view;
+      Bnd.Views[VIEW_fs_tex] = fs_tex_view;
+      Bnd.Samplers[SMP_vs_smp] = vs_smp;
+      Bnd.Samplers[SMP_fs_smp] = fs_smp;
+
+    Resource bindslots for a specific shader/pipeline may have gaps, and an
+    TBindings record may have populated bind slots which are not used by a
+    specific shader. This allows to use the same TBindings record across
+    different shader variants.
+
+    When not using the Sokol shader compiler, the bindslot indices in the
+    TBindings record need to match the per-binding reflection info slot indices
+    in the TShaderDesc record (for details about that see the TShaderDesc record
+    documentation).
+
+    The optional buffer offsets can be used to put different unrelated
+    chunks of vertex- and/or index-data into the same buffer objects. }
   TBindings = record
   {$REGION 'Internal Declarations'}
   private
     FHandle: _sg_bindings;
-    function GetFragmentShaderImage(const AIndex: Integer): TImage; inline;
-    procedure SetGetFragmentShaderImage(const AIndex: Integer;
-      const AValue: TImage); inline;
-    function GetIndexBuffer: TBuffer; inline;
-    procedure SetIndexBuffer(const AValue: TBuffer); inline;
     function GetVertexBuffer(const AIndex: Integer): TBuffer; inline;
     procedure SetVertexBuffer(const AIndex: Integer; const AValue: TBuffer); inline;
     function GetVertexBufferOffset(const AIndex: Integer): Integer; inline;
-    function GetVertexShaderImage(const AIndex: Integer): TImage; inline;
-    procedure SetGetVertexShaderImage(const AIndex: Integer;
-      const AValue: TImage); inline;
     procedure SetVertexBufferOffset(const AIndex, AValue: Integer); inline;
+    function GetIndexBuffer: TBuffer; inline;
+    procedure SetIndexBuffer(const AValue: TBuffer); inline;
+    function GetView(const AIndex: Integer): TView; inline;
+    procedure SetView(const AIndex: Integer; const AValue: TView); inline;
+    function GetSampler(const AIndex: Integer): TSampler; inline;
+    procedure SetSampler(const AIndex: Integer; const AValue: TSampler); inline;
   {$ENDREGION 'Internal Declarations'}
   public
     class function Create: TBindings; static;
     procedure Init; inline;
 
-    { Vertex buffers [0..MAX_SHADERSTAGE_BUFFERS - 1] }
+    { Vertex buffers [0..MAX_VERTEXBUFFER_BINDSLOTS - 1] }
     property VertexBuffers[const AIndex: Integer]: TBuffer read GetVertexBuffer write SetVertexBuffer;
     property VertexBufferOffsets[const AIndex: Integer]: Integer read GetVertexBufferOffset write SetVertexBufferOffset;
 
@@ -2004,9 +3212,11 @@ type
     property IndexBuffer: TBuffer read GetIndexBuffer write SetIndexBuffer;
     property IndexBufferOffset: Integer read FHandle.index_buffer_offset write FHandle.index_buffer_offset;
 
-    { Vertex- and fragment shader images [0..MAX_SHADERSTAGE_IMAGES - 1] }
-    property VertexShaderImages[const AIndex: Integer]: TImage read GetVertexShaderImage write SetGetVertexShaderImage;
-    property FragmentShaderImages[const AIndex: Integer]: TImage read GetFragmentShaderImage write SetGetFragmentShaderImage;
+    { Views [0..MAX_VIEW_BINDSLOTS - 1] }
+    property Views[const AIndex: Integer]: TView read GetView write SetView;
+
+    { Samplers [0..MAX_SAMPLER_BINDSLOTS - 1] }
+    property Samplers[const AIndex: Integer]: TSampler read GetSampler write SetSampler;
   end;
 
 type
@@ -2354,6 +3564,30 @@ begin
   Result := FInfo[Self].blend;
 end;
 
+function _TPixelFormatHelper.GetBytesPerPixel: Integer;
+begin
+  if (not FHasInfo) then
+    InitInfo;
+
+  Result := FInfo[Self].bytes_per_pixel;
+end;
+
+function _TPixelFormatHelper.GetCanRead: Boolean;
+begin
+  if (not FHasInfo) then
+    InitInfo;
+
+  Result := FInfo[Self].read;
+end;
+
+function _TPixelFormatHelper.GetCanWrite: Boolean;
+begin
+  if (not FHasInfo) then
+    InitInfo;
+
+  Result := FInfo[Self].write;
+end;
+
 function _TPixelFormatHelper.GetDepth: Boolean;
 begin
   if (not FHasInfo) then
@@ -2368,6 +3602,14 @@ begin
     InitInfo;
 
   Result := FInfo[Self].filter;
+end;
+
+function _TPixelFormatHelper.GetIsCompressed: Boolean;
+begin
+  if (not FHasInfo) then
+    InitInfo;
+
+  Result := FInfo[Self].compressed;
 end;
 
 function _TPixelFormatHelper.GetMsaa: Boolean;
@@ -3592,29 +4834,6 @@ begin
   Result := _sg_uninit_pass(FHandle);
 end;
 
-{ TContext }
-
-procedure TContext.Activate;
-begin
-  _sg_activate_context(FHandle);
-end;
-
-class function TContext.Create: TContext;
-begin
-  Result.Init;
-end;
-
-procedure TContext.Free;
-begin
-  _sg_discard_context(FHandle);
-  FHandle.id := 0;
-end;
-
-procedure TContext.Init;
-begin
-  FHandle := _sg_setup_context;
-end;
-
 { TBindings }
 
 class function TBindings.Create: TBindings;
@@ -4047,24 +5266,30 @@ end;
 class procedure TGfx.DoGetFeatures;
 begin
   var Features := _sg_query_features;
-  if (Features.instancing) then
-    Include(FFeatures, TFeature.Instancing);
   if (Features.origin_top_left) then
     Include(FFeatures, TFeature.OriginTopLeft);
-  if (Features.multiple_render_targets) then
-    Include(FFeatures, TFeature.MultipleRenderTargets);
-  if (Features.msaa_render_targets) then
-    Include(FFeatures, TFeature.MsaaRenderTargets);
-  if (Features.imagetype_3d) then
-    Include(FFeatures, TFeature.ImageType3D);
-  if (Features.imagetype_array) then
-    Include(FFeatures, TFeature.ImageTypeArray);
   if (Features.image_clamp_to_border) then
     Include(FFeatures, TFeature.ImageClampToBorder);
   if (Features.mrt_independent_blend_state) then
     Include(FFeatures, TFeature.MrtIndependentBlendState);
   if (Features.mrt_independent_write_mask) then
     Include(FFeatures, TFeature.MrtIndependentWriteMask);
+  if (Features.compute) then
+    Include(FFeatures, TFeature.Compute);
+  if (Features.msaa_texture_bindings) then
+    Include(FFeatures, TFeature.MsaaTextureBindings);
+  if (Features.separate_buffer_types) then
+    Include(FFeatures, TFeature.SeparateBufferTypes);
+  if (Features.draw_base_vertex) then
+    Include(FFeatures, TFeature.DrawBaseVertex);
+  if (Features.draw_base_instance) then
+    Include(FFeatures, TFeature.DrawBaseInstance);
+  if (Features.dual_source_blending) then
+    Include(FFeatures, TFeature.DualSourceBlending);
+  if (Features.vertexformat_int10_n2) then
+    Include(FFeatures, TFeature.VertexFormatInt10N2);
+  if (Features.gl_texture_views) then
+    Include(FFeatures, TFeature.GLTextureViews);
 end;
 
 class procedure TGfx.Draw(const ABaseElement, ANumElements,

@@ -27,12 +27,12 @@ type
     { 8-bit color channels in RGBA order.
       Used for OpenGL (Android) backends. }
     RGBA8        = _SAPP_PIXELFORMAT_RGBA8,
-    SRGB8A8      = _SAPP_PIXELFORMAT_SRGB8A8,
+    sRGB8A8      = _SAPP_PIXELFORMAT_SRGB8A8,
 
     { 8-bit color channels in BGRA order.
       Used for DirectX (Windows) and Metal (iOS/macOS) backends. }
     BGRA8        = _SAPP_PIXELFORMAT_BGRA8,
-    SBGR8A8      = _SAPP_PIXELFORMAT_SBGR8A8,
+    sBGR8A8      = _SAPP_PIXELFORMAT_SBGR8A8,
 
     RGBA16F      = _SAPP_PIXELFORMAT_RGBA16F,
     Depth        = _SAPP_PIXELFORMAT_DEPTH,
@@ -301,7 +301,7 @@ type
 
 type
   { Log items }
-  TLogItem = (
+  TAppLogItem = (
     Ok,
     MallocFailed,
     SwapchainDepthformatInvalid,
@@ -432,7 +432,7 @@ type
     ClipboardStringTooBig);
 
 type
-  _TLogItemHelper = record helper for TLogItem
+  _TLogItemHelper = record helper for TAppLogItem
   public
     function ToString: String;
   end;
@@ -711,7 +711,7 @@ type
     * ALineNr: line number in original sokol_app.h file.
     * AFilename: source filename. May be empty in Release mode. }
   TLogFunc = procedure(const ATag: String; const ALevel: TLogLevel;
-      const AItem: TLogItem; const AMessage: String; const ALineNr: Integer;
+      const AItem: TAppLogItem; const AMessage: String; const ALineNr: Integer;
       const AFilename: String) of object;
 
 type
@@ -1841,7 +1841,7 @@ end;
 
 function _TLogItemHelper.ToString: String;
 const
-  STRINGS: array [TLogItem] of String = (
+  STRINGS: array [TAppLogItem] of String = (
     'Ok',
     'memory allocation failed',
     'TAppConfig.Swapchain.DepthFormat must be TAppPixelFormat.Default, TAppPixelFormat.None, TAppPixelFormat.Depth or TAppPixelFormat.DepthSencil',
@@ -2683,7 +2683,7 @@ begin
   Assert(Assigned(GLogFunc));
   LogFunc := GLogFunc;
   LogMethod.Data := AUserData;
-  LogFunc(String(UTF8String(ATag)), TLogLevel(ALogLevel), TLogItem(ALogItemId),
+  LogFunc(String(UTF8String(ATag)), TLogLevel(ALogLevel), TAppLogItem(ALogItemId),
     String(UTF8String(AMessageOrNull)), ALineNr,
     String(UTF8String(AFilenameOrNull)));
 end;

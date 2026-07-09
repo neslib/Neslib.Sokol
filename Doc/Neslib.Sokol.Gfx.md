@@ -5,8 +5,8 @@ A modern and uniform cross-platform wrapper around graphics backend.
 This is a light-weight OOP layer on top of [sokol_gfx.h](https://github.com/floooh/sokol).
 
 ## Features
-* simple, modern and uniform wrapper around OpenGL-ES 2/3, Direct3D 11 and Metal.
-* buffers, images, shaders, pipeline-state-objects and render-passes
+* simple, modern and uniform wrapper around OpenGL-ES 2/3, Direct3D 11, Metal and Vulkan.
+* buffers, images, shaders, pipeline-state-objects and render-passes.
 * does *not* handle window creation or 3D API context initialization. You can use [Neslib.Sokol.App](Neslib.Sokol.App.md) for this, or a 3rd party library like SDL.
 * does *not* provide shader dialect cross-translation, but there is a shader-cross-compiler solution which seamlessly integrates with Neslib.Sokol.Gfx (more on this later).
 
@@ -15,7 +15,7 @@ This unit does not have any dependencies. You can use it stand-alone, in combina
 Note that Neslib.Sokol.Gfx is still relatively low-level; it is only a thin layer on top of the actual graphics backend. You may want to build your own higher level layer on top of this one.
 
 The graphics backend that is used depends on the platform:
-* Windows: DirectX 11
+* Windows: OpenGL, Vulkan, DirectX 11
 * iOS/macOS: Metal
 * Android: OpenGL-ES 2/3
 
@@ -111,33 +111,64 @@ As mentioned earlier, you don't have to use [Neslib.Sokol.App](Neslib.Sokol.App.
 
 ## Step-by-Step
 * To initialize Neslib.Sokol.Gfx, after creating a window and a 3D-API context/device, call:
-  
+
   ```pascal
     var Desc := TGfxDesc.Create;
-    Desc.Context := Context;
     TGfx.Setup(Desc);
   ```
-  
-* Create resource objects (at least buffers, shaders and pipelines, and optionally images and passes):
-  
+  Depending on the selected 3D backend, Neslib.Sokol.Gfx requires some information about its runtime environment, like a GPU device pointer, default swapchain, pixel formats and so on. If you are using Neslib.Sokol.App for the window system glue, you can use a helper function provided in the Neslib.Sokol.Glue unit:
+  ```pascal
+    var Desc := TGfxDesc.Create;
+    Desc.Environment := TApplication.Environment;
+    TGfx.Setup(Desc);
+  ```
+  To get any logging output for errors and from the validation layer, you need to provide a logging callback. Easiest way is through Neslib.Sokol.Log:
+  ```pascal
+    var Desc := TGfxDesc.Create;
+    Desc.Logger.Func := DefaultLogFunc;
+    TGfx.Setup(Desc);
+  ```
+
+* Create resource objects (buffers, images, views, samplers, shaders and pipeline objects):
+
   ```pascal
     constructor TBuffer.Create(const ADesc: TBufferDesc);
     constructor TImage.Create(const ADesc: TImageDesc);
+    constructor TView.Create(const ADesc: TViewDesc);
+    constructor TSampler.Create(const ADesc: TSamplerDesc);
     constructor TShader.Create(const ADesc: TShaderDesc);
     constructor TPipeline.Create(const ADesc: TPipelineDesc);
-    constructor TPass.Create(const ADesc: TPassDesc);
   ```
-  
-* Start rendering to the default framebuffer with:
+
+* Start a render- or compute-pass:
+
+  ```pascal
+  class procedure TGfx.BeginPass(const APass: TPass); static;
+  ```
+  Typically, render passes render into an externally provided swapchain which presents the rendering result on the display. Such a 'swapchain pass' is started like this:
 
     ```pascal
-    class procedure TGfx.BeginDefaultPass(const AAction: TPassAction; const AWidth, AHeight: Integer); static;
+    var Pass := TPass.Create;
+    Pass.Action....;
+    Pass.Swapchain := TApplication.Swapchain;
+    class procedure TGfx.BeginPass(const APass: TPass); static;
     ```
+  ...where `.Action` is an `TPassAction` record struct containing actions to be performed at the start and end of a render pass (such as clearing the render surfaces to a specific color), and `.Swapchain` is a `TSwapchain` record with all the required information to render into the swapchain's surfaces.
 
-* Or start rendering to an offscreen framebuffer with:
-
+  To start an 'offscreen render pass' into Neslib.Sokol.Gfx image objects, populate the TPass.Attachments nested record with attachment view objects (1..4 color-attachment-views for to render into, a depth-stencil-attachment-view to provide the depth-stencil-buffer, and optionally 1..4 resolve-attachment-views for an MSAA-resolve operation:
     ```pascal
-    class procedure TGfx.BeginPass(const APass: TPass; const AAction: TPassAction); static;
+    var Pass := TPass.Create;
+    Pass.Action....;
+    Pass.Attachments.Colors[0] := ColorAttachmentView;
+    Pass.Attachments.Resolves[0] := OptionalResolveAttachmentView;
+    Pass.Attachments.DepthStencil := DepthStencilAttachmentView;
+    class procedure TGfx.BeginPass(const APass: TPass); static;
+    ```
+  To start a compute-pass, just set the `.Compute` item to true:
+    ```pascal
+    var Pass := TPass.Create;
+    Pass.Compute := True;
+    class procedure TGfx.BeginPass(const APass: TPass); static;
     ```
 
 * Set the pipeline state for the next draw call with:
@@ -146,18 +177,19 @@ As mentioned earlier, you don't have to use [Neslib.Sokol.App](Neslib.Sokol.App.
     class procedure TGfx.ApplyPipeline(const APipeline: TPipeline);
     ```
 
-* Fill an `TBindings` record with the resource bindings for the next draw call (1..N vertex buffers, 0 or 1 index buffer, 0..N image objects to use as textures each on the vertex-shader- and fragment-shader-stage) and then call:
-  
+* Fill an `TBindings` record with the resource bindings for the next draw- or dispatch-call (0..N vertex buffers, 0 or 1 index buffer, 0..N views,
+      0..N samplers), and call:
+
   ```pascal
   class procedure TGfx.ApplyBindings(const ABindings: TBindings);
   ```
-  
-  to update the resource bindings.
-  
+
+  ...to update the resource bindings. Note that in a compute pass, no vertex- or index-buffer bindings can be used, and in render passes, no storage-image bindings are allowed. Those restrictions will be checked by the Neslib.Sokol.Gfx validation layer.
+
 * Optionally update shader uniform data with:
 
   ```pascal
-  class procedure TGfx.ApplyUniforms(const AStage: TShaderStage; const AUBIndex: Integer; const AData: TRange);
+  class procedure TGfx.ApplyUniforms(const ASlot: Integer; const AData: TRange);
   ```
 
   Read the section [Uniform Data Layout](#uniform-data-layout) to learn about the expected memory layout of the uniform data passed into `ApplyUniforms`.
@@ -165,12 +197,23 @@ As mentioned earlier, you don't have to use [Neslib.Sokol.App](Neslib.Sokol.App.
 * Kick off a draw call with:
 
   ```pascal
-  class procedure TGfx.Draw(const ABaseElement, ANumElements: Integer; const ANumInstances: Integer = 1);
+  class procedure TGfx.Draw(const ABaseElement, ANumElements: Integer; const ANumInstances: Integer = 1); 
   ```
 
   The `Draw` method unifies all the different ways to render primitives in a single call (indexed vs non-indexed rendering, and instanced vs non-instanced rendering). In case of indexed rendering, `ABaseElement` and `ANumElements` specify indices in the currently bound index buffer. In case of non-indexed rendering `ABaseElement` and `ANumElements` specify vertices in the currently bound vertex-buffer(s). To perform instanced rendering,  the rendering pipeline must be setup for instancing (see `TPipelineDesc` below), a separate vertex buffer containing per-instance data must be  bound, and the `ANumInstances` parameter must be > 1.
 
-* Finish the current rendering pass with:
+  Alternatively, call another `Draw` overload to provide a base-vertex and/or base-instance which allows to render from different sections of a vertex buffer without rebinding the vertex buffer with a different offset. Note that this overload only has limited portability on OpenGL, check the `TLimits` record members `.DrawBaseVertex` and `.DrawBaseInstance` for runtime support, those are generally True on non-GL-backends, and on GL the feature flags are set according to the GL version:
+  - on GL `BaseInstance <> 0` is only supported since GL 4.2
+  - on GLES3.x, `BaseInstance != 0` is not supported
+  - on GLES3.x, `BaseVertex` is only supported since GLES3.2
+
+* ...or kick of a dispatch call to invoke a compute shader workload:
+  ```pascal
+  class procedure TGfx.Dispatch(const ANumGroupsX, ANumGroupsY, ANumGroupsZ: Integer); 
+  ```
+  The dispatch args define the number of 'compute workgroups' processed by the currently applied compute shader.
+  
+* Finish the current pass with:
 
     ```pascal
     class procedure TGfx.EndPass;
@@ -193,9 +236,10 @@ As mentioned earlier, you don't have to use [Neslib.Sokol.App](Neslib.Sokol.App.
     ```pascal
     procedure TBuffer.Free;
     procedure TImage.Free;
+    procedure TSampler.Free;
     procedure TShader.Free;
     procedure TPipeline.Free;
-    procedure TPass.Free;
+    procedure TView.Free;
     ```
 
 * To set a new viewport rectangle, call:
@@ -210,9 +254,9 @@ As mentioned earlier, you don't have to use [Neslib.Sokol.App](Neslib.Sokol.App.
   class procedure TGfx.ApplyScissorRect(const AX, AY, AWidth, AHeight: Integer; const AOriginTopLeft: Boolean);
   ```
 
-  Both `ApplyViewport` and `ApplyScissorRect` must be called inside a rendering pass.
+  Both `ApplyViewport` and `ApplyScissorRect` must be called inside a rendering pass (e.g. not in a compute pass, or outside a pass).
 
-  Note that `TGfx.BeginDefaultPass` and `TGfx.BeginPass` will reset both the viewport and scissor rectangles to cover the entire framebuffer.
+  Note that `TGfx.BeginPass` will reset both the viewport and scissor rectangles to cover the entire framebuffer.
 
 * To update (overwrite) the content of buffer and image resources, call:
 
@@ -221,9 +265,9 @@ As mentioned earlier, you don't have to use [Neslib.Sokol.App](Neslib.Sokol.App.
   procedure TImage.Update(const AData: TImageData);
   ```
 
-  Buffers and images to be updated must have been created with `TUsage.Dynamic` or `TUsage.Stream`.
+  Buffers and images to be updated must have been created with `TBufferDesc.Usage.DynamicUpdate` or `.StreamUpdate`.
 
-  Only one update per frame is allowed for buffer and image resources when using the `Update` methods. The rationale is to have a simple countermeasure to avoid the CPU scribbling over data the GPU is currently using, or the CPU having to wait for the GPU.
+  Only one update per frame is allowed for buffer and image resources when using the `Update` methods. The rationale is to have a simple protection from the CPU scribbling over data the GPU is currently using, or the CPU having to wait for the GPU.
 
   Buffer and image updates can be partial, as long as a rendering operation only references the valid (updated) data in the buffer or image.
 
@@ -252,13 +296,13 @@ As mentioned earlier, you don't have to use [Neslib.Sokol.App](Neslib.Sokol.App.
   Note: Due to restrictions in underlying 3D-APIs, appended chunks of data will be 4-byte aligned in the destination buffer. This means that there will be gaps in index buffers containing 16-bit indices when the number of indices in a call to Append is odd. This isn't a problem when each call to `Append` is associated with one draw call, but will be problematic when a single indexed draw call spans several appended chunks of indices.
 
 * To check at runtime for optional features, limits and pixelformat support,use:
-  
+
   * `TBuffer.Features`
-  
+
   * `TGfx.Limits`
-  
+
   * The record helper for `TPixelFormat`
-  
+
 * If you need to call into the underlying 3D-API directly, you must call:
 
   ```pascal
@@ -267,21 +311,24 @@ As mentioned earlier, you don't have to use [Neslib.Sokol.App](Neslib.Sokol.App.
 
   ...before calling Neslib.Sokol.Gfx methods functions again.
 
-* You can inspect various internal resource attributes via:
+* You can get a desc record matching the creation attributes of a specific resource object via:
 
   * `TBuffer.Info`
 
   * `TImage.Info`
 
+  * `TSampler.Info`
+
   * `TShader.Info`
 
   * `TPipeline.Info`
+  
+  * `TView.Info`
 
-  * `TPass.Info`
-
-
-  ...please note that the returned info-records are tied quite closely to internals, and may change more often than other public API functions and records.
-
+  ...but *note* that the returned desc records may be incomplete, only creation attributes that are kept around internally after resource creation will be filled in, and in some cases (like shaders) that's very little. Any missing attributes will be set to zero. The returned desc records might still be useful as partial blueprint for creating  similar resources if filled up with the missing attributes.
+  
+  Using `.Info` on an invalid resource will return completely zeroed records (it makes sense to check the resource state first).
+  
 * You can ask at runtime what backend is currently in use using the `Backend` property.
 
 ## On Initialization
