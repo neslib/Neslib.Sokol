@@ -14,7 +14,8 @@ uses
   System.Types,
   System.UITypes,
   System.SysUtils,
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Types;
 
 type
   { A memory blob containing either a TBytes memory buffer or a pointer to
@@ -859,6 +860,9 @@ type
     set the clear color, but the 'action' field as well. }
   {$MINENUMSIZE 4}
   TLoadAction = (
+    { The default action for the target }
+    Default  = __SG_LOADACTION_DEFAULT,
+
     { Clear the render target }
     Clear    = _SG_LOADACTION_CLEAR,
 
@@ -872,12 +876,17 @@ type
 type
   { Defines the store action that should be performed at the end of a render
     pass. }
+  {$MINENUMSIZE 4}
   TStoreAction = (
+    { The default action for the target }
+    Default  = __SG_STOREACTION_DEFAULT,
+
     { Store the rendered content to the color attachment image }
     Store    = _SG_STOREACTION_STORE,
 
     { Allows the GPU to discard the rendered content }
     DontCare = _SG_STOREACTION_DONTCARE);
+  {$MINENUMSIZE 1}
 
 type
   TColorAttachmentAction = record
@@ -1118,7 +1127,9 @@ type
 
     It's a good practice to write a helper function which returns an initialized
     TSwapchain record, which can then be plugged directly into TPass.Swapchain.
-    Look at the function Swapchain in the Neslib.Sokol.Glue as an example. }
+
+    Consider the Neslib.Sokol.Glue unit which adds a FromAppSwapchain method to
+    the TSwapchain record. }
   TSwapchain = record
   {$REGION 'Internal Declarations'}
   private
@@ -1775,7 +1786,7 @@ type
     { Asynchronous setup }
     procedure Allocate; inline;
     procedure Setup(const ADesc: TBufferDesc); inline;
-    function Teardown: Boolean; inline;
+    procedure Teardown; inline;
     procedure Deallocate; inline;
     procedure Fail; inline;
 
@@ -2003,7 +2014,7 @@ type
     { Asynchronous setup }
     procedure Allocate; inline;
     procedure Setup(const ADesc: TImageDesc); inline;
-    function Teardown: Boolean; inline;
+    procedure Teardown; inline;
     procedure Deallocate; inline;
     procedure Fail; inline;
 
@@ -2226,6 +2237,11 @@ type
 
 type
   TShaderFunction = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_function);
+    procedure InitFrom(const ASrc: _sg_shader_function);
+  {$ENDREGION 'Internal Declarations'}
   public
     Source: AnsiString;
     ByteCode: TRange;
@@ -2247,6 +2263,11 @@ type
 
 type
   TShaderVertexAttr = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_vertex_attr);
+    procedure InitFrom(const ASrc: _sg_shader_vertex_attr);
+  {$ENDREGION 'Internal Declarations'}
   public
     { Default: Undefined (disables validation) }
     BaseType: TShaderAttrBaseType;
@@ -2264,6 +2285,11 @@ type
 
 type
   TGlslShaderUniform = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_glsl_shader_uniform);
+    procedure InitFrom(const ASrc: _sg_glsl_shader_uniform);
+  {$ENDREGION 'Internal Declarations'}
   public
     UniformType: TUniformType;
 
@@ -2277,6 +2303,11 @@ type
 
 type
   TShaderUniformBlock = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_uniform_block);
+    procedure InitFrom(const ASrc: _sg_shader_uniform_block);
+  {$ENDREGION 'Internal Declarations'}
   public
     Stage: TShaderStage;
     Size: Integer;
@@ -2300,6 +2331,11 @@ type
 
 type
   TShaderTextureView = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_texture_view);
+    procedure InitFrom(const ASrc: _sg_shader_texture_view);
+  {$ENDREGION 'Internal Declarations'}
   public
     Stage: TShaderStage;
     ImageType: TImageType;
@@ -2322,6 +2358,11 @@ type
 
 type
   TShaderStorageBufferView = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_storage_buffer_view);
+    procedure InitFrom(const ASrc: _sg_shader_storage_buffer_view);
+  {$ENDREGION 'Internal Declarations'}
   public
     Stage: TShaderStage;
     ReadOnly: Boolean;
@@ -2348,6 +2389,11 @@ type
 
 type
   TShaderStorageImageView = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_storage_image_view);
+    procedure InitFrom(const ASrc: _sg_shader_storage_image_view);
+  {$ENDREGION 'Internal Declarations'}
   public
     Stage: TShaderStage;
     ImageType: TImageType;
@@ -2377,6 +2423,11 @@ type
 
 type
   TShaderView = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_view);
+    procedure InitFrom(const ASrc: _sg_shader_view);
+  {$ENDREGION 'Internal Declarations'}
   public
     Texture: TShaderTextureView;
     StorageBuffer: TShaderStorageBufferView;
@@ -2386,6 +2437,11 @@ type
 
 type
   TShaderSampler = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_sampler);
+    procedure InitFrom(const ASrc: _sg_shader_sampler);
+  {$ENDREGION 'Internal Declarations'}
   public
     Stage: TShaderStage;
     SamplerType: TSamplerType;
@@ -2406,6 +2462,11 @@ type
 
 type
   TShaderTextureSamplerPair = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_shader_texture_sampler_pair);
+    procedure InitFrom(const ASrc: _sg_shader_texture_sampler_pair);
+  {$ENDREGION 'Internal Declarations'}
   public
     Stage: TShaderStage;
 
@@ -2421,6 +2482,11 @@ type
 
 type
   TMtlShaderThreadsPerThreadgroup = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_mtl_shader_threads_per_threadgroup);
+    procedure InitFrom(const ASrc: _sg_mtl_shader_threads_per_threadgroup);
+  {$ENDREGION 'Internal Declarations'}
   public
     X: Integer;
     Y: Integer;
@@ -2628,7 +2694,7 @@ type
     { Asynchronous setup }
     procedure Allocate; inline;
     procedure Setup(const ADesc: TShaderDesc); inline;
-    function Teardown: Boolean; inline;
+    procedure Teardown; inline;
     procedure Deallocate; inline;
     procedure Fail; inline;
 
@@ -2933,7 +2999,7 @@ type
     { Asynchronous setup }
     procedure Allocate; inline;
     procedure Setup(const ADesc: TPipelineDesc); inline;
-    function Teardown: Boolean; inline;
+    procedure Teardown; inline;
     procedure Deallocate; inline;
     procedure Fail; inline;
 
@@ -2975,11 +3041,11 @@ type
   { The TPass record is passed as argument into the TGfx.BeginPass method.
 
     For a swapchain render pass, provide a TPassAction and TSwapchain record
-    (for instance via the Swapchain helper function from Neslib.Sokol.Glue:
+    (for instance via the FromAppSwapchain helper from Neslib.Sokol.Glue):
 
       var Pass := TPass.Create;
       Pass.Action := ...
-      Pass.Swapchain := Swapchain;
+      Pass.Swapchain.FromAppSwapchain;
       TGfx.BeginPass(Pass);
 
     For an offscreen render pass, provide an TPassAction record with attachment
@@ -3007,102 +3073,14 @@ type
     procedure SetTraceLabel(const AValue: String); inline;
   {$ENDREGION 'Internal Declarations'}
   public
+    class function Create: TPass; inline; static;
+    procedure Init; inline;
+
     property Compute: Boolean read FHandle.compute write FHandle.compute;
     property Action: PPassAction read GetAction;
     property Attachments: PAttachments read GetAttachments;
     property Swapchain: PSwapchain read GetSwapchain;
     property TraceLabel: String read FTraceLabel write SetTraceLabel;
-  end;
-  PPass = ^TPass;
-
-  .. at sg_log_item --> TGfxLogItem
-type
-  { Creation parameters for a TPass object.
-
-    A pass object contains 1..4 color-attachments and none, or one,
-    depth-stencil-attachment. Each attachment consists of an image, and two
-    additional indices describing which subimage the pass will render to: one
-    mipmap index, and if the image is a cubemap, array-texture or 3D-texture,
-    the face-index, array-layer or depth-slice.
-
-    Pass images must fulfill the following requirements:
-
-    All images must have:
-    - been created as render target (TImageDesc.RenderTarget = True)
-    - the same size
-    - the same sample count
-
-    In addition, all color-attachment images must have the same pixel format. }
-  TPassAttachmentDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_pass_attachment_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    Image: TImage;
-    MipLevel: Integer;
-
-    { Cube texture:  face
-      Array texture: layer
-      3D texture:    slice }
-    Slice: Integer;
-  public
-    constructor Create(const AMipLevel, ASlice: Integer);
-    procedure Init(const AMipLevel, ASlice: Integer); inline;
-  end;
-  PPassAttachmentDesc = ^TPassAttachmentDesc;
-
-  TPassDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_pass_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    ColorAttachments: array [0..MAX_COLOR_ATTACHMENTS - 1] of TPassAttachmentDesc;
-    DepthStencilAttachment: TPassAttachmentDesc;
-    TraceLabel: String;
-  public
-    { Initializes with default values }
-    class function Create: TPassDesc; inline; static;
-    procedure Init;
-  end;
-  PPassDesc = ^TPassDesc;
-
-type
-  { A bundle of render targets and actions on them.
-
-    A pass can be created synchronously or asynchronously.
-    For synchronous creation, use Create/Init and Free.
-    For asynchronous creation, use Allocate, Setup, Teardown, Deallocate and
-    Fail. }
-  TPass = record
-  {$REGION 'Internal Declarations'}
-  private
-    FHandle: _sg_pass;
-    function GetState: TResourceState; inline;
-    function GetInfo: TPassInfo;
-  {$ENDREGION 'Internal Declarations'}
-  public
-    { Synchronous setup }
-    constructor Create(const ADesc: TPassDesc);
-    procedure Init(const ADesc: TPassDesc); inline;
-    procedure Free; inline;
-
-    { Asynchronous setup }
-    procedure Allocate; inline;
-    procedure Setup(const ADesc: TPassDesc); inline;
-    function Teardown: Boolean; inline;
-    procedure Deallocate; inline;
-    procedure Fail; inline;
-
-    { The resource Id }
-    property Id: Cardinal read FHandle.id write FHandle.id;
-
-    { Current resource state }
-    property State: TResourceState read GetState;
-
-    { Get runtime information about the pass }
-    property Info: TPassInfo read GetInfo;
   end;
   PPass = ^TPass;
 
@@ -3239,189 +3217,790 @@ type
   PTraceHooks = ^TTraceHooks;
 
 type
+  { An enum with a unique item for each log message, warning, error and
+    validation layer message. Note that these messages are only visible when a
+    logger function is installed in the TGfx.Setup call. }
+  TGfxLogItem = (
+    Ok,
+    MallocFailed,
+    GLTextureFormatNotSupported,
+    GL3DTexturesNotSupported,
+    GLArrayTexturesNotSupported,
+    GLStoragebufferGlslBindingOutOfRange,
+    GLStorageimageGlslBindingOutOfRange,
+    GLShaderCompilationFailed,
+    GLShaderLinkingFailed,
+    GLVertexAttributeNotFoundInShader,
+    GLUniformblockNameNotFoundInShader,
+    GLImageSamplerNameNotFoundInShader,
+    GLFramebufferStatusUndefined,
+    GLFramebufferStatusIncompleteAttachment,
+    GLFramebufferStatusIncompleteMissingAttachment,
+    GLFramebufferStatusUnsupported,
+    GLFramebufferStatusIncompleteMultisample,
+    GLFramebufferStatusUnknown,
+    D3d11FeatureLevel0Detected,
+    D3d11CreateBufferFailed,
+    D3d11CreateBufferSrvFailed,
+    D3d11CreateBufferUavFailed,
+    D3d11CreateDepthTextureUnsupportedPixelFormat,
+    D3d11CreateDepthTextureFailed,
+    D3d11Create2DTextureUnsupportedPixelFormat,
+    D3d11Create2DTextureFailed,
+    D3d11Create2DSrvFailed,
+    D3d11Create3DTextureUnsupportedPixelFormat,
+    D3d11Create3DTextureFailed,
+    D3d11Create3DSrvFailed,
+    D3d11CreateMsaaTextureFailed,
+    D3d11CreateSamplerStateFailed,
+    D3d11UniformblockHlslRegisterBOutOfRange,
+    D3d11StoragebufferHlslRegisterTOutOfRange,
+    D3d11StoragebufferHlslRegisterUOutOfRange,
+    D3d11ImageHlslRegisterTOutOfRange,
+    D3d11StorageimageHlslRegisterUOutOfRange,
+    D3d11SamplerHlslRegisterSOutOfRange,
+    D3d11LoadD3dcompiler47DllFailed,
+    D3d11ShaderCompilationFailed,
+    D3d11ShaderCompilationOutput,
+    D3d11CreateConstantBufferFailed,
+    D3d11CreateInputLayoutFailed,
+    D3d11CreateRasterizerStateFailed,
+    D3d11CreateDepthStencilStateFailed,
+    D3d11CreateBlendStateFailed,
+    D3d11CreateRtvFailed,
+    D3d11CreateDsvFailed,
+    D3d11CreateUavFailed,
+    D3d11MapForUpdateBufferFailed,
+    D3d11MapForAppendBufferFailed,
+    D3d11MapForUpdateImageFailed,
+    MetalCreateBufferFailed,
+    MetalTextureFormatNotSupported,
+    MetalCreateTextureFailed,
+    MetalCreateSamplerFailed,
+    MetalShaderCompilationFailed,
+    MetalShaderCreationFailed,
+    MetalShaderCompilationOutput,
+    MetalShaderEntryNotFound,
+    MetalUniformblockMslBufferSlotOutOfRange,
+    MetalStoragebufferMslBufferSlotOutOfRange,
+    MetalStorageimageMslTextureSlotOutOfRange,
+    MetalImageMslTextureSlotOutOfRange,
+    MetalSamplerMslSamplerSlotOutOfRange,
+    MetalCreateCpsFailed,
+    MetalCreateCpsOutput,
+    MetalCreateRpsFailed,
+    MetalCreateRpsOutput,
+    MetalCreateDssFailed,
+    WgpuBindgroupsPoolExhausted,
+    WgpuBindgroupscacheSizeGreaterOne,
+    WgpuBindgroupscacheSizePow2,
+    WgpuCreatebindgroupFailed,
+    WgpuCreateBufferFailed,
+    WgpuCreateTextureFailed,
+    WgpuCreateTextureViewFailed,
+    WgpuCreateSamplerFailed,
+    WgpuCreateShaderModuleFailed,
+    WgpuShaderCreateBindgroupLayoutFailed,
+    WgpuUniformblockWgslGroup0BindingOutOfRange,
+    WgpuTextureWgslGroup1BindingOutOfRange,
+    WgpuStoragebufferWgslGroup1BindingOutOfRange,
+    WgpuStorageimageWgslGroup1BindingOutOfRange,
+    WgpuSamplerWgslGroup1BindingOutOfRange,
+    WgpuCreatePipelineLayoutFailed,
+    WgpuCreateRenderPipelineFailed,
+    WgpuCreateComputePipelineFailed,
+    VulkanRequiredExtensionFunctionMissing,
+    VulkanAllocDeviceMemoryNoSuitableMemoryType,
+    VulkanAllocateMemoryFailed,
+    VulkanAllocBufferDeviceMemoryFailed,
+    VulkanAllocImageDeviceMemoryFailed,
+    VulkanDeleteQueueExhausted,
+    VulkanStagingCreateBufferFailed,
+    VulkanStagingAllocateMemoryFailed,
+    VulkanStagingBindBufferMemoryFailed,
+    VulkanStagingStreamBufferOverflow,
+    VulkanCreateSharedBufferFailed,
+    VulkanAllocateSharedBufferMemoryFailed,
+    VulkanBindSharedBufferMemoryFailed,
+    VulkanMapSharedBufferMemoryFailed,
+    VulkanCreateBufferFailed,
+    VulkanBindBufferMemoryFailed,
+    VulkanCreateImageFailed,
+    VulkanBindImageMemoryFailed,
+    VulkanCreateShaderModuleFailed,
+    VulkanUniformblockSpirvSet0BindingOutOfRange,
+    VulkanTextureSpirvSet1BindingOutOfRange,
+    VulkanStoragebufferSpirvSet1BindingOutOfRange,
+    VulkanStorageimageSpirvSet1BindingOutOfRange,
+    VulkanSamplerSpirvSet1BindingOutOfRange,
+    VulkanCreateDescriptorSetLayoutFailed,
+    VulkanShaderUniformDescriptorSetSizeVsCacheSize,
+    VulkanCreatePipelineLayoutFailed,
+    VulkanCreateGraphicsPipelineFailed,
+    VulkanCreateComputePipelineFailed,
+    VulkanCreateImageViewFailed,
+    VulkanViewMaxDescriptorSize,
+    VulkanCreateSamplerFailed,
+    VulkanSamplerMaxDescriptorSize,
+    VulkanWaitForFenceFailed,
+    VulkanUniformBufferOverflow,
+    VulkanDescriptorBufferOverflow,
+    IdenticalCommitListener,
+    CommitListenerArrayFull,
+    TraceHooksNotEnabled,
+    DeallocBufferInvalidState,
+    DeallocImageInvalidState,
+    DeallocSamplerInvalidState,
+    DeallocShaderInvalidState,
+    DeallocPipelineInvalidState,
+    DeallocViewInvalidState,
+    InitBufferInvalidState,
+    InitImageInvalidState,
+    InitSamplerInvalidState,
+    InitShaderInvalidState,
+    InitPipelineInvalidState,
+    InitViewInvalidState,
+    UninitBufferInvalidState,
+    UninitImageInvalidState,
+    UninitSamplerInvalidState,
+    UninitShaderInvalidState,
+    UninitPipelineInvalidState,
+    UninitViewInvalidState,
+    FailBufferInvalidState,
+    FailImageInvalidState,
+    FailSamplerInvalidState,
+    FailShaderInvalidState,
+    FailPipelineInvalidState,
+    FailViewInvalidState,
+    BufferPoolExhausted,
+    ImagePoolExhausted,
+    SamplerPoolExhausted,
+    ShaderPoolExhausted,
+    PipelinePoolExhausted,
+    ViewPoolExhausted,
+    BeginpassTooManyColorAttachments,
+    BeginpassTooManyResolveAttachments,
+    BeginpassAttachmentsAlive,
+    DrawWithoutBindings,
+    ShaderdescTooManyVertexstageTextures,
+    ShaderdescTooManyFragmentstageTextures,
+    ShaderdescTooManyComputestageTextures,
+    ShaderdescTooManyVertexstageStoragebuffers,
+    ShaderdescTooManyFragmentstageStoragebuffers,
+    ShaderdescTooManyComputestageStoragebuffers,
+    ShaderdescTooManyVertexstageStorageimages,
+    ShaderdescTooManyFragmentstageStorageimages,
+    ShaderdescTooManyComputestageStorageimages,
+    ShaderdescTooManyVertexstageTexturesamplerpairs,
+    ShaderdescTooManyFragmentstageTexturesamplerpairs,
+    ShaderdescTooManyComputestageTexturesamplerpairs,
+    ValidateBufferdescCanary,
+    ValidateBufferdescImmutableDynamicStream,
+    ValidateBufferdescSeparateBufferTypes,
+    ValidateBufferdescExpectNonzeroSize,
+    ValidateBufferdescExpectMatchingDataSize,
+    ValidateBufferdescExpectZeroDataSize,
+    ValidateBufferdescExpectNoData,
+    ValidateBufferdescExpectData,
+    ValidateBufferdescStoragebufferSupported,
+    ValidateBufferdescStoragebufferSizeMultiple4,
+    ValidateImagedataNodata,
+    ValidateImagedataDataSize,
+    ValidateImagedescCanary,
+    ValidateImagedescImmutableDynamicStream,
+    ValidateImagedescAttachmentColorDepthStencil,
+    ValidateImagedescImagetype2DNumslices,
+    ValidateImagedescImagetypeCubeNumslices,
+    ValidateImagedescImagetypeArrayNumslices,
+    ValidateImagedescImagetype3DNumslices,
+    ValidateImagedescNumslices,
+    ValidateImagedescWidth,
+    ValidateImagedescHeight,
+    ValidateImagedescNonrtPixelformat,
+    ValidateImagedescMsaaButNoAttachment,
+    ValidateImagedescDepth3DImage,
+    ValidateImagedescAttachmentExpectImmutable,
+    ValidateImagedescAttachmentExpectNoData,
+    ValidateImagedescAttachmentPixelformat,
+    ValidateImagedescAttachmentResolveExpectNoMsaa,
+    ValidateImagedescAttachmentNoMsaaSupport,
+    ValidateImagedescAttachmentMsaaNumMipmaps,
+    ValidateImagedescAttachmentMsaa3DImage,
+    ValidateImagedescAttachmentMsaaCubeImage,
+    ValidateImagedescAttachmentMsaaArrayImage,
+    ValidateImagedescStorageimagePixelformat,
+    ValidateImagedescStorageimageExpectNoMsaa,
+    ValidateImagedescInjectedNoData,
+    ValidateImagedescDynamicNoData,
+    ValidateImagedescCompressedImmutable,
+    ValidateSamplerdescCanary,
+    ValidateSamplerdescAnistropicRequiresLinearFiltering,
+    ValidateShaderdescCanary,
+    ValidateShaderdescVertexSource,
+    ValidateShaderdescFragmentSource,
+    ValidateShaderdescComputeSource,
+    ValidateShaderdescVertexSourceOrBytecode,
+    ValidateShaderdescFragmentSourceOrBytecode,
+    ValidateShaderdescComputeSourceOrBytecode,
+    ValidateShaderdescInvalidShaderCombo,
+    ValidateShaderdescNoBytecodeSize,
+    ValidateShaderdescMetalThreadsPerThreadgroupInitialized,
+    ValidateShaderdescMetalThreadsPerThreadgroupMultiple32,
+    ValidateShaderdescUniformblockNoContMembers,
+    ValidateShaderdescUniformblockSizeIsZero,
+    ValidateShaderdescUniformblockMetalBufferSlotCollision,
+    ValidateShaderdescUniformblockHlslRegisterBCollision,
+    ValidateShaderdescUniformblockWgslGroup0BindingCollision,
+    ValidateShaderdescUniformblockSpirvSet0BindingCollision,
+    ValidateShaderdescUniformblockNoMembers,
+    ValidateShaderdescUniformblockUniformGlslName,
+    ValidateShaderdescUniformblockSizeMismatch,
+    ValidateShaderdescUniformblockArrayCount,
+    ValidateShaderdescUniformblockStd140ArrayType,
+    ValidateShaderdescViewStoragebufferMetalBufferSlotCollision,
+    ValidateShaderdescViewStoragebufferHlslRegisterTCollision,
+    ValidateShaderdescViewStoragebufferHlslRegisterUCollision,
+    ValidateShaderdescViewStoragebufferGlslBindingCollision,
+    ValidateShaderdescViewStoragebufferWgslGroup1BindingCollision,
+    ValidateShaderdescViewStoragebufferSpirvSet1BindingCollision,
+    ValidateShaderdescViewStorageimageExpectComputeStage,
+    ValidateShaderdescViewStorageimageMetalTextureSlotCollision,
+    ValidateShaderdescViewStorageimageHlslRegisterUCollision,
+    ValidateShaderdescViewStorageimageGlslBindingCollision,
+    ValidateShaderdescViewStorageimageWgslGroup1BindingCollision,
+    ValidateShaderdescViewStorageimageSpirvSet1BindingCollision,
+    ValidateShaderdescViewTextureMetalTextureSlotCollision,
+    ValidateShaderdescViewTextureHlslRegisterTCollision,
+    ValidateShaderdescViewTextureWgslGroup1BindingCollision,
+    ValidateShaderdescViewTextureSpirvSet1BindingCollision,
+    ValidateShaderdescSamplerMetalSamplerSlotCollision,
+    ValidateShaderdescSamplerHlslRegisterSCollision,
+    ValidateShaderdescSamplerWgslGroup1BindingCollision,
+    ValidateShaderdescSamplerSpirvSet1BindingCollision,
+    ValidateShaderdescTextureSamplerPairViewSlotOutOfRange,
+    ValidateShaderdescTextureSamplerPairSamplerSlotOutOfRange,
+    ValidateShaderdescTextureSamplerPairTextureStageMismatch,
+    ValidateShaderdescTextureSamplerPairExpectTextureView,
+    ValidateShaderdescTextureSamplerPairSamplerStageMismatch,
+    ValidateShaderdescTextureSamplerPairGlslName,
+    ValidateShaderdescNonfilteringSamplerRequired,
+    ValidateShaderdescComparisonSamplerRequired,
+    ValidateShaderdescTexviewNotReferencedByTextureSamplerPairs,
+    ValidateShaderdescSamplerNotReferencedByTextureSamplerPairs,
+    ValidateShaderdescAttrStringTooLong,
+    ValidatePipelinedescCanary,
+    ValidatePipelinedescShader,
+    ValidatePipelinedescComputeShaderExpected,
+    ValidatePipelinedescNoComputeShaderExpected,
+    ValidatePipelinedescNoContAttrs,
+    ValidatePipelinedescAttrBasetypeMismatch,
+    ValidatePipelinedescAttrVertexformatInt10N2NotSupported,
+    ValidatePipelinedescLayoutStride4,
+    ValidatePipelinedescAttrSemantics,
+    ValidatePipelinedescShaderReadonlyStoragebuffers,
+    ValidatePipelinedescBlendopMinmaxRequiresBlendfactorOne,
+    ValidatePipelinedescDualSourceBlendingNotSupported,
+    ValidatePipelinedescDepthFormatNoneButDepthWriteEnabled,
+    ValidatePipelinedescDepthFormatNoneCompareFuncMismatch,
+    ValidateViewdescCanary,
+    ValidateViewdescUniqueViewtype,
+    ValidateViewdescAnyViewtype,
+    ValidateViewdescResourceAlive,
+    ValidateViewdescResourceFailed,
+    ValidateViewdescStoragebufferOffsetVSBufferSize,
+    ValidateViewdescStoragebufferOffsetMultiple256,
+    ValidateViewdescStoragebufferUsage,
+    ValidateViewdescStorageimageUsage,
+    ValidateViewdescColorattachmentUsage,
+    ValidateViewdescResolveattachmentUsage,
+    ValidateViewdescDepthstencilattachmentUsage,
+    ValidateViewdescImageMiplevel,
+    ValidateViewdescImage2DSlice,
+    ValidateViewdescImageCubemapSlice,
+    ValidateViewdescImageArraySlice,
+    ValidateViewdescImage3DSlice,
+    ValidateViewdescTextureExpectNoMsaa,
+    ValidateViewdescTextureMiplevels,
+    ValidateViewdescTexture2DSlices,
+    ValidateViewdescTextureCubemapSlices,
+    ValidateViewdescTextureArraySlices,
+    ValidateViewdescTexture3DSlices,
+    ValidateViewdescStorageimagePixelformat,
+    ValidateViewdescColorattachmentPixelformat,
+    ValidateViewdescDepthstencilattachmentPixelformat,
+    ValidateViewdescResolveattachmentSamplecount,
+    ValidateBeginpassCanary,
+    ValidateBeginpassComputepassExpectNoAttachments,
+    ValidateBeginpassSwapchainExpectWidth,
+    ValidateBeginpassSwapchainExpectWidthNotset,
+    ValidateBeginpassSwapchainExpectHeight,
+    ValidateBeginpassSwapchainExpectHeightNotset,
+    ValidateBeginpassSwapchainExpectSamplecount,
+    ValidateBeginpassSwapchainExpectSamplecountNotset,
+    ValidateBeginpassSwapchainExpectColorformat,
+    ValidateBeginpassSwapchainExpectColorformatNotset,
+    ValidateBeginpassSwapchainExpectDepthformatNotset,
+    ValidateBeginpassSwapchainMetalExpectCurrentdrawable,
+    ValidateBeginpassSwapchainMetalExpectCurrentdrawableNotset,
+    ValidateBeginpassSwapchainMetalExpectDepthstenciltexture,
+    ValidateBeginpassSwapchainMetalExpectDepthstenciltextureNotset,
+    ValidateBeginpassSwapchainMetalExpectMsaacolortexture,
+    ValidateBeginpassSwapchainMetalExpectMsaacolortextureNotset,
+    ValidateBeginpassSwapchainD3d11ExpectRenderview,
+    ValidateBeginpassSwapchainD3d11ExpectRenderviewNotset,
+    ValidateBeginpassSwapchainD3d11ExpectResolveview,
+    ValidateBeginpassSwapchainD3d11ExpectResolveviewNotset,
+    ValidateBeginpassSwapchainD3d11ExpectDepthstencilview,
+    ValidateBeginpassSwapchainD3d11ExpectDepthstencilviewNotset,
+    ValidateBeginpassSwapchainWgpuExpectRenderview,
+    ValidateBeginpassSwapchainWgpuExpectRenderviewNotset,
+    ValidateBeginpassSwapchainWgpuExpectResolveview,
+    ValidateBeginpassSwapchainWgpuExpectResolveviewNotset,
+    ValidateBeginpassSwapchainWgpuExpectDepthstencilview,
+    ValidateBeginpassSwapchainWgpuExpectDepthstencilviewNotset,
+    ValidateBeginpassSwapchainGLExpectFramebufferNotset,
+    ValidateBeginpassSwapchainVulkanExpectRenderimage,
+    ValidateBeginpassSwapchainVulkanExpectRenderimageNotset,
+    ValidateBeginpassSwapchainVulkanExpectRenderview,
+    ValidateBeginpassSwapchainVulkanExpectRenderviewNotset,
+    ValidateBeginpassSwapchainVulkanExpectDepthstencilimage,
+    ValidateBeginpassSwapchainVulkanExpectDepthstencilimageNotset,
+    ValidateBeginpassSwapchainVulkanExpectDepthstencilview,
+    ValidateBeginpassSwapchainVulkanExpectDepthstencilviewNotset,
+    ValidateBeginpassSwapchainVulkanExpectResolveimage,
+    ValidateBeginpassSwapchainVulkanExpectResolveimageNotset,
+    ValidateBeginpassSwapchainVulkanExpectResolveview,
+    ValidateBeginpassSwapchainVulkanExpectResolveviewNotset,
+    ValidateBeginpassSwapchainVulkanExpectRenderfinishedsemaphore,
+    ValidateBeginpassSwapchainVulkanExpectRenderfinishedsemaphoreNotset,
+    ValidateBeginpassSwapchainVulkanExpectPresentcompletesemaphore,
+    ValidateBeginpassSwapchainVulkanExpectPresentcompletesemaphoreNotset,
+    ValidateBeginpassColorattachmentviewsContinuous,
+    ValidateBeginpassColorattachmentviewAlive,
+    ValidateBeginpassColorattachmentviewValid,
+    ValidateBeginpassColorattachmentviewType,
+    ValidateBeginpassColorattachmentviewImageAlive,
+    ValidateBeginpassColorattachmentviewImageValid,
+    ValidateBeginpassColorattachmentviewSizes,
+    ValidateBeginpassColorattachmentviewSamplecount,
+    ValidateBeginpassColorattachmentviewSamplecountsEqual,
+    ValidateBeginpassResolveattachmentviewNoColorattachmentview,
+    ValidateBeginpassResolveattachmentviewAlive,
+    ValidateBeginpassResolveattachmentviewValid,
+    ValidateBeginpassResolveattachmentviewType,
+    ValidateBeginpassResolveattachmentviewImageAlive,
+    ValidateBeginpassResolveattachmentviewImageValid,
+    ValidateBeginpassResolveattachmentviewSizes,
+    ValidateBeginpassDepthstencilattachmentviewsContinuous,
+    ValidateBeginpassDepthstencilattachmentviewAlive,
+    ValidateBeginpassDepthstencilattachmentviewValid,
+    ValidateBeginpassDepthstencilattachmentviewType,
+    ValidateBeginpassDepthstencilattachmentviewImageAlive,
+    ValidateBeginpassDepthstencilattachmentviewImageValid,
+    ValidateBeginpassDepthstencilattachmentviewSizes,
+    ValidateBeginpassDepthstencilattachmentviewSamplecount,
+    ValidateBeginpassAttachmentsExpected,
+    ValidateAvpRenderpassExpected,
+    ValidateAsrRenderpassExpected,
+    ValidateApipPipelineValidId,
+    ValidateApipPipelineExists,
+    ValidateApipPipelineValid,
+    ValidateApipPassExpected,
+    ValidateApipPipelineShaderAlive,
+    ValidateApipPipelineShaderValid,
+    ValidateApipComputepassExpected,
+    ValidateApipRenderpassExpected,
+    ValidateApipSwapchainColorCount,
+    ValidateApipSwapchainColorFormat,
+    ValidateApipSwapchainDepthFormat,
+    ValidateApipSwapchainSampleCount,
+    ValidateApipAttachmentsAlive,
+    ValidateApipColorattachmentsCount,
+    ValidateApipColorattachmentsViewValid,
+    ValidateApipColorattachmentsImageValid,
+    ValidateApipColorattachmentsFormat,
+    ValidateApipDepthstencilattachmentViewValid,
+    ValidateApipDepthstencilattachmentImageValid,
+    ValidateApipDepthstencilattachmentFormat,
+    ValidateApipAttachmentSampleCount,
+    ValidateAbndPassExpected,
+    ValidateAbndEmptyBindings,
+    ValidateAbndNoPipeline,
+    ValidateAbndPipelineAlive,
+    ValidateAbndPipelineValid,
+    ValidateAbndPipelineShaderAlive,
+    ValidateAbndPipelineShaderValid,
+    ValidateAbndComputeExpectedNoVbufs,
+    ValidateAbndComputeExpectedNoIbuf,
+    ValidateAbndExpectedVbuf,
+    ValidateAbndVBufAlive,
+    ValidateAbndVBufUsage,
+    ValidateAbndVBufOverflow,
+    ValidateAbndExpectedNoIbuf,
+    ValidateAbndExpectedIbuf,
+    ValidateAbndIBufAlive,
+    ValidateAbndIBufUsage,
+    ValidateAbndIBufOverflow,
+    ValidateAbndExpectedViewBinding,
+    ValidateAbndViewAlive,
+    ValidateAbndExpectTexview,
+    ValidateAbndExpectSbview,
+    ValidateAbndExpectSimgview,
+    ValidateAbndTexviewImagetypeMismatch,
+    ValidateAbndTexviewExpectedMultisampledImage,
+    ValidateAbndTexviewExpectedNonMultisampledImage,
+    ValidateAbndTexviewExpectedFilterableImage,
+    ValidateAbndTexviewExpectedDepthImage,
+    ValidateAbndSbviewReadwriteImmutable,
+    ValidateAbndSimgviewComputePassExpected,
+    ValidateAbndSimgviewImagetypeMismatch,
+    ValidateAbndSimgviewAccessformat,
+    ValidateAbndExpectedSamplerBinding,
+    ValidateAbndUnexpectedSamplerCompareNever,
+    ValidateAbndExpectedSamplerCompareNever,
+    ValidateAbndExpectedNonfilteringSampler,
+    ValidateAbndSamplerAlive,
+    ValidateAbndSamplerValid,
+    ValidateAbndTextureBindingVsDepthstencilAttachment,
+    ValidateAbndTextureBindingVsColorAttachment,
+    ValidateAbndTextureBindingVsResolveAttachment,
+    ValidateAbndTextureVsStorageimageBinding,
+    ValidateAuPassExpected,
+    ValidateAuNoPipeline,
+    ValidateAuPipelineAlive,
+    ValidateAuPipelineValid,
+    ValidateAuPipelineShaderAlive,
+    ValidateAuPipelineShaderValid,
+    ValidateAuNoUniformblockAtSlot,
+    ValidateAuSize,
+    ValidateDrawRenderpassExpected,
+    ValidateDrawBaseelementGEZero,
+    ValidateDrawNumelementsGEZero,
+    ValidateDrawNuminstancesGEZero,
+    ValidateDrawExRenderpassExpected,
+    ValidateDrawExBaseelementGEZero,
+    ValidateDrawExNumelementsGEZero,
+    ValidateDrawExNuminstancesGEZero,
+    ValidateDrawExBaseinstanceGEZero,
+    ValidateDrawExBasevertexVSIndexed,
+    ValidateDrawExBaseinstanceVSInstanced,
+    ValidateDrawExBasevertexNotSupported,
+    ValidateDrawExBaseinstanceNotSupported,
+    ValidateDrawRequiredBindingsOrUniformsMissing,
+    ValidateDispatchComputepassExpected,
+    ValidateDispatchNumgroupsX,
+    ValidateDispatchNumgroupsY,
+    ValidateDispatchNumgroupsZ,
+    ValidateDispatchRequiredBindingsOrUniformsMissing,
+    ValidateUpdatebufUsage,
+    ValidateUpdatebufSize,
+    ValidateUpdatebufOnce,
+    ValidateUpdatebufAppend,
+    ValidateAppendbufUsage,
+    ValidateAppendbufSize,
+    ValidateAppendbufUpdate,
+    ValidateUpdimgUsage,
+    ValidateUpdimgOnce,
+    ValidationFailed);
+
+type
+  _TGfxLogItemHelper = record helper for TGfxLogItem
+  public
+    function ToString: String;
+  end;
+
+type
+  TEnvironmentDefaults = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_environment_defaults;
+    function GetColorFormat: TPixelFormat; inline;
+    procedure SetColorFormat(const AValue: TPixelFormat); inline;
+    function GetDepthFormat: TPixelFormat; inline;
+    procedure SetDepthFormat(const AValue: TPixelFormat); inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property ColorFormat: TPixelFormat read GetColorFormat write SetColorFormat;
+    property DepthFormat: TPixelFormat read GetDepthFormat write SetDepthFormat;
+    property SampleCount: Integer read FHandle.sample_count write FHandle.sample_count;
+  end;
+  PEnvironmentDefaults = ^TEnvironmentDefaults;
+
+type
+  TMetalEnvironment = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_metal_environment;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Device: Pointer read FHandle.device write FHandle.device;
+  end;
+  PMetalEnvironment = ^TMetalEnvironment;
+
+type
+  TD3D11Environment = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_environment;
+    function GetDevice: IInterface; inline;
+    procedure SetDevice(const AValue: IInterface); inline;
+    function GetDeviceContext: IInterface; inline;
+    procedure SetDeviceContext(const AValue: IInterface); inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Device: IInterface read GetDevice write SetDevice;
+    property DeviceContext: IInterface read GetDeviceContext write SetDeviceContext;
+  end;
+  PD3D11Environment = ^TD3D11Environment;
+
+type
+  TVulkanEnvironment = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_vulkan_environment;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Instance: Pointer read FHandle.instance write FHandle.instance;
+    property PhysicalDevice: Pointer read FHandle.physical_device write FHandle.physical_device;
+    property Device: Pointer read FHandle.device write FHandle.device;
+    property Queue: Pointer read FHandle.queue write FHandle.queue;
+    property QueueFamilyIndex: Cardinal read FHandle.queue_family_index write FHandle.queue_family_index;
+  end;
+  PVulkanEnvironment = ^TVulkanEnvironment;
+
+type
+  TEnvironment = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_environment;
+    function GetDefaults: PEnvironmentDefaults; inline;
+    function GetMetal: PMetalEnvironment; inline;
+    function GetD3D11: PD3D11Environment; inline;
+    function GetVulkan: PVulkanEnvironment; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Defaults: PEnvironmentDefaults read GetDefaults;
+    property Metal: PMetalEnvironment read GetMetal;
+    property D3D11: PD3D11Environment read GetD3D11;
+    property Vulkan: PVulkanEnvironment read GetVulkan;
+  end;
+  PEnvironment = ^TEnvironment;
+
+type
+  { Used with function TGfx.AddCommitListener to add a callback which will be
+    called in TGfx.Commit. This is useful for libraries building on top of
+    Neslib.Sokol.Gfx to be notified about when a frame ends (instead of having
+    to guess, or add a manual 'new-frame' function. }
+  TCommitListener = procedure of object;
+
+type
+  { Used in TGfxDesc to provide a logging function. Please be aware that without
+    logging function, Neslib.Sokol.Gfx will be completely silent, e.g. it will
+    not report errors, warnings and validation layer messages. For maximum error
+    verbosity, compile in debug mode and provide a compatible logger function in
+    the TGfx.Setup call (for instance the standard logging function
+    TGfxDesc.DefaultLogger).
+
+    Parameters:
+    * ALevel: log level
+    * AItem: log item
+    * AMessage: the log message corresponding to AItem.
+    * ALineNr: line number in original sokol_gfx.h file. }
+  TGfxLogger = procedure(const ALevel: TLogLevel; const AItem: TGfxLogItem;
+    const AMessage: String; const ALineNr: Integer) of object;
+
+type
+  TD3D11Desc = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_desc;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { If True, HLSL shaders are compiled with D3DCOMPILE_DEBUG or
+      D3DCOMPILE_SKIP_OPTIMIZATION }
+    property ShaderDebugging: Boolean read FHandle.shader_debugging write FHandle.shader_debugging;
+  end;
+  PD3D11Desc = ^TD3D11Desc;
+
+type
+  TMetalDesc = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_metal_desc;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { For debugging: use Metal managed storage mode for resources even with UMA }
+    property ForceManagedStorageMode: Boolean read FHandle.force_managed_storage_mode write FHandle.force_managed_storage_mode;
+
+    { Metal: use a managed MTLCommandBuffer which ref-counts used resources }
+    property UseCommandBufferWithRetainedReferences: Boolean read FHandle.use_command_buffer_with_retained_references write FHandle.use_command_buffer_with_retained_references;
+  end;
+  PMetalDesc = ^TMetalDesc;
+
+type
+  TVulkanDesc = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_vulkan_desc;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { Size of staging buffer for immutable and dynamic resources (default: 4 MB) }
+    property CopyStagingBufferSize: Integer read FHandle.copy_staging_buffer_size write FHandle.copy_staging_buffer_size;
+
+    { Size of per-frame staging buffer for updating streaming resources (default: 16 MB) }
+    property StreamStagingBufferSize: Integer read FHandle.stream_staging_buffer_size write FHandle.stream_staging_buffer_size;
+
+    { Size of per-frame descriptor buffer for updating resource bindings (default: 16 MB) }
+    property DescriptorBufferSize: Integer read FHandle.descriptor_buffer_size write FHandle.descriptor_buffer_size;
+  end;
+  PVulkanDesc = ^TVulkanDesc;
+
+type
   { The TGfxDesc record contains configuration values.
     It is used as parameter to the TGfx.Create call.
 
-    NOTE that all callback function pointers come in two versions, one that can
-    be implemented in a global function (with a Callback suffix), and one that
-    can be implemented in a class (with an Event suffix). You would either
-    initialize one or the other.
-
-    FIXME: explain the various configuration options
-
     The default configuration is:
 
-    .BufferPoolSize         128
-    .ImagePoolSize          128
-    .ShaderPoolSize         32
-    .PipelinePoolSize       64
-    .PassPoolSize           16
-    .ContextPoolSize        16
-    .SamplerCacheSize       64
-    .UniformBufferSsize     4 MB (4*1024*1024)
-    .StagingBufferSize      8 MB (8*1024*1024)
+    .BufferPoolSize                                128
+    .ImagePoolSize                                 128
+    .SamplerPoolSize                               64
+    .ShaderPoolSize                                32
+    .PipelinePoolSize                              64
+    .ViewPoolSize                                  256
+    .UniformBufferSsize                            4 MB (4*1024*1024)
+    .MaxCommitListeners                            1024
+    .DisableValidation                             False
+    .Metal.ForceManagedStorageMode                 False
+    .Metal.UseCommandBufferWithRetainedReferences  False
+    .Vulkan.CopyStagingBufferSize                  4 MB
+    .Vulkan.StreamStagingBufferSize                16 MB
+    .Vulkan.DescriptorBufferSize                   16 MB
 
     .UseDelphiMemoryManager False (instead of using Sokol's internal memory manager)
                             When SOKOL_MEM_TRACK is defined, it always uses
                             Delphi's memory manager.
 
-    .Context.ColorFormat: default value depends on selected backend:
-        all GL backends:    TPixelFormat.Rgba8
-        Metal and D3D11:    TPixelFormat.Bgra8
-    .Context.DepthFormat    TPixelFormat.DepthStencil
-    .Context.SampleCount    1
-
-    GL specific:
-        .Context.GL.ForceGles2
-            if this is True the GL backend will act in "GLES2 fallback mode"
-            even when compiled for GLES3.
+    .Environment.Defaults.ColorFormat: default value depends on selected backend:
+        all GL backends:                 TPixelFormat.Rgba8
+        Metal and D3D11:                 TPixelFormat.Bgra8
+    .Environment.Defaults.DepthFormat    TPixelFormat.DepthStencil
+    .Environment.Defaults.SampleCount    1
 
     Metal specific:
         (NOTE: All Objective-C object references are transferred through a
         bridged (const Pointer) to Sokol, which will use a unretained bridged
         cast to retrieve the Objective-C references back. Since the bridge cast
         is unretained, the caller must hold a strong reference to the
-        Objective-C object for the duration of the Sokol call!
+        Objective-C object until TGfx.Setup returns.
 
-        .Context.Metal.Device
+        .Metal.ForceManagedStorageMode
+            when enabled, Metal buffers and texture resources are created in
+            managed storage mode, otherwise Sokol will decide whether to create
+            buffers and textures in managed or shared storage mode (this is
+            mainly a debugging option)
+        .Metal.UseCommandBufferWithRetainedReferences
+            when true, the Sokol Metal backend will use Metal command buffers
+            which bump the reference count of resource objects as long as they
+            are inflight, this is slower than the default
+            command-buffer-with-unretained-references method, this may be a
+            workaround when confronted with lifetime validation errors from the
+            Metal validation layer until a proper fix has been implemented.
+        .Environment.Metal.Device
             a pointer to the MTLDevice object
-        .Context.Metal.RenderpassDescriptorCallback
-        .Context.Metal.RenderpassDescriptorEvent
-            a callback function to obtain the MTLRenderPassDescriptor for the
-            current frame when rendering to the default framebuffer, will be
-            called in TGfx.BeginDefaultPass.
-        .Context.Metal.DrawableCallback
-        .context.Metal.DrawableEvent
-            a callback function to obtain a MTLDrawable for the current frame
-            when rendering to the default framebuffer, will be called in
-            TGfx.EndPass of the default pass
 
     D3D11 specific:
-        .Context.D3D11.Device
+        .Environment.D3D11.Device
             a ID3D11Device object. This must have been created before
             TGfx.Create is called
-        .Context.D3D11.DeviceContext
+        .Environment.D3D11.DeviceContext
             a ID3D11DeviceContext object
-        .Context.D3D11.RenderTargetViewCallback
-        .Context.D3D11.RenderTargetViewEvent
-            a callback function to obtain the current ID3D11RenderTargetView
-            object of the default framebuffer.
-            This function will be called in TGfx.BeginPass when rendering
-            to the default framebuffer
-        .Context.D3D11.DepthStencilViewCallback
-        .Context.D3D11.DepthStencilViewEvent
-            a callback function to obtain the current ID3D11DepthStencilView
-            object of the default framebuffer.
-            This function will be called in TGfx.BeginPass when rendering
-            to the default framebuffer
+        .D3D11.ShaderDebugging
+            set this to true to compile shaders which are provided as HLSL source
+            code with debug information and without optimization, this allows
+            shader debugging in tools like RenderDoc, to output source code
+            instead of byte code from sokol-shdc, omit the `--binary` cmdline
+            option
+
+    Vulkan specific:
+        .Vulkan.CopyStagingBufferSize
+            Size of the staging buffer in bytes for uploading the initial
+            content of buffers and images, and for updating
+            .Usage.DynamicUpdate resources. The default is 4 MB, bigger resource
+            updates are split into multiple chunks of the staging buffer size
+        .Vulkan.StreamStagingBufferSize
+            Size of the staging buffer in bytes for updating .Usage.StreamUpdate
+            resources. The default is 16 MB. The size must be big enough
+            to accomodate all update into .Usage.StreamUpdate resources.
+            Any additional data will cause an error log message and
+            incomplete rendering. Note that the actually allocated size
+            will be twice as much because the stream-staging-buffer is
+            double-buffered.
+        .Vulkan.DescriptorBufferSize
+            Size of the descriptor-upload buffer in bytes. The default
+            size is 16 bytes. The size must be big enough to accomodate
+            all unifrom-block, view- and sampler-bindings in a single
+            frame (assume a worst-case of 256 bytes per binding). Note
+            that the actually allocated size will be twice as much
+            because the descriptor-buffer is double-buffered.
 
     When using Neslib.Sokol.Gfx and Neslib.Sokol.App together, consider using
-    the Neslib.Sokol.Glue unit which adds a Context property to the TApplication
-    class, which returns TContextDesc record for use with TApplication. }
-  TGLContextDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_gl_context_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    ForceGles2: Boolean;
-  public
-    constructor Create(const AForceGles2: Boolean);
-    procedure Init(const AForceGles2: Boolean); inline;
-  end;
-  PGLContextDesc = ^TGLContextDesc;
-
-  TMetalContextDesc = record
-  {$REGION 'Internal Declarations'}
-  private class var
-    FRenderpassDescriptorCallback: function: Pointer;
-    FRenderpassDescriptorEvent: function: Pointer of object;
-    FDrawableCallback: function: Pointer;
-    FDrawableEvent: function: Pointer of object;
-  private
-    procedure Convert(out ADst: _sg_metal_context_desc);
-  private
-    class function StaticRenderPassDescriptorCallback: Pointer; cdecl; static;
-    class function StaticDrawableCallback: Pointer; cdecl; static;
-  {$ENDREGION 'Internal Declarations'}
-  public
-    Device: Pointer;
-    RenderpassDescriptorCallback: function: Pointer;
-    RenderpassDescriptorEvent: function: Pointer of object;
-    DrawableCallback: function: Pointer;
-    DrawableEvent: function: Pointer of object;
-  public
-    constructor Create(const ADevice: Pointer);
-    procedure Init(const ADevice: Pointer); inline;
-  end;
-  PMetalContextDesc = ^TMetalContextDesc;
-
-  TD3D11ContextDesc = record
-  {$REGION 'Internal Declarations'}
-  private class var
-    FRenderTargetViewCallback: function: IInterface;
-    FRenderTargetViewEvent: function: IInterface of object;
-    FDepthStencilViewCallback: function: IInterface;
-    FDepthStencilViewEvent: function: IInterface of object;
-  private
-    procedure Convert(out ADst: _sg_d3d11_context_desc);
-  private
-    class function StaticRenderTargetViewCallback: Pointer; cdecl; static;
-    class function StaticDepthStencilViewCallback: Pointer; cdecl; static;
-  {$ENDREGION 'Internal Declarations'}
-  public
-    Device: IInterface;
-    DeviceContext: IInterface;
-    RenderTargetViewCallback: function: IInterface;
-    RenderTargetViewEvent: function: IInterface of object;
-    DepthStencilViewCallback: function: IInterface;
-    DepthStencilViewEvent: function: IInterface of object;
-  public
-    constructor Create(const ADevice, ADeviceContext: IInterface);
-    procedure Init(const ADevice, ADeviceContext: IInterface); inline;
-  end;
-  PD3D11ContextDesc = ^TD3D11ContextDesc;
-
-  TContextDesc = record
-  {$REGION 'Internal Declarations'}
-  private
-    procedure Convert(out ADst: _sg_context_desc);
-  {$ENDREGION 'Internal Declarations'}
-  public
-    ColorFormat: TPixelFormat;
-    DepthFormat: TPixelFormat;
-    SampleCount: Integer;
-    GL: TGLContextDesc;
-    Metal: TMetalContextDesc;
-    D3D11: TD3D11ContextDesc;
-  public
-    constructor Create(const AColorFormat, ADepthFormat: TPixelFormat;
-      const ASampleCount: Integer);
-    procedure Init(const AColorFormat, ADepthFormat: TPixelFormat;
-      const ASampleCount: Integer); inline;
-  end;
-  PContextDesc = ^TContextDesc;
-
+    the Neslib.Sokol.Glue unit which adds a FromAppEnvironment method to the
+    TEnvironment record. }
   TGfxDesc = record
   {$REGION 'Internal Declarations'}
+  private class var
+    GLogger: TGfxLogger;
   private
     procedure Convert(out ADst: _sg_desc);
+  private
+    class procedure LogCallback(const ATag: PUTF8Char; ALogLevel,
+      ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+      const AFilenameOrNull: PUTF8Char; AUserData: Pointer); cdecl; static;
   {$ENDREGION 'Internal Declarations'}
   public
     BufferPoolSize: Integer;
     ImagePoolSize: Integer;
+    SamplerPoolSize: Integer;
     ShaderPoolSize: Integer;
     PipelinePoolSize: Integer;
-    PassPoolSize: Integer;
-    ContextPoolSize: Integer;
+    ViewPoolSize: Integer;
+
+    { Max size of all TGfx.ApplyUniform calls per frame, with worst-case 256
+      byte alignment }
     UniformBufferSize: Integer;
-    StagingBufferSize: Integer;
-    SamplerCacheSize: Integer;
+
+    { Max number of commit listener hook functions }
+    MaxCommitListeners: Integer;
+
+    { Disable validation layer even in debug mode, useful for tests }
+    DisableValidation: Boolean;
+
+    { If true, enforce portable resource binding limits (MAX_PORTABLE_*) }
+    EnforcePortableLimits: Boolean;
+
     UseDelphiMemoryManager: Boolean;
-    Context: TContextDesc;
+
+    { D3D11-specific setup parameters }
+    D3D11: TD3D11Desc;
+
+    { Metal-specific setup parameters }
+    Metal: TMetalDesc;
+
+    { Vulkan-specific setup parameters }
+    Vulkan: TVulkanDesc;
+
+    { Optional log function override }
+    Logger: TGfxLogger;
+
+    { Required externally provided runtime objects and defaults }
+    Environment: TEnvironment;
   public
     class function Create: TGfxDesc; inline; static;
     procedure Init;
+
+    { A default log function you can assign to the Logger field. }
+    procedure DefaultLogger(const ALevel: TLogLevel; const AItem: TGfxLogItem;
+      const AMessage: String; const ALineNr: Integer);
   end;
   PGfxDesc = ^TGfxDesc;
 
@@ -3456,12 +4035,7 @@ type
     class property IsValid: Boolean read GetIsValid;
   public
     { Rendering methods }
-    class procedure BeginDefaultPass(const APassAction: TPassAction;
-      const AWidth, AHeight: Integer); overload; inline; static;
-    class procedure BeginDefaultPass(const APassAction: TPassAction;
-      const AWidth, AHeight: Single); overload; inline; static;
-    class procedure BeginPass(const APass: TPass;
-      const APassAction: TPassAction); inline; static;
+    class procedure BeginPass(const APass: TPass); inline; static;
 
     class procedure ApplyViewport(const AX, AY, AWidth, AHeight: Integer;
       const AOriginTopLeft: Boolean); overload; inline; static;
@@ -3483,10 +4057,10 @@ type
 
     class procedure ApplyPipeline(const APipeline: TPipeline); inline; static;
     class procedure ApplyBindings(const ABindings: TBindings); inline; static;
-    class procedure ApplyUniforms(const AStage: TShaderStage;
-      const AUBIndex: Integer; const AData: TBytes); overload; inline; static;
-    class procedure ApplyUniforms(const AStage: TShaderStage;
-      const AUBIndex: Integer; const AData: TRange); overload; inline; static;
+    class procedure ApplyUniforms(const AUBSlot: Integer;
+      const AData: TBytes); overload; inline; static;
+    class procedure ApplyUniforms(const AUBSlot: Integer;
+      const AData: TRange); overload; inline; static;
 
     class procedure Draw(const ABaseElement, ANumElements: Integer;
       const ANumInstances: Integer = 1); inline; static;
@@ -3551,7 +4125,7 @@ end;
 
 function _TBackendHelper.GetIsGL: Boolean;
 begin
-  Result := (Self in [TBackend.GLCore33, TBackend.Gles2, TBackend.Gles3]);
+  Result := (Self in [TBackend.GLCore, TBackend.Gles3]);
 end;
 
 { _TPixelFormatHelper }
@@ -3645,70 +4219,78 @@ end;
 
 { TColorAttachmentAction }
 
-constructor TColorAttachmentAction.Create(const AAction: TAction;
-  const AValue: TColor);
+constructor TColorAttachmentAction.Create(const ALoadAction: TLoadAction;
+  const AStoreAction: TStoreAction; const AClearValue: TColor);
 begin
-  Action := AAction;
-  Value := AValue;
+  LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
 end;
 
-constructor TColorAttachmentAction.Create(const AAction: TAction; const AR, AG,
-  AB, AA: Single);
+constructor TColorAttachmentAction.Create(const ALoadAction: TLoadAction;
+  const AStoreAction: TStoreAction; const AR, AG, AB, AA: Single);
 begin
-  Action := AAction;
-  Value.R := AR;
-  Value.G := AG;
-  Value.B := AB;
-  Value.A := AA;
+  LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue.R := AR;
+  ClearValue.G := AG;
+  ClearValue.B := AB;
+  ClearValue.A := AA;
 end;
 
-procedure TColorAttachmentAction.Init(const AAction: TAction;
-  const AValue: TColor);
+procedure TColorAttachmentAction.Init(const ALoadAction: TLoadAction;
+  const AStoreAction: TStoreAction; const AClearValue: TColor);
 begin
-  Action := AAction;
-  Value := AValue;
+  LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
 end;
 
-procedure TColorAttachmentAction.Init(const AAction: TAction; const AR, AG, AB,
-  AA: Single);
+procedure TColorAttachmentAction.Init(const ALoadAction: TLoadAction;
+  const AStoreAction: TStoreAction; const AR, AG, AB, AA: Single);
 begin
-  Action := AAction;
-  Value.R := AR;
-  Value.G := AG;
-  Value.B := AB;
-  Value.A := AA;
+  LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue.R := AR;
+  ClearValue.G := AG;
+  ClearValue.B := AB;
+  ClearValue.A := AA;
 end;
 
 { TDepthAttachmentAction }
 
-constructor TDepthAttachmentAction.Create(const AAction: TAction;
-  const AValue: Single);
+constructor TDepthAttachmentAction.Create(const ALoadAction: TLoadAction;
+  const AStoreAction: TStoreAction; const AClearValue: Single);
 begin
-  Action := AAction;
-  Value := AValue;
+  LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
 end;
 
-procedure TDepthAttachmentAction.Init(const AAction: TAction;
-  const AValue: Single);
+procedure TDepthAttachmentAction.Init(const ALoadAction: TLoadAction;
+  const AStoreAction: TStoreAction; const AClearValue: Single);
 begin
-  Action := AAction;
-  Value := AValue;
+  LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
 end;
 
 { TStencilAttachmentAction }
 
-constructor TStencilAttachmentAction.Create(const AAction: TAction;
-  const AValue: Byte);
+constructor TStencilAttachmentAction.Create(const ALoadAction: TLoadAction;
+  const AStoreAction: TStoreAction; const AClearValue: Byte);
 begin
-  Action := AAction;
-  Value := AValue;
+  LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
 end;
 
-procedure TStencilAttachmentAction.Init(const AAction: TAction;
-  const AValue: Byte);
+procedure TStencilAttachmentAction.Init(const ALoadAction: TLoadAction;
+  const AStoreAction: TStoreAction; const AClearValue: Byte);
 begin
-  Action := AAction;
-  Value := AValue;
+  LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
 end;
 
 { TPassAction }
@@ -3739,14 +4321,77 @@ begin
   FillChar(Self, SizeOf(Self), 0);
 end;
 
+{ TD3D11Swapchain }
+
+function TD3D11Swapchain.GetDepthStencilView: IInterface;
+begin
+  Result := IInterface(FHandle.depth_stencil_view);
+end;
+
+function TD3D11Swapchain.GetRenderView: IInterface;
+begin
+  Result := IInterface(FHandle.render_view);
+end;
+
+function TD3D11Swapchain.GetResolveView: IInterface;
+begin
+  Result := IInterface(FHandle.resolve_view);
+end;
+
+procedure TD3D11Swapchain.SetDepthStencilView(const AValue: IInterface);
+begin
+  FHandle.depth_stencil_view := Pointer(AValue);
+end;
+
+procedure TD3D11Swapchain.SetRenderView(const AValue: IInterface);
+begin
+  FHandle.render_view := Pointer(AValue);
+end;
+
+procedure TD3D11Swapchain.SetResolveView(const AValue: IInterface);
+begin
+  FHandle.resolve_view := Pointer(AValue);
+end;
+
+{ TSwapchain }
+
+function TSwapchain.GetColorFormat: TPixelFormat;
+begin
+  Result := TPixelFormat(FHandle.color_format);
+end;
+
+function TSwapchain.GetD3D11: PD3D11Swapchain;
+begin
+  Result := @FHandle.d3d11;
+end;
+
+function TSwapchain.GetDepthFormat: TPixelFormat;
+begin
+  Result := TPixelFormat(FHandle.depth_format);
+end;
+
+function TSwapchain.GetGL: PGLSwapchain;
+begin
+  Result := @FHandle.gl;
+end;
+
+function TSwapchain.GetMetal: PMetalSwapchain;
+begin
+  Result := @FHandle.metal;
+end;
+
+function TSwapchain.GetVulkan: PVulkanSwapchain;
+begin
+  Result := @FHandle.vulkan;
+end;
+
 { TBufferDesc }
 
 procedure TBufferDesc.Convert(out ADst: _sg_buffer_desc);
 begin
   ADst._start_canary := 0;
   ADst.size := Size;
-  ADst.&type := Ord(BufferType);
-  ADst.usage := Ord(Usage);
+  ADst.usage := Usage.FHandle;
   ADst.data := Data.FHandle;
   if (TraceLabel = '') then
     ADst.&label := nil
@@ -3773,8 +4418,7 @@ begin
   Def := _sg_query_buffer_defaults(@Def);
 
   Size := Def.size;
-  BufferType := TBufferType(Def.&type);
-  Usage := TUsage(Def.usage);
+  Usage.FHandle := Def.usage;
 end;
 
 { TBuffer }
@@ -3847,9 +4491,9 @@ begin
   _sg_init_buffer(FHandle, @Desc);
 end;
 
-function TBuffer.Teardown: Boolean;
+procedure TBuffer.Teardown;
 begin
-  Result := _sg_uninit_buffer(FHandle);
+  _sg_uninit_buffer(FHandle);
 end;
 
 procedure TBuffer.Update(const AData: TRange);
@@ -3874,19 +4518,13 @@ end;
 
 procedure TImageData.Convert(out ADst: _sg_image_data);
 begin
-  for var Face := Low(TCubeface) to High(TCubeface) do
-    for var Mipmap := 0 to MAX_MIPMAPS - 1 do
-      ADst.subimage[Ord(Face), Mipmap] := SubImagesCube[Face, Mipmap].FHandle;
+  for var I := 0 to MAX_MIPMAPS - 1 do
+    ADst.mip_levels[I] := MipLevels[I].FHandle;
 end;
 
 class function TImageData.Create: TImageData;
 begin
   Result.Init;
-end;
-
-function TImageData.GetSubImage(const AMipmapLevel: Integer): TRange;
-begin
-  Result := SubImagesCube[TCubeFace.PosX, AMipmapLevel];
 end;
 
 procedure TImageData.Init;
@@ -3896,14 +4534,8 @@ end;
 
 procedure TImageData.InitFrom(const ASrc: _sg_image_data);
 begin
-  for var Face := Low(TCubeface) to High(TCubeface) do
-    for var Mipmap := 0 to MAX_MIPMAPS - 1 do
-      SubImagesCube[Face, Mipmap].FHandle := ASrc.subimage[Ord(Face), Mipmap];
-end;
-
-procedure TImageData.SubImage(const AMipmapLevel: Integer; const AValue: TRange);
-begin
-  SubImagesCube[TCubeFace.PosX, AMipmapLevel] := AValue;
+  for var I := 0 to MAX_MIPMAPS - 1 do
+    MipLevels[I].FHandle := ASrc.mip_levels[I];
 end;
 
 { TImageDesc }
@@ -3912,23 +4544,13 @@ procedure TImageDesc._Convert(out ADst: _sg_image_desc);
 begin
   ADst._start_canary := 0;
   ADst.&type := Ord(ImageType);
-  ADst.render_target := RenderTarget;
+  ADst.usage := Usage.FHandle;
   ADst.width := Width;
   ADst.height := Height;
   ADst.num_slices := NumSlices;
   ADst.num_mipmaps := NumMipmaps;
-  ADst.usage := Ord(Usage);
   ADst.pixel_format := Ord(PixelFormat);
   ADst.sample_count := SampleCount;
-  ADst.min_filter := Ord(MinFilter);
-  ADst.mag_filter := Ord(MagFilter);
-  ADst.wrap_u := Ord(WrapU);
-  ADst.wrap_v := Ord(WrapV);
-  ADst.wrap_w := Ord(WrapW);
-  ADst.border_color := Ord(BorderColor);
-  ADst.max_anisotropy := MaxAnisotropy;
-  ADst.min_lod := MinLod;
-  ADst.max_lod := MaxLod;
   Data.Convert(ADst.data);
   if (TraceLabel = '') then
     ADst.&label := nil
@@ -3938,7 +4560,6 @@ begin
   ADst.gl_texture_target := GLTextureTarget;
   Move(MetalTextures, ADst.mtl_textures, SizeOf(GLTextures));
   ADst.d3d11_texture := Pointer(D3D11Texture);
-  ADst.d3d11_shader_resource_view := Pointer(D3D11ShaderResourceView);
   ADst.wgpu_texture := nil;
   ADst._end_canary := 0;
 end;
@@ -3946,30 +4567,19 @@ end;
 procedure TImageDesc._InitFrom(out ASrc: _sg_image_desc);
 begin
   ImageType := TImageType(ASrc.&type);
-  RenderTarget := ASrc.render_target;
+  Usage.FHandle := ASrc.usage;
   Width := ASrc.width;
   Height := ASrc.height;
   NumSlices := ASrc.num_slices;
   NumMipmaps := ASrc.num_mipmaps;
-  Usage := TUsage(ASrc.usage);
   PixelFormat := TPixelFormat(ASrc.pixel_format);
   SampleCount := ASrc.sample_count;
-  MinFilter := TFilter(ASrc.min_filter);
-  MagFilter := TFilter(ASrc.mag_filter);
-  WrapU := TWrap(ASrc.wrap_u);
-  WrapV := TWrap(ASrc.wrap_v);
-  WrapW := TWrap(ASrc.wrap_w);
-  BorderColor := TBorderColor(ASrc.border_color);
-  MaxAnisotropy := ASrc.max_anisotropy;
-  MinLod := ASrc.min_lod;
-  MaxLod := ASrc.max_lod;
   Data.InitFrom(ASrc.data);
   TraceLabel := String(UTF8String(ASrc.&label));
   Move(ASrc.gl_textures, GLTextures, SizeOf(GLTextures));
   GLTextureTarget := ASrc.gl_texture_target;
   Move(ASrc.mtl_textures, MetalTextures, SizeOf(MetalTextures));
   D3D11Texture := IInterface(ASrc.d3d11_texture);
-  D3D11ShaderResourceView := IInterface(ASrc.d3d11_shader_resource_view);
 end;
 
 class function TImageDesc.Create: TImageDesc;
@@ -3986,23 +4596,13 @@ begin
   Def := _sg_query_image_defaults(@Def);
 
   ImageType := TImageType(Def.&type);
-  RenderTarget := Def.render_target;
+  Usage.FHandle := Def.usage;
   Width := Def.width;
   Height := Def.height;
   NumSlices := Def.num_slices;
   NumMipmaps := Def.num_mipmaps;
-  Usage := TUsage(Def.usage);
 //  PixelFormat := TPixelFormat(Def.pixel_format); // Will be set to default later
 //  SampleCount := Def.sample_count; // Will be set to default later
-  MinFilter := TFilter(Def.min_filter);
-  MagFilter := TFilter(Def.mag_filter);
-  WrapU := TWrap(Def.wrap_u);
-  WrapV := TWrap(Def.wrap_v);
-  WrapW := TWrap(Def.wrap_w);
-  BorderColor := TBorderColor(Def.border_color);
-  MaxAnisotropy := Def.max_anisotropy;
-  MinLod := Def.min_lod;
-  MaxLod := Def.max_lod;
 end;
 
 { TImage }
@@ -4057,9 +4657,9 @@ begin
   _sg_init_image(FHandle, @Desc);
 end;
 
-function TImage.Teardown: Boolean;
+procedure TImage.Teardown;
 begin
-  Result := _sg_uninit_image(FHandle);
+  _sg_uninit_image(FHandle);
 end;
 
 procedure TImage.Update(const AData: TImageData);
@@ -4069,128 +4669,310 @@ begin
   _sg_update_image(FHandle, @Data);
 end;
 
-{ TShaderAttrDesc }
+{ TSamplerDesc }
 
-procedure TShaderAttrDesc.Convert(out ADst: _sg_shader_attr_desc);
+class function TSamplerDesc.Create: TSamplerDesc;
 begin
-  ADst.name := PUTF8Char(UTF8String(Name));
-  ADst.sem_name := PUTF8Char(UTF8String(SemanticName));
-  ADst.sem_index := SemanticIndex;
+  Result.Init;
 end;
 
-constructor TShaderAttrDesc.Create(const AName, ASemanticName: String;
-  const ASemanticIndex: Integer);
+procedure TSamplerDesc.Init;
 begin
-  Init(AName, ASemanticName, ASemanticIndex);
+  var Def: _sg_sampler_desc;
+  FillChar(Def, SizeOf(Def), 0);
+  Def := _sg_query_sampler_defaults(@Def);
+  _InitFrom(Def);
 end;
 
-procedure TShaderAttrDesc.Init(const AName, ASemanticName: String;
-  const ASemanticIndex: Integer);
+procedure TSamplerDesc._Convert(out ADst: _sg_sampler_desc);
 begin
-  Name := AName;
-  SemanticName := ASemanticName;
-  SemanticIndex := ASemanticIndex;
+  ADst._start_canary := 0;
+  ADst.min_filter := Ord(MinFilter);
+  ADst.mag_filter := Ord(MagFilter);
+  ADst.mipmap_filter := Ord(MipmapFilter);
+  ADst.wrap_u := Ord(WrapU);
+  ADst.wrap_v := Ord(WrapV);
+  ADst.wrap_w := Ord(WrapW);
+  ADst.min_lod := MinLod;
+  ADst.max_lod := MaxLod;
+  ADst.border_color := Ord(BorderColor);
+  ADst.compare := Ord(Compare);
+  ADst.max_anisotropy := MaxAnisotropy;
+
+  if (TraceLabel = '') then
+    ADst.&label := nil
+  else
+    ADst.&label := PUTF8Char(UTF8String(TraceLabel));
+
+  ADst.gl_sampler := GLSampler;
+  ADst.mtl_sampler := MtlSampler;
+  ADst.d3d11_sampler := Pointer(D3D11Sampler);
+  ADst.wgpu_sampler := nil;
+  ADst._end_canary := 0;
 end;
 
-{ TShaderUniformDesc }
-
-procedure TShaderUniformDesc.Convert(out ADst: _sg_shader_uniform_desc);
+procedure TSamplerDesc._InitFrom(out ASrc: _sg_sampler_desc);
 begin
-  ADst.name := PUTF8Char(UTF8String(Name));
+  FillChar(Self, SizeOf(Self), 0);
+  MinFilter := TFilter(ASrc.min_filter);
+  MagFilter := TFilter(ASrc.mag_filter);
+  MipmapFilter := TFilter(ASrc.mipmap_filter);
+  WrapU := TWrap(ASrc.wrap_u);
+  WrapV := TWrap(ASrc.wrap_v);
+  WrapW := TWrap(ASrc.wrap_w);
+  MinLod := ASrc.min_lod;
+  MaxLod := ASrc.max_lod;
+  BorderColor := TBorderColor(ASrc.border_color);
+  Compare := TCompareFunc(ASrc.compare);
+  MaxAnisotropy := ASrc.max_anisotropy;
+  TraceLabel := String(UTF8String(ASrc.&label));
+  GLSampler := ASrc.gl_sampler;
+  MtlSampler := ASrc.mtl_sampler;
+  D3D11Sampler := IInterface(ASrc.d3d11_sampler);
+end;
+
+{ TShaderFunction }
+
+procedure TShaderFunction.Convert(out ADst: _sg_shader_function);
+begin
+  ADst.source := PAnsiChar(Source);
+  ADst.bytecode := ByteCode.FHandle;
+  ADst.entry := PAnsiChar(Entry);
+  ADst.d3d11_target := PAnsiChar(D3D11Target);
+  ADst.d3d11_filepath := PAnsiChar(D3D11FilePath);
+end;
+
+procedure TShaderFunction.InitFrom(const ASrc: _sg_shader_function);
+begin
+  Source := AnsiString(ASrc.source);
+  ByteCode.FHandle := ASrc.bytecode;
+  Entry := AnsiString(ASrc.entry);
+  D3D11Target := AnsiString(ASrc.d3d11_target);
+  D3D11FilePath := AnsiString(ASrc.d3d11_filepath);
+end;
+
+{ TShaderVertexAttr }
+
+procedure TShaderVertexAttr.Convert(out ADst: _sg_shader_vertex_attr);
+begin
+  ADst.base_type := Ord(BaseType);
+  ADst.glsl_name := PAnsiChar(GlslName);
+  ADst.hlsl_sem_name := PAnsiChar(HlslSemName);
+  ADst.hlsl_sem_index := HlslSemIndex;
+end;
+
+procedure TShaderVertexAttr.InitFrom(const ASrc: _sg_shader_vertex_attr);
+begin
+  BaseType := TShaderAttrBaseType(ASrc.base_type);
+  GlslName := AnsiString(ASrc.glsl_name);
+  HlslSemName := AnsiString(ASrc.hlsl_sem_name);
+  HlslSemIndex := ASrc.hlsl_sem_index;
+end;
+
+{ TGlslShaderUniform }
+
+procedure TGlslShaderUniform.Convert(out ADst: _sg_glsl_shader_uniform);
+begin
   ADst.&type := Ord(UniformType);
   ADst.array_count := ArrayCount;
+  ADst.glsl_name := PAnsiChar(GlslName);
 end;
 
-constructor TShaderUniformDesc.Create(const AName: String;
-  const AUniformType: TUniformType; const AArrayCount: Integer);
+procedure TGlslShaderUniform.InitFrom(const ASrc: _sg_glsl_shader_uniform);
 begin
-  Init(AName, AUniformType, AArrayCount);
+  UniformType := TUniformType(ASrc.&type);
+  ArrayCount := ASrc.array_count;
+  GlslName := AnsiString(ASrc.glsl_name);
 end;
 
-procedure TShaderUniformDesc.Init(const AName: String;
-  const AUniformType: TUniformType; const AArrayCount: Integer);
-begin
-  Name := AName;
-  UniformType := AUniformType;
-  ArrayCount := AArrayCount;
-end;
+{ TShaderUniformBlock }
 
-{ TShaderUniformBlockDesc }
-
-procedure TShaderUniformBlockDesc.Convert(
-  out ADst: _sg_shader_uniform_block_desc);
+procedure TShaderUniformBlock.Convert(out ADst: _sg_shader_uniform_block);
 begin
+  ADst.stage := Ord(Stage);
   ADst.size := Size;
+  ADst.hlsl_register_b_n := HlslRegisterBN;
+  ADst.msl_buffer_n := MslBufferN;
+  ADst.wgsl_group0_binding_n := WgslGroup0BindingN;
+  ADst.spirv_set0_binding_n := SpirvSet0BindingN;
   ADst.layout := Ord(Layout);
-  for var I := 0 to MAX_UB_MEMBERS - 1 do
-    Uniforms[I].Convert(ADst.uniforms[I]);
+
+  for var I := 0 to MAX_UNIFORMBLOCK_MEMBERS - 1 do
+    GlslUniforms[I].Convert(ADst.glsl_uniforms[I]);
 end;
 
-constructor TShaderUniformBlockDesc.Create(const ASize: NativeUInt;
-  const ALayout: TUniformLayout);
+procedure TShaderUniformBlock.InitFrom(const ASrc: _sg_shader_uniform_block);
 begin
-  Init(ASize, ALayout);
+  Stage := TShaderStage(ASrc.stage);
+  Size := ASrc.Size;
+  HlslRegisterBN := ASrc.hlsl_register_b_n;
+  MslBufferN := ASrc.msl_buffer_n;
+  WgslGroup0BindingN := ASrc.wgsl_group0_binding_n;
+  SpirvSet0BindingN := ASrc.spirv_set0_binding_n;
+  Layout := TUniformLayout(ASrc.layout);
+
+  for var I := 0 to MAX_UNIFORMBLOCK_MEMBERS - 1 do
+    GlslUniforms[I].InitFrom(ASrc.glsl_uniforms[I]);
 end;
 
-procedure TShaderUniformBlockDesc.Init(const ASize: NativeUInt;
-  const ALayout: TUniformLayout);
-begin
-  Size := ASize;
-  Layout := ALayout;
-end;
+{ TShaderTextureView }
 
-{ TShaderImageDesc }
-
-procedure TShaderImageDesc.Convert(out ADst: _sg_shader_image_desc);
+procedure TShaderTextureView.Convert(out ADst: _sg_shader_texture_view);
 begin
-  ADst.name := PUTF8Char(UTF8String(Name));
+  ADst.stage := Ord(Stage);
   ADst.image_type := Ord(ImageType);
+  ADst.sample_type := Ord(SampleType);
+  ADst.multisampled := MultiSampled;
+  ADst.hlsl_register_t_n := HlslRegisterTN;
+  ADst.msl_texture_n := MslTextureN;
+  ADst.wgsl_group1_binding_n := WgslGroup1BindingN;
+  ADst.spirv_set1_binding_n := SpirvSet1BindingN;
+end;
+
+procedure TShaderTextureView.InitFrom(const ASrc: _sg_shader_texture_view);
+begin
+  Stage := TShaderStage(ASrc.stage);
+  ImageType := TImageType(ASrc.image_type);
+  SampleType := TImageSampleType(ASrc.sample_type);
+  MultiSampled := ASrc.multisampled;
+  HlslRegisterTN := ASrc.hlsl_register_t_n;
+  MslTextureN := ASrc.msl_texture_n;
+  WgslGroup1BindingN := ASrc.wgsl_group1_binding_n;
+  SpirvSet1BindingN := ASrc.spirv_set1_binding_n;
+end;
+
+{ TShaderStorageBufferView }
+
+procedure TShaderStorageBufferView.Convert(
+  out ADst: _sg_shader_storage_buffer_view);
+begin
+  ADst.stage := Ord(Stage);
+  ADst.readonly := ReadOnly;
+  ADst.hlsl_register_t_n := HlslRegisterTN;
+  ADst.hlsl_register_u_n := HlslRegisterUN;
+  ADst.msl_buffer_n := MslBufferN;
+  ADst.wgsl_group1_binding_n := WgslGroup1BindingN;
+  ADst.spirv_set1_binding_n := SpirvSet1BindingN;
+  ADst.glsl_binding_n := GlslBindingN;
+end;
+
+procedure TShaderStorageBufferView.InitFrom(
+  const ASrc: _sg_shader_storage_buffer_view);
+begin
+  Stage := TShaderStage(ASrc.stage);
+  ReadOnly := ASrc.readonly;
+  HlslRegisterTN := ASrc.hlsl_register_t_n;
+  HlslRegisterUN := ASrc.hlsl_register_u_n;
+  MslBufferN := ASrc.msl_buffer_n;
+  WgslGroup1BindingN := ASrc.wgsl_group1_binding_n;
+  SpirvSet1BindingN := ASrc.spirv_set1_binding_n;
+  GlslBindingN := ASrc.glsl_binding_n;
+end;
+
+{ TShaderStorageImageView }
+
+procedure TShaderStorageImageView.Convert(
+  out ADst: _sg_shader_storage_image_view);
+begin
+  ADst.stage := Ord(Stage);
+  ADst.image_type := Ord(ImageType);
+  ADst.access_format := Ord(AccessFormat);
+  ADst.writeonly := WriteOnly;
+  ADst.hlsl_register_u_n := HlslRegisterUN;
+  ADst.msl_texture_n := MslTextureN;
+  ADst.wgsl_group1_binding_n := WgslGroup1BindingN;
+  ADst.spirv_set1_binding_n := SpirvSet1BindingN;
+  ADst.glsl_binding_n := GlslBindingN;
+end;
+
+procedure TShaderStorageImageView.InitFrom(
+  const ASrc: _sg_shader_storage_image_view);
+begin
+  Stage := TShaderStage(ASrc.stage);
+  ImageType := TImageType(ASrc.image_type);
+  AccessFormat := TPixelFormat(ASrc.access_format);
+  WriteOnly := ASrc.writeonly;
+  HlslRegisterUN := ASrc.hlsl_register_u_n;
+  MslTextureN := ASrc.msl_texture_n;
+  WgslGroup1BindingN := ASrc.wgsl_group1_binding_n;
+  SpirvSet1BindingN := ASrc.spirv_set1_binding_n;
+  GlslBindingN := ASrc.glsl_binding_n;
+end;
+
+{ TShaderView }
+
+procedure TShaderView.Convert(out ADst: _sg_shader_view);
+begin
+  Texture.Convert(ADst.texture);
+  StorageBuffer.Convert(ADst.storage_buffer);
+  StorageImage.Convert(ADst.storage_image);
+end;
+
+procedure TShaderView.InitFrom(const ASrc: _sg_shader_view);
+begin
+  Texture.InitFrom(ASrc.texture);
+  StorageBuffer.InitFrom(ASrc.storage_buffer);
+  StorageImage.InitFrom(ASrc.storage_image);
+end;
+
+{ TShaderSampler }
+
+procedure TShaderSampler.Convert(out ADst: _sg_shader_sampler);
+begin
+  ADst.stage := Ord(Stage);
   ADst.sampler_type := Ord(SamplerType);
+  ADst.hlsl_register_s_n := HlslRegisterSN;
+  ADst.msl_sampler_n := MslSamplerN;
+  ADst.wgsl_group1_binding_n := WgslGroup1BindingN;
+  ADst.spirv_set1_binding_n := SpirvSet1BindingN;
 end;
 
-constructor TShaderImageDesc.Create(const AName: String;
-  const AImageType: TImageType; const ASamplerType: TSamplerType);
+procedure TShaderSampler.InitFrom(const ASrc: _sg_shader_sampler);
 begin
-  Init(AName, AImageType, ASamplerType);
+  Stage := TShaderStage(ASrc.stage);
+  SamplerType := TSamplerType(ASrc.sampler_type);
+  HlslRegisterSN := ASrc.hlsl_register_s_n;
+  MslSamplerN := ASrc.msl_sampler_n;
+  WgslGroup1BindingN := ASrc.wgsl_group1_binding_n;
+  SpirvSet1BindingN := ASrc.spirv_set1_binding_n;
 end;
 
-procedure TShaderImageDesc.Init(const AName: String;
-  const AImageType: TImageType; const ASamplerType: TSamplerType);
+{ TShaderTextureSamplerPair }
+
+procedure TShaderTextureSamplerPair.Convert(
+  out ADst: _sg_shader_texture_sampler_pair);
 begin
-  Name := AName;
-  ImageType := AImageType;
-  SamplerType := ASamplerType;
+  ADst.stage := Ord(Stage);
+  ADst.view_slot := Ord(ViewSlot);
+  ADst.sampler_slot := SamplerSlot;
+  ADst.glsl_name := PAnsiChar(GlslName);
 end;
 
-{ TShaderStageDesc }
-
-procedure TShaderStageDesc.Convert(out ADst: _sg_shader_stage_desc);
+procedure TShaderTextureSamplerPair.InitFrom(
+  const ASrc: _sg_shader_texture_sampler_pair);
 begin
-  ADst.source := PUTF8Char(UTF8String(Source));
-  ADst.bytecode := Bytecode.FHandle;
-  ADst.entry := PUTF8Char(UTF8String(Entry));
-  ADst.d3d11_target := PUTF8Char(UTF8String(D3D11Target));
-
-  for var I := 0 to MAX_SHADERSTAGE_UBS - 1 do
-    UniformBlocks[I].Convert(ADst.uniform_blocks[I]);
-
-  for var I := 0 to MAX_SHADERSTAGE_IMAGES - 1 do
-    Images[I].Convert(ADst.images[I]);
+  Stage := TShaderStage(ASrc.stage);
+  ViewSlot := TViewType(ASrc.view_slot);
+  SamplerSlot := ASrc.sampler_slot;
+  GlslName := AnsiString(ASrc.glsl_name);
 end;
 
-constructor TShaderStageDesc.Create(const ASource: String;
-  const ABytecode: TRange; const AEntry, AD3D11Target: String);
+{ TMtlShaderThreadsPerThreadgroup }
+
+procedure TMtlShaderThreadsPerThreadgroup.Convert(
+  out ADst: _sg_mtl_shader_threads_per_threadgroup);
 begin
-  Init(ASource, ABytecode, AEntry, AD3D11Target);
+  ADst.x := X;
+  ADst.y := Y;
+  ADst.z := Z;
 end;
 
-procedure TShaderStageDesc.Init(const ASource: String; const ABytecode: TRange;
-  const AEntry, AD3D11Target: String);
+procedure TMtlShaderThreadsPerThreadgroup.InitFrom(
+  const ASrc: _sg_mtl_shader_threads_per_threadgroup);
 begin
-  Source := ASource;
-  Bytecode := ABytecode;
-  Entry := AEntry;
-  D3D11Target := AD3D11Target;
+  X := ASrc.x;
+  Y := ASrc.y;
+  Z := ASrc.z;
 end;
 
 { TShaderDesc }
@@ -4199,15 +4981,32 @@ procedure TShaderDesc.Convert(out ADst: _sg_shader_desc);
 begin
   ADst._start_canary := 0;
 
-  for var I := 0 to MAX_VERTEX_ATTRIBUTES - 12 do
+  VertexFunc.Convert(ADst.vertex_func);
+  FragmentFunc.Convert(ADst.fragment_func);
+  ComputeFunc.Convert(ADst.compute_func);
+
+  for var I := 0 to MAX_VERTEX_ATTRIBUTES - 1 do
     Attrs[I].Convert(ADst.attrs[I]);
 
-  VertexShader.Convert(ADst.vs);
-  FragmentShader.Convert(ADst.fs);
+  for var I := 0 to MAX_UNIFORMBLOCK_BINDSLOTS - 1 do
+    UniformBlocks[I].Convert(ADst.uniform_blocks[I]);
+
+  for var I := 0 to MAX_VIEW_BINDSLOTS - 1 do
+    Views[I].Convert(ADst.views[I]);
+
+  for var I := 0 to MAX_SAMPLER_BINDSLOTS - 1 do
+    Samplers[I].Convert(ADst.samplers[I]);
+
+  for var I := 0 to MAX_TEXTURE_SAMPLER_PAIRS - 1 do
+    TextureSamplerPairs[I].Convert(ADst.texture_sampler_pairs[I]);
+
+  MtlThreadsPerThreadgroup.Convert(ADst.mtl_threads_per_threadgroup);
+
   if (TraceLabel = '') then
     ADst.&label := nil
   else
     ADst.&label := PUTF8Char(UTF8String(TraceLabel));
+
   ADst._end_canary := 0;
 end;
 
@@ -4224,28 +5023,28 @@ begin
   FillChar(Def, SizeOf(Def), 0);
   Def := _sg_query_shader_defaults(@Def);
 
-  var SrcStage: _Psg_shader_stage_desc := @Def.vs;
-  var DstStage: PShaderStageDesc := @VertexShader;
-  for var StageIdx := 0 to 1 do
-  begin
-    DstStage.Entry := String(UTF8String(SrcStage.entry));
-    DstStage.D3D11Target := String(UTF8String(SrcStage.d3d11_target));
+  VertexFunc.InitFrom(Def.vertex_func);
+  FragmentFunc.InitFrom(Def.vertex_func);
+  ComputeFunc.InitFrom(Def.vertex_func);
 
-    for var UBIdx := 0 to MAX_SHADERSTAGE_UBS - 1 do
-    begin
-      DstStage.UniformBlocks[UBIdx].Size := SrcStage.uniform_blocks[UBIdx].size;
-      DstStage.UniformBlocks[UBIdx].Layout := TUniformLayout(SrcStage.uniform_blocks[UBIdx].layout);
+  for var I := 0 to MAX_VERTEX_ATTRIBUTES - 1 do
+    Attrs[I].InitFrom(Def.attrs[I]);
 
-      for var UIdx := 0 to MAX_UB_MEMBERS - 1 do
-        DstStage.UniformBlocks[UBIdx].Uniforms[UIdx].ArrayCount := SrcStage.uniform_blocks[UBIdx].uniforms[UIdx].array_count;
-    end;
+  for var I := 0 to MAX_UNIFORMBLOCK_BINDSLOTS - 1 do
+    UniformBlocks[I].InitFrom(Def.uniform_blocks[I]);
 
-    for var ImgIdx := 0 to MAX_SHADERSTAGE_IMAGES - 1 do
-      DstStage.Images[ImgIdx].SamplerType := TSamplerType(SrcStage.images[ImgIdx].sampler_type);
+  for var I := 0 to MAX_VIEW_BINDSLOTS - 1 do
+    Views[I].InitFrom(Def.views[I]);
 
-    SrcStage := @Def.fs;
-    DstStage := @FragmentShader;
-  end;
+  for var I := 0 to MAX_SAMPLER_BINDSLOTS - 1 do
+    Samplers[I].InitFrom(Def.samplers[I]);
+
+  for var I := 0 to MAX_TEXTURE_SAMPLER_PAIRS - 1 do
+    TextureSamplerPairs[I].InitFrom(Def.texture_sampler_pairs[I]);
+
+  MtlThreadsPerThreadgroup.InitFrom(Def.mtl_threads_per_threadgroup);
+
+  TraceLabel := String(UTF8String(Def.&label));
 end;
 
 { TShader }
@@ -4310,80 +5109,22 @@ begin
   _sg_init_shader(FHandle, @Desc);
 end;
 
-function TShader.Teardown: Boolean;
+procedure TShader.Teardown;
 begin
-  Result := _sg_uninit_shader(FHandle);
+  _sg_uninit_shader(FHandle);
 end;
 
-{ _sg_shader_attr_desc_helper }
+{ TVertexBufferLayoutState }
 
-procedure _sg_shader_attr_desc_helper.Init(const AName, ASemanticName: PUTF8Char;
-  const ASemanticIndex: Integer);
-begin
-  name := AName;
-  sem_name := ASemanticName;
-  sem_index := ASemanticIndex;
-end;
-
-{ _sg_shader_desc_helper }
-
-procedure _sg_shader_desc_helper.Init;
-begin
-  FillChar(Self, SizeOf(Self), 0);
-  if (TGfx.Backend in [TBackend.MetalIOS, TBackend.MetalMacOS]) then
-  begin
-    vs.entry := 'main0';
-    fs.entry := 'main0';
-  end
-  else
-  begin
-    vs.entry := 'main';
-    fs.entry := 'main';
-  end;
-
-  if (TGfx.Backend = TBackend.D3D11) then
-  begin
-    vs.d3d11_target := 'vs_5_0';
-    fs.d3d11_target := 'ps_5_0';
-  end;
-end;
-
-{ _sg_shader_image_desc_helper }
-
-procedure _sg_shader_image_desc_helper.Init(const AName: PUTF8Char;
-  const AImageType: _sg_image_type; const ASamplerType: _sg_sampler_type);
-begin
-  name := AName;
-  image_type := AImageType;
-  sampler_type := ASamplerType;
-end;
-
-{ _sg_shader_uniform_desc_helper }
-
-procedure _sg_shader_uniform_desc_helper.Init(const AName: PUTF8Char;
-  const AType: _sg_uniform_type; const AArrayCount: Integer);
-begin
-  name := AName;
-  &type := AType;
-  array_count := AArrayCount;
-end;
-
-{ TBufferLayoutDesc }
-
-procedure TBufferLayoutDesc.Convert(out ADst: _sg_buffer_layout_desc);
+procedure TVertexBufferLayoutState.Convert(
+  out ADst: _sg_vertex_buffer_layout_state);
 begin
   ADst.stride := Stride;
   ADst.step_func := Ord(StepFunc);
   ADst.step_rate := StepRate;
 end;
 
-constructor TBufferLayoutDesc.Create(const AStride: Integer;
-  const AStepFunc: TVertexStep; const AStepRate: Integer);
-begin
-  Init(AStride, AStepFunc, AStepRate);
-end;
-
-procedure TBufferLayoutDesc.Init(const AStride: Integer;
+constructor TVertexBufferLayoutState.Create(const AStride: Integer;
   const AStepFunc: TVertexStep; const AStepRate: Integer);
 begin
   Stride := AStride;
@@ -4391,22 +5132,24 @@ begin
   StepRate := AStepRate;
 end;
 
-{ TVertexAttrDesc }
+procedure TVertexBufferLayoutState.Init(const AStride: Integer;
+  const AStepFunc: TVertexStep; const AStepRate: Integer);
+begin
+  Stride := AStride;
+  StepFunc := AStepFunc;
+  StepRate := AStepRate;
+end;
 
-procedure TVertexAttrDesc.Convert(out ADst: _sg_vertex_attr_desc);
+{ TVertexAttrState }
+
+procedure TVertexAttrState.Convert(out ADst: _sg_vertex_attr_state);
 begin
   ADst.buffer_index := BufferIndex;
   ADst.offset := Offset;
   ADst.format := Ord(Format);
 end;
 
-constructor TVertexAttrDesc.Create(const ABufferIndex, AOffset: Integer;
-  const AFormat: TVertexFormat);
-begin
-  Init(ABufferIndex, AOffset, AFormat);
-end;
-
-procedure TVertexAttrDesc.Init(const ABufferIndex, AOffset: Integer;
+constructor TVertexAttrState.Create(const ABufferIndex, AOffset: Integer;
   const AFormat: TVertexFormat);
 begin
   BufferIndex := ABufferIndex;
@@ -4414,25 +5157,40 @@ begin
   Format := AFormat;
 end;
 
-{ TLayoutDesc }
-
-procedure TLayoutDesc.Convert(out ADst: _sg_layout_desc);
+procedure TVertexAttrState.Init(const ABufferIndex, AOffset: Integer;
+  const AFormat: TVertexFormat);
 begin
-  for var I := 0 to MAX_SHADERSTAGE_BUFFERS - 1 do
+  BufferIndex := ABufferIndex;
+  Offset := AOffset;
+  Format := AFormat;
+end;
+
+{ TVertexLayoutState }
+
+procedure TVertexLayoutState.Convert(out ADst: _sg_vertex_layout_state);
+begin
+  for var I := 0 to MAX_VERTEXBUFFER_BINDSLOTS - 1 do
     Buffers[I].Convert(ADst.buffers[I]);
 
   for var I := 0 to MAX_VERTEX_ATTRIBUTES - 1 do
     Attrs[I].Convert(ADst.attrs[I]);
 end;
 
-class function TLayoutDesc.Create: TLayoutDesc;
+class function TVertexLayoutState.Create: TVertexLayoutState;
 begin
   Result.Init;
 end;
 
-procedure TLayoutDesc.Init;
+procedure TVertexLayoutState.Init;
 begin
   FillChar(Self, SizeOf(Self), 0);
+end;
+
+{ _sg_shader_desc_helper }
+
+procedure _sg_shader_desc_helper.Init;
+begin
+  Self := _sg_query_shader_defaults(@Self);
 end;
 
 { TStencilFaceState }
@@ -4553,22 +5311,24 @@ begin
   OpAlpha := AOpAlpha;
 end;
 
-{ TColorState }
+{ TColorTargetState }
 
-procedure TColorState.Convert(out ADst: _sg_color_state);
+procedure TColorTargetState.Convert(out ADst: _sg_color_target_state);
 begin
   ADst.pixel_format := Ord(PixelFormat);
   ADst.write_mask := Ord(WriteMask);
   Blend.Convert(ADst.blend);
 end;
 
-constructor TColorState.Create(const APixelFormat: TPixelFormat;
+constructor TColorTargetState.Create(const APixelFormat: TPixelFormat;
   const AWriteMask: TColorMask);
 begin
-  Init(APixelFormat, AWriteMask);
+  PixelFormat := APixelFormat;
+  WriteMask := AWriteMask;
+  FillChar(Blend, SizeOf(Blend), 0);
 end;
 
-procedure TColorState.Init(const APixelFormat: TPixelFormat;
+procedure TColorTargetState.Init(const APixelFormat: TPixelFormat;
   const AWriteMask: TColorMask);
 begin
   PixelFormat := APixelFormat;
@@ -4721,117 +5481,45 @@ begin
   _sg_init_pipeline(FHandle, @Desc);
 end;
 
-function TPipeline.Teardown: Boolean;
+procedure TPipeline.Teardown;
 begin
-  Result := _sg_uninit_pipeline(FHandle);
-end;
-
-{ TPassAttachmentDesc }
-
-procedure TPassAttachmentDesc.Convert(out ADst: _sg_pass_attachment_desc);
-begin
-  ADst.image := Image.FHandle;
-  ADst.mip_level := MipLevel;
-  ADst.slice := Slice;
-end;
-
-constructor TPassAttachmentDesc.Create(const AMipLevel, ASlice: Integer);
-begin
-  Init(AMipLevel, ASlice);
-end;
-
-procedure TPassAttachmentDesc.Init(const AMipLevel, ASlice: Integer);
-begin
-  MipLevel := AMipLevel;
-  Slice := ASlice;
-end;
-
-{ TPassDesc }
-
-procedure TPassDesc.Convert(out ADst: _sg_pass_desc);
-begin
-  ADst._start_canary := 0;
-  for var I := 0 to MAX_COLOR_ATTACHMENTS - 1 do
-    ColorAttachments[I].Convert(ADst.color_attachments[I]);
-
-  DepthStencilAttachment.Convert(ADst.depth_stencil_attachment);
-  if (TraceLabel = '') then
-    ADst.&label := nil
-  else
-    ADst.&label := PUTF8Char(UTF8String(TraceLabel));
-  ADst._end_canary := 0;
-end;
-
-class function TPassDesc.Create: TPassDesc;
-begin
-  Result.Init;
-end;
-
-procedure TPassDesc.Init;
-begin
-  FillChar(Self, SizeOf(Self), 0);
-
-  { All defaults are currently 0
-  var Def: _sg_pass_desc;
-  FillChar(Def, SizeOf(Def), 0);
-  Def := _sg_query_pass_defaults(@Def); }
+  _sg_uninit_pipeline(FHandle);
 end;
 
 { TPass }
 
-procedure TPass.Allocate;
+class function TPass.Create: TPass;
 begin
-  FHandle := _sg_alloc_pass;
+  Result.Init;
 end;
 
-constructor TPass.Create(const ADesc: TPassDesc);
+function TPass.GetAction: PPassAction;
 begin
-  Init(ADesc);
+  Result := @FHandle.action;
 end;
 
-procedure TPass.Deallocate;
+function TPass.GetAttachments: PAttachments;
 begin
-  _sg_dealloc_pass(FHandle);
+  Result := @FHandle.attachments;
 end;
 
-procedure TPass.Fail;
+function TPass.GetSwapchain: PSwapchain;
 begin
-  _sg_fail_pass(FHandle);
+  Result := @FHandle.swapchain;
 end;
 
-procedure TPass.Free;
+procedure TPass.Init;
 begin
-  _sg_destroy_pass(FHandle);
-  FHandle.id := 0;
+  FillChar(Self, SizeOf(Self), 0);
 end;
 
-function TPass.GetInfo: TPassInfo;
+procedure TPass.SetTraceLabel(const AValue: String);
 begin
-  Result.FHandle := _sg_query_pass_info(FHandle);
-end;
-
-function TPass.GetState: TResourceState;
-begin
-  Result := TResourceState(_sg_query_pass_state(FHandle));
-end;
-
-procedure TPass.Init(const ADesc: TPassDesc);
-begin
-  var Desc: _sg_pass_desc;
-  ADesc.Convert(Desc);
-  FHandle := _sg_make_pass(@Desc);
-end;
-
-procedure TPass.Setup(const ADesc: TPassDesc);
-begin
-  var Desc: _sg_pass_desc;
-  ADesc.Convert(Desc);
-  _sg_init_pass(FHandle, @Desc);
-end;
-
-function TPass.Teardown: Boolean;
-begin
-  Result := _sg_uninit_pass(FHandle);
+  FTraceLabel := AValue;
+  if (AValue = '') then
+    FHandle.&label := nil
+  else
+    FHandle.&label := PUTF8Char(UTF8String(TraceLabel));
 end;
 
 { TBindings }
@@ -4841,33 +5529,33 @@ begin
   Result.Init;
 end;
 
-function TBindings.GetFragmentShaderImage(const AIndex: Integer): TImage;
-begin
-  Assert(Cardinal(AIndex) < MAX_SHADERSTAGE_IMAGES);
-  Result := TImage(FHandle.fs_images[AIndex]);
-end;
-
 function TBindings.GetIndexBuffer: TBuffer;
 begin
   Result := TBuffer(FHandle.index_buffer);
 end;
 
+function TBindings.GetSampler(const AIndex: Integer): TSampler;
+begin
+  Assert(Cardinal(AIndex) < MAX_SAMPLER_BINDSLOTS);
+  Result.FHandle := FHandle.samplers[AIndex];
+end;
+
 function TBindings.GetVertexBuffer(const AIndex: Integer): TBuffer;
 begin
-  Assert(Cardinal(AIndex) < MAX_SHADERSTAGE_BUFFERS);
+  Assert(Cardinal(AIndex) < MAX_VERTEXBUFFER_BINDSLOTS);
   Result := TBuffer(FHandle.vertex_buffers[AIndex]);
 end;
 
 function TBindings.GetVertexBufferOffset(const AIndex: Integer): Integer;
 begin
-  Assert(Cardinal(AIndex) < MAX_SHADERSTAGE_BUFFERS);
+  Assert(Cardinal(AIndex) < MAX_VERTEXBUFFER_BINDSLOTS);
   Result := FHandle.vertex_buffer_offsets[AIndex];
 end;
 
-function TBindings.GetVertexShaderImage(const AIndex: Integer): TImage;
+function TBindings.GetView(const AIndex: Integer): TView;
 begin
-  Assert(Cardinal(AIndex) < MAX_SHADERSTAGE_IMAGES);
-  Result := TImage(FHandle.vs_images[AIndex]);
+  Assert(Cardinal(AIndex) < MAX_VIEW_BINDSLOTS);
+  Result.FHandle := FHandle.views[AIndex];
 end;
 
 procedure TBindings.Init;
@@ -4875,36 +5563,34 @@ begin
   FillChar(Self, SizeOf(Self), 0);
 end;
 
-procedure TBindings.SetGetFragmentShaderImage(const AIndex: Integer;
-  const AValue: TImage);
-begin
-  Assert(Cardinal(AIndex) < MAX_SHADERSTAGE_IMAGES);
-  FHandle.fs_images[AIndex] := _sg_image(AValue);
-end;
-
-procedure TBindings.SetGetVertexShaderImage(const AIndex: Integer;
-  const AValue: TImage);
-begin
-  Assert(Cardinal(AIndex) < MAX_SHADERSTAGE_IMAGES);
-  FHandle.vs_images[AIndex] := _sg_image(AValue);
-end;
-
 procedure TBindings.SetIndexBuffer(const AValue: TBuffer);
 begin
   FHandle.index_buffer := _sg_buffer(AValue);
 end;
 
+procedure TBindings.SetSampler(const AIndex: Integer; const AValue: TSampler);
+begin
+  Assert(Cardinal(AIndex) < MAX_SAMPLER_BINDSLOTS);
+  FHandle.samplers[AIndex] := AValue.FHandle;
+end;
+
 procedure TBindings.SetVertexBuffer(const AIndex: Integer;
   const AValue: TBuffer);
 begin
-  Assert(Cardinal(AIndex) < MAX_SHADERSTAGE_BUFFERS);
+  Assert(Cardinal(AIndex) < MAX_VERTEXBUFFER_BINDSLOTS);
   FHandle.vertex_buffers[AIndex] := _sg_buffer(AValue);
 end;
 
 procedure TBindings.SetVertexBufferOffset(const AIndex, AValue: Integer);
 begin
-  Assert(Cardinal(AIndex) < MAX_SHADERSTAGE_BUFFERS);
+  Assert(Cardinal(AIndex) < MAX_VERTEXBUFFER_BINDSLOTS);
   FHandle.vertex_buffer_offsets[AIndex] := AValue;
+end;
+
+procedure TBindings.SetView(const AIndex: Integer; const AValue: TView);
+begin
+  Assert(Cardinal(AIndex) < MAX_VIEW_BINDSLOTS);
+  FHandle.views[AIndex] := AValue.FHandle;
 end;
 
 { TSlotInfo }
@@ -4928,6 +5614,13 @@ begin
   Result.FHandle := FHandle.slot;
 end;
 
+{ TSamplerInfo }
+
+function TSamplerInfo.GetSlot: TSlotInfo;
+begin
+  Result.FHandle := FHandle.slot;
+end;
+
 { TShaderInfo }
 
 function TShaderInfo.GetSlot: TSlotInfo;
@@ -4942,179 +5635,700 @@ begin
   Result.FHandle := FHandle.slot;
 end;
 
-{ TPassInfo }
+{ TViewInfo }
 
-function TPassInfo.GetSlot: TSlotInfo;
+function TViewInfo.GetSlot: TSlotInfo;
 begin
   Result.FHandle := FHandle.slot;
 end;
 
-{ TGLContextDesc }
+{ TFrameStatsD3D11 }
 
-procedure TGLContextDesc.Convert(out ADst: _sg_gl_context_desc);
+function TFrameStatsD3D11.GetBindings: PFrameStatsD3D11Bindings;
 begin
-  ADst.force_gles2 := ForceGles2;
+  Result := @FHandle.bindings;
 end;
 
-constructor TGLContextDesc.Create(const AForceGles2: Boolean);
+function TFrameStatsD3D11.GetDraw: PFrameStatsD3D11Draw;
 begin
-  Init(AForceGles2);
+  Result := @FHandle.draw;
 end;
 
-procedure TGLContextDesc.Init(const AForceGles2: Boolean);
+function TFrameStatsD3D11.GetPass: PFrameStatsD3D11Pass;
 begin
-  ForceGles2 := AForceGles2;
+  Result := @FHandle.pass;
 end;
 
-{ TMetalContextDesc }
-
-procedure TMetalContextDesc.Convert(out ADst: _sg_metal_context_desc);
+function TFrameStatsD3D11.GetPipeline: PFrameStatsD3D11Pass;
 begin
-  ADst.device := Device;
-
-  if Assigned(RenderpassDescriptorCallback) or Assigned(RenderpassDescriptorEvent) then
-  begin
-    FRenderpassDescriptorCallback := RenderpassDescriptorCallback;
-    FRenderpassDescriptorEvent := RenderpassDescriptorEvent;
-    ADst.renderpass_descriptor_cb := StaticRenderPassDescriptorCallback;
-  end
-  else
-    ADst.renderpass_descriptor_cb := nil;
-  ADst.renderpass_descriptor_userdata_cb := nil;
-
-  if Assigned(DrawableCallback) or Assigned(DrawableEvent) then
-  begin
-    FDrawableCallback := DrawableCallback;
-    FDrawableEvent := DrawableEvent;
-    ADst.drawable_cb := StaticDrawableCallback;
-  end
-  else
-    ADst.drawable_cb := nil;
-  ADst.drawable_userdata_cb := nil;
-  ADst.user_data := nil;
+  Result := @FHandle.pipeline;
 end;
 
-constructor TMetalContextDesc.Create(const ADevice: Pointer);
+function TFrameStatsD3D11.GetUniforms: PFrameStatsD3D11Uniforms;
 begin
-  Init(ADevice);
+  Result := @FHandle.uniforms;
 end;
 
-procedure TMetalContextDesc.Init(const ADevice: Pointer);
+{ TFrameStatsMetal }
+
+function TFrameStatsMetal.GetBindings: PFrameStatsMetalBindings;
 begin
-  FillChar(Self, SizeOf(Self), 0);
-  Device := ADevice;
+  Result := @FHandle.bindings;
 end;
 
-class function TMetalContextDesc.StaticDrawableCallback: Pointer;
+function TFrameStatsMetal.GetIdPool: PFrameStatsMetalIdPool;
 begin
-  if Assigned(FDrawableCallback) then
-    Result := FDrawableCallback()
-  else
-  begin
-    Assert(Assigned(FDrawableEvent));
-    Result := FDrawableEvent();
-  end;
+  Result := @FHandle.idpool;
 end;
 
-class function TMetalContextDesc.StaticRenderPassDescriptorCallback: Pointer;
+function TFrameStatsMetal.GetPipeline: PFrameStatsMetalPipeline;
 begin
-  if Assigned(FRenderpassDescriptorCallback) then
-    Result := FRenderpassDescriptorCallback()
-  else
-  begin
-    Assert(Assigned(FRenderpassDescriptorEvent));
-    Result := FRenderpassDescriptorEvent();
-  end;
+  Result := @FHandle.pipeline;
 end;
 
-{ TD3D11ContextDesc }
-
-procedure TD3D11ContextDesc.Convert(out ADst: _sg_d3d11_context_desc);
+function TFrameStatsMetal.GetUniforms: PFrameStatsMetalUniforms;
 begin
-  ADst.device := Pointer(Device);
-  ADst.device_context := Pointer(DeviceContext);
-
-  if Assigned(RenderTargetViewCallback) or Assigned(RenderTargetViewEvent) then
-  begin
-    FRenderTargetViewCallback := RenderTargetViewCallback;
-    FRenderTargetViewEvent := RenderTargetViewEvent;
-    ADst.render_target_view_cb := StaticRenderTargetViewCallback;
-  end
-  else
-    ADst.render_target_view_cb := nil;
-  ADst.render_target_view_userdata_cb := nil;
-
-  if Assigned(DepthStencilViewCallback) or Assigned(DepthStencilViewEvent) then
-  begin
-    FDepthStencilViewCallback := DepthStencilViewCallback;
-    FDepthStencilViewEvent := DepthStencilViewEvent;
-    ADst.depth_stencil_view_cb := StaticDepthStencilViewCallback;
-  end
-  else
-    ADst.depth_stencil_view_cb := nil;
-  ADst.depth_stencil_view_userdata_cb := nil;
-  ADst.user_data := nil;
+  Result := @FHandle.uniforms;
 end;
 
-constructor TD3D11ContextDesc.Create(const ADevice, ADeviceContext: IInterface);
+{ TTotalStats }
+
+function TTotalStats.GetBuffers: PTotalResourceStats;
 begin
-  Init(ADevice, ADeviceContext);
+  Result := @FHandle.buffers;
 end;
 
-procedure TD3D11ContextDesc.Init(const ADevice, ADeviceContext: IInterface);
+function TTotalStats.GetImages: PTotalResourceStats;
 begin
-  FillChar(Self, SizeOf(Self), 0);
-  Device := ADevice;
-  DeviceContext := ADeviceContext;
+  Result := @FHandle.images;
 end;
 
-class function TD3D11ContextDesc.StaticDepthStencilViewCallback: Pointer;
+function TTotalStats.GetPipelines: PTotalResourceStats;
 begin
-  if Assigned(FDepthStencilViewCallback) then
-    Result := FDepthStencilViewCallback()
-  else
-  begin
-    Assert(Assigned(FDepthStencilViewEvent));
-    Result := FDepthStencilViewEvent();
-  end;
+  Result := @FHandle.pipelines;
 end;
 
-class function TD3D11ContextDesc.StaticRenderTargetViewCallback: Pointer;
+function TTotalStats.GetSamplers: PTotalResourceStats;
 begin
-  if Assigned(FRenderTargetViewCallback) then
-    Result := FRenderTargetViewCallback()
-  else
-  begin
-    Assert(Assigned(FRenderTargetViewEvent));
-    Result := FRenderTargetViewEvent();
-  end;
+  Result := @FHandle.samplers;
 end;
 
-{ TContextDesc }
-
-procedure TContextDesc.Convert(out ADst: _sg_context_desc);
+function TTotalStats.GetShaders: PTotalResourceStats;
 begin
-  ADst.color_format := Ord(ColorFormat);
-  ADst.depth_format := Ord(DepthFormat);
-  ADst.sample_count := SampleCount;
-  GL.Convert(ADst.gl);
-  Metal.Convert(ADst.metal);
-  D3D11.Convert(ADst.d3d11);
+  Result := @FHandle.shaders;
 end;
 
-constructor TContextDesc.Create(const AColorFormat, ADepthFormat: TPixelFormat;
-  const ASampleCount: Integer);
+function TTotalStats.GetViews: PTotalResourceStats;
 begin
-  Init(AColorFormat, ADepthFormat, ASampleCount);
+  Result := @FHandle.views;
 end;
 
-procedure TContextDesc.Init(const AColorFormat, ADepthFormat: TPixelFormat;
-  const ASampleCount: Integer);
+{ TFrameStats }
+
+function TFrameStats.GetBuffers: PFrameResourceStats;
 begin
-  FillChar(Self, SizeOf(Self), 0);
-  ColorFormat := AColorFormat;
-  DepthFormat := ADepthFormat;
-  SampleCount := ASampleCount;
+  Result := @FHandle.buffers;
+end;
+
+function TFrameStats.GetD3D11: PFrameStatsD3D11;
+begin
+  Result := @FHandle.d3d11;
+end;
+
+function TFrameStats.GetGL: PFrameStatsGL;
+begin
+  Result := @FHandle.gl;
+end;
+
+function TFrameStats.GetImages: PFrameResourceStats;
+begin
+  Result := @FHandle.images;
+end;
+
+function TFrameStats.GetMetal: PFrameStatsMetal;
+begin
+  Result := @FHandle.metal;
+end;
+
+function TFrameStats.GetPipelines: PFrameResourceStats;
+begin
+  Result := @FHandle.pipelines;
+end;
+
+function TFrameStats.GetSamplers: PFrameResourceStats;
+begin
+  Result := @FHandle.samplers;
+end;
+
+function TFrameStats.GetShaders: PFrameResourceStats;
+begin
+  Result := @FHandle.shaders;
+end;
+
+function TFrameStats.GetViews: PFrameResourceStats;
+begin
+  Result := @FHandle.views;
+end;
+
+function TFrameStats.GetVulkan: PFrameStatsVulkan;
+begin
+  Result := @FHandle.vk;
+end;
+
+{ _TGfxLogItemHelper }
+
+function _TGfxLogItemHelper.ToString: String;
+const
+  STRINGS: array [TGfxLogItem] of String = (
+    'Ok',
+    'memory allocation failed',
+    'pixel format not supported for texture (GL)',
+    '3d textures not supported (GL)',
+    'array textures not supported (GL)',
+    'GLSL storage buffer bindslot is out of range (TLimits.MaxStorageBufferBindingsPerStage) (GL)',
+    'GLSL storage image bindslot is out of range (TLimits.MaxStorageImageBindingsPerStage) (GL)',
+    'shader compilation failed (GL)',
+    'shader linking failed (GL)',
+    'vertex attribute not found in shader; NOTE: may be caused by GL driver''s GLSL compiler removing unused globals',
+    'uniform block name not found in shader; NOTE: may be caused by GL driver''s GLSL compiler removing unused globals',
+    'image-sampler name not found in shader; NOTE: may be caused by GL driver''s GLSL compiler removing unused globals',
+    'framebuffer completeness check failed with GL_FRAMEBUFFER_UNDEFINED (GL)',
+    'framebuffer completeness check failed with GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT (GL)',
+    'framebuffer completeness check failed with GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT (GL)',
+    'framebuffer completeness check failed with GL_FRAMEBUFFER_UNSUPPORTED (GL)',
+    'framebuffer completeness check failed with GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE (GL)',
+    'framebuffer completeness check failed (unknown reason) (GL)',
+    'D3D11 Feature Level 0 device detected, this restricts the number of UAV slots to 8! (D3D11)',
+    'CreateBuffer() failed (D3D11)',
+    'CreateShaderResourceView() failed for storage buffer (D3D11)',
+    'CreateUnorderedAccessView() failed for storage buffer (D3D11)',
+    'pixel format not supported for depth-stencil texture (D3D11)',
+    'CreateTexture2D() failed for depth-stencil texture (D3D11)',
+    'pixel format not supported for 2d-, cube- or array-texture (D3D11)',
+    'CreateTexture2D() failed for 2d-, cube- or array-texture (D3D11)',
+    'CreateShaderResourceView() failed for 2d-, cube- or array-texture (D3D11)',
+    'pixel format not supported for 3D texture (D3D11)',
+    'CreateTexture3D() failed (D3D11)',
+    'CreateShaderResourceView() failed for 3d texture (D3D11)',
+    'CreateTexture2D() failed for MSAA render target texture (D3D11)',
+    'CreateSamplerState() failed (D3D11)',
+    'TShaderDesc.UniformBlocks[].HlslRegisterBN is out of range (must be 0..7)',
+    'TShaderDesc.Views[].StorageBuffer.HlslRegisterTN is out of range (must be 0..31)',
+    'TShaderDesc.Views[].StorageBuffer.HlslRegisterUN is out of range (must be 0..31)',
+    'TShaderDesc.Views[].Texture.HlslRegisterTN is out of range (must be 0..31)',
+    'TShaderDesc.Views[].StorageImage.HlslRegisterUN is out of range (must be 0..31)',
+    'sampler ''HlslRegisterSN'' is out of rang (must be 0..11)',
+    'loading d3dcompiler_47.dll failed (D3D11)',
+    'shader compilation failed (D3D11)',
+    '',
+    'CreateBuffer() failed for uniform constant buffer (D3D11)',
+    'CreateInputLayout() failed (D3D11)',
+    'CreateRasterizerState() failed (D3D11)',
+    'CreateDepthStencilState() failed (D3D11)',
+    'CreateBlendState() failed (D3D11)',
+    'CreateRenderTargetView() failed (D3D11)',
+    'CreateDepthStencilView() failed (D3D11)',
+    'CreateUnorderedAccessView() failed (D3D11)',
+    'Map() failed when updating buffer (D3D11)',
+    'Map() failed when appending to buffer (D3D11)',
+    'Map() failed when updating image (D3D11)',
+    'failed to create buffer object (Metal)',
+    'pixel format not supported for texture (Metal)',
+    'failed to create texture object (Metal)',
+    'failed to create sampler object (Metal)',
+    'shader compilation failed (Metal)',
+    'shader creation failed (Metal)',
+    '',
+    'shader entry function not found (Metal)',
+    'uniform block ''MslBufferN'' is out of range (must be 0..7)',
+    'storage buffer ''MslBufferN'' is out of range (must be 8..23)',
+    'storage image ''MslTextureN'' is out of range (must be 0..31)',
+    'image ''MslTextureN'' is out of range (must be 0..31)',
+    'sampler ''MslSamplerN'' is out of range (must be 0..11)',
+    'failed to create compute pipeline state (Metal)',
+    '',
+    'failed to create render pipeline state (Metal)',
+    '',
+    'failed to create depth stencil state (Metal)',
+    'bindgroups pool exhausted (increase TGfxDesc.bindgroups_cache_size) (Wgpu)',
+    'TGfxDesc.Wgpu.BindgroupsCacheSize must be > 1 (Wgpu)',
+    'TGfxDesc.Wgpu.BindgroupsCacheSize must be a power of 2 (Wgpu)',
+    'wgpuDeviceCreateBindGroup failed',
+    'wgpuDeviceCreateBuffer() failed',
+    'wgpuDeviceCreateTexture() failed',
+    'wgpuTextureCreateView() failed',
+    'wgpuDeviceCreateSampler() failed',
+    'wgpuDeviceCreateShaderModule() failed',
+    'wgpuDeviceCreateBindGroupLayout() for shader stage failed',
+    'uniform block ''WgslGroup0BindingN'' is out of range (must be 0..15)',
+    'texture ''WgslGroup1BindingN'' is out of range (must be 0..127)',
+    'storage buffer ''WgslGroup1BindingN'' is out of range (must be 0..127)',
+    'storage image ''WgslGroup1BindingN'' is out of range (must be 0..127)',
+    'sampler ''WgslGroup1BindingN'' is out of range (must be 0..127)',
+    'wgpuDeviceCreatePipelineLayout() failed',
+    'wgpuDeviceCreateRenderPipeline() failed',
+    'wgpuDeviceCreateComputePipeline() failed',
+    'vulkan: could not look up a required extension function pointer',
+    'vulkan: could not find suitable memory type',
+    'vulkan: vkAllocateMemory() failed!',
+    'vulkan: allocating buffer device memory failed',
+    'vulkan: allocating image device memory failed',
+    'vulkan: internal delete queue exhausted (too many objects destroyed per frame)',
+    'vulkan: vkCreateBuffer() failed for staging buffer',
+    'vulkan: allocating device memory for staging buffer failed',
+    'vulkan: vkBindBufferMemory() failed for staging buffer',
+    'vulkan: per-frame stream staging buffer has overflown (TGfxDesc.Vulkan.StreamStagingBufferSize)',
+    'vulkan: vkCreateBuffer() failed for cpu/gpu-shared buffer',
+    'vulkan: allocating device memory for cpu/gpu-shared buffer failed',
+    'vulkan: vkBindBufferMemory() failed for cpu/gpu-shared buffer',
+    'vulkan: vkMapMemory() failed on cpu/gpu-shared buffer',
+    'vulkan: vkCreateBuffer() failed!',
+    'vulkan: vkBindBufferMemory() failed!',
+    'vulkan: vkCreateImage() failed!',
+    'vulkan: vkBindImageMemory() failed!',
+    'vukan: vkCreateShaderModule() failed!',
+    'vulkan: uniform block ''SpirvSet0BindingN'' is out of range (must be 0..15)',
+    'vulkan: texture ''SpirvSet1BindingN'' is out of range (must be 0..127)',
+    'vulkan: storage buffer ''SpirvSet1BindingN'' is out of range (must be 0..127)',
+    'vulkan: storage image ''SpirvSet1BindingN'' is out of range (must be 0..127)',
+    'vulkan: sampler ''SpirvSet1BindingN'' is out of range (must be 0..127)',
+    'vulkan: vkCreateDescriptorSetLayout() failed!',
+    'vulkan: shader uniform descriptor set is too big for the descriptor set cache (please write a Github issue)',
+    'vulkan: vkCreatePipelineLayout() failed!',
+    'vulkan: vkCreateGraphicsPipelines() failed!',
+    'vulkan: vkCreateComputePipelines() failed!',
+    'vulkan: vkCreateImageView() failed!',
+    'vulkan: required view descriptor size is greater than VK_MAX_DESCRIPTOR_DATA_SIZE',
+    'vulkan: vkCreateSampler() failed!',
+    'vulkan: required sampler descriptor size is greater than VK_MAX_DESCRIPTOR_DATA_SIZE',
+    'vulkan: vkWaitForFence() failed!',
+    'vulkan: uniform buffer has overflown (increase TGfxDesc.UniformBufferSize)',
+    'vulkan: descriptor buffer has overflown (increase TGfxDesc.Vulkan.DescriptorBufferSize)',
+    'attempting to add identical commit listener',
+    'commit listener array full',
+    'TGfx.InstallTraceHooks called, but SOKOL_TRACE_HOOKS is not defined',
+    'TBuffer.Deallocate(): buffer must be in ALLOC state',
+    'TImage.Deallocate(): image must be in alloc state',
+    'TSampler.Deallocate(): sampler must be in alloc state',
+    'TShader.Deallocate(): shader must be in ALLOC state',
+    'TPipeline.Deallocate(): pipeline must be in ALLOC state',
+    'TView.Deallocate(): view must be in ALLOC state',
+    'TBuffer.Setup(): buffer must be in ALLOC state',
+    'TImage.Setup(): image must be in ALLOC state',
+    'TSampler.Setup(): sampler must be in ALLOC state',
+    'TShader.Setup(): shader must be in ALLOC state',
+    'TPipeline.Setup(): pipeline must be in ALLOC state',
+    'TView.Setup(): view must be in ALLOC state',
+    'TBuffer.Teardown(): buffer must be in VALID, FAILED or ALLOC state',
+    'TImage.Teardown(): image must be in VALID, FAILED or ALLOC state',
+    'TSampler.Teardown(): sampler must be in VALID, FAILED or ALLOC state',
+    'TShader.Teardown(): shader must be in VALID, FAILED or ALLOC state',
+    'TPipeline.Teardown(): pipeline must be in VALID, FAILED or ALLOC state',
+    'TView.Teardown(): view must be in VALID, FAILED or ALLOC state',
+    'TBuffer.Fail(): buffer must be in ALLOC state',
+    'TImage.Fail(): image must be in ALLOC state',
+    'TSampler.Fail(): sampler must be in ALLOC state',
+    'TShader.Fail(): shader must be in ALLOC state',
+    'TPipeline.Fail(): pipeline must be in ALLOC state',
+    'TView.Fail(): view must be in ALLOC state',
+    'buffer pool exhausted',
+    'image pool exhausted',
+    'sampler pool exhausted',
+    'shader pool exhausted',
+    'pipeline pool exhausted',
+    'view pool exhausted',
+    'TGfx.BeginPass: too many color attachments (TLimits.MaxColorAttachments)',
+    'TGfx.BeginPass: too many resolve attachments (TLimits.MaxColorAttachments)',
+    'TGfx.BeginPass: an attachment was provided that no longer exists',
+    'attempting to draw without resource bindings',
+    'TShaderDesc: too many texture bindings on vertex shader stage (TLimits.MaxTextureBindingsPerStage)',
+    'TShaderDesc: too many texture bindings on fragment shader stage (TLimits.MaxTextureBindingsPerStage)',
+    'TShaderDesc: too many texture bindings on compute shader stage (TLimits.MaxTextureBindingsPerStage)',
+    'TShaderDesc: too many storage buffer bindings on vertex shader stage (TLimits.MaxStorageBufferBindingsPerStage)',
+    'TShaderDesc: too many storage buffer bindings on fragment shader stage (TLimits.MaxStorageBufferBindingsPerStage)',
+    'TShaderDesc: too many storage buffer bindings on compute shader stage (TLimits.MaxStorageBufferBindingsPerStage)',
+    'TShaderDesc: too many storage image bindings on vertex shader stage (TLimits.MaxStorageImageBindingsPerStage)',
+    'TShaderDesc: too many storage image bindings on fragment shader stage (TLimits.MaxStorageImageBindingsPerStage)',
+    'TShaderDesc: too many storage image bindings on compute shader stage (TLimits.MaxStorageImageBindingsPerStage)',
+    'TShaderDesc: too many texture-sampler-pairs on vertex shader stage (TLimits.MaxTextureBindingsPerStage)',
+    'TShaderDesc: too many texture-sampler-pairs on fragment shader stage (TLimits.MaxTextureBindingsPerStage)',
+    'TShaderDesc: too many texture-sampler-pairs on compute shader stage (TLimits.MaxTextureBindingsPerStage)',
+    'TBufferDesc not initialized',
+    'TBufferDesc.Usage: only one of .Immutable, .DynamicUpdate, .StreamUpdate can be True',
+    'TBufferDesc.Usage: on WebGL2, only one of .VertexBuffer or .IndexBuffer can be True (check TFeatures.SeparateBufferTypes)',
+    'TBufferDesc.Size must be greater zero',
+    'TBufferDesc.Size and .Data.Size must be equal',
+    'TBufferDesc.Data.Size expected to be zero',
+    'TBufferDesc.Data.Ptr must be nil for dynamic/stream buffers',
+    'TBufferDesc: initial content data must be provided for immutable buffers without storage buffer usage',
+    'storage buffers not supported by the backend 3D API (requires OpenGL >= 4.3)',
+    'size of storage buffers must be a multiple of 4',
+    'TImageData: no data (.Ptr and/or .Size is zero)',
+    'TImageData: data size doesn''t match expected surface size',
+    'TImageDesc not initialized',
+    'TImageDesc.Usage: only one of .Immutable, .DynamicUpdate, .StreamUpdate can be True',
+    'TImageDesc.Usage: only one of .ColorAttachment and .DepthStencilAttachment can be True',
+    'TImageDesc.NumSlices must be exactly 1 for TImageType.TwoD',
+    'TImageDesc.NumSlices must be exactly 6 for TImageType.Cube',
+    'TImageDesc.NumSlices must be ((>= 1) and (<= TLimits.MaxImageArrayLayers)) for TImageType.Array',
+    'TImageDesc.NumSlices must be ((>= 1) and (<= TLimits.MaxImageSize3D)) for TImageType.Array',
+    'TImageDesc.NumSlices must be > 0',
+    'TImageDesc.Width must be > 0',
+    'TImageDesc.Height must be > 0',
+    'invalid pixel format for non-render-target image',
+    'non-attachment images cannot be multisampled',
+    '3D images cannot have a depth/stencil image format',
+    'attachment and storage images must be TImageUsage.Immutable',
+    'render/storage attachment images cannot be initialized with data',
+    'invalid pixel format for render attachment image',
+    'resolve attachment images cannot be multisampled',
+    'multisampling not supported for this pixel format',
+    'multisample images must have NumMipmaps = 1',
+    '3D images cannot have a SampleCount > 1',
+    'cube images cannot have SampleCount > 1',
+    'array images cannot have SampleCount > 1',
+    'invalid pixel format for storage image',
+    'storage images cannot be multisampled',
+    'images with injected textures cannot be initialized with data',
+    'dynamic/stream-update images cannot be initialized with data',
+    'compressed images must be immutable',
+    'TSamplerDesc not initialized',
+    'TSamplerDesc.MaxAnisotropy > 1 requires min/mag/mipmap_filter to be TFilter.Linear',
+    'TShaderDesc not initialized',
+    'vertex shader source code expected',
+    'fragment shader source code expected',
+    'compute shader source code expected',
+    'vertex shader source or byte code expected',
+    'fragment shader source or byte code expected',
+    'compute shader source or byte code expected',
+    'cannot combine compute shaders with vertex or fragment shaders',
+    'shader byte code length (in bytes) required',
+    'TShaderDesc.MtlThreadsPerThreadgroup must be initialized for compute shaders (Metal)',
+    'TShaderDesc.MtlThreadsPerThreadgroup (X * Y * Z) must be a multiple of 32 (Metal)',
+    'TShaderDesc.UniformBlocks[].GlslUniforms[]: items must occupy continuous slots',
+    'TShaderDesc.UniformBlocks[].Size cannot be zero',
+    'TShaderDesc.UniformBlocks[].MslBufferN must be unique across uniform blocks and storage buffers in same shader stage',
+    'TShaderDesc.UniformBlocks[].HlslRegisterBN must be unique across uniform blocks in same shader stage',
+    'TShaderDesc.UniformBlocks[].WgslGroup0BindingN must be unique across all uniform blocks',
+    'TShaderDesc.UniformBlocks[].SpirvSet0BindingN must be unique across all uniform blocks',
+    'TShaderDesc.UniformBlocks[].GlslUniforms[]: GL backend requires uniform block member declarations',
+    'TShaderDesc.UniformBlocks[].GlslUniforms[].GlslName missing',
+    'TShaderDesc.UniformBlocks[].GlslUniforms[]: size of uniform block members doesn''t match uniform block size',
+    'TShaderDesc.UniformBlocks[].GlslUniforms[].ArrayCount must be >= 1',
+    'TShaderDesc.UniformBlocks[].GlslUniforms[].UniformType: uniform arrays only allowed for Float4, Int4, Mat4 in Std140 layout',
+    'TShaderDesc.Views[].StorageBuffer.StoragemslBufferN must be unique across uniform blocks and storage buffer in same shader stage',
+    'TShaderDesc.Views[].StorageBuffer.HlslRegisterTN must be unique across read-only storage buffers and images in same shader stage',
+    'TShaderDesc.Views[].StorageBuffer.HlslRegisterUN must be unique across read/write storage buffers and storage images in same shader stage',
+    'TShaderDesc.Views[].StorageBuffer.GlslBindingN must be unique across shader stages',
+    'TShaderDesc.Views[].StorageBuffer.WgslGroup1BindingN must be unique across all view and sampler bindings',
+    'TShaderDesc.Views[].StorageBuffer.SpirvSet1BindingN must be unique across all view and sampler bindings',
+    'TShaderDesc.Views[].StorageImage: storage images are allowed on the compute stage',
+    'TShaderDesc.Views[].StorageImage.MslTextureN must be unique across images and storage images in same shader stage',
+    'TShaderDesc.Views[].StorageImage.HlslRegisterUN must be unique across storage images and read/write storage buffers in same shader stage',
+    'TShaderDesc.Views[].StorageImage.GlslBindingN must be unique across shader stages',
+    'TShaderDesc.Views[].StorageImage.WgslGroup1BindingN must be unique across all view and sampler bindings',
+    'TShaderDesc.Views[].StorageImage.SpirvSet1BindingN must be unique across all view and sampler bindings',
+    'TShaderDesc.Views[].Texture.MslTextureN must be unique across textures and storage images in same shader stage',
+    'TShaderDesc.Views[].Texture.HlslRegisterTN must be unique across textures and storage buffers in same shader stage',
+    'TShaderDesc.Views[].Texture.WgslGroup1BindingN must be unique across all view and sampler bindings',
+    'TShaderDesc.Views[].Texture.SpirvSet1BindingN must be unique across all view and sampler bindings',
+    'TShaderDesc.Samplers[].MslSamplerN must be unique in same shader stage',
+    'TShaderDesc.Samplers[].HlslRegisterSN must be unique in same shader stage',
+    'TShaderDesc.Samplers[].WgslGroup1BindingN must be unique across all view and sampler bindings',
+    'TShaderDesc.Samplers[].SpirvSet1BindingN must be unique across all view and sampler bindings',
+    'texture-sampler-pair view slot index is out of range (TShaderDesc.TextureSamplerPairs[].ViewSlot)',
+    'texture-sampler-pair sampler slot index is out of range (TShaderDesc.TextureSamplerPairs[].SamplerSlot)',
+    'texture-sampler-pair stage doesn''t match referenced texture stage',
+    'texture-sampler-pair view must be a texture view (TShaderDesc.TextureSamplerPairs[].ViewSlot => TShaderDesc.Views[i].Texture)',
+    'texture-sampler-pair stage doesn''t match referenced sampler stage',
+    'texture-sampler-pair ''GlslName'' missing',
+    'image sample type UnfilterableFloat, UnsignedInt, SignedInt can only be used with NonFiltering sampler',
+    'image sample type Depth can only be used with Comparison sampler',
+    'one or more texture views are not referenced by by texture-sampler-pairs (TShaderDesc.TextureSamplerPairs[].ViewSlot)',
+    'one or more samplers are not referenced by texture-sampler-pairs (TShaderDesc.TextureSamplerPairs[].SamplerSlot)',
+    'vertex attribute name/semantic string too long (max len 16)',
+    'TPipelineDesc not initialized',
+    'TPipelineDesc.Shader missing or invalid',
+    'TPipelineDesc.Shader must be a compute shader',
+    'TPipelineDesc.Compute is False, but shader is a compute shader',
+    'TPipelineDesc.Layout.Attrs is not continuous',
+    'TPipelineDesc.Layout.Attrs[].Format is incompatible with TShaderDesc.Attrs[].BaseType',
+    'TPipelineDesc.Layout.Attrs[].Format: TVertexFormat.Int10N2 not supported on this platform',
+    'TPipelineDesc.Layout.Buffers[].Stride must be multiple of 4',
+    'D3D11 missing vertex attribute semantics in shader',
+    'TPipelineDesc.Shader: only readonly storage buffer bindings allowed in render pipelines',
+    'TBlendOp.Min/Max requires all blend factors to be TBlendFactor.One',
+    'dual source blending not supported (TFeatures.DualSourceBlending)',
+    'TPipelineDesc.Depth.Write_enabled cannot be True when TPipelineDesc.Depth.PixelFormat is TPixelFormat.None',
+    'TPipelineDesc.Depth.Compare must be TCompareFunc.Always or TCompareFunc.Never when TPipelineDesc.PixelFormat is TPixelFormat.None',
+    'TViewDesc not initialized',
+    'TViewDesc: only one view type can be active',
+    'TViewDesc: exactly one view type must be active',
+    'TViewDesc: resource object is no longer alive (.Buffer or .Image)',
+    'TViewDesc: resource object cannot be in FAILED state (.Buffer or .Image)',
+    'TViewDesc.StorageBuffer.Offset is >= buffer size',
+    'TViewDesc.StorageBuffer.Offset must be a multiple of 256',
+    'TViewDesc.StorageBuffer.Buffer must have been created with TBufferDesc.Usage.StorageBuffer = True',
+    'TViewDesc.StorageImage.Image must have been created with TImageDesc.Usage.StorageImage = True',
+    'TViewDesc.ColorAttachment.Image must have been created with TImageDesc.Usage.ColorAttachment = True',
+    'TViewDesc.ResolveAttachment.Image must have been created with TImageDesc.Usage.ResolveAttachment = True',
+    'TViewDesc.DepthStencilAttachment.image must have been created with TImageDesc.Usage.DepthStencilAttachment = True',
+    'TViewDesc: image/attachment view mip level is out of range (must be >=0 and <Image.NumMiplevels)',
+    'TViewDesc: image/attachment view slice is out of range for 2D image (must be 0)',
+    'TViewDesc: image/attachment view slice is out of range for cubemap image (must be >=0 and <6)',
+    'TViewDesc: image/attachment view slice is out of range for 2D array image (must be >=0 and <Image.NumSlices)',
+    'TViewDesc: image/attachment view slice is out of range for 3D image (must be 0)',
+    'TViewDesc: MSAA texture bindings not allowed on this backend (TFeatures.MsaaTextureBindings)',
+    'TViewDesc: texture view mip levels are out of range (must be >=0 and <Image.NumMiplevels)',
+    'TViewDesc: texture view slices are out of range for 2D image (must be 0)',
+    'TViewDesc: texture view slices are out of range for cubemap image (must be 0)',
+    'TViewDesc: texture view slices are out of range for 2D array image (must be >=0 and <Image.NumSlices)',
+    'TViewDesc: texture view slices are out of range for 3D image (must be 0)',
+    'TViewDesc.StorageImageBinding: image pixel format must be GPU readable or writable (TPixelFormat.CanRead/CanWrite)',
+    'TViewDesc.ColorAttachment: pixel format of image must be renderable (TPixelFormat.Render)',
+    'TViewDesc.DepthStencilAttachment: pixel format of image must be a depth or depth-stencil format (TPixelFormat.Depth)',
+    'TViewDesc.ResolveAttachment: image cannot be multisampled',
+    'TGfx.BeginPass: pass struct not initialized',
+    'TGfx.BeginPass: compute passes cannot have attachments',
+    'TGfx.BeginPass: expected Pass.Swapchain.Width > 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Width = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Height > 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Height = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.SampleCount > 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.SampleCount = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.ColorFormat to be valid',
+    'TGfx.BeginPass: expected Pass.Swapchain.ColorFormat to be unset',
+    'TGfx.BeginPass: expected Pass.Swapchain.DepthFormat to be unset',
+    'TGfx.BeginPass: expected Pass.Swapchain.Metal.CurrentDrawable <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Metal.CurrentDrawable = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Metal.DepthStencilTexture <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Metal.DepthStencilTexture = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Metal.MsaaColorTexture <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Metal.MsaaColorTexture = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.D3D11.RenderView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.D3D11.RenderView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.D3D11.ResolveView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.D3D11.ResolveView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.D3D11.DepthStencilView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.D3D11.DepthStencilView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Wgpu.RenderView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Wgpu.RenderView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Wgpu.ResolveView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Wgpu.ResolveView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Wgpu.DepthStencilView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Wgpu.DepthStencilView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.GL.Framebuffer = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.RenderImage <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.RenderImage = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.RenderView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.RenderView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.DepthStencilImage <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.DepthStencilImage = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.DepthStencilView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.DepthStencilView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.ResolveImage <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.ResolveImage = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.ResolveView <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.ResolveView = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.RenderFinishedSemaphore <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.RenderFinishedSemaphore = 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.PresentCompleteSemaphore <> 0',
+    'TGfx.BeginPass: expected Pass.Swapchain.Vulkan.PresentCompleteSemaphore = 0',
+    'TGfx.BeginPass: color attachment view array must be continuous',
+    'TGfx.BeginPass: color attachment view no longer alive',
+    'TGfx.BeginPass: color attachment view not in valid state (TResourceState.Valid)',
+    'TGfx.BeginPass: color attachment view has wrong type (must be TViewDesc.ColorAttachment)',
+    'TGfx.BeginPass: color attachment view''s image object is uninitialized or no longer alive',
+    'TGfx.BeginPass: color attachment view''s image is not in valid state (TResourceState.Valid)',
+    'TGfx.BeginPass: all color attachments must have the same width and height',
+    'TGfx.BeginPass: when resolve attachments are provided, the color attachment sample count must be > 1',
+    'TGfx.BeginPass: all color attachments must have the same sample count',
+    'TGfx.BeginPass: a resolve attachment view must have an associated color attachment view at the same index',
+    'TGfx.BeginPass: resolve attachment view no longer alive',
+    'TGfx.BeginPass: resolve attachment view not in valid state (TResourceState.Valid)',
+    'TGfx.BeginPass: resolve attachment view has wrong type (must be TViewDesc.ResolveAttachment)',
+    'TGfx.BeginPass: resolve attachment view''s image object is uninitialized or no longer alive',
+    'TGfx.BeginPass: resolve attachment view''s image is not in valid state (TResourceState.Valid)',
+    'TGfx.BeginPass: all attachments must have the same width and height',
+    'TGfx.BeginPass: color attachment view array must be continuous',
+    'TGfx.BeginPass: depth-stencil attachment view no longer alive',
+    'TGfx.BeginPass: depth-stencil attachment view not in valid state (TResourceState.Valid)',
+    'TGfx.BeginPass: depth-stencil attachment view has wrong type (must be TViewDesc.DepthStencilAttachment)',
+    'TGfx.BeginPass: depth-stencil attachment view''s image object is uninitialized or no longer alive',
+    'TGfx.BeginPass: depth-stencil attachment view''s image is not in valid state (TResourceState.Valid)',
+    'TGfx.BeginPass: attachments must have the same width and height',
+    'TGfx.BeginPass: all color attachments must have the same sample count',
+    'TGfx.BeginPass: offscreen render passes must have at least one color- or depth-stencil attachment',
+    'TGfx.ApplyViewport: must be called in a render pass',
+    'TGfx.ApplyScissorRect: must be called in a render pass',
+    'TGfx.ApplyPipeline: invalid pipeline id provided',
+    'TGfx.ApplyPipeline pipeline object no longer alive',
+    'TGfx.ApplyPipeline pipeline object not in valid state (TResourceState.Valid)',
+    'TGfx.ApplyPipeline must be called in a pass',
+    'TGfx.ApplyPipeline shader object associated with pipeline no longer alive',
+    'TGfx.ApplyPipeline shader object associated with pipeline not in valid state',
+    'TGfx.ApplyPipeline trying to apply compute pipeline in render pass',
+    'TGfx.ApplyPipeline trying to apply render pipeline in compute pass',
+    'TGfx.ApplyPipeline the pipeline .ColorCcount must be 1 in swapchain render passes',
+    'TGfx.ApplyPipeline the pipeline .Colors[0].PixelFormat doesn''t match the TPass.Swapchain.ColorFormat',
+    'TGfx.ApplyPipeline the pipeline .Depth.PixelFormat doesn''t match the TPass.Swapchain.DepthFormat',
+    'TGfx.ApplyPipeline the pipeline .SampleCount doesn''t match the TPass.Swapchain.SampleCount',
+    'TGfx.ApplyPipeline at least one pass attachment view or base image object is no longer alive',
+    'TGfx.ApplyPipeline the pipeline .ColorCount doesn''t match the number of render pass color attachments',
+    'TGfx.ApplyPipeline a pass color attachment view is not in valid state (TResourceState.Valid)',
+    'TGfx.ApplyPipeline a pass color attachment view''s image object is not in valid state (TResourceState.Valid)',
+    'TGfx.ApplyPipeline a pipeline .Colors[n].PixelFormat doesn''t match TPass.Attachments.Colors[n] image pixel format',
+    'TGfx.ApplyPipeline the pass depth-stencil attachment view is not in valid state (TResourceState.Valid)',
+    'TGfx.ApplyPipeline the pass depth-stencil attachment view''s image object is not in valid state (TResourceState.Valid)',
+    'TGfx.ApplyPipeline pipeline .Depth.PixelFormat doesn''t match TPass.Attachments.DepthStencil image pixel format',
+    'TGfx.ApplyPipeline pipeline MSAA sample count doesn''t match pass attachment sample count',
+    'TGfx.ApplyBindings: must be called in a pass',
+    'TGfx.ApplyBindings: the provided TBindings struct is empty',
+    'TGfx.ApplyBindings: must be called after TGfx.ApplyPipeline',
+    'TGfx.ApplyBindings: currently applied pipeline object no longer alive',
+    'TGfx.ApplyBindings: currently applied pipeline object not in valid state',
+    'TGfx.ApplyBindings: shader associated with currently applied pipeline is no longer alive',
+    'TGfx.ApplyBindings: shader associated with currently applied pipeline is not in valid state',
+    'TGfx.ApplyBindings: vertex buffer bindings not allowed in a compute pass',
+    'TGfx.ApplyBindings: index buffer binding not allowed in compute pass',
+    'TGfx.ApplyBindings: vertex buffer binding is missing or buffer handle is invalid',
+    'TGfx.ApplyBindings: vertex buffer no longer alive',
+    'TGfx.ApplyBindings: buffer in vertex buffer bind slot must have Usage.VertexBuffer',
+    'TGfx.ApplyBindings: buffer in vertex buffer bind slot is overflown',
+    'TGfx.ApplyBindings: pipeline object defines non-indexed rendering, but index buffer binding provided',
+    'TGfx.ApplyBindings: pipeline object defines indexed rendering, but no index buffer binding provided',
+    'TGfx.ApplyBindings: index buffer no longer alive',
+    'TGfx.ApplyBindings: buffer in index buffer bind slot must have Usage.IndexBuffer',
+    'TGfx.ApplyBindings: buffer in index buffer slot is overflown',
+    'TGfx.ApplyBindings: view binding is missing or the view handle is invalid',
+    'TGfx.ApplyBindings: view no longer alive',
+    'TGfx.ApplyBindings: view type mismatch in bindslot (shader expects a texture view)',
+    'TGfx.ApplyBindings: view type mismatch in bindslot (shader expects a storage buffer view)',
+    'TGfx.ApplyBindings: view type mismatch in bindslot (shader expects a storage image view)',
+    'TGfx.ApplyBindings: image type of bound texture doesn''t match shader desc',
+    'TGfx.ApplyBindings: texture bindings expects image with SampleCcount > 1',
+    'TGfx.ApplyBindings: texture bindings expects image with SampleCount = 1',
+    'TGfx.ApplyBindings: filterable image expected',
+    'TGfx.ApplyBindings: depth image expected',
+    'TGfx.ApplyBindings: storage buffers bound as read/write must have usage immutable',
+    'TGfx.ApplyBindings: storage image bindings can only appear on compute passes',
+    'TGfx.ApplyBindings: image type of bound storage image doesn''t match shader desc',
+    'TGfx.ApplyBindings: pixel format of storage image view doesn''t match access format in shader desc',
+    'TGfx.ApplyBindings: sampler binding is missing or the sampler handle is invalid',
+    'TGfx.ApplyBindings: shader expects TSamplerType.Comparison but sampler has TCompareFunc.Never',
+    'TGfx.ApplyBindings: shader expects TSamplerType.Filtering or TSamplerType.NonFiltering but sampler doesn''t have TCompareFunc.Never',
+    'TGfx.ApplyBindings: shader expected TSamplerType.NonFiltering, but sampler has TFilter.Linear filters',
+    'TGfx.ApplyBindings: bound sampler no longer alive',
+    'TGfx.ApplyBindings: bound sampler not in valid state',
+    'TGfx.ApplyBindings: cannot bind texture in the same pass it is used as depth-stencil attachment',
+    'TGfx.ApplyBindings: cannot bind texture in the same pass it is used as color attachment',
+    'TGfx.ApplyBindings: cannot bind texture in the same pass it is used as resolve attachment',
+    'TGfx.ApplyBindings: an image cannot be bound as a texture and storage image at the same time',
+    'TGfx.ApplyUniforms: must be called in a pass',
+    'TGfx.ApplyUniforms: must be called after TGfx.ApplyPipeline()',
+    'TGfx.ApplyUniforms: currently applied pipeline object no longer alive',
+    'TGfx.ApplyUniforms: currently applied pipeline object not in valid state',
+    'TGfx.ApplyUniforms: shader associated with currently applied pipeline is no longer alive',
+    'TGfx.ApplyUniforms: shader associated with currently applied pipeline is not in valid state',
+    'TGfx.ApplyUniforms: no uniform block declaration at this shader stage UB slot',
+    'TGfx.ApplyUniforms: data size doesn''t match declared uniform block size',
+    'TGfx.Draw: must be called in a render pass',
+    'TGfx.Draw: BaseElement cannot be < 0',
+    'TGfx.Draw: NumElements cannot be < 0',
+    'TGfx.Draw: NumInstances cannot be < 0',
+    'TGfx.Draw: must be called in a render pass',
+    'TGfx.DrawEx: BaseElement cannot be < 0',
+    'TGfx.DrawEx: NumElements cannot be < 0',
+    'TGfx.DrawEx: NumInstances cannot be < 0',
+    'TGfx.DrawEx: BaseInstance cannot be < 0',
+    'TGfx.DrawEx(): BaseVertex must be 0 for non-indexed rendering',
+    'TGfx.DrawEx(): BaseInstance must be 0 for non-instanced rendering',
+    'TGfx.DrawEx(): BaseVertex <> 0 not supported on this backend (TFeatures.DrawBaseVertex)',
+    'TGfx.DrawEx(): BaseInstance > 0 not supported on this backend (TFeatures.DrawBaseInstance)',
+    'TGfx.Draw: call to TGfx.ApplyBindings() and/or TGfx.ApplyUniforms() missing after TGfx.ApplyPipeline()',
+    'TGfx.Dispatch: must be called in a compute pass',
+    'TGfx.Dispatch: NumGroupsX must be >=0 and <65536',
+    'TGfx.Dispatch: NumGroupsY must be >=0 and <65536',
+    'TGfx.Dispatch: NumGroupsZ must be >=0 and <65536',
+    'TGfx.Dispatch: call to TGfx.ApplyBindings() and/or TGfx.ApplyUniforms() missing after TGfx.ApplyPipeline()',
+    'TBuffer.Update: cannot update immutable buffer',
+    'TBuffer.Update: update size is bigger than buffer size',
+    'TBuffer.Update: only one update allowed per buffer and frame',
+    'TBuffer.Update: cannot call TBuffer.Update and TBuffer.Append in same frame',
+    'TBuffer.Append: cannot append to immutable buffer',
+    'TBuffer.Append: overall appended size is bigger than buffer size',
+    'TBuffer.Append: cannot call TBuffer.Append and TBuffer.Update in same frame',
+    'TImage.Update: cannot update immutable image',
+    'TImage.Update: only one update allowed per image and frame',
+    'validation layer checks failed');
+begin
+  Result := STRINGS[Self];
+end;
+
+{ TEnvironmentDefaults }
+
+function TEnvironmentDefaults.GetColorFormat: TPixelFormat;
+begin
+  Result := TPixelFormat(FHandle.color_format);
+end;
+
+function TEnvironmentDefaults.GetDepthFormat: TPixelFormat;
+begin
+  Result := TPixelFormat(FHandle.depth_format);
+end;
+
+procedure TEnvironmentDefaults.SetColorFormat(const AValue: TPixelFormat);
+begin
+  FHandle.color_format := Ord(AValue);
+end;
+
+procedure TEnvironmentDefaults.SetDepthFormat(const AValue: TPixelFormat);
+begin
+  FHandle.depth_format := Ord(AValue);
+end;
+
+{ TD3D11Environment }
+
+function TD3D11Environment.GetDevice: IInterface;
+begin
+  Result := IInterface(FHandle.device);
+end;
+
+function TD3D11Environment.GetDeviceContext: IInterface;
+begin
+  Result := IInterface(FHandle.device_context);
+end;
+
+procedure TD3D11Environment.SetDevice(const AValue: IInterface);
+begin
+  FHandle.device := Pointer(AValue);
+end;
+
+procedure TD3D11Environment.SetDeviceContext(const AValue: IInterface);
+begin
+  FHandle.device_context := Pointer(AValue);
+end;
+
+{ TEnvironment }
+
+function TEnvironment.GetD3D11: PD3D11Environment;
+begin
+  Result := @FHandle.d3d11;
+end;
+
+function TEnvironment.GetDefaults: PEnvironmentDefaults;
+begin
+  Result := @FHandle.defaults;
+end;
+
+function TEnvironment.GetMetal: PMetalEnvironment;
+begin
+  Result := @FHandle.metal;
+end;
+
+function TEnvironment.GetVulkan: PVulkanEnvironment;
+begin
+  Result := @FHandle.vulkan;
 end;
 
 { TGfxDesc }
@@ -5124,30 +6338,46 @@ begin
   ADst._start_canary := 0;
   ADst.buffer_pool_size := BufferPoolSize;
   ADst.image_pool_size := ImagePoolSize;
+  ADst.sampler_pool_size := SamplerPoolSize;
   ADst.shader_pool_size := ShaderPoolSize;
   ADst.pipeline_pool_size := PipelinePoolSize;
-  ADst.pass_pool_size := PassPoolSize;
-  ADst.context_pool_size := ContextPoolSize;
+  ADst.view_pool_size := ViewPoolSize;
   ADst.uniform_buffer_size := UniformBufferSize;
-  ADst.staging_buffer_size := StagingBufferSize;
-  ADst.sampler_cache_size := SamplerCacheSize;
+  ADst.max_commit_listeners := MaxCommitListeners;
+  ADst.disable_validation := DisableValidation;
+  ADst.enforce_portable_limits := EnforcePortableLimits;
+  ADst.d3d11 := D3D11.FHandle;
+  ADst.metal := Metal.FHandle;
+  FillChar(ADst.wgpu, SizeOf(ADst.wgpu), 0);
+  ADst.vulkan := Vulkan.FHandle;
   {$IFDEF SOKOL_MEM_TRACK}
-  ADst.allocator.alloc := _MemTrackAlloc;
-  ADst.allocator.free := _MemTrackFree;
+  ADst.allocator.alloc_fn := _MemTrackAlloc;
+  ADst.allocator.free_fn := _MemTrackFree;
   {$ELSE}
   if (UseDelphiMemoryManager) then
   begin
-    ADst.allocator.alloc := _AllocCallback;
-    ADst.allocator.free := _FreeCallback;
+    ADst.allocator.alloc_fn := _AllocCallback;
+    ADst.allocator.free_fn := _FreeCallback;
   end
   else
   begin
-    ADst.allocator.alloc := nil;
-    ADst.allocator.free := nil;
+    ADst.allocator.alloc_fn := nil;
+    ADst.allocator.free_fn := nil;
   end;
   {$ENDIF}
   ADst.allocator.user_data := nil;
-  Context.Convert(ADst.context);
+
+  if Assigned(Logger) then
+  begin
+    GLogger := Logger;
+    ADst.logger.func := LogCallback;
+  end
+  else
+    ADst.logger.func := nil;
+
+  ADst.logger.user_data := nil;
+
+  ADst.environment := Environment.FHandle;
   ADst._end_canary := 0;
 end;
 
@@ -5156,9 +6386,29 @@ begin
   Result.Init;
 end;
 
+procedure TGfxDesc.DefaultLogger(const ALevel: TLogLevel;
+  const AItem: TGfxLogItem; const AMessage: String; const ALineNr: Integer);
+begin
+  _LogDefault(ALevel, Ord(AItem), AMessage, ALineNr);
+end;
+
 procedure TGfxDesc.Init;
 begin
   FillChar(Self, SizeOf(Self), 0);
+end;
+
+class procedure TGfxDesc.LogCallback(const ATag: PUTF8Char; ALogLevel,
+  ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+  const AFilenameOrNull: PUTF8Char; AUserData: Pointer);
+begin
+  Assert(Assigned(GLogger));
+  var Msg: String;
+  if (Cardinal(ALogItemId) <= Ord(High(TGfxLogItem))) then
+    Msg := TGfxLogItem(ALogItemId).ToString
+  else
+    Msg := String(UTF8String(AMessageOrNull));
+
+  GLogger(TLogLevel(ALogLevel), TGfxLogItem(ALogItemId), Msg, ALineNr);
 end;
 
 { TGfx }
@@ -5199,19 +6449,17 @@ begin
     AOriginTopLeft);
 end;
 
-class procedure TGfx.ApplyUniforms(const AStage: TShaderStage;
-  const AUBIndex: Integer; const AData: TRange);
+class procedure TGfx.ApplyUniforms(const AUBSlot: Integer; const AData: TRange);
 begin
-  _sg_apply_uniforms(Ord(AStage), AUBIndex, @AData.FHandle);
+  _sg_apply_uniforms(AUBSlot, @AData.FHandle);
 end;
 
-class procedure TGfx.ApplyUniforms(const AStage: TShaderStage;
-  const AUBIndex: Integer; const AData: TBytes);
+class procedure TGfx.ApplyUniforms(const AUBSlot: Integer; const AData: TBytes);
 begin
   var Data: _sg_range;
   Data.ptr := Pointer(AData);
   Data.size := Length(AData);
-  _sg_apply_uniforms(Ord(AStage), AUBIndex, @Data);
+  _sg_apply_uniforms(AUBSlot, @Data);
 end;
 
 class procedure TGfx.ApplyViewport(const AX, AY, AWidth, AHeight: Integer;
@@ -5240,22 +6488,9 @@ begin
     AViewport.Height, AOriginTopLeft);
 end;
 
-class procedure TGfx.BeginDefaultPass(const APassAction: TPassAction;
-  const AWidth, AHeight: Integer);
+class procedure TGfx.BeginPass(const APass: TPass);
 begin
-  _sg_begin_default_pass(@APassAction.FHandle, AWidth, AHeight);
-end;
-
-class procedure TGfx.BeginDefaultPass(const APassAction: TPassAction;
-  const AWidth, AHeight: Single);
-begin
-  _sg_begin_default_passf(@APassAction.FHandle, AWidth, AHeight);
-end;
-
-class procedure TGfx.BeginPass(const APass: TPass;
-  const APassAction: TPassAction);
-begin
-  _sg_begin_pass(APass.FHandle, @APassAction.FHandle);
+  _sg_begin_pass(@APass.FHandle);
 end;
 
 class procedure TGfx.Commit;
@@ -5374,7 +6609,6 @@ begin
 end;
 
 initialization
-  Assert(SizeOf(TAction) = 4);
   Assert(SizeOf(TColorAttachmentAction) = SizeOf(_sg_color_attachment_action));
   Assert(SizeOf(TDepthAttachmentAction) = SizeOf(_sg_depth_attachment_action));
   Assert(SizeOf(TStencilAttachmentAction) = SizeOf(_sg_stencil_attachment_action));

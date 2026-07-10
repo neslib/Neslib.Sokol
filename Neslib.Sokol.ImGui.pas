@@ -220,13 +220,13 @@ begin
   Desc.write_alpha_channel := ADesc.WriteAlphaChannel;
 
   {$IFDEF SOKOL_MEM_TRACK}
-  Desc.allocator.alloc := _MemTrackAlloc;
-  Desc.allocator.free := _MemTrackFree;
+  Desc.allocator.alloc_fn := _MemTrackAlloc;
+  Desc.allocator.free_fn := _MemTrackFree;
   {$ELSE}
   if (ADesc.UseDelphiMemoryManager) then
   begin
-    Desc.allocator.alloc := _AllocCallback;
-    Desc.allocator.free := _FreeCallback;
+    Desc.allocator.alloc_fn := _AllocCallback;
+    Desc.allocator.free_fn := _FreeCallback;
   end;
   {$ENDIF}
 

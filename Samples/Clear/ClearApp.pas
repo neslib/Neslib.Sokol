@@ -21,7 +21,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { TClearApp }
 
@@ -35,18 +36,20 @@ begin
   inherited;
   AConfig.Width := 400;
   AConfig.Height := 300;
-  AConfig.AndroidForceGles2 := True;
   AConfig.WindowTitle := 'Clear';
 end;
 
 procedure TClearApp.Frame;
 begin
-  var G: Single := FPassAction.Colors[0].Value.G + 0.01;
+  var G: Single := FPassAction.Colors[0].ClearValue.G + 0.01;
   if (G > 1) then
     G := 0;
-  FPassAction.Colors[0].Value.G := G;
+  FPassAction.Colors[0].ClearValue.G := G;
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
 
   DebugFrame;
 
@@ -57,7 +60,7 @@ end;
 procedure TClearApp.Init;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TAction.Clear, 1, 0, 0);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, TStoreAction.Default, 1, 0, 0);
 end;
 
 end.

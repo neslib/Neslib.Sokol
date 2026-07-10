@@ -13,7 +13,8 @@ interface
 uses
   System.SysUtils,
   System.Generics.Collections,
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Types;
 
 type
   { Defines the pixel format for swapchain surfaces.
@@ -296,10 +297,6 @@ type
     Menu             = 348);
 
 type
-  { Log levels }
-  TLogLevel = (Panic, Error, Warning, Info);
-
-type
   { Log items }
   TAppLogItem = (
     Ok,
@@ -432,7 +429,7 @@ type
     ClipboardStringTooBig);
 
 type
-  _TLogItemHelper = record helper for TAppLogItem
+  _TAppLogItemHelper = record helper for TAppLogItem
   public
     function ToString: String;
   end;
@@ -703,27 +700,20 @@ type
   end;
 
 type
-  { Custom log function.
+  { Custom log function. Used in TAppConfig to provide a logging function.
+    Please be aware that without logging function, Neslib.Sokol.App will be
+    completely silent, e.g. it will not report errors or warnings. For maximum
+    error verbosity, compile in debug mode and install a logger (for instance
+    the standard logging function TApplication.DefaultLogger).
+
+    Parameters:
     * ATag: always 'sapp'
     * ALevel: log level
     * AItem: log item
-    * AMessage: log message. May be empty in Release mode.
-    * ALineNr: line number in original sokol_app.h file.
-    * AFilename: source filename. May be empty in Release mode. }
-  TLogFunc = procedure(const ATag: String; const ALevel: TLogLevel;
-      const AItem: TAppLogItem; const AMessage: String; const ALineNr: Integer;
-      const AFilename: String) of object;
-
-type
-  { Used in TAppConfig to provide a logging function. Please be aware that
-    without logging function, Neslib.Sokol.App will be completely silent, e.g.
-    it will not report errors or warnings. For maximum error verbosity, compile
-    in debug mode and install a logger (for instance the standard logging
-    function from Neslib.Sokol.Log). }
-  TAppLogger = record
-  public
-    Func: TLogFunc;
-  end;
+    * AMessage: the log message corresponding to AItem.
+    * ALineNr: line number in original sokol_app.h file. }
+  TAppLogger = procedure(const ALevel: TLogLevel; const AItem: TAppLogItem;
+    const AMessage: String; const ALineNr: Integer) of object;
 
 type
   TAppGLDesc = record
@@ -1030,9 +1020,8 @@ type
   TApplication = class abstract
   {$REGION 'Internal Declarations'}
   private class var
-    GInstance: TApplication;
     GDesc: _sapp_desc;
-    GLogFunc: TLogFunc;
+    GLogger: TAppLogger;
     GEventHandlers: TList<TEventHandler>;
   private
     FConfig: TAppConfig;
@@ -1086,8 +1075,6 @@ type
     procedure HandleEvent(const AEvent: _Psapp_event);
     procedure HandleClipboardPasted;
     procedure HandleFilesDropped(const AX, AY: Single);
-    class procedure FailCallback(const AMsg: PUTF8Char; AUserData: Pointer); static;
-    procedure FatalError(const AMsg: String);
   protected
     procedure Run;
   public
@@ -1126,6 +1113,11 @@ type
       method.
       Does nothing by default. }
     procedure Cleanup; virtual;
+
+    { A default log function you can assign to AConfig.Logger in the Configure
+      call. }
+    procedure DefaultLogger(const ALevel: TLogLevel; const AItem: TAppLogItem;
+      const AMessage: String; const ALineNr: Integer);
   protected
     (************************************************************************)
     (* Events.                                                              *)
@@ -1837,9 +1829,9 @@ begin
   {$ENDIF}
 end;
 
-{ _TLogItemHelper }
+{ _TAppLogItemHelper }
 
-function _TLogItemHelper.ToString: String;
+function _TAppLogItemHelper.ToString: String;
 const
   STRINGS: array [TAppLogItem] of String = (
     'Ok',
@@ -2230,9 +2222,6 @@ begin
 end;
 
 constructor TApplication.Create;
-var
-  LogFunc: TLogFunc;
-  LogMethod: TMethod absolute LogFunc;
 begin
   inherited Create;
   FConfig.Init;
@@ -2262,11 +2251,10 @@ begin
   GDesc.enable_dragndrop := FConfig.EnableDragDrop;
   GDesc.max_dropped_files := FConfig.MaxDroppedFiles;
   GDesc.max_dropped_file_path_length := FConfig.MaxDroppedFilePathLength;
-  if Assigned(FConfig.Logger.Func) then
+  if Assigned(FConfig.Logger) then
   begin
-    LogFunc := FConfig.Logger.Func;
+    GLogger := FConfig.Logger;
     GDesc.logger.func := LogCallback;
-    GDesc.logger.user_data := LogMethod.Data;
   end;
 
   GDesc.gl.major_version := FConfig.GL.MajorVersion;
@@ -2309,6 +2297,12 @@ begin
   FreeAndNil(GEventHandlers);
 end;
 
+procedure TApplication.DefaultLogger(const ALevel: TLogLevel;
+  const AItem: TAppLogItem; const AMessage: String; const ALineNr: Integer);
+begin
+  _LogDefault(ALevel, Ord(AItem), AMessage, ALineNr);
+end;
+
 destructor TApplication.Destroy;
 begin
   inherited;
@@ -2322,21 +2316,6 @@ begin
   Assert(Assigned(AUserData));
   if Assigned(AUserData) then
     App.HandleEvent(AEvent);
-end;
-
-class procedure TApplication.FailCallback(const AMsg: PUTF8Char;
-  AUserData: Pointer);
-var
-  App: TApplication absolute AUserData;
-begin
-  Assert(Assigned(AUserData));
-  if Assigned(AUserData) then
-    App.FatalError(String(UTF8String(AMsg)));
-end;
-
-procedure TApplication.FatalError(const AMsg: String);
-begin
-  Log(AMsg);
 end;
 
 procedure TApplication.FilesDropped(const AX, AY: Single;
@@ -2676,16 +2655,15 @@ end;
 class procedure TApplication.LogCallback(const ATag: PUTF8Char; ALogLevel,
   ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
   const AFilenameOrNull: PUTF8Char; AUserData: Pointer);
-var
-  LogFunc: TLogFunc;
-  LogMethod: TMethod absolute LogFunc;
 begin
-  Assert(Assigned(GLogFunc));
-  LogFunc := GLogFunc;
-  LogMethod.Data := AUserData;
-  LogFunc(String(UTF8String(ATag)), TLogLevel(ALogLevel), TAppLogItem(ALogItemId),
-    String(UTF8String(AMessageOrNull)), ALineNr,
-    String(UTF8String(AFilenameOrNull)));
+  Assert(Assigned(GLogger));
+  var Msg: String;
+  if (Cardinal(ALogItemId) <= Cardinal(Ord(High(TAppLogItem)))) then
+    Msg := TAppLogItem(ALogItemId).ToString
+  else
+    Msg := String(UTF8String(AMessageOrNull));
+
+  GLogger(TLogLevel(ALogLevel), TAppLogItem(ALogItemId), Msg, ALineNr);
 end;
 
 procedure TApplication.KeyChar(const AChar: UCS4Char;

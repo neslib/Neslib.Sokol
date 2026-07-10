@@ -12,18 +12,15 @@ uses
   Neslib.Sokol.Gfx;
 
 type
-  _TApplicationHelper = class helper for TApplication
-  {$REGION 'Internal Declarations'}
-  private class var
-    FContext: TContextDesc;
-    FContextValid: Boolean;
-  private
-    class function GetContext: TContextDesc; inline; static;
-    class procedure DoGetContext; static;
-  {$REGION 'Internal Declarations'}
+  _TEnvironmentHelper = record helper for TEnvironment
   public
-    {  Returns a Gfx TContextDesc record for use with TApplication }
-    class property Context: TContextDesc read GetContext;
+    procedure FromAppEnvironment;
+  end;
+
+type
+  _TSwapchainHelper = record helper for TSwapchain
+  public
+    procedure FromAppSwapchain;
   end;
 
 implementation
@@ -31,33 +28,22 @@ implementation
 uses
   Neslib.Sokol.Api;
 
-type
-  TApplicationAccess = class(TApplication);
+{ _TEnvironmentHelper }
 
-{ _TApplicationHelper }
-
-class procedure _TApplicationHelper.DoGetContext;
+procedure _TEnvironmentHelper.FromAppEnvironment;
 begin
-  var Src := _sapp_sgcontext;
-  FContext.ColorFormat := TPixelFormat(Src.color_format);
-  FContext.DepthFormat := TPixelFormat(Src.depth_format);
-  FContext.SampleCount := Src.sample_count;
-  FContext.GL.ForceGles2 := Src.gl.force_gles2;
-  FContext.Metal.Device := Src.metal.device;
-  FContext.Metal.RenderpassDescriptorEvent := TApplicationAccess(TApplication.Instance).GetMetalRenderpassDescriptor;
-  FContext.Metal.DrawableEvent := TApplicationAccess(TApplication.Instance).GetMetalDrawable;
-  FContext.D3D11.Device := IInterface(Src.d3d11.device);
-  FContext.D3D11.DeviceContext := IInterface(Src.d3d11.device_context);
-  FContext.D3D11.RenderTargetViewEvent := TApplicationAccess(TApplication.Instance).GetD3D11RenderTargetView;
-  FContext.D3D11.DepthStencilViewEvent := TApplicationAccess(TApplication.Instance).GetD3D11DepthStencilView;
+  var Env := _sglue_environment;
+  _sg_environment_defaults(Self.Defaults^) := Env.defaults;
+  _sg_metal_environment(Self.Metal^) := Env.metal;
+  _sg_d3d11_environment(Self.D3D11^) := Env.d3d11;
+  _sg_vulkan_environment(Self.Vulkan^) := Env.vulkan;
 end;
 
-class function _TApplicationHelper.GetContext: TContextDesc;
-begin
-  if (not FContextValid) then
-    DoGetContext;
+{ _TSwapchainHelper }
 
-  Result := FContext;
+procedure _TSwapchainHelper.FromAppSwapchain;
+begin
+  _sg_swapchain(Self) := _sglue_swapchain;
 end;
 
 end.

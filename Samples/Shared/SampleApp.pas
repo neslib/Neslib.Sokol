@@ -83,6 +83,8 @@ begin
   inherited;
   AConfig.HighDpi := True;
   AConfig.SampleCount := 4;
+  AConfig.Icon.UseDefault := True;
+  AConfig.Logger := DefaultLogger;
 end;
 
 procedure TSampleApp.ConfigureGfx(var ADesc: TGfxDesc);
@@ -104,7 +106,8 @@ procedure TSampleApp.Init;
 begin
   var Desc := TGfxDesc.Create;
   ConfigureGfx(Desc);
-  Desc.Context := Context;
+  Desc.Environment.FromAppEnvironment;
+  Desc.Logger := Desc.DefaultLogger;
   TGfx.Setup(Desc);
 
   {$IF Defined(USE_DBG_UI)}
