@@ -53,7 +53,7 @@ To render a triangle using [Neslib.Sokol.App](Neslib.Sokol.App.md):
   procedure TMyApp.Configure(var AConfig: TAppConfig);
   begin
     inherited;
-    AConfig.WindowTitle := 'Triangle';
+    AConfig.WindowTitle := 'MyApp';
     AConfig.Width := 800;
     AConfig.Height := 600;
     ...
@@ -63,10 +63,10 @@ To render a triangle using [Neslib.Sokol.App](Neslib.Sokol.App.md):
   begin
     inherited;
     var Desc := TGfxDesc.Create;
-    Desc.Context := Context;
+    Desc.Environment.FromAppEnvironment;
     TGfx.Setup(Desc);
 
-    FPassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
+    FPassAction.Colors[0].Init(TLoadAction.Clear, TStoreAction.Default, 0, 0, 0, 1);
     
     var BufferDesc := TBufferDesc.Create;
     BufferDesc.Data := TRange.Create(VERTICES);
@@ -82,7 +82,6 @@ To render a triangle using [Neslib.Sokol.App](Neslib.Sokol.App.md):
     PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.Float4;
     PipDesc.DebugLabel := 'TrianglePipeline';
     FPip := TPipeline.Create(PipDesc);
-
   end;
 
   procedure TMyApp.Frame;

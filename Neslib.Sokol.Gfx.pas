@@ -258,6 +258,9 @@ type
     class procedure InitInfo; static;
   {$ENDREGION 'Internal Declarations'}
   public
+    function RowPitch(const AWidth, ARowAlignBytes: Integer): Integer; inline;
+    function SurfacePitch(const AWidth, AHeight, ARowAlignBytes: Integer): Integer; inline;
+
     { Pixel format can be sampled in shaders at least with nearest filtering }
     property Sample: Boolean read GetSample;
 
@@ -1267,7 +1270,7 @@ type
   TViewInfo = record
   {$REGION 'Internal Declarations'}
   private
-    FHandle: _sg_pipeline_info;
+    FHandle: _sg_view_info;
     function GetSlot: TSlotInfo; inline;
   {$ENDREGION 'Internal Declarations'}
   public
@@ -1737,13 +1740,14 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_buffer_desc);
+    procedure InitFrom(const ASrc: _sg_buffer_desc);
   {$ENDREGION 'Internal Declarations'}
   public
     Size: NativeUInt;
     Usage: TBufferUsage;
     Data: TRange;
 
-    TraceLabel: String;
+    TraceLabel: UTF8String;
 
     (* Optionally inject backend-specific resources: *)
 
@@ -1763,6 +1767,46 @@ type
   PBufferDesc = ^TBufferDesc;
 
 type
+  TD3D11BufferInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_buffer_info;
+    function GetBuffer: IInterface; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { ID3D11Buffer }
+    property Buffer: IInterface read GetBuffer;
+  end;
+
+type
+  TMetalBufferInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_mtl_buffer_info;
+    function GetBuffer(const AIndex: Integer): Pointer; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { MTLBuffer ObjectID. AIndex ranges from 0..NUM_INFLIGHT_FRAMES-1 }
+    property Buffers[const AIndex: Integer]: Pointer read GetBuffer;
+
+    property ActiveSlot: Integer read FHandle.active_slot;
+  end;
+
+type
+  TGLBufferInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_gl_buffer_info;
+    function GetBuffer(const AIndex: Integer): Cardinal; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { AIndex ranges from 0..NUM_INFLIGHT_FRAMES-1 }
+    property Buffers[const AIndex: Integer]: Cardinal read GetBuffer;
+
+    property ActiveSlot: Integer read FHandle.active_slot;
+  end;
+
+type
   { Vertex- and index-buffer resource.
 
     A buffer can be created synchronously or asynchronously.
@@ -1776,6 +1820,11 @@ type
     function GetOverflow: Boolean; inline;
     function GetState: TResourceState; inline;
     function GetInfo: TBufferInfo; inline;
+    function GetDesc: TBufferDesc; inline;
+    function GetSize: NativeInt; inline;
+    function GetD3D11BufferInfo: TD3D11BufferInfo; inline;
+    function GetMetalBufferInfo: TMetalBufferInfo; inline;
+    function GetGLBufferInfo: TGLBufferInfo; inline;
   {$ENDREGION 'Internal Declarations'}
   public
     { Synchronous setup }
@@ -1806,7 +1855,21 @@ type
     { Get runtime information about the buffer }
     property Info: TBufferInfo read GetInfo;
 
+    { Get description record matching the buffer.
+      Note: not all creation attributes may be provided. }
+    property Desc: TBufferDesc read GetDesc;
+
     property Overflow: Boolean read GetOverflow;
+    property Size: NativeInt read GetSize;
+
+    { D3D11: get internal buffer resource objects }
+    property D3D11BufferInfo: TD3D11BufferInfo read GetD3D11BufferInfo;
+
+    { Metal: get internal buffer resource objects }
+    property MetalBufferInfo: TMetalBufferInfo read GetMetalBufferInfo;
+
+    { OpenGL: get internal buffer resource objects }
+    property GLBufferInfo: TGLBufferInfo read GetGLBufferInfo;
   end;
   PBuffer = ^TBuffer;
 
@@ -1959,7 +2022,7 @@ type
   {$REGION 'Internal Declarations'}
   public
     procedure _Convert(out ADst: _sg_image_desc);
-    procedure _InitFrom(out ASrc: _sg_image_desc);
+    procedure _InitFrom(const ASrc: _sg_image_desc);
   {$ENDREGION 'Internal Declarations'}
   public
     ImageType: TImageType;
@@ -1971,7 +2034,7 @@ type
     PixelFormat: TPixelFormat;
     SampleCount: Integer;
     Data: TImageData;
-    TraceLabel: String;
+    TraceLabel: UTF8String;
 
     (* Optionally inject backend-specific resources: *)
 
@@ -1992,6 +2055,55 @@ type
   PImageDesc = ^TImageDesc;
 
 type
+  TD3D11ImageInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_image_info;
+    function GetTex2D: IInterface; inline;
+    function GetTex3D: IInterface; inline;
+    function GetResource: IInterface; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { ID3D11Texture2D }
+    property Tex2D: IInterface read GetTex2D;
+
+    { ID3D11Texture3D }
+    property Tex3D: IInterface read GetTex3D;
+
+    { ID3D11Resource* (either Tex2D or Tex3D) }
+    property Resource: IInterface read GetResource;
+  end;
+
+type
+  TMetalImageInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_mtl_image_info;
+    function GetTexture(const AIndex: Integer): Pointer;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { MTLTexture ObjectID. AIndex ranges from 0..NUM_INFLIGHT_FRAMES-1 }
+    property Textures[const AIndex: Integer]: Pointer read GetTexture;
+
+    property ActiveSlot: Integer read FHandle.active_slot;
+  end;
+
+type
+  TGLImageInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_gl_image_info;
+    function GetTexture(const AIndex: Integer): Cardinal;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { MTLTexture ObjectID. AIndex ranges from 0..NUM_INFLIGHT_FRAMES-1 }
+    property Textures[const AIndex: Integer]: Cardinal read GetTexture;
+
+    property TextureTarget: Cardinal read FHandle.tex_target;
+    property ActiveSlot: Integer read FHandle.active_slot;
+  end;
+
+type
   { Images used as textures and render-pass attachments.
 
     An image can be created synchronously or asynchronously.
@@ -2004,6 +2116,18 @@ type
     FHandle: _sg_image;
     function GetState: TResourceState; inline;
     function GetInfo: TImageInfo; inline;
+    function GetDesc: TImageDesc; inline;
+    function GetImageType: TImageType; inline;
+    function GetWidth: Integer; inline;
+    function GetHeight: Integer; inline;
+    function GetNumSlices: Integer; inline;
+    function GetNumMipmaps: Integer; inline;
+    function GetPixelFormat: TPixelFormat; inline;
+    function GetUsage: TImageUsage; inline;
+    function GetSampleCount: Integer; inline;
+    function GetD3D11ImageInfo: TD3D11ImageInfo; inline;
+    function GetMetalImageInfo: TMetalImageInfo; inline;
+    function GetGLImageInfo: TGLImageInfo; inline;
   {$ENDREGION 'Internal Declarations'}
   public
     { Synchronous setup }
@@ -2029,6 +2153,28 @@ type
 
     { Get runtime information about the image }
     property Info: TImageInfo read GetInfo;
+
+    { Get description record matching the image.
+      Note: not all creation attributes may be provided. }
+    property Desc: TImageDesc read GetDesc;
+
+    property ImageType: TImageType read GetImageType;
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property NumSlices: Integer read GetNumSlices;
+    property NumMipmaps: Integer read GetNumMipmaps;
+    property PixelFormat: TPixelFormat read GetPixelFormat;
+    property Usage: TImageUsage read GetUsage;
+    property SampleCount: Integer read GetSampleCount;
+
+    { D3D11: get internal image resource objects }
+    property D3D11ImageInfo: TD3D11ImageInfo read GetD3D11ImageInfo;
+
+    { Metal: get internal image resource objects }
+    property MetalImageInfo: TMetalImageInfo read GetMetalImageInfo;
+
+    { OpenGL: get internal image resource objects }
+    property GLImageInfo: TGLImageInfo read GetGLImageInfo;
   end;
   PImage = ^TImage;
 
@@ -2050,7 +2196,7 @@ type
   {$REGION 'Internal Declarations'}
   public
     procedure _Convert(out ADst: _sg_sampler_desc);
-    procedure _InitFrom(out ASrc: _sg_sampler_desc);
+    procedure _InitFrom(const ASrc: _sg_sampler_desc);
   {$ENDREGION 'Internal Declarations'}
   public
     MinFilter: TFilter;
@@ -2060,11 +2206,11 @@ type
     WrapV: TWrap;
     WrapW: TWrap;
     MinLod: Single;
-    MaxLod: SIngle;
+    MaxLod: Single;
     BorderColor: TBorderColor;
     Compare: TCompareFunc;
     MaxAnisotropy: Integer;
-    TraceLabel: String;
+    TraceLabel: UTF8String;
 
     (* Optionally inject backend-specific resources: *)
 
@@ -2084,6 +2230,39 @@ type
   PSamplerDesc = ^TSamplerDesc;
 
 type
+  TD3D11SamplerInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_sampler_info;
+    function GetSampler: IInterface; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { ID3D11SamplerState }
+    property Sampler: IInterface read GetSampler;
+  end;
+
+type
+  TMetalSamplerInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_mtl_sampler_info;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { MTLSamplerState ObjectID }
+    property Sampler: Pointer read FHandle.smp;
+  end;
+
+type
+  TGLSamplerInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_gl_sampler_info;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Sampler: Cardinal read FHandle.smp;
+  end;
+
+type
   { Sampler objects describing how a texture is sampled in a shader.
 
     A sampler can be created synchronously or asynchronously.
@@ -2094,7 +2273,44 @@ type
   {$REGION 'Internal Declarations'}
   private
     FHandle: _sg_sampler;
+    function GetState: TResourceState; inline;
+    function GetInfo: TSamplerInfo; inline;
+    function GetDesc: TSamplerDesc; inline;
+    function GetD3D11SamplerInfo: TD3D11SamplerInfo; inline;
+    function GetMetalSamplerInfo: TMetalSamplerInfo; inline;
+    function GetGLSamplerInfo: TGLSamplerInfo; inline;
   {$ENDREGION 'Internal Declarations'}
+  public
+    { Synchronous setup }
+    constructor Create(const ADesc: TSamplerDesc);
+    procedure Init(const ADesc: TSamplerDesc); inline;
+    procedure Free; inline;
+
+    { Asynchronous setup }
+    procedure Allocate; inline;
+    procedure Setup(const ADesc: TSamplerDesc); inline;
+    procedure Teardown; inline;
+    procedure Deallocate; inline;
+    procedure Fail; inline;
+
+    { Current resource state }
+    property State: TResourceState read GetState;
+
+    { Get runtime information about the sampler }
+    property Info: TSamplerInfo read GetInfo;
+
+    { Get description record matching the sampler.
+      Note: not all creation attributes may be provided. }
+    property Desc: TSamplerDesc read GetDesc;
+
+    { D3D11: get internal sampler resource objects }
+    property D3D11SamplerInfo: TD3D11SamplerInfo read GetD3D11SamplerInfo;
+
+    { Metal: get internal sampler resource objects }
+    property MetalSamplerInfo: TMetalSamplerInfo read GetMetalSamplerInfo;
+
+    { OpenGL: get internal sampler resource objects }
+    property GLSamplerInfo: TGLSamplerInfo read GetGLSamplerInfo;
   end;
   PSampler = ^TSampler;
 
@@ -2111,6 +2327,11 @@ type
 
 type
   TBufferViewDesc = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_buffer_view_desc);
+    procedure InitFrom(const ASrc: _sg_buffer_view_desc);
+  {$ENDREGION 'Internal Declarations'}
   public
     Buffer: TBuffer;
     Offset: Integer;
@@ -2119,6 +2340,11 @@ type
 
 type
   TImageViewDesc = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_image_view_desc);
+    procedure InitFrom(const ASrc: _sg_image_view_desc);
+  {$ENDREGION 'Internal Declarations'}
   public
     Image: TImage;
     MipLevel: Integer;
@@ -2132,14 +2358,23 @@ type
 
 type
   TTextureViewRange = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_texture_view_range;
+  {$ENDREGION 'Internal Declarations'}
   public
-    Base: Integer;
-    Count: Integer;
+    property Base: Integer read FHandle.base write FHandle.base;
+    property Count: Integer read FHandle.count write FHandle.count;
   end;
   PTextureViewRange = ^TTextureViewRange;
 
 type
   TTextureViewDesc = record
+  {$REGION 'Internal Declarations'}
+  public
+    procedure _Convert(out ADst: _sg_texture_view_desc);
+    procedure _InitFrom(const ASrc: _sg_texture_view_desc);
+  {$ENDREGION 'Internal Declarations'}
   public
     Image: TImage;
     MipLevels: TTextureViewRange;
@@ -2203,6 +2438,11 @@ type
         .MipLevel       selects the mip-level to render into
         .Slice          selects the slice to render into }
   TViewDesc = record
+  {$REGION 'Internal Declarations'}
+  private
+    procedure Convert(out ADst: _sg_view_desc);
+    procedure InitFrom(const ASrc: _sg_view_desc);
+  {$ENDREGION 'Internal Declarations'}
   public
     Texture: TTextureViewDesc;
     StorageBuffer: TBufferViewDesc;
@@ -2210,7 +2450,50 @@ type
     ColorAttachment: TImageViewDesc;
     ResolveAttachment: TImageViewDesc;
     DepthStencilAttachment: TImageViewDesc;
-    TraceLabel: AnsiString;
+    TraceLabel: UTF8String;
+  public
+    { Initializes with default values }
+    class function Create: TViewDesc; inline; static;
+    procedure Init;
+  end;
+
+type
+  TD3D11ViewInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_view_info;
+    function GetShaderResourceView: IInterface; inline;
+    function GetUnorderedAccessView: IInterface; inline;
+    function GetRenderTargetView: IInterface; inline;
+    function GetDepthStencilView: IInterface; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { ID3D11ShaderResourceView }
+    property ShaderResourceView: IInterface read GetShaderResourceView;
+
+    { ID3D11UnorderedAccessView }
+    property UnorderedAccessView: IInterface read GetUnorderedAccessView;
+
+    { ID3D11RenderTargetView }
+    property RenderTargetView: IInterface read GetRenderTargetView;
+
+    { ID3D11DepthStencilView }
+    property DepthStencilView: IInterface read GetDepthStencilView;
+  end;
+
+type
+  TGLViewInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_gl_view_info;
+    function GetTextureView(const AIndex: Integer): Cardinal; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { AIndex ranges from 0..NUM_INFLIGHT_FRAMES-1 }
+    property TextureViews[const AIndex: Integer]: Cardinal read GetTextureView;
+
+    property MsaaRenderBuffer: Cardinal read FHandle.msaa_render_buffer;
+    property MsaaResolveFrameBuffer: Cardinal read FHandle.msaa_resolve_frame_buffer;
   end;
 
 type
@@ -2224,7 +2507,40 @@ type
   {$REGION 'Internal Declarations'}
   private
     FHandle: _sg_view;
+    function GetState: TResourceState; inline;
+    function GetInfo: TViewInfo; inline;
+    function GetDesc: TViewDesc; inline;
+    function GetD3D11ViewInfo: TD3D11ViewInfo; inline;
+    function GetGLViewInfo: TGLViewInfo; inline;
   {$ENDREGION 'Internal Declarations'}
+  public
+    { Synchronous setup }
+    constructor Create(const ADesc: TViewDesc);
+    procedure Init(const ADesc: TViewDesc); inline;
+    procedure Free; inline;
+
+    { Asynchronous setup }
+    procedure Allocate; inline;
+    procedure Setup(const ADesc: TViewDesc); inline;
+    procedure Teardown; inline;
+    procedure Deallocate; inline;
+    procedure Fail; inline;
+
+    { Current resource state }
+    property State: TResourceState read GetState;
+
+    { Get runtime information about the view }
+    property Info: TViewInfo read GetInfo;
+
+    { Get description record matching the view.
+      Note: not all creation attributes may be provided. }
+    property Desc: TViewDesc read GetDesc;
+
+    { D3D11: get internal view resource objects }
+    property D3D11ViewInfo: TD3D11ViewInfo read GetD3D11ViewInfo;
+
+    { OpenGL: get internal view resource objects }
+    property GLViewInfo: TGLViewInfo read GetGLViewInfo;
   end;
   PView = ^TView;
 
@@ -2481,7 +2797,7 @@ type
   PShaderTextureSamplerPair = ^TShaderTextureSamplerPair;
 
 type
-  TMtlShaderThreadsPerThreadgroup = record
+  TMetalShaderThreadsPerThreadgroup = record
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_mtl_shader_threads_per_threadgroup);
@@ -2492,7 +2808,7 @@ type
     Y: Integer;
     Z: Integer;
   end;
-  PMtlShaderThreadsPerThreadgroup = ^TMtlShaderThreadsPerThreadgroup;
+  PMetalShaderThreadsPerThreadgroup = ^TMetalShaderThreadsPerThreadgroup;
 
 type
   { Used as parameter of TShader.Create/Init to create a shader object which
@@ -2639,6 +2955,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_shader_desc);
+    procedure InitFrom(const ASrc: _sg_shader_desc);
   {$ENDREGION 'Internal Declarations'}
   public
     VertexFunc: TShaderFunction;
@@ -2649,8 +2966,8 @@ type
     Views: array [0..MAX_VIEW_BINDSLOTS - 1] of TShaderView;
     Samplers: array [0..MAX_SAMPLER_BINDSLOTS - 1] of TShaderSampler;
     TextureSamplerPairs: array [0..MAX_TEXTURE_SAMPLER_PAIRS - 1] of TShaderTextureSamplerPair;
-    MtlThreadsPerThreadgroup: TMtlShaderThreadsPerThreadgroup;
-    TraceLabel: String;
+    MtlThreadsPerThreadgroup: TMetalShaderThreadsPerThreadgroup;
+    TraceLabel: UTF8String;
   public
     { Initializes with default values }
     class function Create: TShaderDesc; inline; static;
@@ -2670,6 +2987,56 @@ type
   end;
 
 type
+  TD3D11ShaderInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_shader_info;
+    function GetVertexShader: IInterface; inline;
+    function GetFragmentShader: IInterface; inline;
+    function GetConstantBuffer(const AIndex: Integer): IInterface; inline;
+  {$REGION 'Internal Declarations'}
+  public
+    { ID3D11Buffer. AIndex ranges from 0..MAX_UNIFORMBLOCK_BINDSLOTS-1 }
+    property ConstantBuffers[const AIndex: Integer]: IInterface read GetConstantBuffer;
+
+    { ID3D11VertexShader }
+    property VertexShader: IInterface read GetVertexShader;
+
+    { ID3D11PixelShader }
+    property FragmentShader: IInterface read GetFragmentShader;
+  end;
+
+type
+  TMetalShaderInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_mtl_shader_info;
+  {$REGION 'Internal Declarations'}
+  public
+    { MTLLibrary ObjectID }
+    property VertexLib: Pointer read FHandle.vertex_lib;
+
+    { MTLLibrary ObjectID }
+    property FragmentLib: Pointer read FHandle.fragment_lib;
+
+    { MTLFunction ObjectID }
+    property VertexFunc: Pointer read FHandle.vertex_func;
+
+    { MTLFunction ObjectID }
+    property FragmentFunc: Pointer read FHandle.fragment_func;
+  end;
+
+type
+  TGLShaderInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_gl_shader_info;
+  {$REGION 'Internal Declarations'}
+  public
+    property Prog: Cardinal read FHandle.prog;
+  end;
+
+type
   { Vertex- and fragment-shaders and shader interface information.
 
     An shader can be created synchronously or asynchronously.
@@ -2682,6 +3049,10 @@ type
     FHandle: _sg_shader;
     function GetState: TResourceState; inline;
     function GetInfo: TShaderInfo; inline;
+    function GetDesc: TShaderDesc; inline;
+    function GetD3D11ShaderInfo: TD3D11ShaderInfo; inline;
+    function GetMetalShaderInfo: TMetalShaderInfo; inline;
+    function GetGLShaderInfo: TGLShaderInfo; inline;
   {$ENDREGION 'Internal Declarations'}
   public
     { Synchronous setup }
@@ -2706,6 +3077,19 @@ type
 
     { Get runtime information about the shader }
     property Info: TShaderInfo read GetInfo;
+
+    { Get description record matching the shader.
+      Note: not all creation attributes may be provided. }
+    property Desc: TShaderDesc read GetDesc;
+
+    { D3D11: get internal shader resource objects }
+    property D3D11ShaderInfo: TD3D11ShaderInfo read GetD3D11ShaderInfo;
+
+    { Metal: get internal shader resource objects }
+    property MetalShaderInfo: TMetalShaderInfo read GetMetalShaderInfo;
+
+    { OpenGL: get internal shader resource objects }
+    property GLShaderInfo: TGLShaderInfo read GetGLShaderInfo;
   end;
   PShader = ^TShader;
 
@@ -2714,6 +3098,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_vertex_buffer_layout_state);
+    procedure InitFrom(const ASrc: _sg_vertex_buffer_layout_state);
   {$ENDREGION 'Internal Declarations'}
   public
     Stride: Integer;
@@ -2732,6 +3117,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_vertex_attr_state);
+    procedure InitFrom(const ASrc: _sg_vertex_attr_state);
   {$ENDREGION 'Internal Declarations'}
   public
     BufferIndex: Integer;
@@ -2750,6 +3136,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_vertex_layout_state);
+    procedure InitFrom(const ASrc: _sg_vertex_layout_state);
   {$ENDREGION 'Internal Declarations'}
   public
     Buffers: array [0..MAX_VERTEXBUFFER_BINDSLOTS - 1] of TVertexBufferLayoutState;
@@ -2765,6 +3152,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_stencil_face_state);
+    procedure InitFrom(const ASrc: _sg_stencil_face_state);
   {$ENDREGION 'Internal Declarations'}
   public
     Compare: TCompareFunc;
@@ -2784,6 +3172,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_stencil_state);
+    procedure InitFrom(const ASrc: _sg_stencil_state);
   {$ENDREGION 'Internal Declarations'}
   public
     Enabled: Boolean;
@@ -2805,6 +3194,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_depth_state);
+    procedure InitFrom(const ASrc: _sg_depth_state);
   {$ENDREGION 'Internal Declarations'}
   public
     PixelFormat: TPixelFormat;
@@ -2828,6 +3218,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_blend_state);
+    procedure InitFrom(const ASrc: _sg_blend_state);
   {$ENDREGION 'Internal Declarations'}
   public
     Enabled: Boolean;
@@ -2854,6 +3245,7 @@ type
   {$REGION 'Internal Declarations'}
   private
     procedure Convert(out ADst: _sg_color_target_state);
+    procedure InitFrom(const ASrc: _sg_color_target_state);
   {$ENDREGION 'Internal Declarations'}
   public
     PixelFormat: TPixelFormat;
@@ -2952,6 +3344,7 @@ type
   {$REGION 'Internal Declarations'}
   public
     procedure _Convert(out ADst: _sg_pipeline_desc);
+    procedure _InitFrom(const ASrc: _sg_pipeline_desc);
   {$ENDREGION 'Internal Declarations'}
   public
     Compute: Boolean;
@@ -2968,13 +3361,51 @@ type
     SampleCount: Integer;
     BlendColor: TColor;
     AlphaToCoverageEnabled: Boolean;
-    TraceLabel: String;
+    TraceLabel: UTF8String;
   public
     { Initializes with default values }
     class function Create: TPipelineDesc; inline; static;
     procedure Init;
   end;
   PPipelineDesc = ^TPipelineDesc;
+
+type
+  TD3D11PipelineInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_d3d11_pipeline_info;
+    function GetInputLayout: IInterface; inline;
+    function GetRasterizerState: IInterface; inline;
+    function GetDepthStencilState: IInterface; inline;
+    function GetBlendState: IInterface; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { ID3D11InputLayout }
+    property InputLayout: IInterface read GetInputLayout;
+
+    { ID3D11RasterizerState }
+    property RasterizerState: IInterface read GetRasterizerState;
+
+    { ID3D11DepthStencilState }
+    property DepthStencilState: IInterface read GetDepthStencilState;
+
+    { ID3D11BlendState }
+    property BlendState: IInterface read GetBlendState;
+  end;
+
+type
+  TMetalPipelineInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sg_mtl_pipeline_info;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { MTLRenderPipelineState ObjectID }
+    property RenderPipelineState: Pointer read FHandle.rps;
+
+    { MTLDepthStencilState ObjectID }
+    property DepthStencilState: Pointer read FHandle.dss;
+  end;
 
 type
   { Associated shader and vertex-layout and render state resource.
@@ -2989,6 +3420,9 @@ type
     FHandle: _sg_pipeline;
     function GetState: TResourceState; inline;
     function GetInfo: TPipelineInfo; inline;
+    function GetDesc: TPipelineDesc; inline;
+    function GetD3D11PipelineInfo: TD3D11PipelineInfo; inline;
+    function GetMetalPipelineInfo: TMetalPipelineInfo; inline;
   {$ENDREGION 'Internal Declarations'}
   public
     { Synchronous setup }
@@ -3011,6 +3445,16 @@ type
 
     { Get runtime information about the pipeline }
     property Info: TPipelineInfo read GetInfo;
+
+    { Get description record matching the pipeline.
+      Note: not all creation attributes may be provided. }
+    property Desc: TPipelineDesc read GetDesc;
+
+    { D3D11: get internal pipeline resource objects }
+    property D3D11PipelineInfo: TD3D11PipelineInfo read GetD3D11PipelineInfo;
+
+    { Metal: get internal pipeline resource objects }
+    property MetalPipelineInfo: TMetalPipelineInfo read GetMetalPipelineInfo;
   end;
   PPipeline = ^TPipeline;
 
@@ -3066,11 +3510,11 @@ type
   {$REGION 'Internal Declarations'}
   private
     FHandle: _sg_pass;
-    FTraceLabel: String;
+    FTraceLabel: UTF8String;
     function GetAction: PPassAction; inline;
     function GetAttachments: PAttachments; inline;
     function GetSwapchain: PSwapchain; inline;
-    procedure SetTraceLabel(const AValue: String); inline;
+    procedure SetTraceLabel(const AValue: UTF8String); inline;
   {$ENDREGION 'Internal Declarations'}
   public
     class function Create: TPass; inline; static;
@@ -3080,7 +3524,7 @@ type
     property Action: PPassAction read GetAction;
     property Attachments: PAttachments read GetAttachments;
     property Swapchain: PSwapchain read GetSwapchain;
-    property TraceLabel: String read FTraceLabel write SetTraceLabel;
+    property TraceLabel: UTF8String read FTraceLabel write SetTraceLabel;
   end;
   PPass = ^TPass;
 
@@ -3787,7 +4231,7 @@ type
   PEnvironment = ^TEnvironment;
 
 type
-  { Used with function TGfx.AddCommitListener to add a callback which will be
+  { Used with property TGfx.CommitListener to set a callback which will be
     called in TGfx.Commit. This is useful for libraries building on top of
     Neslib.Sokol.Gfx to be notified about when a frame ends (instead of having
     to guess, or add a manual 'new-frame' function. }
@@ -4010,6 +4454,7 @@ type
   TGfx = record // static
   {$REGION 'Internal Declarations'}
   private class var
+    FCommitListener: TCommitListener;
     FDesc: TGfxDesc;
     FFeatures: TFeatures;
     FFeaturesValid: Boolean;
@@ -4020,8 +4465,16 @@ type
     class procedure DoGetFeatures; static;
     class function GetLimits: TLimits; inline; static;
     class function GetD3D11Device: IInterface; inline; static;
+    class function GetD3D11DeviceContext: IInterface; inline; static;
     class function GetMetalDevice: Pointer; inline; static;
     class function GetMetalRenderCommandEncoder: Pointer; inline; static;
+    class function GetMetalComputeCommandEncoder: Pointer; inline; static;
+    class function GetMetalCommandQueue: Pointer; inline; static;
+    class procedure SetCommitListener(const AValue: TCommitListener); static;
+    class function GetStatsEnabled: Boolean; inline; static;
+    class procedure SetStatsEnabled(const AValue: Boolean); inline; static;
+  private
+    class procedure CommitListenerCallback(AUserData: Pointer); cdecl; static;
   {$ENDREGION 'Internal Declarations'}
   public
     { Setup and misc functions }
@@ -4033,8 +4486,9 @@ type
     class procedure PopDebugGroup; inline; static;
 
     class property IsValid: Boolean read GetIsValid;
+    class property CommitListener: TCommitListener read FCommitListener write SetCommitListener;
   public
-    { Rendering methods }
+    { Rendering and compute methods }
     class procedure BeginPass(const APass: TPass); inline; static;
 
     class procedure ApplyViewport(const AX, AY, AWidth, AHeight: Integer;
@@ -4063,7 +4517,11 @@ type
       const AData: TRange); overload; inline; static;
 
     class procedure Draw(const ABaseElement, ANumElements: Integer;
-      const ANumInstances: Integer = 1); inline; static;
+      const ANumInstances: Integer = 1); overload; inline; static;
+    class procedure Draw(const ABaseElement, ANumElements, ANumInstances,
+      ABaseVertex, ABaseInstance: Integer); overload; inline; static;
+    class procedure Dispatch(const ANumGroupsX, ANumGroupsY,
+      ANumGroupsZ: Integer); inline; static;
     class procedure EndPass; inline; static;
     class procedure Commit; inline; static;
   public
@@ -4073,6 +4531,13 @@ type
     class property Features: TFeatures read GetFeatures;
     class property Limits: TLimits read GetLimits;
   public
+    { Frame and total stats }
+    class procedure EnableStats; inline; static;
+    class procedure DisableStats; inline; static;
+    class function QueryStats: TStats; inline; static;
+
+    class property StatsEnabled: Boolean read GetStatsEnabled write SetStatsEnabled;
+  public
     { Backend-specific helpers. These may come in handy for mixing Sokol
       rendering with 'native backend' rendering functions.
 
@@ -4081,12 +4546,22 @@ type
     { D3D11: return ID3D11Device }
     class property D3D11Device: IInterface read GetD3D11Device;
 
+    { D3D11: return ID3D11DeviceContext }
+    class property D3D11DeviceContext: IInterface read GetD3D11DeviceContext;
+
     { Metal: return ObjectID of MTLDevice}
     class property MetalDevice: Pointer read GetMetalDevice;
 
-    { Metal: return ObjectID of MTLRenderCommandEncoder in current pass (or nil
-      if outside pass) }
+    { Metal: return ObjectID of MTLRenderCommandEncoder when inside render pass
+      (or nil otherwise) }
     class property MetalRenderCommandEncoder: Pointer read GetMetalRenderCommandEncoder;
+
+    { Metal: return ObjectID of MTLComputeCommandEncoder when insidde compute
+      pass (or nil otherwise) }
+    class property MetalComputeCommandEncoder: Pointer read GetMetalComputeCommandEncoder;
+
+    { Metal: return ObjectID of MTLCommandQueue }
+    class property MetalCommandQueue: Pointer read GetMetalCommandQueue;
   end;
 
 implementation
@@ -4215,6 +4690,18 @@ begin
   FHasInfo := True;
   for var Fmt := Succ(Succ(Low(TPixelFormat))) to High(TPixelFormat) do
     FInfo[Fmt] := _sg_query_pixelformat(Ord(Fmt));
+end;
+
+function _TPixelFormatHelper.RowPitch(const AWidth,
+  ARowAlignBytes: Integer): Integer;
+begin
+  Result := _sg_query_row_pitch(Ord(Self), AWidth, ARowAlignBytes);
+end;
+
+function _TPixelFormatHelper.SurfacePitch(const AWidth, AHeight,
+  ARowAlignBytes: Integer): Integer;
+begin
+  Result := _sg_query_surface_pitch(Ord(Self), AWidth, AHeight, ARowAlignBytes);
 end;
 
 { TColorAttachmentAction }
@@ -4385,6 +4872,29 @@ begin
   Result := @FHandle.vulkan;
 end;
 
+{ TD3D11BufferInfo }
+
+function TD3D11BufferInfo.GetBuffer: IInterface;
+begin
+  Result := IInterface(FHandle.buf);
+end;
+
+{ TMetalBufferInfo }
+
+function TMetalBufferInfo.GetBuffer(const AIndex: Integer): Pointer;
+begin
+  Assert(Cardinal(AIndex) < NUM_INFLIGHT_FRAMES);
+  Result := FHandle.buf[AIndex];
+end;
+
+{ TGLBufferInfo }
+
+function TGLBufferInfo.GetBuffer(const AIndex: Integer): Cardinal;
+begin
+  Assert(Cardinal(AIndex) < NUM_INFLIGHT_FRAMES);
+  Result := FHandle.buf[AIndex];
+end;
+
 { TBufferDesc }
 
 procedure TBufferDesc.Convert(out ADst: _sg_buffer_desc);
@@ -4396,7 +4906,7 @@ begin
   if (TraceLabel = '') then
     ADst.&label := nil
   else
-    ADst.&label := PUTF8Char(UTF8String(TraceLabel));
+    ADst.&label := PUTF8Char(TraceLabel);
   Move(GLBuffers, ADst.gl_buffers, SizeOf(GLBuffers));
   Move(MetalBuffers, ADst.mtl_buffers, SizeOf(MetalBuffers));
   ADst.d3d11_buffer := Pointer(D3D11Buffer);
@@ -4419,6 +4929,17 @@ begin
 
   Size := Def.size;
   Usage.FHandle := Def.usage;
+end;
+
+procedure TBufferDesc.InitFrom(const ASrc: _sg_buffer_desc);
+begin
+  Size := ASrc.size;
+  Usage.FHandle := ASrc.usage;
+  Data.FHandle := ASrc.data;
+  TraceLabel := UTF8String(ASrc.&label);
+  Move(ASrc.gl_buffers, GLBuffers, SizeOf(GLBuffers));
+  Move(ASrc.mtl_buffers, MetalBuffers, SizeOf(MetalBuffers));
+  D3D11Buffer := IInterface(ASrc.d3d11_buffer);
 end;
 
 { TBuffer }
@@ -4462,14 +4983,39 @@ begin
   FHandle.id := 0;
 end;
 
+function TBuffer.GetD3D11BufferInfo: TD3D11BufferInfo;
+begin
+  Result.FHandle := _sg_d3d11_buffer_info(FHandle);
+end;
+
+function TBuffer.GetDesc: TBufferDesc;
+begin
+  Result.InitFrom(_sg_query_buffer_desc(FHandle));
+end;
+
+function TBuffer.GetGLBufferInfo: TGLBufferInfo;
+begin
+  Result.FHandle := _sg_gl_query_buffer_info(FHandle);
+end;
+
 function TBuffer.GetInfo: TBufferInfo;
 begin
   Result.FHandle := _sg_query_buffer_info(FHandle);
 end;
 
+function TBuffer.GetMetalBufferInfo: TMetalBufferInfo;
+begin
+  Result.FHandle := _sg_mtl_query_buffer_info(FHandle);
+end;
+
 function TBuffer.GetOverflow: Boolean;
 begin
   Result := _sg_query_buffer_overflow(FHandle);
+end;
+
+function TBuffer.GetSize: NativeInt;
+begin
+  Result := _sg_query_buffer_size(FHandle);
 end;
 
 function TBuffer.GetState: TResourceState;
@@ -4538,6 +5084,39 @@ begin
     MipLevels[I].FHandle := ASrc.mip_levels[I];
 end;
 
+{ TD3D11ImageInfo }
+
+function TD3D11ImageInfo.GetResource: IInterface;
+begin
+  Result := IInterface(FHandle.res);
+end;
+
+function TD3D11ImageInfo.GetTex2D: IInterface;
+begin
+  Result := IInterface(FHandle.tex2d);
+end;
+
+function TD3D11ImageInfo.GetTex3D: IInterface;
+begin
+  Result := IInterface(FHandle.tex3d);
+end;
+
+{ TMetalImageInfo }
+
+function TMetalImageInfo.GetTexture(const AIndex: Integer): Pointer;
+begin
+  Assert(Cardinal(AIndex) < NUM_INFLIGHT_FRAMES);
+  Result := FHandle.tex[AIndex];
+end;
+
+{ TGLImageInfo }
+
+function TGLImageInfo.GetTexture(const AIndex: Integer): Cardinal;
+begin
+  Assert(Cardinal(AIndex) < NUM_INFLIGHT_FRAMES);
+  Result := FHandle.tex[AIndex];
+end;
+
 { TImageDesc }
 
 procedure TImageDesc._Convert(out ADst: _sg_image_desc);
@@ -4555,7 +5134,7 @@ begin
   if (TraceLabel = '') then
     ADst.&label := nil
   else
-    ADst.&label := PUTF8Char(UTF8String(TraceLabel));
+    ADst.&label := PUTF8Char(TraceLabel);
   Move(GLTextures, ADst.gl_textures, SizeOf(GLTextures));
   ADst.gl_texture_target := GLTextureTarget;
   Move(MetalTextures, ADst.mtl_textures, SizeOf(GLTextures));
@@ -4564,7 +5143,7 @@ begin
   ADst._end_canary := 0;
 end;
 
-procedure TImageDesc._InitFrom(out ASrc: _sg_image_desc);
+procedure TImageDesc._InitFrom(const ASrc: _sg_image_desc);
 begin
   ImageType := TImageType(ASrc.&type);
   Usage.FHandle := ASrc.usage;
@@ -4575,7 +5154,7 @@ begin
   PixelFormat := TPixelFormat(ASrc.pixel_format);
   SampleCount := ASrc.sample_count;
   Data.InitFrom(ASrc.data);
-  TraceLabel := String(UTF8String(ASrc.&label));
+  TraceLabel := UTF8String(ASrc.&label);
   Move(ASrc.gl_textures, GLTextures, SizeOf(GLTextures));
   GLTextureTarget := ASrc.gl_texture_target;
   Move(ASrc.mtl_textures, MetalTextures, SizeOf(MetalTextures));
@@ -4633,14 +5212,74 @@ begin
   FHandle.id := 0;
 end;
 
+function TImage.GetD3D11ImageInfo: TD3D11ImageInfo;
+begin
+  Result.FHandle := _sg_d3d11_query_image_info(FHandle);
+end;
+
+function TImage.GetDesc: TImageDesc;
+begin
+  Result._InitFrom(_sg_query_image_desc(FHandle));
+end;
+
+function TImage.GetGLImageInfo: TGLImageInfo;
+begin
+  Result.FHandle := _sg_gl_query_image_info(FHandle);
+end;
+
+function TImage.GetHeight: Integer;
+begin
+  Result := _sg_query_image_height(FHandle);
+end;
+
+function TImage.GetImageType: TImageType;
+begin
+  Result := TImageType(_sg_query_image_type(FHandle));
+end;
+
 function TImage.GetInfo: TImageInfo;
 begin
   Result.FHandle := _sg_query_image_info(FHandle);
 end;
 
+function TImage.GetMetalImageInfo: TMetalImageInfo;
+begin
+  Result.FHandle := _sg_mtl_query_image_info(FHandle);
+end;
+
+function TImage.GetNumMipmaps: Integer;
+begin
+  Result := _sg_query_image_num_mipmaps(FHandle);
+end;
+
+function TImage.GetNumSlices: Integer;
+begin
+  Result := _sg_query_image_num_slices(FHandle);
+end;
+
+function TImage.GetPixelFormat: TPixelFormat;
+begin
+  Result := TPixelFormat(_sg_query_image_pixelformat(FHandle));
+end;
+
+function TImage.GetSampleCount: Integer;
+begin
+  Result := _sg_query_image_sample_count(FHandle);
+end;
+
 function TImage.GetState: TResourceState;
 begin
   Result := TResourceState(_sg_query_image_state(FHandle));
+end;
+
+function TImage.GetUsage: TImageUsage;
+begin
+  Result.FHandle := _sg_query_image_usage(FHandle);
+end;
+
+function TImage.GetWidth: Integer;
+begin
+  Result := _sg_query_image_width(FHandle);
 end;
 
 procedure TImage.Init(const ADesc: TImageDesc);
@@ -4667,6 +5306,13 @@ begin
   var Data: _sg_image_data;
   AData.Convert(Data);
   _sg_update_image(FHandle, @Data);
+end;
+
+{ TD3D11SamplerInfo }
+
+function TD3D11SamplerInfo.GetSampler: IInterface;
+begin
+  Result := IInterface(FHandle.smp);
 end;
 
 { TSamplerDesc }
@@ -4702,7 +5348,7 @@ begin
   if (TraceLabel = '') then
     ADst.&label := nil
   else
-    ADst.&label := PUTF8Char(UTF8String(TraceLabel));
+    ADst.&label := PUTF8Char(TraceLabel);
 
   ADst.gl_sampler := GLSampler;
   ADst.mtl_sampler := MtlSampler;
@@ -4711,7 +5357,7 @@ begin
   ADst._end_canary := 0;
 end;
 
-procedure TSamplerDesc._InitFrom(out ASrc: _sg_sampler_desc);
+procedure TSamplerDesc._InitFrom(const ASrc: _sg_sampler_desc);
 begin
   FillChar(Self, SizeOf(Self), 0);
   MinFilter := TFilter(ASrc.min_filter);
@@ -4725,10 +5371,277 @@ begin
   BorderColor := TBorderColor(ASrc.border_color);
   Compare := TCompareFunc(ASrc.compare);
   MaxAnisotropy := ASrc.max_anisotropy;
-  TraceLabel := String(UTF8String(ASrc.&label));
+  TraceLabel := UTF8String(ASrc.&label);
   GLSampler := ASrc.gl_sampler;
   MtlSampler := ASrc.mtl_sampler;
   D3D11Sampler := IInterface(ASrc.d3d11_sampler);
+end;
+
+{ TSampler }
+
+procedure TSampler.Allocate;
+begin
+  FHandle := _sg_alloc_sampler;
+end;
+
+constructor TSampler.Create(const ADesc: TSamplerDesc);
+begin
+  Init(ADesc);
+end;
+
+procedure TSampler.Deallocate;
+begin
+  _sg_dealloc_sampler(FHandle);
+end;
+
+procedure TSampler.Fail;
+begin
+  _sg_fail_sampler(FHandle);
+end;
+
+procedure TSampler.Free;
+begin
+  _sg_destroy_sampler(FHandle);
+  FHandle.id := 0;
+end;
+
+function TSampler.GetD3D11SamplerInfo: TD3D11SamplerInfo;
+begin
+  Result.FHandle := _sg_d3d11_query_sampler_info(FHandle);
+end;
+
+function TSampler.GetDesc: TSamplerDesc;
+begin
+  Result._InitFrom(_sg_query_sampler_desc(FHandle));
+end;
+
+function TSampler.GetGLSamplerInfo: TGLSamplerInfo;
+begin
+  Result.FHandle := _sg_gl_query_sampler_info(FHandle);
+end;
+
+function TSampler.GetInfo: TSamplerInfo;
+begin
+  Result.FHandle := _sg_query_sampler_info(FHandle);
+end;
+
+function TSampler.GetMetalSamplerInfo: TMetalSamplerInfo;
+begin
+  Result.FHandle := _sg_mtl_query_sampler_info(FHandle);
+end;
+
+function TSampler.GetState: TResourceState;
+begin
+  Result := TResourceState(_sg_query_sampler_state(FHandle));
+end;
+
+procedure TSampler.Init(const ADesc: TSamplerDesc);
+begin
+  var Desc: _sg_sampler_desc;
+  ADesc._Convert(Desc);
+  FHandle := _sg_make_sampler(@Desc);
+end;
+
+procedure TSampler.Setup(const ADesc: TSamplerDesc);
+begin
+  var Desc: _sg_sampler_desc;
+  ADesc._Convert(Desc);
+  _sg_init_sampler(FHandle, @Desc);
+end;
+
+procedure TSampler.Teardown;
+begin
+  _sg_uninit_sampler(FHandle);
+end;
+
+{ TBufferViewDesc }
+
+procedure TBufferViewDesc.Convert(out ADst: _sg_buffer_view_desc);
+begin
+  ADst.buffer := Buffer.FHandle;
+  ADst.offset := Offset;
+end;
+
+procedure TBufferViewDesc.InitFrom(const ASrc: _sg_buffer_view_desc);
+begin
+  Buffer.FHandle := ASrc.buffer;
+  Offset := ASrc.offset;
+end;
+
+{ TImageViewDesc }
+
+procedure TImageViewDesc.Convert(out ADst: _sg_image_view_desc);
+begin
+  ADst.image := Image.FHandle;
+  ADst.mip_level := MipLevel;
+  ADst.slice := Slice;
+end;
+
+procedure TImageViewDesc.InitFrom(const ASrc: _sg_image_view_desc);
+begin
+  Image.FHandle := ASrc.image;
+  MipLevel := ASrc.mip_level;
+  Slice := ASrc.slice;
+end;
+
+{ TTextureViewDesc }
+
+procedure TTextureViewDesc._Convert(out ADst: _sg_texture_view_desc);
+begin
+  ADst.image := Image.FHandle;
+  ADst.mip_levels := MipLevels.FHandle;
+  ADst.slices := Slices.FHandle;
+end;
+
+procedure TTextureViewDesc._InitFrom(const ASrc: _sg_texture_view_desc);
+begin
+  Image.FHandle := ASrc.image;
+  MipLevels.FHandle := ASrc.mip_levels;
+  Slices.FHandle := ASrc.slices;
+end;
+
+{ TViewDesc }
+
+procedure TViewDesc.Convert(out ADst: _sg_view_desc);
+begin
+  ADst._start_canary := 0;
+  Texture._Convert(ADst.texture);
+  StorageBuffer.Convert(ADst.storage_buffer);
+  StorageImage.Convert(ADst.storage_image);
+  ColorAttachment.Convert(ADst.color_attachment);
+  ResolveAttachment.Convert(ADst.resolve_attachment);
+  DepthStencilAttachment.Convert(ADst.depth_stencil_attachment);
+  if (TraceLabel = '') then
+    ADst.&label := nil
+  else
+    ADst.&label := PUTF8Char(TraceLabel);
+  ADst._end_canary := 0;
+end;
+
+class function TViewDesc.Create: TViewDesc;
+begin
+  Result.Init;
+end;
+
+procedure TViewDesc.Init;
+begin
+  var Def: _sg_view_desc;
+  FillChar(Def, SizeOf(Def), 0);
+  Def := _sg_query_view_defaults(@Def);
+  InitFrom(Def);
+end;
+
+procedure TViewDesc.InitFrom(const ASrc: _sg_view_desc);
+begin
+  Texture._InitFrom(ASrc.texture);
+  StorageBuffer.InitFrom(ASrc.storage_buffer);
+  StorageImage.InitFrom(ASrc.storage_image);
+  ColorAttachment.InitFrom(ASrc.color_attachment);
+  ResolveAttachment.InitFrom(ASrc.resolve_attachment);
+  DepthStencilAttachment.InitFrom(ASrc.depth_stencil_attachment);
+  TraceLabel := UTF8String(ASrc.&label);
+end;
+
+{ TD3D11ViewInfo }
+
+function TD3D11ViewInfo.GetDepthStencilView: IInterface;
+begin
+  Result := IInterface(FHandle.dsv);
+end;
+
+function TD3D11ViewInfo.GetRenderTargetView: IInterface;
+begin
+  Result := IInterface(FHandle.rtv);
+end;
+
+function TD3D11ViewInfo.GetShaderResourceView: IInterface;
+begin
+  Result := IInterface(FHandle.srv);
+end;
+
+function TD3D11ViewInfo.GetUnorderedAccessView: IInterface;
+begin
+  Result := IInterface(FHandle.uav);
+end;
+
+{ TGLViewInfo }
+
+function TGLViewInfo.GetTextureView(const AIndex: Integer): Cardinal;
+begin
+  Assert(Cardinal(AIndex) < NUM_INFLIGHT_FRAMES);
+  Result := FHandle.tex_view[AIndex];
+end;
+
+{ TView }
+
+procedure TView.Allocate;
+begin
+  FHandle := _sg_alloc_view;
+end;
+
+constructor TView.Create(const ADesc: TViewDesc);
+begin
+  Init(ADesc);
+end;
+
+procedure TView.Deallocate;
+begin
+  _sg_dealloc_view(FHandle);
+end;
+
+procedure TView.Fail;
+begin
+  _sg_fail_view(FHandle);
+end;
+
+procedure TView.Free;
+begin
+  _sg_destroy_view(FHandle);
+  FHandle.id := 0;
+end;
+
+function TView.GetD3D11ViewInfo: TD3D11ViewInfo;
+begin
+  Result.FHandle := _sg_d3d11_query_view_info(FHandle);
+end;
+
+function TView.GetDesc: TViewDesc;
+begin
+  Result.InitFrom(_sg_query_view_desc(FHandle));
+end;
+
+function TView.GetGLViewInfo: TGLViewInfo;
+begin
+  Result.FHandle := _sg_gl_query_view_info(FHandle);
+end;
+
+function TView.GetInfo: TViewInfo;
+begin
+  Result.FHandle := _sg_query_view_info(FHandle);
+end;
+
+function TView.GetState: TResourceState;
+begin
+  Result := TResourceState(_sg_query_view_state(FHandle));
+end;
+
+procedure TView.Init(const ADesc: TViewDesc);
+begin
+  var Desc: _sg_view_desc;
+  ADesc.Convert(Desc);
+  FHandle := _sg_make_view(@Desc);
+end;
+
+procedure TView.Setup(const ADesc: TViewDesc);
+begin
+  var Desc: _sg_view_desc;
+  ADesc.Convert(Desc);
+  _sg_init_view(FHandle, @Desc);
+end;
+
+procedure TView.Teardown;
+begin
+  _sg_uninit_view(FHandle);
 end;
 
 { TShaderFunction }
@@ -4957,9 +5870,9 @@ begin
   GlslName := AnsiString(ASrc.glsl_name);
 end;
 
-{ TMtlShaderThreadsPerThreadgroup }
+{ TMetalShaderThreadsPerThreadgroup }
 
-procedure TMtlShaderThreadsPerThreadgroup.Convert(
+procedure TMetalShaderThreadsPerThreadgroup.Convert(
   out ADst: _sg_mtl_shader_threads_per_threadgroup);
 begin
   ADst.x := X;
@@ -4967,7 +5880,7 @@ begin
   ADst.z := Z;
 end;
 
-procedure TMtlShaderThreadsPerThreadgroup.InitFrom(
+procedure TMetalShaderThreadsPerThreadgroup.InitFrom(
   const ASrc: _sg_mtl_shader_threads_per_threadgroup);
 begin
   X := ASrc.x;
@@ -5005,7 +5918,7 @@ begin
   if (TraceLabel = '') then
     ADst.&label := nil
   else
-    ADst.&label := PUTF8Char(UTF8String(TraceLabel));
+    ADst.&label := PUTF8Char(TraceLabel);
 
   ADst._end_canary := 0;
 end;
@@ -5044,7 +5957,51 @@ begin
 
   MtlThreadsPerThreadgroup.InitFrom(Def.mtl_threads_per_threadgroup);
 
-  TraceLabel := String(UTF8String(Def.&label));
+  TraceLabel := UTF8String(Def.&label);
+end;
+
+procedure TShaderDesc.InitFrom(const ASrc: _sg_shader_desc);
+begin
+  VertexFunc.InitFrom(ASrc.vertex_func);
+  FragmentFunc.InitFrom(ASrc.fragment_func);
+  ComputeFunc.InitFrom(ASrc.compute_func);
+
+  for var I := 0 to MAX_VERTEX_ATTRIBUTES - 1 do
+    Attrs[I].InitFrom(ASrc.attrs[I]);
+
+  for var I := 0 to MAX_UNIFORMBLOCK_BINDSLOTS - 1 do
+    UniformBlocks[I].InitFrom(ASrc.uniform_blocks[I]);
+
+  for var I := 0 to MAX_VIEW_BINDSLOTS - 1 do
+    Views[I].InitFrom(ASrc.views[I]);
+
+  for var I := 0 to MAX_SAMPLER_BINDSLOTS - 1 do
+    Samplers[I].InitFrom(ASrc.samplers[I]);
+
+  for var I := 0 to MAX_TEXTURE_SAMPLER_PAIRS - 1 do
+    TextureSamplerPairs[I].InitFrom(ASrc.texture_sampler_pairs[I]);
+
+  MtlThreadsPerThreadgroup.InitFrom(ASrc.mtl_threads_per_threadgroup);
+
+  TraceLabel := UTF8String(ASrc.&label);
+end;
+
+{ TD3D11ShaderInfo }
+
+function TD3D11ShaderInfo.GetConstantBuffer(const AIndex: Integer): IInterface;
+begin
+  Assert(Cardinal(AIndex) < MAX_UNIFORMBLOCK_BINDSLOTS);
+  Result := IInterface(FHandle.cbufs[AIndex]);
+end;
+
+function TD3D11ShaderInfo.GetFragmentShader: IInterface;
+begin
+  Result := IInterface(FHandle.fs);
+end;
+
+function TD3D11ShaderInfo.GetVertexShader: IInterface;
+begin
+  Result := IInterface(FHandle.vs);
 end;
 
 { TShader }
@@ -5080,9 +6037,29 @@ begin
   FHandle.id := 0;
 end;
 
+function TShader.GetD3D11ShaderInfo: TD3D11ShaderInfo;
+begin
+  Result.FHandle := _sg_d3d11_query_shader_info(FHandle);
+end;
+
+function TShader.GetDesc: TShaderDesc;
+begin
+  Result.InitFrom(_sg_query_shader_desc(FHandle));
+end;
+
+function TShader.GetGLShaderInfo: TGLShaderInfo;
+begin
+  Result.FHandle := _sg_gl_query_shader_info(FHandle);
+end;
+
 function TShader.GetInfo: TShaderInfo;
 begin
   Result.FHandle := _sg_query_shader_info(FHandle);
+end;
+
+function TShader.GetMetalShaderInfo: TMetalShaderInfo;
+begin
+  Result.FHandle := _sg_mtl_query_shader_info(FHandle);
 end;
 
 function TShader.GetState: TResourceState;
@@ -5140,6 +6117,14 @@ begin
   StepRate := AStepRate;
 end;
 
+procedure TVertexBufferLayoutState.InitFrom(
+  const ASrc: _sg_vertex_buffer_layout_state);
+begin
+  Stride := ASrc.stride;
+  StepFunc := TVertexStep(ASrc.step_func);
+  StepRate := ASrc.step_rate;
+end;
+
 { TVertexAttrState }
 
 procedure TVertexAttrState.Convert(out ADst: _sg_vertex_attr_state);
@@ -5165,6 +6150,13 @@ begin
   Format := AFormat;
 end;
 
+procedure TVertexAttrState.InitFrom(const ASrc: _sg_vertex_attr_state);
+begin
+  BufferIndex :=  ASrc.buffer_index;
+  Offset := ASrc.offset;
+  Format := TVertexFormat(ASrc.format);
+end;
+
 { TVertexLayoutState }
 
 procedure TVertexLayoutState.Convert(out ADst: _sg_vertex_layout_state);
@@ -5184,6 +6176,15 @@ end;
 procedure TVertexLayoutState.Init;
 begin
   FillChar(Self, SizeOf(Self), 0);
+end;
+
+procedure TVertexLayoutState.InitFrom(const ASrc: _sg_vertex_layout_state);
+begin
+  for var I := 0 to MAX_VERTEXBUFFER_BINDSLOTS - 1 do
+    Buffers[I].InitFrom(ASrc.buffers[I]);
+
+  for var I := 0 to MAX_VERTEX_ATTRIBUTES - 1 do
+    Attrs[I].InitFrom(ASrc.attrs[I]);
 end;
 
 { _sg_shader_desc_helper }
@@ -5218,6 +6219,14 @@ begin
   PassOp := APassOp;
 end;
 
+procedure TStencilFaceState.InitFrom(const ASrc: _sg_stencil_face_state);
+begin
+  Compare := TCompareFunc(ASrc.compare);
+  FailOp := TStencilOp(ASrc.fail_op);
+  DepthFailOp := TStencilOp(ASrc.depth_fail_op);
+  PassOp := TStencilOp(ASrc.pass_op);
+end;
+
 { TStencilState }
 
 procedure TStencilState.Convert(out ADst: _sg_stencil_state);
@@ -5244,6 +6253,16 @@ begin
   ReadMask := AReadMask;
   WriteMask := AWriteMask;
   Ref := ARef;
+end;
+
+procedure TStencilState.InitFrom(const ASrc: _sg_stencil_state);
+begin
+  Enabled := ASrc.enabled;
+  Front.InitFrom(ASrc.front);
+  Back.InitFrom(ASrc.back);
+  ReadMask := ASrc.read_mask;
+  WriteMask := ASrc.write_mask;
+  Ref := ASrc.ref;
 end;
 
 { TDepthState }
@@ -5275,6 +6294,16 @@ begin
   Bias := ABias;
   BiasSlopeScale := ABiasSlopeScale;
   BiasClamp := ABiasClamp;
+end;
+
+procedure TDepthState.InitFrom(const ASrc: _sg_depth_state);
+begin
+  PixelFormat := TPixelFormat(ASrc.pixel_format);
+  Compare := TCompareFunc(ASrc.compare);
+  WriteEnabled := ASrc.write_enabled;
+  Bias := ASrc.bias;
+  BiasSlopeScale := ASrc.bias_slope_scale;
+  BiasClamp := ASrc.bias_clamp;
 end;
 
 { TBlendState }
@@ -5311,6 +6340,17 @@ begin
   OpAlpha := AOpAlpha;
 end;
 
+procedure TBlendState.InitFrom(const ASrc: _sg_blend_state);
+begin
+  Enabled := ASrc.enabled;
+  SrcFactorRgb := TBlendFactor(ASrc.src_factor_rgb);
+  DstFactorRgb := TBlendFactor(ASrc.dst_factor_rgb);
+  OpRgb := TBlendOp(ASrc.op_rgb);
+  SrcFactorAlpha := TBlendFactor(ASrc.src_factor_alpha);
+  DstFactorAlpha := TBlendFactor(ASrc.dst_factor_alpha);
+  OpAlpha := TBlendOp(ASrc.op_alpha);
+end;
+
 { TColorTargetState }
 
 procedure TColorTargetState.Convert(out ADst: _sg_color_target_state);
@@ -5334,6 +6374,13 @@ begin
   PixelFormat := APixelFormat;
   WriteMask := AWriteMask;
   FillChar(Blend, SizeOf(Blend), 0);
+end;
+
+procedure TColorTargetState.InitFrom(const ASrc: _sg_color_target_state);
+begin
+  PixelFormat := TPixelFormat(ASrc.pixel_format);
+  WriteMask := TColorMask(ASrc.write_mask);
+  Blend.InitFrom(ASrc.blend);
 end;
 
 { TPipelineDesc }
@@ -5360,8 +6407,29 @@ begin
   if (TraceLabel = '') then
     ADst.&label := nil
   else
-    ADst.&label := PUTF8Char(UTF8String(TraceLabel));
+    ADst.&label := PUTF8Char(TraceLabel);
   ADst._end_canary := 0;
+end;
+
+procedure TPipelineDesc._InitFrom(const ASrc: _sg_pipeline_desc);
+begin
+  Shader.FHandle.id := ASrc.shader.id;
+  Layout.InitFrom(ASrc.layout);
+  Depth.InitFrom(ASrc.depth);
+  Stencil.InitFrom(ASrc.stencil);
+
+  ColorCount := ASrc.color_count;
+  for var I := 0 to MAX_COLOR_ATTACHMENTS - 1 do
+    Colors[I].InitFrom(ASrc.colors[I]);
+
+  PrimitiveType := TPrimitiveType(ASrc.primitive_type);
+  IndexType := TIndexType(ASrc.index_type);
+  CullMode := TCullMode(ASrc.cull_mode);
+  FaceWinding := TFaceWinding(ASrc.face_winding);
+  SampleCount := ASrc.sample_count;
+  BlendColor := TColor(ASrc.blend_color);
+  AlphaToCoverageEnabled := ASrc.alpha_to_coverage_enabled;
+  TraceLabel := UTF8String(ASrc.&label);
 end;
 
 class function TPipelineDesc.Create: TPipelineDesc;
@@ -5429,6 +6497,28 @@ begin
   end;}
 end;
 
+{ TD3D11PipelineInfo }
+
+function TD3D11PipelineInfo.GetBlendState: IInterface;
+begin
+  Result := IInterface(FHandle.bs);
+end;
+
+function TD3D11PipelineInfo.GetDepthStencilState: IInterface;
+begin
+  Result := IInterface(FHandle.dss);
+end;
+
+function TD3D11PipelineInfo.GetInputLayout: IInterface;
+begin
+  Result := IInterface(FHandle.il);
+end;
+
+function TD3D11PipelineInfo.GetRasterizerState: IInterface;
+begin
+  Result := IInterface(FHandle.rs);
+end;
+
 { TPipeline }
 
 procedure TPipeline.Allocate;
@@ -5457,9 +6547,24 @@ begin
   FHandle.id := 0;
 end;
 
+function TPipeline.GetD3D11PipelineInfo: TD3D11PipelineInfo;
+begin
+  Result.FHandle := _sg_d3d11_query_pipeline_info(FHandle);
+end;
+
+function TPipeline.GetDesc: TPipelineDesc;
+begin
+  Result._InitFrom(_sg_query_pipeline_desc(FHandle));
+end;
+
 function TPipeline.GetInfo: TPipelineInfo;
 begin
   Result.FHandle := _sg_query_pipeline_info(FHandle);
+end;
+
+function TPipeline.GetMetalPipelineInfo: TMetalPipelineInfo;
+begin
+  Result.FHandle := _sg_mtl_query_pipeline_info(FHandle);
 end;
 
 function TPipeline.GetState: TResourceState;
@@ -5513,13 +6618,13 @@ begin
   FillChar(Self, SizeOf(Self), 0);
 end;
 
-procedure TPass.SetTraceLabel(const AValue: String);
+procedure TPass.SetTraceLabel(const AValue: UTF8String);
 begin
   FTraceLabel := AValue;
   if (AValue = '') then
     FHandle.&label := nil
   else
-    FHandle.&label := PUTF8Char(UTF8String(TraceLabel));
+    FHandle.&label := PUTF8Char(TraceLabel);
 end;
 
 { TBindings }
@@ -6498,6 +7603,23 @@ begin
   _sg_commit;
 end;
 
+class procedure TGfx.CommitListenerCallback(AUserData: Pointer);
+begin
+  Assert(Assigned(FCommitListener));
+  FCommitListener();
+end;
+
+class procedure TGfx.DisableStats;
+begin
+  _sg_disable_stats();
+end;
+
+class procedure TGfx.Dispatch(const ANumGroupsX, ANumGroupsY,
+  ANumGroupsZ: Integer);
+begin
+  _sg_dispatch(ANumGroupsX, ANumGroupsY, ANumGroupsZ);
+end;
+
 class procedure TGfx.DoGetFeatures;
 begin
   var Features := _sg_query_features;
@@ -6527,10 +7649,21 @@ begin
     Include(FFeatures, TFeature.GLTextureViews);
 end;
 
+class procedure TGfx.Draw(const ABaseElement, ANumElements, ANumInstances,
+  ABaseVertex, ABaseInstance: Integer);
+begin
+  _sg_draw_ex(ABaseElement, ANumElements, ANumInstances, ABaseElement, ABaseInstance);
+end;
+
 class procedure TGfx.Draw(const ABaseElement, ANumElements,
   ANumInstances: Integer);
 begin
   _sg_draw(ABaseElement, ANumElements, ANumInstances);
+end;
+
+class procedure TGfx.EnableStats;
+begin
+  _sg_enable_stats();
 end;
 
 class procedure TGfx.EndPass;
@@ -6546,6 +7679,11 @@ end;
 class function TGfx.GetD3D11Device: IInterface;
 begin
   Result := IInterface(_sg_d3d11_device);
+end;
+
+class function TGfx.GetD3D11DeviceContext: IInterface;
+begin
+  Result := IInterface(_sg_d3d11_device_context);
 end;
 
 class function TGfx.GetFeatures: TFeatures;
@@ -6566,6 +7704,16 @@ begin
   Result.FHandle := _sg_query_limits;
 end;
 
+class function TGfx.GetMetalCommandQueue: Pointer;
+begin
+  Result := _sg_mtl_command_queue;
+end;
+
+class function TGfx.GetMetalComputeCommandEncoder: Pointer;
+begin
+  Result := _sg_mtl_compute_command_encoder;
+end;
+
 class function TGfx.GetMetalDevice: Pointer;
 begin
   Result := _sg_mtl_device;
@@ -6574,6 +7722,11 @@ end;
 class function TGfx.GetMetalRenderCommandEncoder: Pointer;
 begin
   Result := _sg_mtl_render_command_encoder;
+end;
+
+class function TGfx.GetStatsEnabled: Boolean;
+begin
+  Result := _sg_stats_enabled();
 end;
 
 class procedure TGfx.InstallTraceHooks(const ATraceHooks: TTraceHooks);
@@ -6591,9 +7744,36 @@ begin
   _sg_push_debug_group(PUTF8Char(UTF8String(AName)));
 end;
 
+class function TGfx.QueryStats: TStats;
+begin
+  Result := TStats(_sg_query_stats());
+end;
+
 class procedure TGfx.ResetCache;
 begin
   _sg_reset_state_cache;
+end;
+
+class procedure TGfx.SetCommitListener(const AValue: TCommitListener);
+begin
+  FCommitListener := AValue;
+
+  var Listener: _sg_commit_listener;
+  Listener.func := CommitListenerCallback;
+  Listener.user_data := nil;
+
+  if Assigned(AValue) then
+    _sg_add_commit_listener(Listener)
+  else
+    _sg_remove_commit_listener(Listener);
+end;
+
+class procedure TGfx.SetStatsEnabled(const AValue: Boolean);
+begin
+  if (AValue) then
+    _sg_enable_stats()
+  else
+    _sg_disable_stats()
 end;
 
 class procedure TGfx.Setup(const ADesc: TGfxDesc);
@@ -6612,5 +7792,6 @@ initialization
   Assert(SizeOf(TColorAttachmentAction) = SizeOf(_sg_color_attachment_action));
   Assert(SizeOf(TDepthAttachmentAction) = SizeOf(_sg_depth_attachment_action));
   Assert(SizeOf(TStencilAttachmentAction) = SizeOf(_sg_stencil_attachment_action));
+  Assert(SizeOf(TStats) = SizeOf(_sg_stats));
 
 end.
