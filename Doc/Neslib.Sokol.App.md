@@ -87,6 +87,7 @@ A simple clear-loop sample using Neslib.Sokol.App and [Neslib.Sokol.Gfx](Neslib.
     AConfig.WindowTitle := 'Clear';
     AConfig.Width := 800;
     AConfig.Height := 600;
+    AConfig.Logger := DefaultLogger;
     ...
   end;
 
@@ -98,7 +99,6 @@ A simple clear-loop sample using Neslib.Sokol.App and [Neslib.Sokol.Gfx](Neslib.
     TGfx.Setup(Desc);
 
     FPassAction.Colors[0].Init(TAction.Clear, 1, 0, 0);
-
   end;
 
   procedure TMyApp.Frame;
@@ -110,10 +110,12 @@ A simple clear-loop sample using Neslib.Sokol.App and [Neslib.Sokol.Gfx](Neslib.
       G := 0;
     FPassAction.Colors[0].Val[1] := G;
 
-    TGfx.BeginDefaultPass(FPassAction, Width, Height);
+    var Pass := TPass.Create;
+    Pass.Action^ := FPassAction;
+    Pass.Swapchain.FromAppSwapchain;
+    TGfx.BeginPass(Pass);
     TGfx.EndPass;
     TGfx.Commit;
-
   end;
 
   procedure TMyApp.Cleanup;
@@ -357,3 +359,21 @@ For an example and test of the window icon feature, check out the Icon sample ap
 
 ## Onscreen keyboard
 On some platforms which don't provide a physical keyboard, the app can display the platform's integrated onscreen keyboard for text input. Use the `KeyboardVisible` property to show and hide the keyboard.
+
+## Memory allocation override
+
+You can use Delphi's memory manager instead of the system memory manager by settings `TAppConfig.UseDelphiMemoryManager` to `True`.  This only affects memory allocation calls done by Neslib.Sokol.App itself though, not any allocations in OS libraries.
+
+## Error reporting and logging
+
+To get any logging information at all you need to provide a logging callback in the `TAppConfig` record. The easiest way is using the DefaultLogger provided by Sokol:
+
+```pascal
+  procedure TMyApp.Configure(var AConfig: TAppConfig);
+  begin
+    inherited;
+    AConfig.Logger := DefaultLogger;
+    ...
+  end;
+```
+

@@ -60,7 +60,7 @@ end;
 procedure TClearApp.Init;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TLoadAction.Clear, TStoreAction.Default, 1, 0, 0);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0);
 end;
 
 end.

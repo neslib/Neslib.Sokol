@@ -462,18 +462,7 @@ type
   { The basic data type of a texture sample as expected by a shader. Must be
     provided in TShaderImage and used by the validation layer in
     TGfx.ApplyBindings to check if the provided image object is compatible with
-    what the shader expects.
-
-    NOTE that the following texture pixel formats require the use
-    of TImageSamplerType.UnfilterableFloat, combined with a sampler of type
-    TSampleType.NonFiltering:
-
-    - TPixelFormat.R32F
-    - TPixelFormat.Rg32F
-    - TPixelFormat.Rgba32F
-
-    (when using the Sokol shader compiler, also check out the meta tags
-    `@image_sample_type` and `@sampler_type`). }
+    what the shader expects. }
   TImageSampleType = (
     { Floating-point }
     Float             = _SG_IMAGESAMPLETYPE_FLOAT,
@@ -485,10 +474,7 @@ type
     SignedInt         = _SG_IMAGESAMPLETYPE_SINT,
 
     { Unsigned integer }
-    UnsignedInt       = _SG_IMAGESAMPLETYPE_UINT,
-
-    { Unfilterable floating-point }
-    UnfilterableFloat = _SG_IMAGESAMPLETYPE_UNFILTERABLE_FLOAT);
+    UnsignedInt       = _SG_IMAGESAMPLETYPE_UINT);
 
 type
   { The basic type of a texture sampler (sampling vs comparison) as defined in a
@@ -498,7 +484,6 @@ type
     compatible with each other, specifically only the following pairs are allowed:
 
     - TImageSampleType.Float => TSamplerType.Filtering or TSamplerType.NonFiltering
-    - TImageSampleType.UnfilterableFloat => TSamplerType.NonFiltering
     - TImageSampleType.SignedInt => TSamplerType.NonFiltering
     - TImageSampleType.UnsignedInt => TSamplerType.NonFiltering
     - TImageSampleType.Depth => TSamplerType.Comparison }
@@ -908,12 +893,28 @@ type
     constructor Create(const ALoadAction: TLoadAction;
       const AStoreAction: TStoreAction; const AR, AG, AB: Single;
       const AA: Single = 1); overload;
+    constructor Create(const ALoadAction: TLoadAction;
+      const AClearValue: TColor); overload;
+    constructor Create(const ALoadAction: TLoadAction;
+      const AR, AG, AB: Single; const AA: Single = 1); overload;
+    constructor Create(const AStoreAction: TStoreAction;
+      const AClearValue: TColor); overload;
+    constructor Create(const AStoreAction: TStoreAction;
+      const AR, AG, AB: Single; const AA: Single = 1); overload;
 
     procedure Init(const ALoadAction: TLoadAction;
       const AStoreAction: TStoreAction; const AClearValue: TColor); overload; inline;
     procedure Init(const ALoadAction: TLoadAction;
       const AStoreAction: TStoreAction; const AR, AG, AB: Single;
       const AA: Single = 1); overload; inline;
+    procedure Init(const ALoadAction: TLoadAction;
+      const AClearValue: TColor); overload; inline;
+    procedure Init(const ALoadAction: TLoadAction;
+      const AR, AG, AB: Single; const AA: Single = 1); overload; inline;
+    procedure Init(const AStoreAction: TStoreAction;
+      const AClearValue: TColor); overload; inline;
+    procedure Init(const AStoreAction: TStoreAction;
+      const AR, AG, AB: Single; const AA: Single = 1); overload; inline;
   end;
   PColorAttachmentAction = ^TColorAttachmentAction;
 
@@ -929,9 +930,18 @@ type
     ClearValue: Single;
   public
     constructor Create(const ALoadAction: TLoadAction;
-      const AStoreAction: TStoreAction; const AClearValue: Single);
+      const AStoreAction: TStoreAction; const AClearValue: Single); overload;
+    constructor Create(const ALoadAction: TLoadAction;
+      const AClearValue: Single); overload;
+    constructor Create(const AStoreAction: TStoreAction;
+      const AClearValue: Single); overload;
+
     procedure Init(const ALoadAction: TLoadAction;
-      const AStoreAction: TStoreAction; const AClearValue: Single); inline;
+      const AStoreAction: TStoreAction; const AClearValue: Single); overload; inline;
+    procedure Init(const ALoadAction: TLoadAction;
+      AClearValue: Single); overload; inline;
+    procedure Init(const AStoreAction: TStoreAction;
+      const AClearValue: Single); overload; inline;
   end;
   PDepthAttachmentAction = ^TDepthAttachmentAction;
 
@@ -947,9 +957,18 @@ type
     ClearValue: Byte;
   public
     constructor Create(const ALoadAction: TLoadAction;
-      const AStoreAction: TStoreAction; const AClearValue: Byte);
+      const AStoreAction: TStoreAction; const AClearValue: Byte); overload;
+    constructor Create(const ALoadAction: TLoadAction;
+      const AClearValue: Byte); overload;
+    constructor Create(const AStoreAction: TStoreAction;
+      const AClearValue: Byte); overload;
+
     procedure Init(const ALoadAction: TLoadAction;
-      const AStoreAction: TStoreAction; const AClearValue: Byte); inline;
+      const AStoreAction: TStoreAction; const AClearValue: Byte); overload; inline;
+    procedure Init(const ALoadAction: TLoadAction;
+      const AClearValue: Byte); overload; inline;
+    procedure Init(const AStoreAction: TStoreAction;
+      const AClearValue: Byte); overload; inline;
   end;
   PStencilAttachmentAction = ^TStencilAttachmentAction;
 
@@ -2512,6 +2531,9 @@ type
     function GetDesc: TViewDesc; inline;
     function GetD3D11ViewInfo: TD3D11ViewInfo; inline;
     function GetGLViewInfo: TGLViewInfo; inline;
+    function GetViewType: TViewType; inline;
+    function GetImage: TImage; inline;
+    function GetBuffer: TBuffer; inline;
   {$ENDREGION 'Internal Declarations'}
   public
     { Synchronous setup }
@@ -2541,6 +2563,10 @@ type
 
     { OpenGL: get internal view resource objects }
     property GLViewInfo: TGLViewInfo read GetGLViewInfo;
+
+    property ViewType: TViewType read GetViewType;
+    property Image: TImage read GetImage;
+    property Buffer: TBuffer read GetBuffer;
   end;
   PView = ^TView;
 
@@ -4725,6 +4751,82 @@ begin
   ClearValue.A := AA;
 end;
 
+constructor TColorAttachmentAction.Create(const ALoadAction: TLoadAction;
+  const AClearValue: TColor);
+begin
+  LoadAction := ALoadAction;
+  StoreAction := TStoreAction.Default;
+  ClearValue := AClearValue;
+end;
+
+constructor TColorAttachmentAction.Create(const ALoadAction: TLoadAction;
+  const AR, AG, AB, AA: Single);
+begin
+  LoadAction := ALoadAction;
+  StoreAction := TStoreAction.Default;
+  ClearValue.R := AR;
+  ClearValue.G := AG;
+  ClearValue.B := AB;
+  ClearValue.A := AA;
+end;
+
+constructor TColorAttachmentAction.Create(const AStoreAction: TStoreAction;
+  const AR, AG, AB, AA: Single);
+begin
+  LoadAction := TLoadAction.Default;
+  StoreAction := AStoreAction;
+  ClearValue.R := AR;
+  ClearValue.G := AG;
+  ClearValue.B := AB;
+  ClearValue.A := AA;
+end;
+
+constructor TColorAttachmentAction.Create(const AStoreAction: TStoreAction;
+  const AClearValue: TColor);
+begin
+  LoadAction := TLoadAction.Default;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
+end;
+
+procedure TColorAttachmentAction.Init(const ALoadAction: TLoadAction; const AR,
+  AG, AB, AA: Single);
+begin
+  LoadAction := ALoadAction;
+  StoreAction := TStoreAction.Default;
+  ClearValue.R := AR;
+  ClearValue.G := AG;
+  ClearValue.B := AB;
+  ClearValue.A := AA;
+end;
+
+procedure TColorAttachmentAction.Init(const ALoadAction: TLoadAction;
+  const AClearValue: TColor);
+begin
+  LoadAction := ALoadAction;
+  StoreAction := TStoreAction.Default;
+  ClearValue := AClearValue;
+end;
+
+procedure TColorAttachmentAction.Init(const AStoreAction: TStoreAction;
+  const AClearValue: TColor);
+begin
+  LoadAction := TLoadAction.Default;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
+end;
+
+procedure TColorAttachmentAction.Init(const AStoreAction: TStoreAction;
+  const AR, AG, AB, AA: Single);
+begin
+  LoadAction := TLoadAction.Default;
+  StoreAction := AStoreAction;
+  ClearValue.R := AR;
+  ClearValue.G := AG;
+  ClearValue.B := AB;
+  ClearValue.A := AA;
+end;
+
 procedure TColorAttachmentAction.Init(const ALoadAction: TLoadAction;
   const AStoreAction: TStoreAction; const AClearValue: TColor);
 begin
@@ -4754,10 +4856,42 @@ begin
   ClearValue := AClearValue;
 end;
 
+constructor TDepthAttachmentAction.Create(const ALoadAction: TLoadAction;
+  const AClearValue: Single);
+begin
+  LoadAction := ALoadAction;
+  StoreAction := TStoreAction.Default;
+  ClearValue := AClearValue;
+end;
+
+constructor TDepthAttachmentAction.Create(const AStoreAction: TStoreAction;
+  const AClearValue: Single);
+begin
+  LoadAction := TLoadAction.Default;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
+end;
+
 procedure TDepthAttachmentAction.Init(const ALoadAction: TLoadAction;
   const AStoreAction: TStoreAction; const AClearValue: Single);
 begin
   LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
+end;
+
+procedure TDepthAttachmentAction.Init(const ALoadAction: TLoadAction;
+  AClearValue: Single);
+begin
+  LoadAction := ALoadAction;
+  StoreAction := TStoreAction.Default;
+  ClearValue := AClearValue;
+end;
+
+procedure TDepthAttachmentAction.Init(const AStoreAction: TStoreAction;
+  const AClearValue: Single);
+begin
+  LoadAction := TLoadAction.Default;
   StoreAction := AStoreAction;
   ClearValue := AClearValue;
 end;
@@ -4772,10 +4906,42 @@ begin
   ClearValue := AClearValue;
 end;
 
+constructor TStencilAttachmentAction.Create(const ALoadAction: TLoadAction;
+  const AClearValue: Byte);
+begin
+  LoadAction := ALoadAction;
+  StoreAction := TStoreAction.Default;
+  ClearValue := AClearValue;
+end;
+
+constructor TStencilAttachmentAction.Create(const AStoreAction: TStoreAction;
+  const AClearValue: Byte);
+begin
+  LoadAction := TLoadAction.Default;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
+end;
+
 procedure TStencilAttachmentAction.Init(const ALoadAction: TLoadAction;
   const AStoreAction: TStoreAction; const AClearValue: Byte);
 begin
   LoadAction := ALoadAction;
+  StoreAction := AStoreAction;
+  ClearValue := AClearValue;
+end;
+
+procedure TStencilAttachmentAction.Init(const ALoadAction: TLoadAction;
+  const AClearValue: Byte);
+begin
+  LoadAction := ALoadAction;
+  StoreAction := TStoreAction.Default;
+  ClearValue := AClearValue;
+end;
+
+procedure TStencilAttachmentAction.Init(const AStoreAction: TStoreAction;
+  const AClearValue: Byte);
+begin
+  LoadAction := TLoadAction.Default;
   StoreAction := AStoreAction;
   ClearValue := AClearValue;
 end;
@@ -5600,6 +5766,11 @@ begin
   FHandle.id := 0;
 end;
 
+function TView.GetBuffer: TBuffer;
+begin
+  Result.FHandle := _sg_query_view_buffer(FHandle);
+end;
+
 function TView.GetD3D11ViewInfo: TD3D11ViewInfo;
 begin
   Result.FHandle := _sg_d3d11_query_view_info(FHandle);
@@ -5615,6 +5786,11 @@ begin
   Result.FHandle := _sg_gl_query_view_info(FHandle);
 end;
 
+function TView.GetImage: TImage;
+begin
+  Result.FHandle := _sg_query_view_image(FHandle);
+end;
+
 function TView.GetInfo: TViewInfo;
 begin
   Result.FHandle := _sg_query_view_info(FHandle);
@@ -5623,6 +5799,11 @@ end;
 function TView.GetState: TResourceState;
 begin
   Result := TResourceState(_sg_query_view_state(FHandle));
+end;
+
+function TView.GetViewType: TViewType;
+begin
+  Result := TViewType(_sg_query_view_type(FHandle));
 end;
 
 procedure TView.Init(const ADesc: TViewDesc);

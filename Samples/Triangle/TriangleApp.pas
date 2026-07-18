@@ -27,6 +27,7 @@ implementation
 
 uses
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   TriangleShader;
 
 const
@@ -57,11 +58,15 @@ end;
 
 procedure TTriangleApp.Frame;
 begin
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
 
-  TGfx.Draw(0, 3, 1);
+  TGfx.Draw(0, 3);
   DebugFrame;
 
   TGfx.EndPass;
@@ -71,23 +76,28 @@ end;
 procedure TTriangleApp.Init;
 begin
   inherited;
+  { Create view for binding vertex buffer }
   var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Size := SizeOf(VERTICES);
   BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'TriangleVertices';
+  BufferDesc.TraceLabel := 'VertexBuffer';
   FVB := TBuffer.Create(BufferDesc);
   FBind.VertexBuffers[0] := FVB;
 
+  { Create shader from code-generated shader desc}
   FShader := TShader.Create(TriangleShaderDesc);
 
+  { Create a pipeline object (default render states are fine for triangle).
+    If the vertex layout doesn't have gaps, don't need to provide strides and
+    offsets }
   var PipDesc := TPipelineDesc.Create;
   PipDesc.Shader := FShader;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.Float4;
+  PipDesc.Layout.Attrs[ATTR_TRIANGLE_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_TRIANGLE_COLOR0].Format := TVertexFormat.Float4;
   PipDesc.TraceLabel := 'TrianglePipeline';
   FPip := TPipeline.Create(PipDesc);
 
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
+  { A pass action to clear framebuffer to black }
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
 end;
 
 end.
