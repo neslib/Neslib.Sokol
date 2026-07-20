@@ -5,82 +5,97 @@ Debug-inspection UI for [Neslib.Sokol.Gfx](Neslib.Sokol.Gfx.md) using Dear ImGui
 This is a light-weight OOP layer on top of [sokol_gfx_imgui.h](https://github.com/floooh/sokol).
 
 ## Step by Step
-* Create an `TImGuiContext` record (which must be preserved between frames) and initialize it with:
+* Call `TGfxImGui.Setup` with a description record:
   
   ```pascal
-  var Context := TImGuiContext.Create;
+  var Desc := TGfxImGuiDesc.Create;
+  Desc.UseDelphiMemoryManager := True;
+  TGfxImGui.Setup(Desc);
   ```
-  
-  This method has an optional `Boolean` parameter that you can set to `True` to use Delphi's memory manager instead of Sokol's internal one.
 
+  `TGfxImGuiDesc` currently only has one field: `UseDelphiMemoryManager` to indicate whether to use Delphi's memory manager instead of Sokol's internal one.
+  
 * Somewhere in the per-frame code call:
 
   ```pascal
-  Context.Draw;
+  TGfxImGui.Draw;
   ```
 
   This won't draw anything yet, since no windows are open.
 
-* Open and close windows directly by setting the following properties in the `TImGuiContext` record:
+* Call the convenience method `TGfxImGui.DrawMenu` to render a menu which allows to open/close the provided debug windows:
   
   ```pascal
-    Context.BuffersOpen^ := True;
-    Context.ImagesOpen^ := True;
-    Context.ShadersOpen^ := True;
-    Context.PipelinesOpen^ := True;
-    Context.PassesOpen^ := True;
-    Context.CaptureOpen^ := True;
+  TGfxImGui.DrawMenu('Neslib.Sokol.Gfx');
   ```
   
-  For instance, to control the window visibility through menu items, the following code can be used:
-
+* Alternatively draw the individual single menu items via:
+  
   ```pascal
-    if ImGui.BeginMainMenuBar then
+  if ImGui.BeginMainMenuBar then
+  begin
+    if ImGui.BeginMenu('Neslib.Sokol.Gfx') then
     begin
-      if ImGui.BeginMenu('Neslib.Sokol.Gfx') then
-      begin
-        ImGui.MenuItem('Buffers', '', Context.BuffersOpen);
-        ImGui.MenuItem('Images', '', Context.ImagesOpen);
-        ImGui.MenuItem('Shaders', '', Context.ShadersOpen);
-        ImGui.MenuItem('Pipelines', '', Context.PipelinesOpen);
-        ImGui.MenuItem('Passes', '', Context.PassesOpen);
-        ImGui.MenuItem('Calls', '', Context.CaptureOpen);
-      end;
+      TGfxImGui.DrawBufferWindowMenuItem('Buffers');
+      TGfxImGui.DrawImageWindowMenuItem('Images');
+      TGfxImGui.DrawSamplerWindowMenuItem('Samplers');
+      TGfxImGui.DrawShaderWindowMenuItem('Shaders');
+      TGfxImGui.DrawPipelineWindowMenuItem('Pipelines');
+      TGfxImGui.DrawViewWindowMenuItem('View');
+      TGfxImGui.DrawCaptureWindowMenuItem('Calls');
+      TGfxImGui.DrawCapabilitiesWindowMenuItem('Capabilities');
+      TGfxImGui.DrawFrameStatsWindowMenuItem('Frame Stats');
+      ImGui.EndMenu;
     end;
+  end;
   ```
   
 * Before application shutdown, call:
-
+  
   ```pascal
-  Context.Free;
+  TGfxImGui.Shutdown;
   ```
-
+  
   This is not strictly necessary because the application exits anyway, but not doing this may trigger memory leak detection tools.
-
+  
 * Finally, your application needs an ImGui renderer, you can either provide your own, or drop in the [Neslib.Sokol.ImGui](Neslib.Sokol.ImGui.md) unit.
 
 Alternative Drawing Methods
 ---------------------------
-Instead of the convenient, but all-in-one `TImGuiContext.Draw` method, you can also use the following granular functions which might allow better integration with your existing UI.
+Instead of the convenient but all-in-one `TGfxImGui.Draw` method, you can also use the following granular functions which might allow better integration with your existing UI.
 
 The following methods only render the window *content* (so you can integrate the UI into you own windows):
 
-* `DrawBuffersContent`
-* `DrawImagesContent`
-* `DrawShadersContent`
-* `DrawPipelinesContent`
-* `DrawPassesContent`
-* `DrawCaptureContent`
-* `DrawCapabilitiesContent`
+* `DrawBufferWindowContent`
+* `DrawImageWindowContent`
+* `DrawSamplerWindowContent`
+* `DrawShaderWindowContent`
+* `DrawPipelineWindowContent`
+* `DrawViewWindowContent`
+* `DrawCapturWindowContent`
+* `DrawCapabilitiesWindowContent`
+* `DrawFrameStatsWindowContent`
 
 And these are the 'full window' drawing functions:
 
-* `DrawBuffersWindow`
-* `DrawImagesWindow`
-* `DrawShadersWindow`
-* `DrawPipelinesWindow`
-* `DrawPassesWindow`
-* `DrawCaptureWindow`
-* `DrawCapabilitiesWindow`
+* `DrawBufferWindow(const ATitle: PUTF8Char)`
+* `DrawImageWindow(const ATitle: PUTF8Char)`
+* `DrawSamplerWindow(const ATitle: PUTF8Char)`
+* `DrawShaderWindow(const ATitle: PUTF8Char)`
+* `DrawPipelineWindow(const ATitle: PUTF8Char)`
+* `DrawViewWindow(const ATitle: PUTF8Char)`
+* `DrawCaptureWindow(const ATitle: PUTF8Char)`
+* `DrawCapabilitiesWindow(const ATitle: PUTF8Char)`
+* `DrawFrameStatsWindow(const ATitle: PUTF8Char)`
 
-Finer-grained drawing functions may be moved to the public API in the future as needed.
+To draw the individual menu items:
+
+* `DrawBufferMenuItem(const ALabel: PUTF8Char)`
+* `DrawImageMenuItem(const ALabel: PUTF8Char)`
+* `DrawSamplerMenuItem(const ALabel: PUTF8Char)`
+* `DrawShaderMenuItem(const ALabel: PUTF8Char)`
+* `DrawPipelineMenuItem(const ALabel: PUTF8Char)`
+* `DrawViewMenuItem(const ALabel: PUTF8Char)`
+* `DrawCaptureMenuItem(const ALabel: PUTF8Char)`
+* `DrawCapabilitiesMenuItem(const ALabel: PUTF8Char)`
+* `DrawFrameStatsMenuItem(const ALabel: PUTF8Char)`

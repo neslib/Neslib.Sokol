@@ -3,13 +3,12 @@ unit DebugUI;
 interface
 
 uses
-  Neslib.Sokol.App,
-  Neslib.Sokol.Gfx.ImGui;
+  Neslib.Sokol.App;
+//  Neslib.Sokol.Gfx.ImGui;
 
 type
   TDebugUI = class
   private
-    FDebugContext: TImGuiDebugContext;
     function EventHandler(const AEvent: TEvent): Boolean;
   public
     constructor Create;
@@ -20,9 +19,11 @@ type
 implementation
 
 uses
-  Neslib.ImGui,
-  Neslib.Sokol.Api,
+//  Neslib.ImGui,
+//  Neslib.Sokol.Api,
   Neslib.Sokol.ImGui,
+  Neslib.Sokol.App.ImGui,
+  Neslib.Sokol.Gfx.ImGui,
   SampleApp;
 
 type
@@ -35,15 +36,19 @@ begin
   inherited Create;
   TApplication.AddEventHandler(EventHandler);
 
-  FDebugContext.Init;
+  TAppImGui.Setup;
 
-  var Desc := TSokolImGuiDesc.Create;
-  Desc.SampleCount := TApplication.SampleCount;
+  var GfxDesc := TGfxImGuiDesc.Create;
+  TGfxImGui.Setup(GfxDesc);
+
+  var ImGuiDesc := TSokolImGuiDesc.Create;
+  ImGuiDesc.SampleCount := TApplication.SampleCount;
+  ImGuiDesc.Logger...;
 
   Assert(TApplication.Instance is TSampleApp);
-  TSampleAppAccess(TApplication.Instance).ConfigureSokolImGui(Desc);
+  TSampleAppAccess(TApplication.Instance).ConfigureSokolImGui(ImGuiDesc);
 
-  SokolImGui.Setup(Desc);
+  SokolImGui.Setup(ImGuiDesc);
 end;
 
 destructor TDebugUI.Destroy;

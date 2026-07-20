@@ -14,66 +14,61 @@ uses
   Neslib.Sokol.Api;
 
 type
-  { A context for drawing a Debug UI using Dear ImGui }
-  TImGuiDebugContext = record
-  {$REGION 'Internal Declarations'}
-  private
-    FHandle: _sg_imgui_t;
-    function GetBuffersOpen: PBoolean; inline;
-    function GetCapabilitiesOpen: PBoolean; inline;
-    function GetCaptureOpen: PBoolean; inline;
-    function GetImagesOpen: PBoolean; inline;
-    function GetPassesOpen: PBoolean; inline;
-    function GetPipelinesOpen: PBoolean; inline;
-    function GetShadersOpen: PBoolean; inline;
-  {$ENDREGION 'Internal Declarations'}
+  { Options to initialize TGfxImGui }
+  TGfxImGuiDesc = record
   public
-    { Creates a new context.
-
-      Parameters:
-        AUseDelphiMemoryManager: (optional) whether to use Delphi's memory
-          manager (True) or Sokol's internal one (False, default).
-          When SOKOL_MEM_TRACK is defined, it always uses Delphi's memory
-          manager. }
-    procedure Init(const AUseDelphiMemoryManager: Boolean = False);
-
-    { Frees the context }
-    procedure Free;
-
-    { Draws the entire Debug UI.
-      This is an all-on-one method that internally uses all the methods below. }
-    procedure Draw;
-
-    { These methods call individual window content (to integrate with your own
-      windows). Don't use this if you use the all-in-one Draw method. }
-    procedure DrawBuffersContent; inline;
-    procedure DrawImagesContent; inline;
-    procedure DrawShadersContent; inline;
-    procedure DrawPipelinesContent; inline;
-    procedure DrawPassesContent; inline;
-    procedure DrawCaptureContent; inline;
-    procedure DrawCapabilitiesContent; inline;
-
-    { These methods call individual windows with content.
-      Don't use this if you use the all-in-one Draw method. }
-    procedure DrawBuffersWindow; inline;
-    procedure DrawImagesWindow; inline;
-    procedure DrawShadersWindow; inline;
-    procedure DrawPipelinesWindow; inline;
-    procedure DrawPassesWindow; inline;
-    procedure DrawCaptureWindow; inline;
-    procedure DrawCapabilitiesWindow; inline;
-
-    { Whether individual debug windows should be opened. All default to False. }
-    property BuffersOpen: PBoolean read GetBuffersOpen;
-    property ImagesOpen: PBoolean read GetImagesOpen;
-    property ShadersOpen: PBoolean read GetShadersOpen;
-    property PipelinesOpen: PBoolean read GetPipelinesOpen;
-    property PassesOpen: PBoolean read GetPassesOpen;
-    property CaptureOpen: PBoolean read GetCaptureOpen;
-    property CapabilitiesOpen: PBoolean read GetCapabilitiesOpen;
+    { Whether to use Delphi's memory manager instead of the default memory
+      manager used by the Sokol library.
+      When SOKOL_MEM_TRACK is defined, it always uses Delphi's memory manager.
+      Default: False }
+    UseDelphiMemoryManager: Boolean;
+  public
+    { Initializes with default values }
+    class function Create: TGfxImGuiDesc; inline; static;
+    procedure Init;
   end;
-  PImGuiDebugContext = ^TImGuiDebugContext;
+
+type
+  { Debug-inspection UI for Neslib.Sokol.Gfx using Dear ImGui }
+  TGfxImGui = record
+  public
+    class procedure Setup(const ADesc: TGfxImGuiDesc); inline; static;
+    class procedure Shutdown; inline; static;
+
+    class procedure Draw; inline; static;
+    class procedure DrawMenu(const ATitle: PUTF8Char); inline; static;
+
+    class procedure DrawBufferWindowContent; inline; static;
+    class procedure DrawImageWindowContent; inline; static;
+    class procedure DrawSamplerWindowContent; inline; static;
+    class procedure DrawShaderWindowContent; inline; static;
+    class procedure DrawPipelineWindowContent; inline; static;
+    class procedure DrawViewWindowContent; inline; static;
+    class procedure DrawCaptureWindowContent; inline; static;
+    class procedure DrawCapabilitiesWindowContent; inline; static;
+    class procedure DrawFrameStatsWindowContent; inline; static;
+
+    class procedure DrawBufferWindow(const ATitle: PUTF8Char); inline; static;
+    class procedure DrawImageWindow(const ATitle: PUTF8Char); inline; static;
+    class procedure DrawSamplerWindow(const ATitle: PUTF8Char); inline; static;
+    class procedure DrawShaderWindow(const ATitle: PUTF8Char); inline; static;
+    class procedure DrawPipelineWindow(const ATitle: PUTF8Char); inline; static;
+    class procedure DrawViewWindow(const ATitle: PUTF8Char); inline; static;
+    class procedure DrawCaptureWindow(const ATitle: PUTF8Char); inline; static;
+    class procedure DrawCapabilitiesWindow(const ATitle: PUTF8Char); inline; static;
+    class procedure DrawFrameStatsWindow(const ATitle: PUTF8Char); inline; static;
+
+    class procedure DrawBufferMenuItem(const ALabel: PUTF8Char); inline; static;
+    class procedure DrawImageMenuItem(const ALabel: PUTF8Char); inline; static;
+    class procedure DrawSamplerMenuItem(const ALabel: PUTF8Char); inline; static;
+    class procedure DrawShaderMenuItem(const ALabel: PUTF8Char); inline; static;
+    class procedure DrawPipelineMenuItem(const ALabel: PUTF8Char); inline; static;
+    class procedure DrawViewMenuItem(const ALabel: PUTF8Char); inline; static;
+    class procedure DrawCaptureMenuItem(const ALabel: PUTF8Char); inline; static;
+    class procedure DrawCapabilitiesMenuItem(const ALabel: PUTF8Char); inline; static;
+    class procedure DrawFrameStatsMenuItem(const ALabel: PUTF8Char); inline; static;
+
+  end;
 
 implementation
 
@@ -84,140 +79,185 @@ uses
   Neslib.Sokol.Utils;
   {$ENDIF}
 
-{ TImGuiDebugContext }
+{ TGfxImGuiDesc }
 
-procedure TImGuiDebugContext.Draw;
+class function TGfxImGuiDesc.Create: TGfxImGuiDesc;
 begin
-  _sg_imgui_draw(@FHandle);
+  Result.Init;
 end;
 
-procedure TImGuiDebugContext.DrawBuffersContent;
+procedure TGfxImGuiDesc.Init;
 begin
-  _sg_imgui_draw_buffers_content(@FHandle);
+  UseDelphiMemoryManager := False;
 end;
 
-procedure TImGuiDebugContext.DrawBuffersWindow;
+{ TGfxImGui }
+
+class procedure TGfxImGui.Draw;
 begin
-  _sg_imgui_draw_buffers_window(@FHandle);
+  _sgimgui_draw;
 end;
 
-procedure TImGuiDebugContext.DrawCapabilitiesContent;
+class procedure TGfxImGui.DrawBufferMenuItem(const ALabel: PUTF8Char);
 begin
-  _sg_imgui_draw_capabilities_content(@FHandle);
+  _sgimgui_draw_buffer_menu_item(ALabel);
 end;
 
-procedure TImGuiDebugContext.DrawCapabilitiesWindow;
+class procedure TGfxImGui.DrawBufferWindow(const ATitle: PUTF8Char);
 begin
-  _sg_imgui_draw_capabilities_window(@FHandle);
+  _sgimgui_draw_buffer_window(ATitle);
 end;
 
-procedure TImGuiDebugContext.DrawCaptureContent;
+class procedure TGfxImGui.DrawBufferWindowContent;
 begin
-  _sg_imgui_draw_capture_content(@FHandle);
+  _sgimgui_draw_buffer_window_content;
 end;
 
-procedure TImGuiDebugContext.DrawCaptureWindow;
+class procedure TGfxImGui.DrawCapabilitiesMenuItem(const ALabel: PUTF8Char);
 begin
-  _sg_imgui_draw_capture_window(@FHandle);
+  _sgimgui_draw_capture_menu_item(ALabel);
 end;
 
-procedure TImGuiDebugContext.DrawImagesContent;
+class procedure TGfxImGui.DrawCapabilitiesWindow(const ATitle: PUTF8Char);
 begin
-  _sg_imgui_draw_images_content(@FHandle);
+  _sgimgui_draw_capabilities_window(ATitle);
 end;
 
-procedure TImGuiDebugContext.DrawImagesWindow;
+class procedure TGfxImGui.DrawCapabilitiesWindowContent;
 begin
-  _sg_imgui_draw_images_window(@FHandle);
+  _sgimgui_draw_capabilities_window_content;
 end;
 
-procedure TImGuiDebugContext.DrawPassesContent;
+class procedure TGfxImGui.DrawCaptureMenuItem(const ALabel: PUTF8Char);
 begin
-  _sg_imgui_draw_passes_content(@FHandle);
+  _sgimgui_draw_capture_menu_item(ALabel);
 end;
 
-procedure TImGuiDebugContext.DrawPassesWindow;
+class procedure TGfxImGui.DrawCaptureWindow(const ATitle: PUTF8Char);
 begin
-  _sg_imgui_draw_passes_window(@FHandle);
+  _sgimgui_draw_capture_window(ATitle);
 end;
 
-procedure TImGuiDebugContext.DrawPipelinesContent;
+class procedure TGfxImGui.DrawCaptureWindowContent;
 begin
-  _sg_imgui_draw_pipelines_content(@FHandle);
+  _sgimgui_draw_capture_window_content;
 end;
 
-procedure TImGuiDebugContext.DrawPipelinesWindow;
+class procedure TGfxImGui.DrawFrameStatsMenuItem(const ALabel: PUTF8Char);
 begin
-  _sg_imgui_draw_pipelines_window(@FHandle);
+  _sgimgui_draw_frame_stats_menu_item(ALabel);
 end;
 
-procedure TImGuiDebugContext.DrawShadersContent;
+class procedure TGfxImGui.DrawFrameStatsWindow(const ATitle: PUTF8Char);
 begin
-  _sg_imgui_draw_shaders_content(@FHandle);
+  _sgimgui_draw_frame_stats_window(ATitle);
 end;
 
-procedure TImGuiDebugContext.DrawShadersWindow;
+class procedure TGfxImGui.DrawFrameStatsWindowContent;
 begin
-  _sg_imgui_draw_shaders_window(@FHandle);
+  _sgimgui_draw_frame_stats_window_content;
 end;
 
-procedure TImGuiDebugContext.Free;
+class procedure TGfxImGui.DrawImageMenuItem(const ALabel: PUTF8Char);
 begin
-  _sg_imgui_discard(@FHandle);
+  _sgimgui_draw_image_menu_item(ALabel);
 end;
 
-function TImGuiDebugContext.GetBuffersOpen: PBoolean;
+class procedure TGfxImGui.DrawImageWindow(const ATitle: PUTF8Char);
 begin
-  Result := @FHandle.buffers.open;
+  _sgimgui_draw_image_window(ATitle);
 end;
 
-function TImGuiDebugContext.GetCapabilitiesOpen: PBoolean;
+class procedure TGfxImGui.DrawImageWindowContent;
 begin
-  Result := @FHandle.caps.open;
+  _sgimgui_draw_image_window_content;
 end;
 
-function TImGuiDebugContext.GetCaptureOpen: PBoolean;
+class procedure TGfxImGui.DrawMenu(const ATitle: PUTF8Char);
 begin
-  Result := @FHandle.capture.open;
+  _sgimgui_draw_menu(ATitle);
 end;
 
-function TImGuiDebugContext.GetImagesOpen: PBoolean;
+class procedure TGfxImGui.DrawPipelineMenuItem(const ALabel: PUTF8Char);
 begin
-  Result := @FHandle.images.open;
+  _sgimgui_draw_pipeline_menu_item(ALabel);
 end;
 
-function TImGuiDebugContext.GetPassesOpen: PBoolean;
+class procedure TGfxImGui.DrawPipelineWindow(const ATitle: PUTF8Char);
 begin
-  Result := @FHandle.passes.open;
+  _sgimgui_draw_pipeline_window(ATitle)
 end;
 
-function TImGuiDebugContext.GetPipelinesOpen: PBoolean;
+class procedure TGfxImGui.DrawPipelineWindowContent;
 begin
-  Result := @FHandle.pipelines.open;
+  _sgimgui_draw_pipeline_window_content;
 end;
 
-function TImGuiDebugContext.GetShadersOpen: PBoolean;
+class procedure TGfxImGui.DrawSamplerMenuItem(const ALabel: PUTF8Char);
 begin
-  Result := @FHandle.shaders.open;
+  _sgimgui_draw_sampler_menu_item(ALabel);
 end;
 
-procedure TImGuiDebugContext.Init(const AUseDelphiMemoryManager: Boolean);
+class procedure TGfxImGui.DrawSamplerWindow(const ATitle: PUTF8Char);
 begin
-  FillChar(Self, SizeOf(Self), 0);
+  _sgimgui_draw_sampler_window(ATitle);
+end;
 
-  var Desc: _sg_imgui_desc_t;
+class procedure TGfxImGui.DrawSamplerWindowContent;
+begin
+  _sgimgui_draw_sampler_window_content;
+end;
+
+class procedure TGfxImGui.DrawShaderMenuItem(const ALabel: PUTF8Char);
+begin
+  _sgimgui_draw_shader_menu_item(ALabel);
+end;
+
+class procedure TGfxImGui.DrawShaderWindow(const ATitle: PUTF8Char);
+begin
+  _sgimgui_draw_shader_window(ATitle);
+end;
+
+class procedure TGfxImGui.DrawShaderWindowContent;
+begin
+  _sgimgui_draw_shader_window_content;
+end;
+
+class procedure TGfxImGui.DrawViewMenuItem(const ALabel: PUTF8Char);
+begin
+  _sgimgui_draw_view_menu_item(ALabel);
+end;
+
+class procedure TGfxImGui.DrawViewWindow(const ATitle: PUTF8Char);
+begin
+  _sgimgui_draw_view_window(ATitle);
+end;
+
+class procedure TGfxImGui.DrawViewWindowContent;
+begin
+  _sgimgui_draw_view_window_content;
+end;
+
+class procedure TGfxImGui.Setup(const ADesc: TGfxImGuiDesc);
+begin
+  var Desc: _sgimgui_desc_t;
   FillChar(Desc, SizeOf(Desc), 0);
   {$IFDEF SOKOL_MEM_TRACK}
-  Desc.allocator.alloc := _MemTrackAlloc;
-  Desc.allocator.free := _MemTrackFree;
+  Desc.allocator.alloc_fn := _MemTrackAlloc;
+  Desc.allocator.free_fn := _MemTrackFree;
   {$ELSE}
-  if (AUseDelphiMemoryManager) then
+  if (ADesc.UseDelphiMemoryManager) then
   begin
-    Desc.allocator.alloc := _AllocCallback;
-    Desc.allocator.free := _FreeCallback;
+    Desc.allocator.alloc_fn := _AllocCallback;
+    Desc.allocator.free_fn := _FreeCallback;
   end;
   {$ENDIF}
-  _sg_imgui_init(@FHandle, @Desc);
+  _sgimgui_setup(@Desc);
+end;
+
+class procedure TGfxImGui.Shutdown;
+begin
+  _sgimgui_shutdown;
 end;
 
 end.
