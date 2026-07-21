@@ -6,15 +6,10 @@ program ImGuiBindingGenerator;
 
 uses
   System.SysUtils,
-  SourceWriter in 'SourceWriter.pas',
-  Common in 'Common.pas',
   BindingGenerator in 'BindingGenerator.pas',
-  Definitions in 'Definitions.pas',
-  Enums in 'Enums.pas',
-  Structs in 'Structs.pas',
-  DelphiCustomizations in 'DelphiCustomizations.pas',
-  TemplateHandler in 'TemplateHandler.pas',
-  DelphiOverloads in 'DelphiOverloads.pas';
+  Dom in 'Dom.pas',
+  SourceWriter in 'SourceWriter.pas',
+  IncludeFileGenerator in 'IncludeFileGenerator.pas';
 
 begin
   try

@@ -13,7 +13,6 @@
 #define SOKOL_DLL
 #define SOKOL_IMPL
 #define FONTSTASH_IMPLEMENTATION
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 
 // To enable Debug UI
 #define SOKOL_TRACE_HOOKS
