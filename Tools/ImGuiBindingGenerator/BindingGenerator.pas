@@ -28,7 +28,8 @@ type
 implementation
 
 uses
-  IncludeFileGenerator;
+  IncludeFileGenerator,
+  SourceFileGenerator;
 
 { TBindingGenerator }
 
@@ -50,6 +51,7 @@ begin
   FDom.Load;
 
   TIncludeFileGenerator.Create(FDom).Free;
+  TSourceFileGenerator.Create(FDom).Free;
 end;
 
 end.

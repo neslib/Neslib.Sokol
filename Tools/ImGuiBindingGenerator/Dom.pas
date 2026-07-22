@@ -11,8 +11,9 @@ uses
 type
   TDataTypeKind = (Builtin, User, Pointer, &Type, &Function, &Array);
   TBuiltinType = (Void, Char, UnsignedChar, Short, UnsignedShort, Int,
-    UnsignedInt, LongLong, UnsignedLongLong, Float, Double, Bool);
-  TTypeFlavor = (FunctionPointer);
+    UnsignedInt, LongLong, UnsignedLongLong, Float, Double, Bool, WChar16,
+    WChar32);
+  TTypeFlavor = (None, FunctionPointer);
   TStructKind = (Struct, Union);
   TStorageClass = (&Const);
   TStorageClasses = set of TStorageClass;
@@ -23,7 +24,6 @@ type
   public
     function ToDelphiType: String;
   end;
-
 
 type
   TConditional = record
@@ -62,6 +62,8 @@ type
     procedure LoadComments(const AValue: TJsonValue);
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
+    procedure WriteCommentBefore(const AWriter: TSourceWriter);
+    procedure WriteCommentAfter(const AWriter: TSourceWriter);
   {$ENDREGION 'Internal Declarations'}
   public
     { The name of the declaration }
@@ -82,6 +84,8 @@ type
   private
     FItems: TObjectList<T>;
     FItemsByName: TDictionary<String, T>;
+    function GetCount: Integer; inline;
+    function GetItem(const AIndex: Integer): T; inline;
   protected
     procedure Clear;
     procedure Load(const AArray: TJsonValue);
@@ -91,6 +95,11 @@ type
     destructor Destroy; override;
 
     function GetEnumerator: TEnumerator<T>;
+    function Has(const AName: String): Boolean;
+    function Get(const AName: String): T;
+
+    property Count: Integer read GetCount;
+    property Items[const AIndex: Integer]: T read GetItem; default;
   end;
 
 type
@@ -215,6 +224,9 @@ type
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure LoadStorageClasses(const AValue: TJsonValue);
     procedure WriteCApi(const AWriter: TSourceWriter);
+    procedure WriteSource(const AWriter: TSourceWriter);
+    procedure WriteFunction(const AWriter: TSourceWriter);
+    procedure WriteArray(const AWriter: TSourceWriter; const AForCApi: Boolean);
   {$ENDREGION 'Internal Declarations'}
   public
     destructor Destroy; override;
@@ -263,6 +275,7 @@ type
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure WriteCApi(const AWriter: TSourceWriter);
+    procedure WriteSource(const AWriter: TSourceWriter);
   {$ENDREGION 'Internal Declarations'}
   public
     constructor Create(const AParent: TDomNode);
@@ -294,6 +307,9 @@ type
     function Ignore: Boolean; override;
   {$ENDREGION 'Internal Declarations'}
   public
+    procedure WriteCApi(const AWriter: TSourceWriter);
+    procedure WriteSource(const AWriter: TSourceWriter);
+
     { The textual content of the define }
     property Content: String read FContent;
   end;
@@ -309,16 +325,22 @@ type
   {$REGION 'Internal Declarations'}
   private
     FValueExpression: String;
+    FNameWithoutPrefix: String;
     FValue: Int64;
     FIsCount: Boolean;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
+    procedure WriteSource(const AWriter: TSourceWriter; const AIsFlag: Boolean);
+    procedure Loaded; override;
   {$ENDREGION 'Internal Declarations'}
   public
     { The value of the element as it originally appeared in the source.
       May not be present in the case where an enum element uses an implicit
       value (i.e. enum auto-numbering) }
     property ValueExpression: String read FValueExpression;
+
+    { The name of the enum element without the enum prefix }
+    property NameWithoutPrefix: String read FNameWithoutPrefix;
 
     { The calculated value of the element as an integer.
       Always present, even if ValueExpression = '' }
@@ -348,6 +370,9 @@ type
     FIsFlags: Boolean;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
+    procedure WriteSource(const AWriter: TSourceWriter);
+    procedure WriteSetSource(const AWriter: TSourceWriter);
+    procedure Loaded; override;
   {$ENDREGION 'Internal Declarations'}
   public
     constructor Create;
@@ -372,6 +397,8 @@ type
 type
   { Represents the root "enums" node. }
   TEnums = class(TListNode<TEnum>)
+  public
+    procedure WriteSource(const AWriter: TSourceWriter);
   end;
 
 type
@@ -380,8 +407,11 @@ type
   {$REGION 'Internal Declarations'}
   private
     FDataType: TDataType;
+    function GetIsBuiltinType: Boolean; inline;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
+    procedure WriteSource(const AWriter: TSourceWriter);
+    procedure Loaded; override;
   {$ENDREGION 'Internal Declarations'}
   public
     constructor Create;
@@ -391,11 +421,17 @@ type
 
     { The defined type (as a generic type element) }
     property DataType: TDataType read FDataType;
+
+    { Whether this is a Delphi builtin type }
+    property IsBuiltinType: Boolean read GetIsBuiltinType;
   end;
 
 type
   { Represents the root "typedefs" node. }
   TTypedefs = class(TListNode<TTypedef>)
+  public
+    procedure Fixup;
+    procedure WriteSource(const AWriter: TSourceWriter);
   end;
 
 type
@@ -404,12 +440,15 @@ type
   private
     FFieldType: TDataType;
     FArrayBounds: String;
+    FCombinedType: String;
     FWidth: Integer;
     FIsArray: Boolean;
     FIsAnonymous: Boolean;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure WriteCApi(const AWriter: TSourceWriter);
+    procedure WriteSource(const AWriter: TSourceWriter);
+    procedure WriteAnonymous(const AWriter: TSourceWriter);
   {$ENDREGION 'Internal Declarations'}
   public
     constructor Create;
@@ -446,8 +485,12 @@ type
     FByValue: Boolean;
     FForwardDeclaration: Boolean;
     FIsAnonymous: Boolean;
+    FCApiOnly: Boolean;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
+    procedure Loaded; override;
+    procedure WriteForwardDeclarations(const AWriter: TSourceWriter);
+    procedure WriteInterface(const AWriter: TSourceWriter);
   {$ENDREGION 'Internal Declarations'}
   public
     constructor Create;
@@ -472,6 +515,13 @@ type
 
     { Is this an anonymous struct? }
     property IsAnonymous: Boolean read FIsAnonymous;
+
+    { Whether this struct is only used for the C-API.
+      For example, ImVec2 is translated to TVector2 in Delphi, so it is only
+      used for the C-API.
+      Likewise, generic C++ types like ImVector<char> are handled specifically
+      so are only used for the C-API as well. }
+    property CApiOnly: Boolean read FCApiOnly;
   end;
 
 type
@@ -483,6 +533,9 @@ type
   protected
     procedure Loaded; override;
   {$ENDREGION 'Internal Declarations'}
+  public
+    procedure WriteForwardDeclarations(const AWriter: TSourceWriter);
+    procedure WriteInterfaces(const AWriter: TSourceWriter);
   end;
 
 type
@@ -504,6 +557,7 @@ type
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure Loaded; override;
+    function Ignore: Boolean; override;
   {$ENDREGION 'Internal Declarations'}
   public
     constructor Create;
@@ -559,6 +613,8 @@ type
   { Represents the "dcimgui.json" file. }
   TDom = class(TDomNode)
   {$REGION 'Internal Declarations'}
+  private class var
+    GInstance: TDom;
   private
     FDefines: TDefines;
     FEnums: TEnums;
@@ -567,6 +623,8 @@ type
     FFunctions: TFunctions;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
+
+    class property Instance: TDom read GInstance;
   {$ENDREGION 'Internal Declarations'}
   public
     constructor Create;
@@ -583,13 +641,17 @@ type
 
 implementation
 
+uses
+  System.Math,
+  Utils;
+
 { _TBuiltinTypeHelper }
 
 function _TBuiltinTypeHelper.ToDelphiType: String;
 const
   STRINGS: array [TBuiltinType] of String = (
-    '<void>', 'UTF8Char', 'UInt8', 'Int16', 'UInt16', 'Int32', 'UInt32',
-    'Int64', 'UInt64', 'Single', 'Double', 'Boolean');
+    'ointer', 'UTF8Char', 'UInt8', 'Int16', 'UInt16', 'Int32', 'UInt32',
+    'Int64', 'UInt64', 'Single', 'Double', 'Boolean', 'Char', 'UCS4Char');
 begin
   Result := STRINGS[Self];
 end;
@@ -608,17 +670,18 @@ begin
     not have set) }
   for var C in FConditionals do
   begin
-    if (C.Condition = TCondition.IfDef) then
-    begin
-      if (C.Expression = 'IMGUI_USE_WCHAR32') or
-         (C.Expression = 'IMGUI_USE_BGRA_PACKED_COLOR')
-      then
-        Exit(True);
-    end
-    else if (C.Condition = TCondition.IfNDef) then
-    begin
-      if (C.Expression = 'IMGUI_DISABLE_OBSOLETE_FUNCTIONS') then
-        Exit(True);
+    case C.Condition of
+      TCondition.IfDef,
+      TCondition.If:
+        if (C.Expression = 'IMGUI_USE_WCHAR32') or
+           (C.Expression = 'IMGUI_USE_BGRA_PACKED_COLOR') or
+           (C.Expression = 'IMGUI_HAS_IMSTR')
+        then
+          Exit(True);
+
+      TCondition.IfNDef:
+        if (C.Expression = 'IMGUI_DISABLE_OBSOLETE_FUNCTIONS') then
+          Exit(True);
     end;
   end;
   Result := False;
@@ -709,17 +772,34 @@ begin
   begin
     var E := AValue.Elements[I];
     if (E.Name = 'attached') then
-      FAttachedComment := E.Value.ToString
+      FAttachedComment := E.Value.ToString.Trim
     else if (E.Name = 'preceding') then
     begin
       Assert(E.Value.IsArray);
       SetLength(FPrecedingComments, E.Value.Count);
       for var J := 0 to E.Value.Count - 1 do
-        FPrecedingComments[J] := E.Value[J].ToString;
+        FPrecedingComments[J] := E.Value[J].ToString.Trim;
     end
     else
       Assert(False, Format('Unsupported JSON key: "%s" in "comments" node', [E.Name]));
   end;
+end;
+
+procedure TNamedNode.WriteCommentAfter(const AWriter: TSourceWriter);
+begin
+  if (FAttachedComment <> '') then
+  begin
+    AWriter.Write(' ');
+    AWriter.WriteLn(FAttachedComment);
+  end
+  else
+    AWriter.WriteLn(' ');
+end;
+
+procedure TNamedNode.WriteCommentBefore(const AWriter: TSourceWriter);
+begin
+  for var Comment in FPrecedingComments do
+    AWriter.WriteLn(Comment);
 end;
 
 { TListNode<T> }
@@ -744,9 +824,29 @@ begin
   inherited;
 end;
 
+function TListNode<T>.Get(const AName: String): T;
+begin
+  FItemsByName.TryGetValue(AName, Result);
+end;
+
+function TListNode<T>.GetCount: Integer;
+begin
+  Result := FItems.Count;
+end;
+
 function TListNode<T>.GetEnumerator: TEnumerator<T>;
 begin
   Result := FItems.GetEnumerator;
+end;
+
+function TListNode<T>.GetItem(const AIndex: Integer): T;
+begin
+  Result := FItems[AIndex];
+end;
+
+function TListNode<T>.Has(const AName: String): Boolean;
+begin
+  Result := FItemsByName.ContainsKey(AName);
 end;
 
 procedure TListNode<T>.Load(const AArray: TJsonValue);
@@ -825,34 +925,48 @@ end;
 
 procedure TArguments.WriteCApi(const AWriter: TSourceWriter);
 begin
-  for var I := 0 to FItems.Count - 1 do
+  var CombinesWithNext := False;
+  var NeedSemicolon := False;
+  for var I := 0 to Count - 1 do
   begin
-    var Arg := FItems[I];
-    if (I < (FItems.Count - 1)) and (Arg.IsTypeCompatibleWith(FItems[I + 1])) then
+    var Arg := Items[I];
+    if (I < (Count - 1)) and (Arg.IsTypeCompatibleWith(Items[I + 1])) then
     begin
+      if (not CombinesWithNext) and (NeedSemicolon) then
+      begin
+        AWriter.Write('; ');
+        NeedSemicolon := False;
+      end;
+
       AWriter.Write('_');
       AWriter.Write(Arg.FName);
       AWriter.Write(', ');
+      CombinesWithNext := True;
     end
     else if (Arg.IsVarArgs) then
     begin
-      Assert(I = (FItems.Count - 1));
+      Assert(I = (Count - 1));
       FIsVarArgs := True;
       Break;
     end
     else
     begin
-      if (I > 0) then
+      if (I > 0) and (not CombinesWithNext) then
         AWriter.Write('; ');
+      CombinesWithNext := False;
 
       AWriter.Write('_');
       AWriter.Write(Arg.FName);
       AWriter.Write(': ');
 
       if (Arg.FIsArray) then
-        Assert(False, 'TODO');
+        AWriter.Write('Pointer')
+      else if (Arg.FDataType.FDetails <> nil) and (Arg.FDataType.FDetails.FFlavor = TTypeFlavor.FunctionPointer) then
+        AWriter.Write('Pointer')
+      else
+        Arg.FDataType.WriteCApi(AWriter);
 
-      Arg.FDataType.WriteCApi(AWriter);
+      NeedSemicolon := True;
     end;
   end;
 end;
@@ -922,10 +1036,10 @@ end;
 
 procedure TParameters.WriteCApi(const AWriter: TSourceWriter);
 begin
-  for var I := 0 to FItems.Count - 1 do
+  for var I := 0 to Count - 1 do
   begin
-    var Param := FItems[I];
-    if (I < (FItems.Count - 1)) and (Param.IsTypeCompatibleWith(FItems[I + 1])) then
+    var Param := Items[I];
+    if (I < (Count - 1)) and (Param.IsTypeCompatibleWith(Items[I + 1])) then
     begin
       AWriter.Write(Param.FName);
       AWriter.Write(', ');
@@ -1087,6 +1201,54 @@ begin
   end;
 end;
 
+procedure TTypeDescription.WriteArray(const AWriter: TSourceWriter;
+  const AForCApi: Boolean);
+begin
+  Assert(Assigned(FInnerType));
+  AWriter.Write('array [0..');
+
+  var Count: Integer;
+  if (TryStrToInt(FBounds, Count)) then
+    AWriter.Write((Count - 1).ToString)
+  else
+  begin
+    var S := FBounds;
+    var I := 0;
+    while (I < S.Length) do
+    begin
+      var C := S.Chars[I];
+      if (C >= 'A') and (C <= 'Z') then
+      begin
+        S := S.Insert(I, '_');
+        var J := I + 2;
+        while (J < S.Length) do
+        begin
+          C := S.Chars[J];
+          if (C <> '_') and ((C < 'A') or (C > 'Z')) and ((C < 'a') or (C > 'z')) then
+            Break;
+          Inc(J);
+        end;
+        I := J;
+      end
+      else if (C = '/') then
+      begin
+        S := S.Remove(I, 1);
+        S := S.Insert(I, ' div ');
+        Inc(I, 4);
+      end;
+      Inc(I);
+    end;
+    AWriter.Write(S);
+    AWriter.Write(' - 1');
+  end;
+  AWriter.Write('] of ');
+
+  if (AForCApi) then
+    FInnerType.WriteCApi(AWriter)
+  else
+    FInnerType.WriteSource(AWriter);
+end;
+
 procedure TTypeDescription.WriteCApi(const AWriter: TSourceWriter);
 begin
   case FKind of
@@ -1113,41 +1275,98 @@ begin
       end;
 
     TDataTypeKind.Function:
-      begin
-        Assert(Assigned(FReturnType));
-        if (FReturnType.IsVoid) then
-          AWriter.Write('procedure(')
-        else
-          AWriter.Write('function(');
-        FParameters.WriteCApi(AWriter);
-        AWriter.Write(')');
-        if (not FReturnType.IsVoid) then
-        begin
-          AWriter.Write(': ');
-          FReturnType.WriteCApi(AWriter);
-        end;
-        AWriter.Write('; cdecl');
-      end;
+      WriteFunction(AWriter);
 
     TDataTypeKind.Array:
-      begin
-        Assert(Assigned(FInnerType));
-        AWriter.Write('array [0..');
+      WriteArray(AWriter, True);
+  else
+    Assert(False, 'TODO');
+  end;
+end;
 
-        var Count: Integer;
-        if (TryStrToInt(FBounds, Count)) then
-          AWriter.Write((Count - 1).ToString)
+procedure TTypeDescription.WriteFunction(const AWriter: TSourceWriter);
+begin
+  Assert(Assigned(FReturnType));
+  if (FReturnType.IsVoid) then
+    AWriter.Write('procedure(')
+  else
+    AWriter.Write('function(');
+  FParameters.WriteCApi(AWriter);
+  AWriter.Write(')');
+  if (not FReturnType.IsVoid) then
+  begin
+    AWriter.Write(': ');
+    FReturnType.WriteCApi(AWriter);
+  end;
+  AWriter.Write('; cdecl');
+end;
+
+procedure TTypeDescription.WriteSource(const AWriter: TSourceWriter);
+begin
+  case FKind of
+    TDataTypeKind.Builtin:
+      AWriter.Write(FBuiltinType.ToDelphiType);
+
+    TDataTypeKind.User:
+      begin
+        var Typedef := TDom.Instance.Typedefs.Get(FName);
+        if (Typedef <> nil) then
+          TypeDef.DataType.Description.WriteSource(AWriter)
         else
         begin
-          var C := FBounds.Chars[0];
-          if (C < '0') or (C > '9') then
-            AWriter.Write('_');
-          AWriter.Write(FBounds);
-          AWriter.Write(' - 1');
+          var IsPointer := (FParent is TTypeDescription) and (TTypeDescription(FParent).Kind = TDataTypeKind.Pointer);
+          if (not IsPointer) then
+            AWriter.Write('T');
+
+          if (FName = 'ImVec2') then
+            AWriter.Write('Vector2')
+          else if (FName = 'ImVec4') then
+            AWriter.Write('Vector4')
+          else if (FName.StartsWith('ImVector_')) then
+          begin
+            var GenericTypeName := FName.Substring(9, FName.Length - 9);
+            if (IsPointer) then
+            begin
+              AWriter.Write('ImVector');
+              AWriter.Write(GenericTypeName);
+            end
+            else
+            begin
+              AWriter.Write('ImVector<');
+              var GenericTypedef := TDom.Instance.Typedefs.Get(GenericTypeName);
+              if (GenericTypedef <> nil) then
+                GenericTypedef.DataType.WriteSource(AWriter)
+              else
+                AWriter.Write(ToDelphiType(GenericTypeName));
+              AWriter.Write('>');
+            end;
+          end
+          else
+            AWriter.Write(FName)
         end;
-        AWriter.Write('] of ');
-        FInnerType.WriteCApi(AWriter);
       end;
+
+    TDataTypeKind.Pointer:
+      if (FInnerType = nil) then
+        AWriter.Write('Pointer')
+      else
+      begin
+        if (FInnerType.Kind <> TDataTypeKind.Function) then
+          AWriter.Write('P');
+        FInnerType.WriteSource(AWriter);
+      end;
+
+    TDataTypeKind.&Type:
+      begin
+        Assert(Assigned(FInnerType));
+        FInnerType.WriteSource(AWriter);
+      end;
+
+    TDataTypeKind.Function:
+      WriteFunction(AWriter);
+
+    TDataTypeKind.Array:
+      WriteArray(AWriter, False);
   else
     Assert(False, 'TODO');
   end;
@@ -1201,12 +1420,23 @@ begin
   FDescription.WriteCApi(AWriter);
 end;
 
+procedure TDataType.WriteSource(const AWriter: TSourceWriter);
+begin
+  FDescription.WriteSource(AWriter);
+end;
+
 { TDefine }
 
 function TDefine.Ignore: Boolean;
 begin
   { Ignore defines without content, or which look like functions. }
   Result := inherited or (FContent = '') or (FContent.IndexOf('(') >= 0);
+  if (not Result) then
+  begin
+    { Ignore defines that are identifiers }
+    var C := FContent.Chars[0];
+    Result := (C = '_') or ((C >= 'A') and (C <= 'Z')) or ((C >= 'a') and (C <= 'z'));
+  end;
 end;
 
 procedure TDefine.LoadChild(const AName: String; const AValue: TJsonValue);
@@ -1215,6 +1445,33 @@ begin
     FContent := AValue.ToString
   else
     inherited;
+end;
+
+procedure TDefine.WriteCApi(const AWriter: TSourceWriter);
+begin
+  AWriter.Write('_');
+  WriteSource(AWriter);
+end;
+
+procedure TDefine.WriteSource(const AWriter: TSourceWriter);
+begin
+  AWriter.Write(FName);
+  AWriter.Write(' = ');
+  if (FContent <> '') and (FContent.Chars[0] = '"') then
+  begin
+    Assert(FContent.Chars[FContent.Length - 1] = '"');
+    AWriter.Write('''');
+    AWriter.Write(FContent.Substring(1, FContent.Length - 2));
+    AWriter.Write('''');
+  end
+  else if (FContent.StartsWith('0x', True)) then
+  begin
+    AWriter.Write('$');
+    AWriter.Write(FContent.Substring(2));
+  end
+  else
+    AWriter.Write(FContent);
+  AWriter.WriteLn(';');
 end;
 
 { TEnumElement }
@@ -1229,6 +1486,28 @@ begin
     FIsCount := AValue.ToBoolean
   else
     inherited;
+end;
+
+procedure TEnumElement.Loaded;
+begin
+  inherited;
+  Assert((FParent <> nil) and (FParent.FParent is TEnum));
+  var Prefix := TEnum(FParent.FParent).Name;
+  if (FName.StartsWith(Prefix)) then
+    FNameWithoutPrefix := FName.Substring(Length(Prefix))
+  else
+    FNameWithoutPrefix := FName;
+end;
+
+procedure TEnumElement.WriteSource(const AWriter: TSourceWriter;
+  const AIsFlag: Boolean);
+begin
+  AWriter.Write(ToValidId(FNameWithoutPrefix, True));
+  AWriter.Write(' = ');
+  if (AIsFlag) then
+    AWriter.Write(LogTwo(FValue).ToString)
+  else
+    AWriter.Write(FValue.ToString);
 end;
 
 { TEnum }
@@ -1264,6 +1543,13 @@ begin
     inherited;
 end;
 
+procedure TEnum.Loaded;
+begin
+  inherited;
+  if (FName.EndsWith('_')) then
+    FName := FName.Substring(0, FName.Length - 1);
+end;
+
 procedure TEnum.WriteCApi(const AWriter: TSourceWriter);
 begin
   AWriter.Write('_');
@@ -1273,9 +1559,9 @@ end;
 
 procedure TEnum.WriteCountConst(const AWriter: TSourceWriter);
 begin
-  for var I := FElements.FItems.Count - 1 downto 0 do
+  for var I := FElements.Count - 1 downto 0 do
   begin
-    var E := FElements.FItems[I];
+    var E := FElements[I];
     if (E.IsCount) then
     begin
       AWriter.Write('_');
@@ -1284,6 +1570,234 @@ begin
       Break;
     end;
   end;
+end;
+
+procedure TEnum.WriteSetSource(const AWriter: TSourceWriter);
+begin
+  var Name := ToDelphiType(FName);
+  if (not Name.EndsWith('Flags')) then
+    Assert(False, 'Enum set name must end with "Flags"');
+
+  var BaseName := Name.Substring(0, Name.Length - 1);
+
+  AWriter.StartSection('type');
+  WriteCommentBefore(AWriter);
+  AWriter.Write(BaseName);
+  AWriter.WriteLn(' = (');
+  AWriter.Indent;
+
+  { Write all flag values }
+  var All: TArray<String> := nil;
+  var PrevElement: TEnumElement := nil;
+  var HasFlagCombinations := False;
+  var MaxValue: Int64 := 0;
+  for var Element in FElements do
+  begin
+    if (Element.IsCount) or (Element.IsInternal) then
+      Continue;
+
+//    if (Value.Name.EndsWith('_')) then
+//      Continue;
+//
+//    if (IsTextFlags) and (Value.Name.StartsWith('Callback')) then
+//      { We don't currently support text callbacks since we already implement
+//        a callback manually. }
+//      Continue;
+
+    if IsPowerOfTwo(Element.Value) then
+    begin
+      { This is a single flag }
+      if (PrevElement <> nil) then
+      begin
+        AWriter.Write(',');
+        PrevElement.WriteCommentAfter(AWriter);
+      end;
+
+      Element.WriteCommentBefore(AWriter);
+      Element.WriteSource(AWriter, True);
+      MaxValue := Max(MaxValue, LogTwo(Element.Value));
+      All := All + [Element.Name];
+      PrevElement := Element;
+    end
+    else
+      { This is a combination of flags }
+      HasFlagCombinations := True;
+  end;
+
+  if (MaxValue < 24) then
+  begin
+    { Even with MINENUMSIZE 4, sets are not guaranteed to be at least 4 bytes
+      in size. So we need to add a dummy value to make sure it is. }
+    if (PrevElement <> nil) then
+    begin
+      AWriter.Write(',');
+      PrevElement.WriteCommentAfter(AWriter);
+      PrevElement := nil;
+    end;
+
+    AWriter.Write('_ = 31');
+  end;
+
+  AWriter.Write(');');
+  if (PrevElement = nil) then
+    WriteCommentAfter(AWriter)
+  else
+    PrevElement.WriteCommentAfter(AWriter);
+
+  AWriter.Outdent;
+
+  AWriter.WriteLn('%s = set of %s;', [Name, BaseName]);
+
+  if (HasFlagCombinations) then
+  begin
+    AWriter.WriteLn;
+    AWriter.WriteLn('_%sHelper = record helper for %0:s', [Name]);
+    AWriter.WriteLn('public const');
+    AWriter.Indent;
+
+    for var Element in FElements do
+    begin
+      if (Element.IsCount) or (Element.IsInternal) then
+        Continue;
+
+      if (not IsPowerOfTwo(Element.Value)) {and (not Value.Name.EndsWith('_'))} then
+      begin
+        { This a combination of flags }
+        var Replacement := '';
+//        if Assigned(Customization) and Customization.Get(Value.Name, Replacement) then
+//        begin
+//          { This is a Delphi customization }
+//          if (Replacement <> '') then
+//          begin
+//            AWriter.Write(Value.Name);
+//            AWriter.Write(' = ');
+//            AWriter.Write(Replacement);
+//            AWriter.WriteLn(';');
+//          end;
+//        end
+//        else
+        begin
+          { Default handling }
+          AWriter.Write(Element.NameWithoutPrefix);
+          AWriter.Write(' = ');
+
+          if {(Value.Name.EndsWith('None')) and} (Element.Value = 0) then
+            AWriter.Write('[];')
+//          else if (Value.Name.EndsWith('All')) and (Value.CalculatedValue > 0) and (All <> nil) then
+//          begin
+//            AWriter.Write('[');
+//            for var I := 0 to Length(All) - 1 do
+//            begin
+//              if (I > 0) then
+//                AWriter.Write(', ');
+//
+//              AWriter.Write(BaseName);
+//              AWriter.Write('.');
+//              AWriter.Write(All[I]);
+//            end;
+//            AWriter.WriteLn('];');
+//          end
+          else
+          begin
+            AWriter.Write('[');
+//            var Names := Element.ValueExpression.Split(['|']);
+//            for var I := 0 to Length(Names) - 1 do
+//            begin
+//              if (I > 0) then
+//                AWriter.Write(', ');
+//
+//              var S := Names[I].Trim;
+//              var J := S.IndexOf('_');
+//              if (J > 0) then
+//                S := S.Substring(J + 1);
+//
+//              AWriter.Write(BaseName);
+//              AWriter.Write('.');
+//              AWriter.Write(S);
+//            end;
+
+            var First := True;
+            var TotalValue: Int64 := 0;
+            for var Other in FElements do
+            begin
+              if (Other <> Element) and (IsPowerOfTwo(Other.Value)) and ((Element.Value and Other.Value) = Other.Value) then
+              begin
+                if (First) then
+                  First := False
+                else
+                  AWriter.Write(', ');
+
+                AWriter.Write(BaseName);
+                AWriter.Write('.');
+                AWriter.Write(Other.NameWithoutPrefix);
+                TotalValue := TotalValue or Other.Value;
+              end;
+            end;
+            if (TotalValue <> Element.Value) then
+              Assert(False, 'Invalid flags element: total value doesn''t add up');
+
+            AWriter.Write('];');
+          end;
+          Element.WriteCommentAfter(AWriter);
+        end;
+      end;
+    end;
+
+    AWriter.Outdent;
+    AWriter.WriteLn('end;');
+  end;
+
+  AWriter.EndSection;
+end;
+
+procedure TEnum.WriteSource(const AWriter: TSourceWriter);
+begin
+  if (FIsInternal) then
+    Exit;
+
+  if (FIsFlags) then
+  begin
+    WriteSetSource(AWriter);
+    Exit;
+  end;
+
+  AWriter.StartSection('type');
+  WriteCommentBefore(AWriter);
+  AWriter.Write(ToDelphiType(Name));
+  AWriter.WriteLn(' = (');
+  AWriter.Indent;
+  for var I := 0 to FElements.Count - 1 do
+  begin
+    var Element := FElements[I];
+    if (Element.IsCount) or (Element.IsInternal) then
+      Continue;
+
+    if (I > 0) then
+    begin
+      AWriter.Write(',');
+      FElements[I - 1].WriteCommentAfter(AWriter);
+    end;
+
+    Element.WriteCommentBefore(AWriter);
+    Element.WriteSource(AWriter, False);
+  end;
+  AWriter.Write(');');
+  if (FElements.Count > 0) then
+    FElements[FElements.Count - 1].WriteCommentAfter(AWriter)
+  else
+    WriteCommentAfter(AWriter);
+
+  AWriter.Outdent;
+//  AWriter.WriteLn('P%s = ^%s;', [Name.Substring(1), Name]);
+  AWriter.EndSection;
+end;
+
+{ TEnums }
+
+procedure TEnums.WriteSource(const AWriter: TSourceWriter);
+begin
+  for var Enum in Self do
+    Enum.WriteSource(AWriter);
 end;
 
 { TTypedef }
@@ -1300,12 +1814,31 @@ begin
   inherited;
 end;
 
+function TTypedef.GetIsBuiltinType: Boolean;
+begin
+  Result := (FDataType.Description.Kind = TDataTypeKind.Builtin);
+end;
+
 procedure TTypedef.LoadChild(const AName: String; const AValue: TJsonValue);
 begin
   if (AName = 'type') then
     FDataType.LoadChildren(AValue)
   else
     inherited;
+end;
+
+procedure TTypedef.Loaded;
+begin
+  inherited;
+  if (FName = 'ImWchar16') then
+    FDataType.FDescription.FBuiltinType := TBuiltinType.WChar16
+  else if (FName = 'ImWchar32') then
+    FDataType.FDescription.FBuiltinType := TBuiltinType.WChar32
+  else if (FName = 'ImWchar') then
+  begin
+    FDataType.FDescription.FKind := TDataTypeKind.Builtin;
+    FDataType.FDescription.FBuiltinType := TBuiltinType.WChar16;
+  end;
 end;
 
 procedure TTypedef.WriteCApi(const AWriter: TSourceWriter);
@@ -1315,6 +1848,45 @@ begin
   AWriter.Write(' = ');
   FDataType.WriteCApi(AWriter);
   AWriter.WriteLn(';');
+end;
+
+procedure TTypedef.WriteSource(const AWriter: TSourceWriter);
+begin
+  if (IsBuiltinType) then
+    Exit;
+
+  WriteCommentBefore(AWriter);
+  AWriter.Write('T');
+  AWriter.Write(FName);
+  AWriter.Write(' = ');
+  FDataType.WriteSource(AWriter);
+  AWriter.Write(';');
+  WriteCommentAfter(AWriter);
+end;
+
+{ TTypedefs }
+
+procedure TTypedefs.Fixup;
+{ Remove typedefs that have a corresponding enum }
+begin
+  var Dom := TDom.Instance;
+  for var I := Count - 1 downto 0 do
+  begin
+    var Typedef := Items[I];
+    if (Dom.Enums.Has(Typedef.Name)) or (Dom.Enums.Has(Typedef.Name + '_')) then
+    begin
+      FItemsByName.Remove(Typedef.Name);
+      FItems.Delete(I);
+    end;
+  end;
+end;
+
+procedure TTypedefs.WriteSource(const AWriter: TSourceWriter);
+begin
+  AWriter.StartSection('type');
+  for var Typedef in Self do
+    Typedef.WriteSource(AWriter);
+  AWriter.EndSection;
 end;
 
 { TField }
@@ -1347,18 +1919,73 @@ begin
     inherited;
 end;
 
+procedure TField.WriteAnonymous(const AWriter: TSourceWriter);
+begin
+  var Name := FName;
+  for var I := Name.Length - 1 downto 0 do
+  begin
+    var C := Name.Chars[I];
+    if (C < '0') or (C > '9') then
+    begin
+      Name := 'A' + Name.Substring(I + 1);
+      Break;
+    end;
+  end;
+
+  AWriter.Write(Name);
+  AWriter.WriteLn(': record case Byte of');
+
+  var Union := TDom.Instance.Structs.Get(FFieldType.Declaration);
+  Assert((Union <> nil) and (Union.FKind = TStructKind.Union));
+
+  for var I := 0 to Union.Fields.Count - 1 do
+  begin
+    var Field := Union.Fields[I];
+    if (Field.FWidth > 0) then
+      Continue;
+
+    AWriter.Write('      %d: (', [I]);
+    Field.WriteSource(AWriter);
+    AWriter.WriteLn(');');
+  end;
+  AWriter.Write('    end');
+end;
+
 procedure TField.WriteCApi(const AWriter: TSourceWriter);
 begin
 //  if (FIsAnonymous) then
 //    Assert(False, 'TODO');
-  if (FWidth > 0) then
-    Assert(False, 'TODO');
+  Assert(FWidth = 0, 'Fields with bit widths are handled elsewhere');
 
   AWriter.Write('_');
   AWriter.Write(FName);
   AWriter.Write(': ');
 
-  FFieldType.WriteCApi(AWriter);
+  if (FCombinedType <> '') then
+    AWriter.Write(FCombinedType)
+  else
+    FFieldType.WriteCApi(AWriter);
+end;
+
+procedure TField.WriteSource(const AWriter: TSourceWriter);
+begin
+  Assert(FWidth = 0);
+  WriteCommentBefore(AWriter);
+  if (FIsAnonymous) then
+  begin
+    WriteAnonymous(AWriter);
+    Exit;
+  end;
+
+  if (FCombinedType <> '') then
+    AWriter.Write('_');
+
+  AWriter.Write(ToValidId(FName, True));
+  AWriter.Write(': ');
+  if (FCombinedType <> '') then
+    AWriter.Write(FCombinedType)
+  else
+    FFieldType.WriteSource(AWriter);
 end;
 
 { TStruct }
@@ -1401,6 +2028,60 @@ begin
     inherited;
 end;
 
+procedure TStruct.Loaded;
+{ Check for bitfields and add a combined field for sequences of bitfields }
+begin
+  inherited;
+  FCApiOnly := (FName = 'ImColor') or (FName = 'ImVec2') or (FName = 'ImVec4')
+    or (FOriginalFullyQualifiedName.IndexOf('<') > 0);
+
+  var I := FName.IndexOf('_');
+  if (I > 0) and (FOriginalFullyQualifiedName.IndexOf('::') = I) then
+    FName := FName.Substring(I + 1);
+
+  I := 0;
+  while (I < FFields.Count) do
+  begin
+    var Field := FFields[I];
+    if (Field.FWidth > 0) then
+    begin
+      var BitCount := Field.FWidth;
+      var J := I + 1;
+      while (J < FFields.Count) do
+      begin
+        Field := FFields[J];
+        if (Field.FWidth <= 0) then
+          Break;
+
+        Inc(BitCount, Field.FWidth);
+        Inc(J);
+      end;
+
+      Field := TField.Create;
+      Field.FParent := Self;
+      Field.FName := Format('fields%dto%d', [I, J - 1]);
+
+      if (BitCount <= 8) then
+        Field.FCombinedType := 'UInt8'
+      else if (BitCount <= 16) then
+        Field.FCombinedType := 'UInt16'
+      else if (BitCount <= 24) then
+      else if (BitCount <= 32) then
+        Field.FCombinedType := 'UInt32'
+      else if (BitCount <= 56) then
+      else if (BitCount <= 64) then
+        Field.FCombinedType := 'UInt64';
+
+      if (Field.FCombinedType = '') then
+        Assert(False, Format('Unsupported combined bitcount: %d', [BitCount]));
+
+      FFields.FItems.Insert(I, Field);
+      I := J;
+    end;
+    Inc(I);
+  end;
+end;
+
 procedure TStruct.WriteCApi(const AWriter: TSourceWriter);
 begin
   AWriter.Write('_');
@@ -1411,9 +2092,11 @@ begin
     AWriter.WriteLn('case Byte of');
 
   AWriter.Indent;
-  for var I := 0 to FFields.FItems.Count - 1 do
+  for var I := 0 to FFields.Count - 1 do
   begin
-    var Field := FFields.FItems[I];
+    var Field := FFields[I];
+    if (Field.FWidth > 0) then
+      Continue;
 
     if (FKind = TStructKind.Union) then
       AWriter.Write('%d: (', [I]);
@@ -1428,6 +2111,79 @@ begin
   AWriter.Outdent;
 
   AWriter.WriteLn('end;');
+  AWriter.WriteLn;
+end;
+
+procedure TStruct.WriteForwardDeclarations(const AWriter: TSourceWriter);
+begin
+  if {(FIsInternal) or} (FCApiOnly) or (FIsAnonymous) then
+    Exit;
+
+  AWriter.WriteLn('T%sPtr = ^T%0:s;', [FName]);
+  AWriter.WriteLn('P%s = ^T%0:s;', [FName]);
+  AWriter.WriteLn('PP%s = ^P%0:s;', [FName]);
+end;
+
+procedure TStruct.WriteInterface(const AWriter: TSourceWriter);
+begin
+  if {(FIsInternal) or }(FCApiOnly) or (FIsAnonymous) then
+    Exit;
+
+  Assert(FKind = TStructKind.Struct);
+  WriteCommentBefore(AWriter);
+  AWriter.WriteLn('T%s = record', [FName]);
+
+  var HasBitFields := False;
+  if (FFields.Count > 0) then
+  begin
+    AWriter.WriteLn('public');
+    AWriter.Indent;
+    for var Field in FFields do
+    begin
+      if (Field.FWidth > 0) then
+      begin
+        HasBitFields := True;
+        Continue;
+      end;
+
+      Field.WriteSource(AWriter);
+      AWriter.Write(';');
+      Field.WriteCommentAfter(AWriter);
+    end;
+    AWriter.Outdent;
+  end;
+
+  if (HasBitFields) then
+  begin
+    AWriter.WriteLn('{$REGION ''Internal Declarations''}');
+    AWriter.WriteLn('private');
+    AWriter.Indent;
+    for var Field in FFields do
+    begin
+      if (Field.FWidth <= 0) then
+        Continue;
+
+      AWriter.WriteLn('function Get%s: Integer; inline;', [Field.Name]);
+      AWriter.WriteLn('procedure Set%s(const AValue: Integer); inline;', [Field.Name]);
+    end;
+    AWriter.Outdent;
+    AWriter.WriteLn('{$ENDREGION ''Internal Declarations''}');
+
+    AWriter.WriteLn('public');
+    AWriter.Indent;
+    for var Field in FFields do
+    begin
+      if (Field.FWidth <= 0) then
+        Continue;
+
+      AWriter.Write('property %s: Integer read Get%0:s write Set%0:s;', [Field.Name]);
+      Field.WriteCommentAfter(AWriter);
+    end;
+    AWriter.Outdent;
+  end;
+
+  AWriter.Write('end;');
+  WriteCommentAfter(AWriter);
   AWriter.WriteLn;
 end;
 
@@ -1450,9 +2206,9 @@ procedure TStructs.Reorder(const ASource: TArray<TStruct>);
 
   function FindStruct(const AName: String): Integer;
   begin
-    for var I := 0 to FItems.Count - 1 do
+    for var I := 0 to Count - 1 do
     begin
-      if (FItems[I].Name = AName) then
+      if (Items[I].Name = AName) then
         Exit(I);
     end;
     Result := -1;
@@ -1486,15 +2242,15 @@ procedure TStructs.Reorder(const ASource: TArray<TStruct>);
 
     for var Field in ASrc.FFields do
     begin
-      var Name := Field.Name;
-//      if (TypeName.StartsWith('ImVector_')) then
-//        TypeName := TypeName.Substring(9)
+      var TypeName := Field.FieldType.Declaration;
+      if (TypeName.StartsWith('ImVector_')) then
+        TypeName := TypeName.Substring(9);
 //      else if (TypeName.StartsWith('ImPool_')) then
 //        TypeName := TypeName.Substring(7)
 //      else if (TypeName.StartsWith('ImSpan_')) then
 //        TypeName := TypeName.Substring(7);
 
-      AnalyzeType(SrcIndex, Name);
+      AnalyzeType(SrcIndex, TypeName);
     end;
 
 //    if (Funcs = nil) then
@@ -1530,6 +2286,26 @@ begin
     AnalyzeStruct(Struct);
 end;
 
+procedure TStructs.WriteForwardDeclarations(const AWriter: TSourceWriter);
+begin
+  AWriter.Indent;
+
+  for var Struct in Self do
+    Struct.WriteForwardDeclarations(AWriter);
+
+  AWriter.Outdent;
+end;
+
+procedure TStructs.WriteInterfaces(const AWriter: TSourceWriter);
+begin
+  AWriter.Indent(True);
+
+  for var Struct in Self do
+    Struct.WriteInterface(AWriter);
+
+  AWriter.Outdent;
+end;
+
 { TFunction }
 
 constructor TFunction.Create;
@@ -1549,6 +2325,21 @@ end;
 function TFunction.GetHasReturnType: Boolean;
 begin
   Result := (not FReturnType.IsVoid);
+end;
+
+function TFunction.Ignore: Boolean;
+begin
+  { Ignore some special helper functions that are not exported }
+  Result := inherited or FIsUnformattedHelper;
+  if (not Result) then
+  begin
+    { Ignore functions with a "va_list" argument }
+    for var Arg in FArguments do
+    begin
+      if (Arg.FDataType.FDeclaration = 'va_list') then
+        Exit(True);
+    end;
+  end;
 end;
 
 procedure TFunction.LoadChild(const AName: String; const AValue: TJsonValue);
@@ -1589,16 +2380,13 @@ procedure TFunction.WriteCApi(const AWriter: TSourceWriter);
 begin
 //  if (FIsDefaultArgumentHelper) then
 //    Assert(False, 'TODO');
-  if (FIsManualHelper) then
-    Assert(False, 'TODO');
+  Assert(not FIsUnformattedHelper, 'Should be ignored');
   if (FIsImStrHelper) then
     Assert(False, 'TODO');
   if (FHasImStrHelper) then
     Assert(False, 'TODO');
-  if (FIsUnformattedHelper) then
-    Assert(False, 'TODO');
-  if (FIsStatic) then
-    Assert(False, 'TODO');
+//  if (FIsStatic) then
+//    Assert(False, 'TODO');
 
   if (HasReturnType) then
     AWriter.Write('function _')
@@ -1633,6 +2421,7 @@ end;
 constructor TDom.Create;
 begin
   inherited;
+  GInstance := Self;
   FDefines := TDefines.Create(Self);
   FEnums := TEnums.Create(Self);
   FTypedefs := TTypedefs.Create(Self);
@@ -1642,6 +2431,7 @@ end;
 
 destructor TDom.Destroy;
 begin
+  GInstance := nil;
   FFunctions.Free;
   FStructs.Free;
   FTypedefs.Free;
@@ -1660,6 +2450,7 @@ begin
 
   var Doc := TJsonDocument.Load('dcimgui.json');
   LoadChildren(Doc.Root);
+  FTypedefs.Fixup;
 end;
 
 procedure TDom.LoadChild(const AName: String; const AValue: TJsonValue);

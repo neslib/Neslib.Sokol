@@ -9,7 +9,9 @@ uses
   BindingGenerator in 'BindingGenerator.pas',
   Dom in 'Dom.pas',
   SourceWriter in 'SourceWriter.pas',
-  IncludeFileGenerator in 'IncludeFileGenerator.pas';
+  IncludeFileGenerator in 'IncludeFileGenerator.pas',
+  SourceFileGenerator in 'SourceFileGenerator.pas',
+  Utils in 'Utils.pas';
 
 begin
   try

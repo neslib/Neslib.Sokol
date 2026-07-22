@@ -11,11 +11,9 @@ type
   {$REGION 'Internal Declarations'}
   private
     FDom: TDom; // Reference
-    FWriter: TSourceWriter;
   {$ENDREGION 'Internal Declarations'}
   public
     constructor Create(const ADom: TDom);
-    destructor Destroy; override;
 
     procedure Run;
   end;
@@ -31,44 +29,53 @@ constructor TIncludeFileGenerator.Create(const ADom: TDom);
 begin
   inherited Create;
   FDom := ADom;
-  FWriter := TSourceWriter.Create;
   Run;
-end;
-
-destructor TIncludeFileGenerator.Destroy;
-begin
-  FWriter.Free;
-  inherited;
 end;
 
 procedure TIncludeFileGenerator.Run;
 begin
+  var Writer := TSourceWriter.Create;
   try
-    FWriter.StartSection('type');
-    FWriter.WriteLn('_size_t = NativeUInt;');
-    for var TypeDef in FDom.Typedefs do
-      TypeDef.WriteCApi(FWriter);
-    FWriter.EndSection;
+    try
+      Writer.StartSection('type');
+      Writer.WriteLn('// Typedefs');
+      Writer.WriteLn('_size_t = NativeUInt;');
+      for var TypeDef in FDom.Typedefs do
+        TypeDef.WriteCApi(Writer);
+      Writer.EndSection;
 
-    FWriter.StartSection('type');
-    for var Enum in FDom.Enums do
-      Enum.WriteCApi(FWriter);
-    FWriter.EndSection;
+      Writer.StartSection('type');
+      Writer.WriteLn('// Enums');
+      for var Enum in FDom.Enums do
+        Enum.WriteCApi(Writer);
+      Writer.EndSection;
 
-    FWriter.StartSection('const');
-    for var Enum in FDom.Enums do
-      Enum.WriteCountConst(FWriter);
-    FWriter.EndSection;
+      Writer.StartSection('const');
+      Writer.WriteLn('// Enum counts');
+      for var Enum in FDom.Enums do
+        Enum.WriteCountConst(Writer);
+      Writer.EndSection;
 
-    FWriter.StartSection('type');
-    for var Struct in FDom.Structs do
-      Struct.WriteCApi(FWriter);
-    FWriter.EndSection;
+      Writer.StartSection('const');
+      Writer.WriteLn('// Defines');
+      for var Define in FDom.Defines do
+        Define.WriteCApi(Writer);
+      Writer.EndSection;
 
-    for var Func in FDom.Functions do
-      Func.WriteCApi(FWriter);
+      Writer.StartSection('type');
+      Writer.WriteLn('// Structs');
+      for var Struct in FDom.Structs do
+        Struct.WriteCApi(Writer);
+      Writer.EndSection;
+
+      Writer.WriteLn('// APIs');
+      for var Func in FDom.Functions do
+        Func.WriteCApi(Writer);
+    finally
+      TFile.WriteAllText('..\..\..\Neslib.ImGui.inc', Writer.ToString);
+    end;
   finally
-    TFile.WriteAllText('..\..\..\Neslib.ImGui.inc', FWriter.ToString);
+    Writer.Free;
   end;
 end;
 
