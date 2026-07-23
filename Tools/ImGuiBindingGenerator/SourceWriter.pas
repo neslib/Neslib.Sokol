@@ -4,16 +4,30 @@ interface
 
 uses
   System.Classes,
-  System.SysUtils;
+  System.SysUtils,
+  System.Generics.Collections;
 
 type
   { Class for writing Pascal source code }
   TSourceWriter = class
   {$REGION 'Internal Declarations'}
+  private type
+    TComment = record
+    public
+      Text: String;
+      Position: Integer;
+      Column: Integer;
+    end;
   private
+    FMainWriter: TStringWriter;
+    FCommentWriter: TStringWriter;
     FWriter: TStringWriter;
     FIndent: String;
     FSection: String;
+    FComments: TList<TComment>;
+    FColumn: Integer;
+    FPosition: Integer;
+    FMaxColumn: Integer;
     FNeedIndent: Boolean;
     FLastLineEmpty: Boolean;
   {$ENDREGION 'Internal Declarations'}
@@ -62,6 +76,10 @@ type
     { Whether the writer is currently at the start of a section. }
     function IsAtSectionStart: Boolean;
 
+    procedure StartCommentAlignment;
+    procedure WriteAlignedComment(const AComment: String);
+    procedure EndCommentAlignment;
+
     { Returns the output }
     function ToString: String; override;
 
@@ -76,13 +94,35 @@ implementation
 constructor TSourceWriter.Create;
 begin
   inherited Create;
-  FWriter := TStringWriter.Create;
+  FComments := TList<TComment>.Create;
+  FMainWriter := TStringWriter.Create;
+  FWriter := FMainWriter;
 end;
 
 destructor TSourceWriter.Destroy;
 begin
-  FWriter.Free;
+  FMainWriter.Free;
+  FComments.Free;
   inherited;
+end;
+
+procedure TSourceWriter.EndCommentAlignment;
+begin
+  Assert(FCommentWriter <> nil);
+
+  var Source := FCommentWriter.ToString;
+  for var I := FComments.Count - 1 downto 0 do
+  begin
+    var Comment := FComments[I];
+    var Indent := FMaxColumn - Comment.Column + 1;
+    var Text := String.Create(' ', Indent) + Comment.Text;
+    Source := Source.Insert(Comment.Position, Text);
+  end;
+
+  FMainWriter.Write(Source);
+  FCommentWriter.Free;
+  FCommentWriter := nil;
+  FWriter := FMainWriter;
 end;
 
 procedure TSourceWriter.EndSection;
@@ -114,6 +154,17 @@ begin
     FIndent := FIndent.Substring(2);
 end;
 
+procedure TSourceWriter.StartCommentAlignment;
+begin
+  Assert(FCommentWriter = nil);
+  FCommentWriter := TStringWriter.Create;
+  FWriter := FCommentWriter;
+  FComments.Clear;
+  FColumn := 0;
+  FPosition := 0;
+  FMaxColumn := 0;
+end;
+
 procedure TSourceWriter.StartSection(const ASection: String);
 begin
   FSection := ASection;
@@ -127,7 +178,11 @@ end;
 procedure TSourceWriter.WriteLn;
 begin
   if (not FLastLineEmpty) then
+  begin
     FWriter.WriteLine;
+    FColumn := 0;
+    Inc(FPosition, Length(sLineBreak));
+  end;
 
   FLastLineEmpty := True;
 end;
@@ -138,11 +193,32 @@ begin
   Write(Format(AValue, AArgs));
 end;
 
+procedure TSourceWriter.WriteAlignedComment(const AComment: String);
+begin
+  if (FCommentWriter = nil) then
+  begin
+    Write(' ');
+    WriteLn(AComment);
+    Exit;
+  end;
+
+  var Comment: TComment;
+  Comment.Text := AComment;
+  Comment.Position := FPosition;
+  Comment.Column := FColumn;
+  if (FColumn > FMaxColumn) then
+    FMaxColumn := FColumn;
+  FComments.Add(Comment);
+  WriteLn(' ');
+end;
+
 procedure TSourceWriter.Write(const AValue: String);
 begin
   if (FSection <> '') then
   begin
     FWriter.WriteLine(FSection);
+    FColumn := 0;
+    Inc(FPosition, Length(sLineBreak) + FSection.Length);
     FSection := '';
     FIndent := '  ';
     FNeedIndent := True;
@@ -151,10 +227,14 @@ begin
   if (FNeedIndent) and (FIndent <> '') then
   begin
     FWriter.Write(FIndent);
+    Inc(FColumn, FIndent.Length);
+    Inc(FPosition, FIndent.Length);
     FNeedIndent := False;
   end;
 
   FWriter.Write(AValue);
+  Inc(FColumn, AValue.Length);
+  Inc(FPosition, AValue.Length);
   FLastLineEmpty := False;
 end;
 
@@ -163,6 +243,7 @@ procedure TSourceWriter.WriteLn(const AValue: String;
 begin
   Write(Format(AValue, AArgs));
   Write(sLineBreak);
+  FColumn := 0;
   FNeedIndent := True;
 end;
 
@@ -170,6 +251,7 @@ procedure TSourceWriter.WriteLn(const AValue: String);
 begin
   Write(AValue);
   Write(sLineBreak);
+  FColumn := 0;
   FNeedIndent := True;
 end;
 

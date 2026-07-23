@@ -14,9 +14,6 @@ unit Neslib.ImGui;
 interface
 
 uses
-//  System.Math,
-//  System.Types,
-//  System.UITypes,
   Neslib.FastMath,
   Neslib.Sokol.Api;
 
@@ -25,8 +22,13 @@ uses
 type
   PUInt8 = ^UInt8;
   PUInt16 = ^UInt16;
+  PInt32 = ^Int32;
 
 <%TypeDefs%>
+
+const
+  IM_COL32_WHITE = $FFFFFFFF;
+  IM_COL32_BLACK = $FF000000;
 
 <%Enums%>
 
@@ -58,97 +60,20 @@ type
     property Data: Pointer read FData;
   end;
 
-//type
-//  TImPoolIdx = Integer;
-//
-//type
-//  TImPool<T> = record
-//  public
-//    Buf: TImVector<T>;
-//    Map: TImVector; // TImGuiStorage
-//    FreeIdx: TImPoolIdx;
-//    AliveCount: TImPoolIdx;
-//  end;
-//
-//type
-//  TImSpan<T> = record
-//  public
-//    Data: Pointer;
-//    DataEnd: Pointer;
-//  end;
-//
-//type
-//  TImChunkStream<T> = record
-//  public
-//    Buf: TImVector<T>;
-//  end;
-//
-//type
-//  TImBitArrayForNamedKeys = record
-//  public const
-//    BITCOUNT = Ord(TImGuiKey.NamedKeyCOUNT);
-//  public
-//    Storage: array [0..((BITCOUNT + 31) shr 5) - 1] of UInt32;
-//  end;
-//
-//type
-//  TImChunkStream_ImGuiWindowSettings = record
-//  public
-//    Buf: TImVector<Byte>;
-//  end;
-//
-//type
-//  TImChunkStream_ImGuiTableSettings = record
-//  public
-//    Buf: TImVector<Byte>;
-//  end;
-//
-//type
-//  TImGuiText = record
-//  {$REGION 'Internal Declarations'}
-//  private const
-//    WORK_AREA = 10;
-//  private
-//    FBuffer: TArray<UTF8Char>;
-//  private
-//    procedure Validate;
-//    procedure Update(const AData: _PImGuiInputTextCallbackData);
-//  {$ENDREGION 'Internal Declarations'}
-//  public
-//    procedure Init(const AText: String);
-//    function ToString: String; inline;
-//    function ToUTF8String: UTF8String; inline;
-//    function ToPUTF8Char: PUTF8Char; inline;
-//
-//    class operator Implicit(const AText: String): TImGuiText; inline; static;
-//    class operator Implicit(const AText: TImGuiText): String; inline; static;
-//  end;
-//  PImGuiText = ^TImGuiText;
-
 type
   // Forward declarations
   <%ForwardStructDeclarations%>
 
   TImVectorImTextureDataPtr = TImVector<TImTextureDataPtr>;
   PImVectorImTextureDataPtr = ^TImVectorImTextureDataPtr;
-
-//  TImDrawCallback = procedure(const AParentList: PImDrawList; const ACmd: PImDrawCmd); cdecl;
-//  TImGuiErrorLogCallback = procedure(const AUserData: Pointer; const AError: PUTF8Char) varargs; cdecl;
-//  TImGuiMemAllocFunc = function(const ASize: NativeUInt; const AUserData: Pointer): Pointer; cdecl;
-//  PImGuiMemAllocFunc = ^TImGuiMemAllocFunc;
-//  TImGuiMemFreeFunc = procedure(const APtr, AUserData: Pointer); cdecl;
-//  PImGuiMemFreeFunc = ^TImGuiMemFreeFunc;
-//  TImGuiInputTextCallback = function(const AData: PImGuiInputTextCallbackData): Integer; cdecl;
-//  TImGuiSizeCallback = procedure(const AData: PImGuiSizeCallbackData); cdecl;
+  TImVectorImWchar = TImVector<Char>;
+  PImVectorImWchar = ^TImVectorImWchar;
 
 <%StructInterfaces%>
 
-//  TImGuiWindowPtr = PImGuiWindow;
-//  TImVectorPChar = TImVector<PChar>;
-//  _ImGuiItemsGetter = _igCombo_FnBoolPtr__items_getter;
-//  _ImGuiCompareFunc = _igImQsort__compare_func;
-//  _ImGuiValuesGetter = _igPlotEx__values_getter;
-<%CustomTypes%>
+  TImGuiStringGetter = function(AUserData: Pointer; AIndex: Integer): PUTF8Char; cdecl;
+  TImGuiValueGetter = function(AUserData: Pointer; AIndex: Integer): Single; cdecl;
+
 <%ImGuiInterface%>
 
 type
@@ -165,13 +90,11 @@ type
     class function ToUtf8(const AStr: String): PUTF8Char; static;
     class function Format(const AFmt: String; const AArgs: array of const): PUTF8Char; static;
   end;
-  
-//function __ImGuiInputTextCallback(AData: _PImGuiInputTextCallbackData): Integer; cdecl;
 
 implementation
 
-//uses
-//  System.SysUtils;
+uses
+  System.SysUtils;
 
 { TImVector<T> }
 
@@ -349,66 +272,10 @@ begin
   Result := PUTF8Char(FUtf8Buf);
 end;
 
-//{ TImGuiText }
-//
-//function __ImGuiInputTextCallback(AData: _PImGuiInputTextCallbackData): Integer; cdecl;
-//begin
-//  if Assigned(AData) and Assigned(AData.UserData) then
-//    PImGuiText(AData.UserData).Update(AData);
-//
-//  Result := 0;
-//end;
-//
-//class operator TImGuiText.Implicit(const AText: TImGuiText): String;
-//begin
-//  Result := AText.ToString;
-//end;
-//
-//procedure TImGuiText.Init(const AText: String);
-//begin
-//  var S := UTF8String(AText);
-//  var Len := Length(S);
-//  SetLength(FBuffer, Len + WORK_AREA);
-//  if (Len > 0) then
-//    Move(S[Low(UTF8String)], FBuffer[0], Len);
-//  FBuffer[Len] := #0;
-//end;
-//
-//function TImGuiText.ToPUTF8Char: PUTF8Char;
-//begin
-//  Result := PUTF8Char(FBuffer);
-//end;
-//
-//function TImGuiText.ToString: String;
-//begin
-//  Result := String(UTF8String(PUTF8Char(FBuffer)));
-//end;
-//
-//function TImGuiText.ToUTF8String: UTF8String;
-//begin
-//  Result := UTF8String(FBuffer);
-//end;
-//
-//procedure TImGuiText.Update(const AData: _PImGuiInputTextCallbackData);
-//begin
-//  if (AData.EventFlag = _ImGuiInputTextFlags_CallbackResize)
-//    and ((AData.BufTextLen + 2) > AData.BufSize) then
-//  begin
-//    SetLength(FBuffer, GrowCollection(Length(FBuffer), AData.BufTextLen + 1));
-//    AData.Buf := Pointer(FBuffer);
-//  end;
-//end;
-//
-//procedure TImGuiText.Validate;
-//begin
-//  if (FBuffer = nil) then
-//    SetLength(FBuffer, WORK_AREA);
-//end;
-//
-//class operator TImGuiText.Implicit(const AText: String): TImGuiText;
-//begin
-//  Result.Init(AText);
-//end;
 <%StructImplementations%>
+<%ImGuiImplementation%>
+
+initialization
+  <%Initialization%>
 
 end.

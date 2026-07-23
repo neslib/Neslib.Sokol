@@ -4,7 +4,7 @@
         <ProjectVersion>20.3</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">DebugTest</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">ImGuiBindingGenerator</ProjectName>
         <TargetedPlatforms>1</TargetedPlatforms>
@@ -220,6 +220,7 @@
         <DCCReference Include="IncludeFileGenerator.pas"/>
         <DCCReference Include="SourceFileGenerator.pas"/>
         <DCCReference Include="Utils.pas"/>
+        <DCCReference Include="DelphiOverloads.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

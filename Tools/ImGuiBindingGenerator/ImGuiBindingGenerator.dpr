@@ -11,7 +11,8 @@ uses
   SourceWriter in 'SourceWriter.pas',
   IncludeFileGenerator in 'IncludeFileGenerator.pas',
   SourceFileGenerator in 'SourceFileGenerator.pas',
-  Utils in 'Utils.pas';
+  Utils in 'Utils.pas',
+  DelphiOverloads in 'DelphiOverloads.pas';
 
 begin
   try

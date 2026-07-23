@@ -3,7 +3,7 @@ unit DelphiOverloads;
 interface
 
 uses
-  Neslib.Collections,
+  System.Generics.Collections,
   Neslib.Json;
 
 type

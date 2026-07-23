@@ -45,8 +45,6 @@ begin
     Exit;
 
   Result := 'T' + CType;
-//  if (Result.EndsWith('_')) then
-//    Result := Result.Substring(0, Result.Length - 1);
 end;
 
 function ToPascalCase(const ASource: String): String;

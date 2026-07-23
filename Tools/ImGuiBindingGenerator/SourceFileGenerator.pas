@@ -35,6 +35,7 @@ end;
 
 procedure TSourceFileGenerator.Run;
 begin
+  FDom.Typedefs.FixupSource;
   var Source := TFile.ReadAllText('Neslib.ImGui.Template.pas');
   try
     while (True) do
@@ -57,14 +58,16 @@ begin
           FDom.Enums.WriteSource(Writer)
         else if (Section = 'forwardstructdeclarations') then
           FDom.Structs.WriteForwardDeclarations(Writer)
-        else if (Section = 'customtypes') then
-          Assert(False, 'TODO')
         else if (Section = 'structinterfaces') then
           FDom.Structs.WriteInterfaces(Writer)
         else if (Section = 'imguiinterface') then
-          Assert(False, 'TODO')
+          FDom.Structs.WriteImGuiInterface(Writer)
         else if (Section = 'structimplementations') then
-          Assert(False, 'TODO')
+          FDom.Structs.WriteImplementations(Writer)
+        else if (Section = 'imguiimplementation') then
+          FDom.Structs.WriteImGuiImplementation(Writer)
+        else if (Section = 'initialization') then
+          FDom.Structs.WriteInitialization(Writer)
         else
           Assert(False, 'Unknown template section: ' + Section);
 
