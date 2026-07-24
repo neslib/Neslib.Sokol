@@ -79,6 +79,7 @@ type
     procedure StartCommentAlignment;
     procedure WriteAlignedComment(const AComment: String);
     procedure EndCommentAlignment;
+    procedure LineBreakIfNeeded;
 
     { Returns the output }
     function ToString: String; override;
@@ -146,6 +147,16 @@ end;
 function TSourceWriter.IsAtSectionStart: Boolean;
 begin
   Result := (FSection <> '');
+end;
+
+procedure TSourceWriter.LineBreakIfNeeded;
+begin
+  if (FColumn >= 80) then
+  begin
+    WriteLn;
+    Write('  ');
+    FNeedIndent := True;
+  end;
 end;
 
 procedure TSourceWriter.Outdent;

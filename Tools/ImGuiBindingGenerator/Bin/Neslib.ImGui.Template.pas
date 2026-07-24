@@ -14,6 +14,7 @@ unit Neslib.ImGui;
 interface
 
 uses
+  System.Math,
   Neslib.FastMath,
   Neslib.Sokol.Api;
 

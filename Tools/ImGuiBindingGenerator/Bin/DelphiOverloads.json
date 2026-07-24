@@ -13,27 +13,27 @@
   ],
   "ImDrawList_AddImageQuadEx": [  
     { 
-      "intf": "procedure AddImageQuad(const ATexRef: TImTextureRef; const AP1, AP2, AP3, AP4, AUv1: TVector2; const ACol: UInt32 = IM_COL32_WHITE); overload; inline;",
+      "intf": "procedure AddImageQuad(const ATexRef: TImTextureRef; const AP1, AP2, AP3, AP4,|AUv1: TVector2; const ACol: UInt32 = IM_COL32_WHITE); overload; inline;",
       "impl": "_ImDrawList_AddImageQuadEx(@Self, _ImTextureRef(ATexRef), _ImVec2(AP1), _ImVec2(AP2), _ImVec2(AP3), _ImVec2(AP4), _ImVec2(AUv1), _ImVec2(TVector2.UnitX), _ImVec2(TVector2.One), _ImVec2(TVector2.UnitY), _ImU32(ACol));"
     },
     { 
-      "intf": "procedure AddImageQuad(const ATexRef: TImTextureRef; const AP1, AP2, AP3, AP4, AUv1, AUv2: TVector2; const ACol: UInt32 = IM_COL32_WHITE); overload; inline;",
+      "intf": "procedure AddImageQuad(const ATexRef: TImTextureRef; const AP1, AP2, AP3, AP4,|AUv1, AUv2: TVector2; const ACol: UInt32 = IM_COL32_WHITE); overload; inline;",
       "impl": "_ImDrawList_AddImageQuadEx(@Self, _ImTextureRef(ATexRef), _ImVec2(AP1), _ImVec2(AP2), _ImVec2(AP3), _ImVec2(AP4), _ImVec2(AUv1), _ImVec2(AUv2), _ImVec2(TVector2.One), _ImVec2(TVector2.UnitY), _ImU32(ACol));"
     },
     { 
-      "intf": "procedure AddImageQuad(const ATexRef: TImTextureRef; const AP1, AP2, AP3, AP4, AUv1, AUv2, AUv3: TVector2; const ACol: UInt32 = IM_COL32_WHITE); overload; inline;",
+      "intf": "procedure AddImageQuad(const ATexRef: TImTextureRef; const AP1, AP2, AP3, AP4,|AUv1, AUv2, AUv3: TVector2; const ACol: UInt32 = IM_COL32_WHITE); overload; inline;",
       "impl": "_ImDrawList_AddImageQuadEx(@Self, _ImTextureRef(ATexRef), _ImVec2(AP1), _ImVec2(AP2), _ImVec2(AP3), _ImVec2(AP4), _ImVec2(AUv1), _ImVec2(AUv2), _ImVec2(AUv3), _ImVec2(TVector2.UnitY), _ImU32(ACol));"
     }
   ],
   "igBeginChild": [  
     { 
-      "intf": "class function BeginChild(const AStrId: PUTF8Char; const AChildFlags: TImGuiChildFlags = []; const AWindowFlags: TImGuiWindowFlags = []): Boolean; overload; inline; static;",
+      "intf": "class function BeginChild(const AStrId: PUTF8Char; const AChildFlags: TImGuiChildFlags = [];|const AWindowFlags: TImGuiWindowFlags = []): Boolean; overload; inline; static;",
       "impl": "Result := _igBeginChild(AStrId, _ImVec2(TVector2.Zero), Cardinal(AChildFlags), Cardinal(AWindowFlags));"
     }
   ],
   "igBeginChildID": [  
     { 
-      "intf": "class function BeginChild(const AId: TImGuiID; const AChildFlags: TImGuiChildFlags = []; const AWindowFlags: TImGuiWindowFlags = []): Boolean; overload; inline; static;",
+      "intf": "class function BeginChild(const AId: TImGuiID; const AChildFlags: TImGuiChildFlags = [];|const AWindowFlags: TImGuiWindowFlags = []): Boolean; overload; inline; static;",
       "impl": "Result := _igBeginChildID(_ImGuiID(AId), _ImVec2(TVector2.Zero), Cardinal(AChildFlags), Cardinal(AWindowFlags));"
     }
   ],
@@ -63,16 +63,246 @@
   ],
   "igImageWithBgEx": [  
     { 
-      "intf": "class procedure ImageWithBg(const ATexRef: TImTextureRef; const AImageSize, AUv0, AUv1: TVector2; const ABgCol: TVector4); overload; inline; static;",
+      "intf": "class procedure ImageWithBg(const ATexRef: TImTextureRef; const AImageSize,|AUv0, AUv1: TVector2; const ABgCol: TVector4); overload; inline; static;",
       "impl": "_igImageWithBgEx(_ImTextureRef(ATexRef), _ImVec2(AImageSize), _ImVec2(AUv0), _ImVec2(AUv1), _ImVec4(ABgCol), _ImVec4(TVector4.One));"
     },
     { 
-      "intf": "class procedure ImageWithBg(const ATexRef: TImTextureRef; const AImageSize, AUv0, AUv1: TVector2); overload; inline; static;",
+      "intf": "class procedure ImageWithBg(const ATexRef: TImTextureRef; const AImageSize,|AUv0, AUv1: TVector2); overload; inline; static;",
       "impl": "_igImageWithBgEx(_ImTextureRef(ATexRef), _ImVec2(AImageSize), _ImVec2(AUv0), _ImVec2(AUv1), _ImVec4(TVector4.Zero), _ImVec4(TVector4.One));"
     },
     { 
-      "intf": "class procedure ImageWithBg(const ATexRef: TImTextureRef; const AImageSize, AUv0: TVector2); overload; inline; static;",
+      "intf": "class procedure ImageWithBg(const ATexRef: TImTextureRef; const AImageSize,|AUv0: TVector2); overload; inline; static;",
       "impl": "_igImageWithBgEx(_ImTextureRef(ATexRef), _ImVec2(AImageSize), _ImVec2(AUv0), _ImVec2(TVector2.One), _ImVec4(TVector4.Zero), _ImVec4(TVector4.One));"
     },
+  ],
+  "igImageButtonEx": [  
+    { 
+      "intf": "class function ImageButton(const AStrId: PUTF8Char; const ATexRef: TImTextureRef;|const AImageSize, AUv0, AUv1: TVector2; const ABgCol: TVector4): Boolean; overload; inline; static;",
+      "impl": "Result := _igImageButtonEx(AStrId, _ImTextureRef(ATexRef), _ImVec2(AImageSize), _ImVec2(AUv0), _ImVec2(AUv1), _ImVec4(ABgCol), _ImVec4(TVector4.One));"
+    },
+    { 
+      "intf": "class function ImageButton(const AStrId: PUTF8Char; const ATexRef: TImTextureRef;|const AImageSize, AUv0, AUv1: TVector2): Boolean; overload; inline; static;",
+      "impl": "Result := _igImageButtonEx(AStrId, _ImTextureRef(ATexRef), _ImVec2(AImageSize), _ImVec2(AUv0), _ImVec2(AUv1), _ImVec4(TVector4.Zero), _ImVec4(TVector4.One));"
+    },
+    { 
+      "intf": "class function ImageButton(const AStrId: PUTF8Char; const ATexRef: TImTextureRef;|const AImageSize, AUv0: TVector2): Boolean; overload; inline; static;",
+      "impl": "Result := _igImageButtonEx(AStrId, _ImTextureRef(ATexRef), _ImVec2(AImageSize), _ImVec2(AUv0), _ImVec2(TVector2.One), _ImVec4(TVector4.Zero), _ImVec4(TVector4.One));"
+    }
+  ],
+  "igDragFloatEx": [  
+    { 
+      "intf": "class function DragFloat(const ALabel: PUTF8Char; const AV: PSingle; const AVSpeed: Single = 1.0;|const AVMin: Single = 0.0; const AVMax: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragFloatEx(ALabel, AV, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igDragFloat2Ex": [  
+    { 
+      "intf": "class function DragFloat2(const ALabel: PUTF8Char; const AV: PSingle; const AVSpeed: Single = 1.0;|const AVMin: Single = 0.0; const AVMax: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragFloat2Ex(ALabel, AV, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igDragFloat3Ex": [  
+    { 
+      "intf": "class function DragFloat3(const ALabel: PUTF8Char; const AV: PSingle; const AVSpeed: Single = 1.0;|const AVMin: Single = 0.0; const AVMax: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragFloat3Ex(ALabel, AV, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igDragFloat4Ex": [  
+    { 
+      "intf": "class function DragFloat4(const ALabel: PUTF8Char; const AV: PSingle; const AVSpeed: Single = 1.0;|const AVMin: Single = 0.0; const AVMax: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragFloat4Ex(ALabel, AV, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igDragFloatRange2Ex": [  
+    { 
+      "intf": "class function DragFloatRange2(const ALabel: PUTF8Char; const AVCurrentMin,|AVCurrentMax: PSingle; const AVSpeed: Single = 1.0; const AVMin: Single = 0.0;|const AVMax: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragFloatRange2Ex(ALabel, AVCurrentMin, AVCurrentMax, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), nil, 0);"
+    }
+  ],
+  "igDragIntEx": [  
+    { 
+      "intf": "class function DragInt(const ALabel: PUTF8Char; const AV: PInt32; const AVSpeed: Single = 1.0;|const AVMin: Int32 = 0; const AVMax: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragIntEx(ALabel, AV, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igDragInt2Ex": [  
+    { 
+      "intf": "class function DragInt2(const ALabel: PUTF8Char; const AV: PInt32; const AVSpeed: Single = 1.0;|const AVMin: Int32 = 0; const AVMax: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragInt2Ex(ALabel, AV, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igDragInt3Ex": [  
+    { 
+      "intf": "class function DragInt3(const ALabel: PUTF8Char; const AV: PInt32; const AVSpeed: Single = 1.0;|const AVMin: Int32 = 0; const AVMax: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragInt3Ex(ALabel, AV, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igDragInt4Ex": [  
+    { 
+      "intf": "class function DragInt4(const ALabel: PUTF8Char; const AV: PInt32; const AVSpeed: Single = 1.0;|const AVMin: Int32 = 0; const AVMax: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragInt4Ex(ALabel, AV, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igDragIntRange2Ex": [  
+    { 
+      "intf": "class function DragIntRange2(const ALabel: PUTF8Char; const AVCurrentMin,|AVCurrentMax: PInt32; const AVSpeed: Single = 1.0; const AVMin: Int32 = 0;|const AVMax: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igDragIntRange2Ex(ALabel, AVCurrentMin, AVCurrentMax, AVSpeed, AVMin, AVMax, PUTF8Char('%.3f'), nil, 0);"
+    }
+  ],
+  "igSliderFloatEx": [  
+    { 
+      "intf": "class function SliderFloat(const ALabel: PUTF8Char; const AV: PSingle;|const AVMin: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderFloatEx(ALabel, AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igSliderFloat2Ex": [  
+    { 
+      "intf": "class function SliderFloat2(const ALabel: PUTF8Char; const AV: PSingle;|const AVMin: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderFloat2Ex(ALabel, AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igSliderFloat3Ex": [  
+    { 
+      "intf": "class function SliderFloat3(const ALabel: PUTF8Char; const AV: PSingle;|const AVMin: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderFloat3Ex(ALabel, AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igSliderFloat4Ex": [  
+    { 
+      "intf": "class function SliderFloat4(const ALabel: PUTF8Char; const AV: PSingle;|const AVMin: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderFloat4Ex(ALabel, AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igSliderAngleEx": [  
+    { 
+      "intf": "class function SliderAngle(const ALabel: PUTF8Char; const AVRad: PSingle;|const AVDegreesMin: Single = -360.0; const AVDegreesMax: Single = 360.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderAngleEx(ALabel, AVRad, AVDegreesMin, AVDegreesMax, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igSliderIntEx": [  
+    { 
+      "intf": "class function SliderInt(const ALabel: PUTF8Char; const AV: PInt32;|const AVMin: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderIntEx(ALabel, AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igSliderInt2Ex": [  
+    { 
+      "intf": "class function SliderInt2(const ALabel: PUTF8Char; const AV: PInt32;|const AVMin: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderInt2Ex(ALabel, AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igSliderInt3Ex": [  
+    { 
+      "intf": "class function SliderInt3(const ALabel: PUTF8Char; const AV: PInt32;|const AVMin: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderInt3Ex(ALabel, AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igSliderInt4Ex": [  
+    { 
+      "intf": "class function SliderInt4(const ALabel: PUTF8Char; const AV: PInt32;|const AVMin: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igSliderInt4Ex(ALabel, AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igVSliderFloatEx": [  
+    { 
+       "intf": "class function VSliderFloat(const ALabel: PUTF8Char; const ASize: TVector2;|const AV: PSingle; const AVMin: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igVSliderFloatEx(ALabel, _ImVec2(ASize), AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igVSliderIntEx": [  
+    { 
+       "intf": "class function VSliderInt(const ALabel: PUTF8Char; const ASize: TVector2;|const AV: PInt32; const AVMin: Int32 = 0): Boolean; overload; inline; static;",
+      "impl": "Result := _igVSliderIntEx(ALabel, _ImVec2(ASize), AV, AVMin, 0, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igInputTextMultilineEx": [  
+    { 
+      "intf": "*",
+      "impl": "*"
+    }
+  ],
+  "igInputFloatEx": [  
+    { 
+      "intf": "class function InputFloat(const ALabel: PUTF8Char; const AV: PSingle; const AStep: Single;|const AStepFast: Single = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igInputFloatEx(ALabel, AV, AStep, AStepFast, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igInputFloat2Ex": [  
+    { 
+      "intf": "*",
+      "impl": "*"
+    }
+  ],
+  "igInputFloat3Ex": [  
+    { 
+      "intf": "*",
+      "impl": "*"
+    }
+  ],
+  "igInputFloat4Ex": [  
+    { 
+      "intf": "*",
+      "impl": "*"
+    }
+  ],
+  "igInputDoubleEx": [  
+    { 
+      "intf": "class function InputDouble(const ALabel: PUTF8Char; const AV: PDouble; const AStep: Double;|const AStepFast: Double = 0.0): Boolean; overload; inline; static;",
+      "impl": "Result := _igInputDoubleEx(ALabel, AV, AStep, AStepFast, PUTF8Char('%.3f'), 0);"
+    }
+  ],
+  "igColorButtonEx": [  
+    { 
+      "intf": "*",
+      "impl": "*"
+    }
+  ],
+  "igSelectableEx": [  
+    { 
+      "intf": "class function Selectable(const ALabel: PUTF8Char; const ASelected: Boolean;|const AFlags: TImGuiSelectableFlags = []): Boolean; overload; inline; static;",
+      "impl": "Result := _igSelectableEx(ALabel, ASelected, Cardinal(AFlags), _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igSelectableBoolPtrEx": [  
+    { 
+      "intf": "*",
+      "impl": "*"
+    }
+  ],
+  "igBeginListBox": [  
+    { 
+      "intf": "class function BeginListBox(const ALabel: PUTF8Char): Boolean; overload; inline; static;",
+      "impl": "Result := _igBeginListBox(ALabel, _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igPlotLinesEx": [  
+    { 
+      "intf": "class procedure PlotLines(const ALabel: PUTF8Char; const AValues: PSingle; const AValuesCount: Int32;|const AValuesOffset: Int32 = 0; const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle;|const AScaleMax: Single = MaxSingle); overload; inline; static;",
+      "impl": "_igPlotLinesEx(ALabel, AValues, AValuesCount, AValuesOffset, AOverlayText, AScaleMin, AScaleMax, _ImVec2(TVector2.Zero), SizeOf(Single));"
+    }
+  ],
+  "igPlotLinesCallbackEx": [  
+    { 
+      "intf": "class procedure PlotLines(const ALabel: PUTF8Char; const AValuesGetter: TImGuiValueGetter;|const AData: Pointer; const AValuesCount: Int32; const AValuesOffset: Int32 = 0;|const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle;|const AScaleMax: Single = MaxSingle); overload; inline; static;",
+      "impl": "_igPlotLinesCallbackEx(ALabel, @AValuesGetter, AData, AValuesCount, AValuesOffset, AOverlayText, AScaleMin, AScaleMax, _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igPlotHistogramEx": [  
+    { 
+      "intf": "class procedure PlotHistogram(const ALabel: PUTF8Char; const AValues: PSingle;|const AValuesCount: Int32; const AValuesOffset: Int32 = 0; const AOverlayText: PUTF8Char = nil;|const AScaleMin: Single = MaxSingle; const AScaleMax: Single = MaxSingle); overload; inline; static;",
+      "impl": "_igPlotHistogramEx(ALabel, AValues, AValuesCount, AValuesOffset, AOverlayText, AScaleMin, AScaleMax, _ImVec2(TVector2.Zero), SizeOf(Single));"
+    }
+  ],
+  "igPlotHistogramCallbackEx": [  
+    { 
+      "intf": "class procedure PlotHistogram(const ALabel: PUTF8Char; const AValuesGetter: TImGuiValueGetter;|const AData: Pointer; const AValuesCount: Int32; const AValuesOffset: Int32 = 0;|const AOverlayText: PUTF8Char = nil; const AScaleMin: Single = MaxSingle;|const AScaleMax: Single = MaxSingle); overload; inline; static;",
+      "impl": "_igPlotHistogramCallbackEx(ALabel, @AValuesGetter, AData, AValuesCount, AValuesOffset, AOverlayText, AScaleMin, AScaleMax, _ImVec2(TVector2.Zero));"
+    }
+  ],
+  "igBeginTableEx": [  
+    { 
+      "intf": "*",
+      "impl": "*"
+    }
   ],
 }

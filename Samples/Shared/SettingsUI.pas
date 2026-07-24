@@ -65,7 +65,7 @@ end;
 
 function TSettingsUI.EventHandler(const AEvent: TEvent): Boolean;
 begin
-  Result := _simgui_handle_event(@AEvent);
+  Result := SokolImGui.HandleEvent(@AEvent);
 end;
 
 end.

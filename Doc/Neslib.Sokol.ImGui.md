@@ -49,6 +49,8 @@ This unit is not thread-safe, all calls must be made from the same thread where 
 
   * `UseDelphiMemoryManager: Boolean`: Set to `True` to use Delphi's memory manager instead of Sokol's internal one.
 
+  * `Logger: TImGuiLogger`: A user-provided logging callback. Note that without logging callback, Neslib.Sokol.ImGui will be completely silent! See the section [Error reporting and logging](#error-reporting-and-logging) below for more details.
+
 * At the start of a frame, call:
 
   ```pascal
@@ -82,15 +84,19 @@ This unit is not thread-safe, all calls must be made from the same thread where 
 * If you're using [Neslib.Sokol.App](Neslib.Sokol.App.md), then you should pass events to SokolImGui by calling:
 
   ```pascal
-    var EventHandler := SokolImGui.GetNativeEventHandler;
-    TApplication.SetNativeEventHandler(EventHandler);
+  TApplication.AddEventHandler(MyEventHandler);
+  
+  function TMyApp.EventHandler(const AEvent: TEvent): Boolean;
+  begin
+    Result := SokolImGui.HandleEvent(@AEvent);
+  end;
   ```
 
   If you want to use the ImGui functions for checking if a key is pressed (e.g. `ImGui.IsKeyPressed`) the following helper function to map a `TKeyCode`
-  to an ImGuiKey value may be useful:
+  to an `TImGuiKey` value may be useful:
 
   ```pascal
-    function SokolImGui.MapKeyCode(const AKeyCode: Integer): Integer;
+  function SokolImGui.MapKeyCode(const AKeyCode: Integer): Integer;
   ```
 
   Where `AKeyCode` is the ordinal value of `TKeyCode` (e.g. `Ord(TKeyCode.*)`).
@@ -100,3 +106,71 @@ This unit is not thread-safe, all calls must be made from the same thread where 
     ```pascal
     SokolImGui.Shutdown;
     ```
+
+## On attaching your own fonts
+
+First call `SokolImGui.Setup` with `TSokolImGuiDesc.NoDefaultFont` set to `True`. Then simple call `TImFontAtlas.AddFontDefault` or `TImFontAtlas.AddFontFromMemoryTTF` (from the Neslib.ImGui unit) and everything else is taken care of automatically.
+
+Specifically, do **not** create a `Neslib.Sokol.Gfx.TImage` object for the font atlas.
+
+## On user-provided images and samplers
+
+To render your own images via `ImGui.Image` you need to create a Dear ImGui compatible texture handle (`TImTextureID`) from a TNeslib.Sokol.Gfx texture view handle or optionally a texture view handle and a compatible sampler handle.
+
+To create a `TImTextureID` from a Neslib.Sokol.Gfx image handle, call:
+
+```pascal
+var Desc := TViewDesc.Create;
+Desc.TextureBinding.Image := Img;
+var TexView := TView.Create(Desc);
+var ImTexId := SokolImGui.ImTextureId(TexView);
+```
+
+Since no sampler is provided, such a texture handle will use a default sampler with nearest filtering and clamp-to-edge.
+
+If you need to render with a different sampler, do this instead:
+
+```pascal
+var TexView := TView....
+var Smp := TSampler....
+var ImTexId := SokolImGui.ImTextureId(TexView, Smp);
+```
+
+You don't need to 'release' the `TImTextureID` handle.
+
+Once you have constructed an `TImTextureID` handle via `SokolImGui.ImTextureId, it used in the `ImGui.Image` call like this:
+
+```pascal
+var TexRef: TImTextureRef;
+TexRef.TexData := nil;
+TexRef.TexID := ImTexId;
+ImGui.Image(TexRef, ...);
+```
+
+To extract the `TView` and `TSampler` handle from a `TImTextureID`:
+
+```pascal
+var TexView := SokolImGui.TextureViewFromImTextureId(ImTexId);
+var Smp := SokolImGui.SamplerFromImTextureId(ImTexId);
+```
+
+ Use `TView.Image` if you need to extract the texture view's image object:
+
+```pascal
+var Img := TexView.Image;
+```
+
+## Error reporting and logging
+
+To get any logging information at all you need to provide a logging callback in the `TSokolImGuiDesc` record. The easiest way is using the DefaultLogger provided by Sokol:
+
+```pascal
+  var Desc := TSokolImGuiDesc.Create;
+  Desc.Logger := Desc.DefaultLogger;
+  ...
+  SokolImGui.Setup(Desc);
+```
+
+The provided logging function must be reentrant (e.g. be callable from different threads).
+
+If you don't want to provide your own custom logger it is highly recommended to use the standard logger, otherwise you won't see any warnings or errors.

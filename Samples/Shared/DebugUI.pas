@@ -19,11 +19,12 @@ type
 implementation
 
 uses
-//  Neslib.ImGui,
-//  Neslib.Sokol.Api,
+  Neslib.ImGui,
+  Neslib.Sokol.Api,
   Neslib.Sokol.ImGui,
   Neslib.Sokol.App.ImGui,
   Neslib.Sokol.Gfx.ImGui,
+  Neslib.Sokol.Utils,
   SampleApp;
 
 type
@@ -43,7 +44,8 @@ begin
 
   var ImGuiDesc := TSokolImGuiDesc.Create;
   ImGuiDesc.SampleCount := TApplication.SampleCount;
-  ImGuiDesc.Logger...;
+  ImGuiDesc.Logger := ImGuiDesc.DefaultLogger;
+  ImGuiDesc.WriteAlphaChannel := True;
 
   Assert(TApplication.Instance is TSampleApp);
   TSampleAppAccess(TApplication.Instance).ConfigureSokolImGui(ImGuiDesc);
@@ -54,7 +56,8 @@ end;
 destructor TDebugUI.Destroy;
 begin
   SokolImGui.Shutdown;
-  FDebugContext.Free;
+  TAppImGui.Shutdown;
+  TGfxImGui.Shutdown;
   TApplication.RemoveEventHandler(EventHandler);
   inherited;
 end;
@@ -67,37 +70,27 @@ begin
   Desc.DeltaTime := TApplication.FrameDuration;
   Desc.DpiScale := TApplication.DpiScale;
   SokolImGui.NewFrame(Desc);
+  TAppImGui.TrackFrame;
 
-  if ImGui.BeginMainMenuBar then
+  if (ImGui.BeginMainMenuBar) then
   begin
-    if ImGui.BeginMenu('Neslib.Sokol.Gfx') then
-    begin
-      ImGui.MenuItem('Capabilities', nil, FDebugContext.CapabilitiesOpen);
-      ImGui.MenuItem('Buffers', nil, FDebugContext.BuffersOpen);
-      ImGui.MenuItem('Images', nil, FDebugContext.ImagesOpen);
-      ImGui.MenuItem('Shaders', nil, FDebugContext.ShadersOpen);
-      ImGui.MenuItem('Pipelines', nil, FDebugContext.PipelinesOpen);
-      ImGui.MenuItem('Passes', nil, FDebugContext.PassesOpen);
-      ImGui.MenuItem('Calls', nil, FDebugContext.CaptureOpen);
-      ImGui.EndMenu;
-    end;
+    TGfxImGui.DrawMenu('Sokol.Gfx');
+    TAppImGui.DrawMenu('Sokol.App');
     ImGui.EndMainMenuBar;
   end;
 
   Assert(TApplication.Instance is TSampleApp);
   TSampleAppAccess(TApplication.Instance).DrawImGui;
 
-  FDebugContext.Draw;
+  TAppImGui.Draw;
+  TGfxImGui.Draw;
   SokolImGui.Render;
 end;
 
 function TDebugUI.EventHandler(const AEvent: TEvent): Boolean;
 begin
-  if (AEvent.Kind >= TEventKind.Resized) and (AEvent.Kind <> TEventKind.ClipboardPasted) then
-    { These events should not be handled by the Debug UI }
-    Result := False
-  else
-    Result := _simgui_handle_event(@AEvent);
+  TAppImGui.TrackEvent(AEvent);
+  Result := SokolImGui.HandleEvent(@AEvent);
 end;
 
 end.

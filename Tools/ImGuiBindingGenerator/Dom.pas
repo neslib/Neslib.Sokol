@@ -1143,6 +1143,7 @@ begin
         if (NeedSemicolon) then
         begin
           AWriter.Write('; ');
+          AWriter.LineBreakIfNeeded;
           NeedSemicolon := False;
         end;
         AWriter.Write('const ');
@@ -1150,6 +1151,7 @@ begin
 
       AWriter.Write(ToValidId('A' + ToPascalCase(Arg.FName), False));
       AWriter.Write(', ');
+      AWriter.LineBreakIfNeeded;
       CombinesWithNext := True;
     end
     else
@@ -1157,7 +1159,11 @@ begin
       if (I = 0) then
         AWriter.Write('const ')
       else if (not CombinesWithNext) then
-        AWriter.Write('; const ');
+      begin
+        AWriter.Write('; ');
+        AWriter.LineBreakIfNeeded;
+        AWriter.Write('const ');
+      end;
       CombinesWithNext := False;
 
       AWriter.Write(ToValidId('A' + ToPascalCase(Arg.FName), False));
@@ -2952,7 +2958,15 @@ begin
     begin
       var Intf := CustomOverload.Intf;
       if (Intf <> '*') then
-        AWriter.WriteLn(CustomOverload.Intf);
+      begin
+        var Lines := Intf.Split(['|']);
+        if (Lines <> nil) then
+        begin
+          AWriter.WriteLn(Lines[0]);
+          for var I := 1 to Length(Lines) - 1 do
+            AWriter.WriteLn('  ' + Lines[I]);
+        end;
+      end;
     end;
 
     Exit;
@@ -3017,6 +3031,7 @@ begin
     if (Intf = '*') then
       Continue;
 
+    Intf := Intf.Replace('|', ' ', [TReplaceFlag.rfReplaceAll]);
     var IsFunction := False;
 
     var I := Intf.IndexOf('procedure ');
