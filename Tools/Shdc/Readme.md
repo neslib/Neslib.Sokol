@@ -24,6 +24,29 @@ This will create a Visual Studio solution in the ".fibs\build\win-vstudio-releas
 
   * Update the `Format::to_str` and `Format::from_str` functions accordingly using the string `"sokol_delphi"`.
 
+* Edit "src\\shdc\\args.h":
+
+  * In the `Args` struct set the default value of the `output_format` field to `Format::SOKOL_DELPHI`.
+
+* Edit "src\\shdc\\args.cc":
+
+  * Locate the validate function and add the following code at the beginning of the function:
+
+    ```c++
+    if (args.output_format == Format::SOKOL_DELPHI)
+    {
+        if (args.slang == 0)
+            args.slang = Slang::bit(Slang::GLSL410)
+            | Slang::bit(Slang::GLSL300ES)
+            | Slang::bit(Slang::HLSL5)
+            | Slang::bit(Slang::METAL_MACOS)
+            | Slang::bit(Slang::METAL_IOS)
+            | Slang::bit(Slang::SPIRV_VK);
+    
+        args.ifdef = true;
+    }
+    ```
+
 * Edit "src\\shdc\\generators\\generate.cc":
 
   * Add an `#include "sokoldelphi.h"` line.
@@ -32,5 +55,4 @@ This will create a Visual Studio solution in the ".fibs\build\win-vstudio-releas
     ```c++
     case Format::SOKOL_DELPHI:
        return std::make_unique<SokolDelphiGenerator>();
-  ```
-  
+

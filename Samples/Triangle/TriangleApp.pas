@@ -66,7 +66,7 @@ begin
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
 
-  TGfx.Draw(0, 3);
+  TGfx.Draw(0, 3, 1);
   DebugFrame;
 
   TGfx.EndPass;

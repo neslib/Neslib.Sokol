@@ -1,5 +1,5 @@
 @vs vs
-uniform vs_params {
+layout(binding=0) uniform vs_params {
     mat4 mvp;
 };
 
@@ -19,7 +19,7 @@ in vec4 color;
 out vec4 frag_color;
 
 void main() {
-    frag_color = color;
+    frag_color = vec4(color.rgb, 1);
 }
 @end
 

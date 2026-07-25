@@ -26,6 +26,7 @@ implementation
 
 uses
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   QuadShader;
 
 const
@@ -63,7 +64,11 @@ end;
 
 procedure TQuadApp.Frame;
 begin
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
 
@@ -84,7 +89,7 @@ begin
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc.Size := SizeOf(INDICES);
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
   BufferDesc.TraceLabel := 'QuadIndices';
   FBind.IndexBuffer := TBuffer.Create(BufferDesc);
@@ -94,12 +99,12 @@ begin
   var PipDesc := TPipelineDesc.Create;
   PipDesc.Shader := FShader;
   PipDesc.IndexType := TIndexType.UInt16;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.Float4;
+  PipDesc.Layout.Attrs[ATTR_QUAD_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_QUAD_COLOR0].Format := TVertexFormat.Float4;
   PipDesc.TraceLabel := 'QuadPipeline';
   FPip := TPipeline.Create(PipDesc);
 
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
 end;
 
 end.

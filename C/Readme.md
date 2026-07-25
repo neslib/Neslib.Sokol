@@ -46,14 +46,12 @@ This requires Visual Studio (the Community edition suffices).
 
 # About the original samples
 
-The original C Sokol samples use the HandmadeMath library for matrix calculations. Neslib.Sokol uses [FastMath](https://github.com/neslib/FastMath) instead. The following table lists some conversions from HandmadeMath to FastMath:
+The original C Sokol samples use the Vecmath library for matrix calculations. Neslib.Sokol uses [FastMath](https://github.com/neslib/FastMath) instead. The following table lists some conversions from Vecmath to FastMath:
 
-| HandmadeMath                             | FastMath                                                     |
-| ---------------------------------------- | ------------------------------------------------------------ |
-| `HHM_Perspective(POV, W / H, Near, Far)` | `TMatrix4.InitPerspectiveFovRH(Radians(POV), H / W, Near, Far, True)` |
-| `HMM_LookAt(...)`                        | `TMatrix4.InitLookAtRH(...)`                                 |
-| `HMM_MultiplyMat4(A, B)`                 | `A * B`                                                      |
-| `HMM_Rotate(Angle, HMM_Vec3(1, 0, 0))`   | `TMatrix4.InitRotationX(Radians(Angle))`                     |
-| `HMM_Rotate(Angle, HMM_Vec3(0, 1, 0))`   | `TMatrix4.InitRotationY(Radians(Angle))`                     |
-| `HMM_Rotate(Angle, HMM_Vec3(0, 0, 1))`   | `TMatrix4.InitRotationZ(Radians(Angle))`                     |
+| Vecmath                                           | FastMath                                               |
+| ------------------------------------------------- | ------------------------------------------------------ |
+| `mat44_perspective_fov_rh(POV, W / H, Near, Far)` | `TMatrix4.InitPerspectiveFovRH(POV, W / H, Near, Far)` |
+| `mat44_look_at_rh(...)`                           | `TMatrix4.InitLookAtRH(...)`                           |
+| `vm_mul(A, B)`                                    | `B * A` (reversed!)                                    |
+| `mat44_rotation_*(Angle)`                         | `TMatrix4.InitRotation*(Angle)`                        |
 

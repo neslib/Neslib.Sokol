@@ -2,12 +2,12 @@
 //  Shader code for noninterleaved-sapp sample.
 //------------------------------------------------------------------------------
 @vs vs
-uniform vs_params {
+layout(binding=0) uniform vs_params {
     mat4 mvp;
 };
 
-layout(location=0) in vec4 position;
-layout(location=1) in vec4 color0;
+in vec4 position;
+in vec4 color0;
 out vec4 color;
 
 void main() {
@@ -26,5 +26,3 @@ void main() {
 @end
 
 @program noninterleaved vs fs
-
-

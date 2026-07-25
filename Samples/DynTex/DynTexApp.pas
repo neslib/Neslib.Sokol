@@ -20,6 +20,7 @@ type
     FPassAction: TPassAction;
     FShader: TShader;
     FPip: TPipeline;
+    FImage: TImage;
     FBind: TBindings;
     FPixels: array [0..IMAGE_HEIGHT - 1, 0..IMAGE_WIDTH - 1] of UInt32;
     FUpdateCount: Integer;
@@ -28,6 +29,7 @@ type
   private
     procedure GameOfLifeInit;
     procedure GameOfLifeUpdate;
+    function ComputeVSParams: TVSParams;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -38,7 +40,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { Cube vertex buffer }
@@ -89,10 +92,28 @@ procedure TDynTexApp.Cleanup;
 begin
   FPip.Free;
   FShader.Free;
-  FBind.FragmentShaderImages[SLOT_TEX].Free;
+  FImage.Free;
+  FBind.Samplers[SMP_SMP].Free;
+  FBind.Views[VIEW_TEX].Free;
   FBind.IndexBuffer.Free;
   FBind.VertexBuffers[0].Free;
   inherited;
+end;
+
+function TDynTexApp.ComputeVSParams: TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
 end;
 
 procedure TDynTexApp.Configure(var AConfig: TAppConfig);
@@ -106,38 +127,28 @@ end;
 
 procedure TDynTexApp.Frame;
 begin
-  { Compute model-view-projection matrix for vertex shader }
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
   var T: Single := FrameDuration * 60;
-
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), H / W, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  FRX := FRX + 0.1;
-  FRY := FRY + 0.1;
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX * T));
-  RYM.InitRotationY(Radians(FRY * T));
-  var Model := RXM * RYM;
-  var VSParams: TVSParams;
-  VSParams.MVP := ViewProj * Model;
+  FRX := FRX + (1 * T);
+  FRY := FRY + (2 * T);
+  var VSParams := ComputeVSParams;
 
   { Update game-of-life state }
   GameOfLifeUpdate;
 
   { Update the texture }
   var ImageData: TImageData;
-  ImageData.SubImages[0] := TRange.Create(FPixels);
-  FBind.FragmentShaderImages[0].Update(ImageData);
+  ImageData.MipLevels[0] := TRange.Create(FPixels);
+  FImage.Update(ImageData);
 
   { Render the frame }
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, 36, 1);
 
   DebugFrame;
@@ -210,13 +221,22 @@ begin
   ImageDesc.Width := IMAGE_WIDTH;
   ImageDesc.Height := IMAGE_HEIGHT;
   ImageDesc.PixelFormat := TPixelFormat.Rgba8;
-  ImageDesc.Usage := TUsage.Stream;
-  ImageDesc.MinFilter := TFilter.Linear;
-  ImageDesc.MagFilter := TFilter.Linear;
-  ImageDesc.WrapU := TWrap.ClampToEdge;
-  ImageDesc.WrapV := TWrap.ClampToEdge;
+  ImageDesc.Usage.StreamUpdate := True;
   ImageDesc.TraceLabel := 'DynamicTexture';
-  FBind.FragmentShaderImages[SLOT_TEX] := TImage.Create(ImageDesc);
+  FImage := TImage.Create(ImageDesc);
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := FImage;
+  ViewDesc.TraceLabel := 'DynamicTextureView';
+  FBind.Views[VIEW_TEX] := TView.Create(ViewDesc);
+
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  SamplerDesc.TraceLabel := 'Sampler';
+  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
 
   var BufferDesc := TBufferDesc.Create;
   BufferDesc.Data := TRange.Create(VERTICES);
@@ -224,7 +244,7 @@ begin
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
   BufferDesc.TraceLabel := 'CubeIndices';
   FBind.IndexBuffer := TBuffer.Create(BufferDesc);
@@ -232,9 +252,9 @@ begin
   FShader := TShader.Create(DynTexShaderDesc);
 
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.Float4;
-  PipDesc.Layout.Attrs[ATTR_VS_TEXCOORD0].Format := TVertexFormat.Float2;
+  PipDesc.Layout.Attrs[ATTR_DYNTEX_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_DYNTEX_COLOR0].Format := TVertexFormat.Float4;
+  PipDesc.Layout.Attrs[ATTR_DYNTEX_TEXCOORD0].Format := TVertexFormat.Float2;
   PipDesc.Shader := FShader;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;

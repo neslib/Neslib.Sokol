@@ -11,7 +11,7 @@ You provide a mono- or stereo-stream of 32-bit float samples, which Sokol Audio 
 - Windows: WASAPI
 - macOS: CoreAudio
 - iOS: CoreAudio + AVAudioSession
-- Android: OpenSLES
+- Android: AAudio
 
 Sokol Audio will not do any buffer mixing or volume control. If you have multiple independent input streams of sample data you need to perform the mixing yourself before forwarding the data to Sokol Audio.
 
@@ -26,7 +26,7 @@ Sometimes it is not possible to generate the audio stream directly in a callback
 
 ## Sokol Audio, SoLoud and MiniAudio
 
-The WASAPI, OpenSLES and CoreAudio backend code has been taken from the [SoLoud](https://github.com/jarikomppa/soloud) library (with some modifications, so any bugs in there are most likely my fault). If you need a more fully-featured audio solution, check out SoLoud, it's excellent.
+The WASAPI and CoreAudio backend code has been taken from the [SoLoud](https://github.com/jarikomppa/soloud) library (with some modifications, so any bugs in there are most likely my fault). If you need a more fully-featured audio solution, check out SoLoud, it's excellent.
 
 Another alternative which feature-wise is somewhere in between SoLoud and Sokol Audio might be [MiniAudio](https://github.com/mackron/miniaudio).
 
@@ -57,6 +57,14 @@ var Desc := TAudioDesc.Create;
 TAudio.Setup(Desc);
 ```
 
+You should always provide a logging callback to be aware of any warnings and errors. The easiest way is to use the default logger for this:
+
+```pascal
+var Desc := TAudioDesc.Create;
+Desc.Logger := Desc.DefaultLogger;
+TAudio.Setup(Desc);
+```
+
 Use stream callback model and default playback parameters:
 
 ```pascal
@@ -72,6 +80,7 @@ General parameters (both for stream-callback and push-model):
 * `SampleRate: Integer;` -- the sample rate in Hz, default: 44100
 * `NumChannels: Integer;` -- number of channels, default: 1 (mono)
 * `BufferFrames: Integer;` -- number of frames in streaming buffer, default: 2048
+* `UseDelphiMemoryManager: Boolean`: Set to `True` to use Delphi's memory manager instead of Sokol's internal one.
 
 The stream callback event:
 
@@ -152,3 +161,18 @@ end;
 ```
 
 Another option is to ignore `TAudio.Expect`, and just push samples as they are generated in small batches. In this case you *need* to generate the samples at the right sample rate.
+
+## Error reporting and logging
+
+To get any logging information at all you need to provide a logging callback in the `TAudioDesc` record. The easiest way is using the DefaultLogger provided by Sokol:
+
+```pascal
+  var Desc := TAudioDesc.Create;
+  Desc.Logger := Desc.DefaultLogger;
+  ...
+  TAudio.Setup(Desc);
+```
+
+The provided logging function must be reentrant (e.g. be callable from different threads).
+
+If you don't want to provide your own custom logger it is highly recommended to use the standard logger, otherwise you won't see any warnings or errors.

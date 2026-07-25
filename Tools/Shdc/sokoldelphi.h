@@ -12,6 +12,7 @@ protected:
     virtual void gen_epilog(const GenInput& gen);
     virtual void gen_prerequisites(const GenInput& gen);
     virtual void gen_vertex_attr_consts(const GenInput& gen);
+    virtual void gen_bind_slot_consts(const GenInput& gen);
     virtual void gen_uniform_block_decl(const GenInput& gen, const refl::UniformBlock& ub);
     virtual void gen_storage_buffer_decl(const GenInput& gen, const refl::Type& struc);
     virtual void gen_shader_arrays(const GenInput& gen);

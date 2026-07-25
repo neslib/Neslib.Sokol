@@ -35,32 +35,12 @@ static const char* sokol_define(Slang::Enum slang) {
     }
 }
 
-static const std::string upper_case(const std::string str)
+std::string delphi_case(const std::string str)
 {
-    std::string s = str;
-    for (auto& c : s) c = std::toupper(c);
-    return s;
-}
-
-static const std::string upper_case_first(const std::string str)
-{
-    std::string s = str;
-    s[0] = std::toupper(s[0]);
-    return s;
-}
-
-static void find_and_replace(std::string &str, const std::string find, const std::string replace) {
-    auto find_len = find.length();
-    auto replace_len = replace.length();
-    size_t pos = 0;
-    while (true) {
-        pos = str.find(find, pos);
-        if (pos == std::string::npos)
-            break;
-
-        str.replace(pos, find_len, replace);
-        pos += replace_len;
-    }
+    if (str.length() == 2)
+        return pystring::upper(str);
+    else
+        return pystring::capitalize(str);
 }
 
 ErrMsg SokolDelphiGenerator::begin(const GenInput& gen) {
@@ -87,10 +67,10 @@ void SokolDelphiGenerator::gen_epilog(const GenInput& gen) {
     l("\nend.\n");
 
     // Convert C-style Hex values (0x) to Delphi ($)
-    find_and_replace(content, "0x", "$");
+    content = pystring::replace(content, "0x", "$");
 
     // Convert ",);" at end of arrays with ");"
-    find_and_replace(content, ",);", ");");
+    content = pystring::replace(content, ",);", ");");
 }
 
 void SokolDelphiGenerator::gen_prerequisites(const GenInput& gen) {
@@ -107,43 +87,52 @@ void SokolDelphiGenerator::gen_vertex_attr_consts(const GenInput& gen) {
     l("\n");
 }
 
+void SokolDelphiGenerator::gen_bind_slot_consts(const GenInput& gen) {
+    l("const\n");
+    Generator::gen_bind_slot_consts(gen);
+    l("\n");
+}
+
 void SokolDelphiGenerator::gen_uniform_block_decl(const GenInput &gen, const UniformBlock& ub) {
-    l("#pragma pack(push,1)\n");
+    l_open("type\n");
+    l("{} = packed record\n", struct_name(ub.name));
+    l_open("public\n");
+
     int cur_offset = 0;
-    l_open("SOKOL_SHDC_ALIGN({}) typedef struct {} {{\n", ub.struct_info.align, struct_name(ub.name));
     for (const Type& uniform: ub.struct_info.struct_items) {
         int next_offset = uniform.offset;
         if (next_offset > cur_offset) {
-            l("uint8_t _pad_{}[{}];\n", cur_offset, next_offset - cur_offset);
+            l("_Pad{}: array [0..{}] of Byte;\n", cur_offset, next_offset - cur_offset - 1);
             cur_offset = next_offset;
         }
+        auto uniform_name = delphi_case(uniform.name);
         if (gen.inp.ctype_map.count(uniform.type_as_glsl()) > 0) {
             // user-provided type names
             if (uniform.array_count == 0) {
-                l("{} {};\n", gen.inp.ctype_map.at(uniform.type_as_glsl()), uniform.name);
+                l("{}: {};\n", uniform_name, gen.inp.ctype_map.at(uniform.type_as_glsl()));
             } else {
-                l("{} {}[{}];\n", gen.inp.ctype_map.at(uniform.type_as_glsl()), uniform.name, uniform.array_count);
+                l("{}: array [0..{}] of {};\n", uniform_name, uniform.array_count - 1, gen.inp.ctype_map.at(uniform.type_as_glsl()));
             }
         } else {
             // default type names (float)
             if (uniform.array_count == 0) {
                 switch (uniform.type) {
-                    case Type::Float:   l("float {};\n", uniform.name); break;
-                    case Type::Float2:  l("float {}[2];\n", uniform.name); break;
-                    case Type::Float3:  l("float {}[3];\n", uniform.name); break;
-                    case Type::Float4:  l("float {}[4];\n", uniform.name); break;
-                    case Type::Int:     l("int {};\n", uniform.name); break;
-                    case Type::Int2:    l("int {}[2];\n", uniform.name); break;
-                    case Type::Int3:    l("int {}[3];\n", uniform.name); break;
-                    case Type::Int4:    l("int {}[4];\n", uniform.name); break;
-                    case Type::Mat4x4:  l("float {}[16];\n", uniform.name); break;
+                    case Type::Float:   l("{}: Single;\n", uniform_name); break;
+                    case Type::Float2:  l("{}: TVector2;\n", uniform_name); break;
+                    case Type::Float3:  l("{}: TVector3;\n", uniform_name); break;
+                    case Type::Float4:  l("{}: TVector4;\n", uniform_name); break;
+                    case Type::Int:     l("{}: Integer;\n", uniform_name); break;
+                    case Type::Int2:    l("{}: TIVector2;\n", uniform_name); break;
+                    case Type::Int3:    l("{}: TIVector3;\n", uniform_name); break;
+                    case Type::Int4:    l("{}: TIVector4;\n", uniform_name); break;
+                    case Type::Mat4x4:  l("{}: TMatrix4;\n", uniform_name); break;
                     default:            l("INVALID_UNIFORM_TYPE;\n"); break;
                 }
             } else {
                 switch (uniform.type) {
-                    case Type::Float4:  l("float {}[{}][4];\n", uniform.name, uniform.array_count); break;
-                    case Type::Int4:    l("int {}[{}][4];\n",   uniform.name, uniform.array_count); break;
-                    case Type::Mat4x4:  l("float {}[{}][16];\n", uniform.name, uniform.array_count); break;
+                    case Type::Float4:  l("{}: array [0..{}] of TVector4;\n", uniform_name, uniform.array_count - 1); break;
+                    case Type::Int4:    l("{}: array [0..{}] of TIVector4;\n",   uniform_name, uniform.array_count - 1); break;
+                    case Type::Mat4x4:  l("{}: array [0..{}] of TMatrix4; \n", uniform_name, uniform.array_count); break;
                     default:            l("INVALID_UNIFORM_TYPE;\n"); break;
                 }
             }
@@ -153,10 +142,10 @@ void SokolDelphiGenerator::gen_uniform_block_decl(const GenInput &gen, const Uni
     // pad to multiple of 16-bytes struct size
     const int round16 = roundup(cur_offset, 16);
     if (cur_offset < round16) {
-        l("uint8_t _pad_{}[{}];\n", cur_offset, round16 - cur_offset);
+        l("_Pad{}: array [0..{}] of Byte;\n", cur_offset, round16 - cur_offset - 1);
     }
-    l_close("}} {};\n", struct_name(ub.name));
-    l("#pragma pack(pop)\n");
+    l_close("end align {};\n\n", ub.struct_info.align);
+    l_close();
 }
 
 void SokolDelphiGenerator::gen_struct_interior_decl_std430(const GenInput& gen, const Type& struc, int pad_to_size) {
@@ -274,11 +263,11 @@ void SokolDelphiGenerator::gen_storage_buffer_decl(const GenInput& gen, const Ty
 }
 
 void SokolDelphiGenerator::gen_shader_desc_func_prototype(const ProgramReflection& prog) {
-    l("function {}ShaderDesc: PNativeShaderDesc;\n", upper_case_first(prog.name));
+    l("function {}ShaderDesc: PNativeShaderDesc;\n", delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const ProgramReflection& prog) {
-    std::string prog_name = upper_case_first(prog.name);
+    std::string prog_name = delphi_case(prog.name);
     std::string desc = fmt::format("G{}ShaderDesc", prog_name);
     l("var\n");
     l("  {}: TNativeShaderDesc;\n\n", desc);
@@ -310,10 +299,10 @@ void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const Progr
                     default: dsn = "INVALID"; break;
                 }
                 if (info.has_bytecode) {
-                    l("{}.bytecode.ptr := @{};\n", dsn, upper_case(info.bytecode_array_name));
+                    l("{}.bytecode.ptr := @{};\n", dsn, pystring::upper(info.bytecode_array_name));
                     l("{}.bytecode.size := {};\n", dsn, info.bytecode_array_size);
                 } else {
-                    l("{}.source := @{};\n", dsn, upper_case(info.source_array_name));
+                    l("{}.source := @{};\n", dsn, pystring::upper(info.source_array_name));
                     const char* d3d11_tgt = hlsl_target(slang, info.stage);
                     if (d3d11_tgt) {
                         l("{}.d3d11_target := '{}';\n", dsn, d3d11_tgt);
@@ -322,9 +311,9 @@ void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const Progr
                 l("{}.entry := '{}';\n", dsn, refl.entry_point_by_slang(slang));
             }
             if (Slang::is_msl(slang) && prog.has_cs()) {
-                l("desc.mtl_threads_per_threadgroup.x = {};\n", prog.cs().cs_workgroup_size[0]);
-                l("desc.mtl_threads_per_threadgroup.y = {};\n", prog.cs().cs_workgroup_size[1]);
-                l("desc.mtl_threads_per_threadgroup.z = {};\n", prog.cs().cs_workgroup_size[2]);
+                l("{}.mtl_threads_per_threadgroup.x := {};\n", desc, prog.cs().cs_workgroup_size[0]);
+                l("{}.mtl_threads_per_threadgroup.y := {};\n", desc, prog.cs().cs_workgroup_size[1]);
+                l("{}.mtl_threads_per_threadgroup.z := {};\n", desc, prog.cs().cs_workgroup_size[2]);
             }
             if (prog.has_vs()) {
                 for (int attr_index = 0; attr_index < StageAttr::Num; attr_index++) {
@@ -343,31 +332,31 @@ void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const Progr
             for (int ub_index = 0; ub_index < MaxUniformBlocks; ub_index++) {
                 const UniformBlock* ub = prog.bindings.find_uniform_block_by_sokol_slot(ub_index);
                 if (ub) {
-                    const std::string ubn = fmt::format("desc.uniform_blocks[{}]", ub_index);
-                    l("{}.stage = {};\n", ubn, shader_stage(ub->stage));
-                    l("{}.layout = SG_UNIFORMLAYOUT_STD140;\n", ubn);
-                    l("{}.size = {};\n", ubn, roundup(ub->struct_info.size, 16));
+                    const std::string ubn = fmt::format("{}.uniform_blocks[{}]", desc, ub_index);
+                    l("{}.stage := {};\n", ubn, shader_stage(ub->stage));
+                    l("{}.layout := _SG_UNIFORMLAYOUT_STD140;\n", ubn);
+                    l("{}.size := {};\n", ubn, roundup(ub->struct_info.size, 16));
                     if (Slang::is_hlsl(slang)) {
-                        l("{}.hlsl_register_b_n = {};\n", ubn, ub->hlsl_register_b_n);
+                        l("{}.hlsl_register_b_n := {};\n", ubn, ub->hlsl_register_b_n);
                     } else if (Slang::is_msl(slang)) {
-                        l("{}.msl_buffer_n = {};\n", ubn, ub->msl_buffer_n);
+                        l("{}.msl_buffer_n := {};\n", ubn, ub->msl_buffer_n);
                     } else if (Slang::is_wgsl(slang)) {
-                        l("{}.wgsl_group0_binding_n = {};\n", ubn, ub->wgsl_group0_binding_n);
+                        l("{}.wgsl_group0_binding_n := {};\n", ubn, ub->wgsl_group0_binding_n);
                     } else if (Slang::is_spirv(slang)) {
-                        l("{}.spirv_set0_binding_n = {};\n", ubn, ub->spirv_set0_binding_n);
+                        l("{}.spirv_set0_binding_n := {};\n", ubn, ub->spirv_set0_binding_n);
                     } else if (Slang::is_glsl(slang) && (ub->struct_info.struct_items.size() > 0)) {
                         if (ub->flattened) {
                             // NOT A BUG (to take the type from the first struct item, but the size from the toplevel ub)
-                            l("{}.glsl_uniforms[0].type = {};\n", ubn, flattened_uniform_type(ub->struct_info.struct_items[0].type));
-                            l("{}.glsl_uniforms[0].array_count = {};\n", ubn, roundup(ub->struct_info.size, 16) / 16);
-                            l("{}.glsl_uniforms[0].glsl_name = \"{}\";\n", ubn, ub->name);
+                            l("{}.glsl_uniforms[0].type := {};\n", ubn, flattened_uniform_type(ub->struct_info.struct_items[0].type));
+                            l("{}.glsl_uniforms[0].array_count := {};\n", ubn, roundup(ub->struct_info.size, 16) / 16);
+                            l("{}.glsl_uniforms[0].glsl_name := '{}';\n", ubn, ub->name);
                         } else {
                             for (int u_index = 0; u_index < (int)ub->struct_info.struct_items.size(); u_index++) {
                                 const Type& u = ub->struct_info.struct_items[u_index];
                                 const std::string un = fmt::format("{}.glsl_uniforms[{}]", ubn, u_index);
-                                l("{}.type = {};\n", un, uniform_type(u.type));
-                                l("{}.array_count = {};\n", un, u.array_count);
-                                l("{}.glsl_name = \"{}.{}\";\n", un, ub->inst_name, u.name);
+                                l("{}.type := {};\n", un, uniform_type(u.type));
+                                l("{}.array_count := {};\n", un, u.array_count);
+                                l("{}.glsl_name := '{}.{}';\n", un, ub->inst_name, u.name);
                             }
                         }
                     }
@@ -377,87 +366,87 @@ void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const Progr
                 const Bindings::View view = prog.bindings.get_view_by_sokol_slot(view_index);
                 if (view.type == BindSlot::Type::Texture) {
                     const Texture* tex = &view.texture;
-                    const std::string& tn = fmt::format("desc.views[{}].texture", view_index);
-                    l("{}.stage = {};\n", tn, shader_stage(tex->stage));
-                    l("{}.image_type = {};\n", tn, image_type(tex->type));
-                    l("{}.sample_type = {};\n", tn, image_sample_type(tex->sample_type));
-                    l("{}.multisampled = {};\n", tn, tex->multisampled ? "true" : "false");
+                    const std::string& tn = fmt::format("{}.views[{}].texture", desc, view_index);
+                    l("{}.stage := {};\n", tn, shader_stage(tex->stage));
+                    l("{}.image_type := {};\n", tn, image_type(tex->type));
+                    l("{}.sample_type := {};\n", tn, image_sample_type(tex->sample_type));
+                    l("{}.multisampled := {};\n", tn, tex->multisampled ? "True" : "False");
                     if (Slang::is_hlsl(slang)) {
-                        l("{}.hlsl_register_t_n = {};\n", tn, tex->hlsl_register_t_n);
+                        l("{}.hlsl_register_t_n := {};\n", tn, tex->hlsl_register_t_n);
                     } else if (Slang::is_msl(slang)) {
-                        l("{}.msl_texture_n = {};\n", tn, tex->msl_texture_n);
+                        l("{}.msl_texture_n := {};\n", tn, tex->msl_texture_n);
                     } else if (Slang::is_wgsl(slang)) {
-                        l("{}.wgsl_group1_binding_n = {};\n", tn, tex->wgsl_group1_binding_n);
+                        l("{}.wgsl_group1_binding_n := {};\n", tn, tex->wgsl_group1_binding_n);
                     } else if (Slang::is_spirv(slang)) {
-                        l("{}.spirv_set1_binding_n = {};\n", tn, tex->spirv_set1_binding_n);
+                        l("{}.spirv_set1_binding_n := {};\n", tn, tex->spirv_set1_binding_n);
                     }
                 } else if (view.type == BindSlot::Type::StorageBuffer) {
                     const StorageBuffer* sbuf = &view.storage_buffer;
-                    const std::string& sbn = fmt::format("desc.views[{}].storage_buffer", view_index);
-                    l("{}.stage = {};\n", sbn, shader_stage(sbuf->stage));
-                    l("{}.readonly = {};\n", sbn, sbuf->readonly);
+                    const std::string& sbn = fmt::format("{}.views[{}].storage_buffer", desc, view_index);
+                    l("{}.stage := {};\n", sbn, shader_stage(sbuf->stage));
+                    l("{}.readonly := {};\n", sbn, sbuf->readonly);
                     if (Slang::is_hlsl(slang)) {
                         if (sbuf->hlsl_register_t_n >= 0) {
-                            l("{}.hlsl_register_t_n = {};\n", sbn, sbuf->hlsl_register_t_n);
+                            l("{}.hlsl_register_t_n := {};\n", sbn, sbuf->hlsl_register_t_n);
                         }
                         if (sbuf->hlsl_register_u_n >= 0) {
-                            l("{}.hlsl_register_u_n = {};\n", sbn, sbuf->hlsl_register_u_n);
+                            l("{}.hlsl_register_u_n := {};\n", sbn, sbuf->hlsl_register_u_n);
                         }
                     } else if (Slang::is_msl(slang)) {
-                        l("{}.msl_buffer_n = {};\n", sbn, sbuf->msl_buffer_n);
+                        l("{}.msl_buffer_n := {};\n", sbn, sbuf->msl_buffer_n);
                     } else if (Slang::is_wgsl(slang)) {
-                        l("{}.wgsl_group1_binding_n = {};\n", sbn, sbuf->wgsl_group1_binding_n);
+                        l("{}.wgsl_group1_binding_n := {};\n", sbn, sbuf->wgsl_group1_binding_n);
                     } else if (Slang::is_spirv(slang)) {
-                        l("{}.spirv_set1_binding_n = {};\n", sbn, sbuf->spirv_set1_binding_n);
+                        l("{}.spirv_set1_binding_n := {};\n", sbn, sbuf->spirv_set1_binding_n);
                     } else if (Slang::is_glsl(slang)) {
-                        l("{}.glsl_binding_n = {};\n", sbn, sbuf->glsl_binding_n);
+                        l("{}.glsl_binding_n := {};\n", sbn, sbuf->glsl_binding_n);
                     }
                 } else if (view.type == BindSlot::Type::StorageImage) {
                     const StorageImage* simg = &view.storage_image;
-                    const std::string& sin = fmt::format("desc.views[{}].storage_image", view_index);
-                    l("{}.stage = {};\n", sin, shader_stage(simg->stage));
-                    l("{}.image_type = {};\n", sin, image_type(simg->type));
-                    l("{}.access_format = {};\n", sin, storage_pixel_format(simg->access_format));
-                    l("{}.writeonly = {};\n", sin, simg->writeonly);
+                    const std::string& sin = fmt::format("{}.views[{}].storage_image", desc, view_index);
+                    l("{}.stage := {};\n", sin, shader_stage(simg->stage));
+                    l("{}.image_type := {};\n", sin, image_type(simg->type));
+                    l("{}.access_format := {};\n", sin, storage_pixel_format(simg->access_format));
+                    l("{}.writeonly := {};\n", sin, simg->writeonly);
                     if (Slang::is_hlsl(slang)) {
-                        l("{}.hlsl_register_u_n = {};\n", sin, simg->hlsl_register_u_n);
+                        l("{}.hlsl_register_u_n := {};\n", sin, simg->hlsl_register_u_n);
                     } else if (Slang::is_msl(slang)) {
-                        l("{}.msl_texture_n = {};\n", sin, simg->msl_texture_n);
+                        l("{}.msl_texture_n := {};\n", sin, simg->msl_texture_n);
                     } else if (Slang::is_wgsl(slang)) {
-                        l("{}.wgsl_group1_binding_n = {};\n", sin, simg->wgsl_group1_binding_n);
+                        l("{}.wgsl_group1_binding_n := {};\n", sin, simg->wgsl_group1_binding_n);
                     } else if (Slang::is_spirv(slang)) {
-                        l("{}.spirv_set1_binding_n = {};\n", sin, simg->spirv_set1_binding_n);
+                        l("{}.spirv_set1_binding_n := {};\n", sin, simg->spirv_set1_binding_n);
                     } else if (Slang::is_glsl(slang)) {
-                        l("{}.glsl_binding_n = {};\n", sin, simg->glsl_binding_n);
+                        l("{}.glsl_binding_n := {};\n", sin, simg->glsl_binding_n);
                     }
                 }
             }
             for (int smp_index = 0; smp_index < MaxSamplers; smp_index++) {
                 const Sampler* smp = prog.bindings.find_sampler_by_sokol_slot(smp_index);
                 if (smp) {
-                    const std::string sn = fmt::format("desc.samplers[{}]", smp_index);
-                    l("{}.stage = {};\n", sn, shader_stage(smp->stage));
-                    l("{}.sampler_type = {};\n", sn, sampler_type(smp->type));
+                    const std::string sn = fmt::format("{}.samplers[{}]", desc, smp_index);
+                    l("{}.stage := {};\n", sn, shader_stage(smp->stage));
+                    l("{}.sampler_type := {};\n", sn, sampler_type(smp->type));
                     if (Slang::is_hlsl(slang)) {
-                        l("{}.hlsl_register_s_n = {};\n", sn, smp->hlsl_register_s_n);
+                        l("{}.hlsl_register_s_n := {};\n", sn, smp->hlsl_register_s_n);
                     } else if (Slang::is_msl(slang)) {
-                        l("{}.msl_sampler_n = {};\n", sn, smp->msl_sampler_n);
+                        l("{}.msl_sampler_n := {};\n", sn, smp->msl_sampler_n);
                     } else if (Slang::is_wgsl(slang)) {
-                        l("{}.wgsl_group1_binding_n = {};\n", sn, smp->wgsl_group1_binding_n);
+                        l("{}.wgsl_group1_binding_n := {};\n", sn, smp->wgsl_group1_binding_n);
                     } else if (Slang::is_spirv(slang)) {
-                        l("{}.spirv_set1_binding_n = {};\n", sn, smp->spirv_set1_binding_n);
+                        l("{}.spirv_set1_binding_n := {};\n", sn, smp->spirv_set1_binding_n);
                     }
                 }
             }
             for (int tex_smp_index = 0; tex_smp_index < MaxTextureSamplers; tex_smp_index++) {
                 const TextureSampler* tex_smp = prog.bindings.find_texture_sampler_by_sokol_slot(tex_smp_index);
                 if (tex_smp) {
-                    const std::string tsn = fmt::format("desc.texture_sampler_pairs[{}]", tex_smp_index);
-                    l("{}.stage = {};\n", tsn, shader_stage(tex_smp->stage));
-                    l("{}.view_slot = {};\n", tsn, prog.bindings.find_texture_by_name(tex_smp->texture_name)->sokol_slot);
-                    l("{}.sampler_slot = {};\n", tsn, prog.bindings.find_sampler_by_name(tex_smp->sampler_name)->sokol_slot);
+                    const std::string tsn = fmt::format("{}.texture_sampler_pairs[{}]", desc, tex_smp_index);
+                    l("{}.stage := {};\n", tsn, shader_stage(tex_smp->stage));
+                    l("{}.view_slot := {};\n", tsn, prog.bindings.find_texture_by_name(tex_smp->texture_name)->sokol_slot);
+                    l("{}.sampler_slot := {};\n", tsn, prog.bindings.find_sampler_by_name(tex_smp->sampler_name)->sokol_slot);
                     if (Slang::is_glsl(slang)) {
-                        l("{}.glsl_name = \"{}\";\n", tsn, tex_smp->name);
+                        l("{}.glsl_name := '{}';\n", tsn, tex_smp->name);
                     }
                 }
             }
@@ -638,7 +627,7 @@ void SokolDelphiGenerator::gen_shader_array_start(const GenInput& gen, const std
         l("{{$IFDEF {}}}\n", sokol_define(slang));
     }
     l("const\n");
-    l("  {} = array [0..{}] of Byte = (\n", upper_case(array_name), num_bytes - 1);
+    l("  {}: array [0..{}] of Byte = (\n", pystring::upper(array_name), num_bytes - 1);
 }
 
 void SokolDelphiGenerator::gen_shader_array_end(const GenInput& gen) {
@@ -690,9 +679,9 @@ std::string SokolDelphiGenerator::get_shader_desc_help(const std::string& prog_n
 
 std::string SokolDelphiGenerator::shader_stage(ShaderStage::Enum e) {
     switch (e) {
-        case ShaderStage::Vertex: return "SG_SHADERSTAGE_VERTEX";
-        case ShaderStage::Fragment: return "SG_SHADERSTAGE_FRAGMENT";
-        case ShaderStage::Compute: return "SG_SHADERSTAGE_COMPUTE";
+        case ShaderStage::Vertex: return "_SG_SHADERSTAGE_VERTEX";
+        case ShaderStage::Fragment: return "_SG_SHADERSTAGE_FRAGMENT";
+        case ShaderStage::Compute: return "_SG_SHADERSTAGE_COMPUTE";
         default: return "INVALID";
     }
 }
@@ -708,15 +697,15 @@ std::string SokolDelphiGenerator::attr_basetype(Type::Enum e) {
 
 std::string SokolDelphiGenerator::uniform_type(Type::Enum e) {
     switch (e) {
-        case Type::Float:  return "SG_UNIFORMTYPE_FLOAT";
-        case Type::Float2: return "SG_UNIFORMTYPE_FLOAT2";
-        case Type::Float3: return "SG_UNIFORMTYPE_FLOAT3";
-        case Type::Float4: return "SG_UNIFORMTYPE_FLOAT4";
-        case Type::Int:    return "SG_UNIFORMTYPE_INT";
-        case Type::Int2:   return "SG_UNIFORMTYPE_INT2";
-        case Type::Int3:   return "SG_UNIFORMTYPE_INT3";
-        case Type::Int4:   return "SG_UNIFORMTYPE_INT4";
-        case Type::Mat4x4: return "SG_UNIFORMTYPE_MAT4";
+        case Type::Float:  return "_SG_UNIFORMTYPE_FLOAT";
+        case Type::Float2: return "_SG_UNIFORMTYPE_FLOAT2";
+        case Type::Float3: return "_SG_UNIFORMTYPE_FLOAT3";
+        case Type::Float4: return "_SG_UNIFORMTYPE_FLOAT4";
+        case Type::Int:    return "_SG_UNIFORMTYPE_INT";
+        case Type::Int2:   return "_SG_UNIFORMTYPE_INT2";
+        case Type::Int3:   return "_SG_UNIFORMTYPE_INT3";
+        case Type::Int4:   return "_SG_UNIFORMTYPE_INT4";
+        case Type::Mat4x4: return "_SG_UNIFORMTYPE_MAT4";
         default: return "INVALID";
     }
 }
@@ -728,12 +717,12 @@ std::string SokolDelphiGenerator::flattened_uniform_type(Type::Enum e) {
         case Type::Float3:
         case Type::Float4:
         case Type::Mat4x4:
-             return "SG_UNIFORMTYPE_FLOAT4";
+             return "_SG_UNIFORMTYPE_FLOAT4";
         case Type::Int:
         case Type::Int2:
         case Type::Int3:
         case Type::Int4:
-            return "SG_UNIFORMTYPE_INT4";
+            return "_SG_UNIFORMTYPE_INT4";
         default:
             return "INVALID";
     }
@@ -741,52 +730,52 @@ std::string SokolDelphiGenerator::flattened_uniform_type(Type::Enum e) {
 
 std::string SokolDelphiGenerator::image_type(ImageType::Enum e) {
     switch (e) {
-        case ImageType::_2D:     return "SG_IMAGETYPE_2D";
-        case ImageType::CUBE:    return "SG_IMAGETYPE_CUBE";
-        case ImageType::_3D:     return "SG_IMAGETYPE_3D";
-        case ImageType::ARRAY:   return "SG_IMAGETYPE_ARRAY";
+        case ImageType::_2D:     return "_SG_IMAGETYPE_2D";
+        case ImageType::CUBE:    return "_SG_IMAGETYPE_CUBE";
+        case ImageType::_3D:     return "_SG_IMAGETYPE_3D";
+        case ImageType::ARRAY:   return "_SG_IMAGETYPE_ARRAY";
         default: return "INVALID";
     }
 }
 
 std::string SokolDelphiGenerator::image_sample_type(ImageSampleType::Enum e) {
     switch (e) {
-        case ImageSampleType::FLOAT: return "SG_IMAGESAMPLETYPE_FLOAT";
-        case ImageSampleType::DEPTH: return "SG_IMAGESAMPLETYPE_DEPTH";
-        case ImageSampleType::SINT:  return "SG_IMAGESAMPLETYPE_SINT";
-        case ImageSampleType::UINT:  return "SG_IMAGESAMPLETYPE_UINT";
-        case ImageSampleType::UNFILTERABLE_FLOAT:  return "SG_IMAGESAMPLETYPE_UNFILTERABLE_FLOAT";
+        case ImageSampleType::FLOAT: return "_SG_IMAGESAMPLETYPE_FLOAT";
+        case ImageSampleType::DEPTH: return "_SG_IMAGESAMPLETYPE_DEPTH";
+        case ImageSampleType::SINT:  return "_SG_IMAGESAMPLETYPE_SINT";
+        case ImageSampleType::UINT:  return "_SG_IMAGESAMPLETYPE_UINT";
+        case ImageSampleType::UNFILTERABLE_FLOAT:  return "_SG_IMAGESAMPLETYPE_UNFILTERABLE_FLOAT";
         default: return "INVALID";
     }
 }
 
 std::string SokolDelphiGenerator::sampler_type(SamplerType::Enum e) {
     switch (e) {
-        case SamplerType::FILTERING:     return "SG_SAMPLERTYPE_FILTERING";
-        case SamplerType::COMPARISON:    return "SG_SAMPLERTYPE_COMPARISON";
-        case SamplerType::NONFILTERING:  return "SG_SAMPLERTYPE_NONFILTERING";
+        case SamplerType::FILTERING:     return "_SG_SAMPLERTYPE_FILTERING";
+        case SamplerType::COMPARISON:    return "_SG_SAMPLERTYPE_COMPARISON";
+        case SamplerType::NONFILTERING:  return "_SG_SAMPLERTYPE_NONFILTERING";
         default: return "INVALID";
     }
 }
 
 std::string SokolDelphiGenerator::storage_pixel_format(refl::StoragePixelFormat::Enum e) {
     switch (e) {
-        case StoragePixelFormat::RGBA8:     return "SG_PIXELFORMAT_RGBA8";
-        case StoragePixelFormat::RGBA8SN:   return "SG_PIXELFORMAT_RGBA8SN";
-        case StoragePixelFormat::RGBA8UI:   return "SG_PIXELFORMAT_RGBA8UI";
-        case StoragePixelFormat::RGBA8SI:   return "SG_PIXELFORMAT_RGBA8SI";
-        case StoragePixelFormat::RGBA16UI:  return "SG_PIXELFORMAT_RGBA16UI";
-        case StoragePixelFormat::RGBA16SI:  return "SG_PIXELFORMAT_RGBA16SI";
-        case StoragePixelFormat::RGBA16F:   return "SG_PIXELFORMAT_RGBA16F";
-        case StoragePixelFormat::R32UI:     return "SG_PIXELFORMAT_R32UI";
-        case StoragePixelFormat::R32SI:     return "SG_PIXELFORMAT_R32SI";
-        case StoragePixelFormat::R32F:      return "SG_PIXELFORMAT_R32F";
-        case StoragePixelFormat::RG32UI:    return "SG_PIXELFORMAT_RG32UI";
-        case StoragePixelFormat::RG32SI:    return "SG_PIXELFORMAT_RG32SI";
-        case StoragePixelFormat::RG32F:     return "SG_PIXELFORMAT_RG32F";
-        case StoragePixelFormat::RGBA32UI:  return "SG_PIXELFORMAT_RGBA32UI";
-        case StoragePixelFormat::RGBA32SI:  return "SG_PIXELFORMAT_RGBA32SI";
-        case StoragePixelFormat::RGBA32F:   return "SG_PIXELFORMAT_RGBA32F";
+        case StoragePixelFormat::RGBA8:     return "_SG_PIXELFORMAT_RGBA8";
+        case StoragePixelFormat::RGBA8SN:   return "_SG_PIXELFORMAT_RGBA8SN";
+        case StoragePixelFormat::RGBA8UI:   return "_SG_PIXELFORMAT_RGBA8UI";
+        case StoragePixelFormat::RGBA8SI:   return "_SG_PIXELFORMAT_RGBA8SI";
+        case StoragePixelFormat::RGBA16UI:  return "_SG_PIXELFORMAT_RGBA16UI";
+        case StoragePixelFormat::RGBA16SI:  return "_SG_PIXELFORMAT_RGBA16SI";
+        case StoragePixelFormat::RGBA16F:   return "_SG_PIXELFORMAT_RGBA16F";
+        case StoragePixelFormat::R32UI:     return "_SG_PIXELFORMAT_R32UI";
+        case StoragePixelFormat::R32SI:     return "_SG_PIXELFORMAT_R32SI";
+        case StoragePixelFormat::R32F:      return "_SG_PIXELFORMAT_R32F";
+        case StoragePixelFormat::RG32UI:    return "_SG_PIXELFORMAT_RG32UI";
+        case StoragePixelFormat::RG32SI:    return "_SG_PIXELFORMAT_RG32SI";
+        case StoragePixelFormat::RG32F:     return "_SG_PIXELFORMAT_RG32F";
+        case StoragePixelFormat::RGBA32UI:  return "_SG_PIXELFORMAT_RGBA32UI";
+        case StoragePixelFormat::RGBA32SI:  return "_SG_PIXELFORMAT_RGBA32SI";
+        case StoragePixelFormat::RGBA32F:   return "_SG_PIXELFORMAT_RGBA32F";
         default: return "INVALID";
     }
 }
@@ -814,33 +803,36 @@ std::string SokolDelphiGenerator::backend(Slang::Enum e) {
 }
 
 std::string SokolDelphiGenerator::struct_name(const std::string& name) {
-    return fmt::format("{}{}_t", mod_prefix, name);
+    auto words = pystring::split(name, "_");
+    for (std::string& s : words) 
+        s = delphi_case(s);
+    
+    auto s = pystring::join("", words);
+    return fmt::format("T{}{}", mod_prefix, s);
 }
 
 std::string SokolDelphiGenerator::vertex_attr_name(const std::string& prog_name, const StageAttr& attr) {
-    auto name = fmt::format("ATTR_{}{}_{}", mod_prefix, prog_name, attr.name);
-    for (auto& c : name) c = std::toupper(c);
-    return upper_case(fmt::format("ATTR_{}{}_{}", mod_prefix, prog_name, attr.name));
+    return pystring::upper(fmt::format("ATTR_{}{}_{}", mod_prefix, prog_name, attr.name));
 }
 
 std::string SokolDelphiGenerator::texture_bind_slot_name(const Texture& tex) {
-    return fmt::format("VIEW_{}{}", mod_prefix, tex.name);
+    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix, tex.name));
 }
 
 std::string SokolDelphiGenerator::storage_buffer_bind_slot_name(const StorageBuffer& sbuf) {
-    return fmt::format("VIEW_{}{}", mod_prefix, sbuf.name);
+    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix, sbuf.name));
 }
 
 std::string SokolDelphiGenerator::storage_image_bind_slot_name(const StorageImage& simg) {
-    return fmt::format("VIEW_{}{}", mod_prefix, simg.name);
+    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix, simg.name));
 }
 
 std::string SokolDelphiGenerator::sampler_bind_slot_name(const Sampler& smp) {
-    return fmt::format("SMP_{}{}", mod_prefix, smp.name);
+    return pystring::upper(fmt::format("SMP_{}{}", mod_prefix, smp.name));
 }
 
 std::string SokolDelphiGenerator::uniform_block_bind_slot_name(const UniformBlock& ub) {
-    return fmt::format("UB_{}{}", mod_prefix, ub.name);
+    return pystring::upper(fmt::format("UB_{}{}", mod_prefix, ub.name));
 }
 
 std::string SokolDelphiGenerator::vertex_attr_definition(const std::string& prog_name, const StageAttr& attr) {
@@ -848,23 +840,23 @@ std::string SokolDelphiGenerator::vertex_attr_definition(const std::string& prog
 }
 
 std::string SokolDelphiGenerator::texture_bind_slot_definition(const Texture& tex) {
-    return fmt::format("#define {} ({})", texture_bind_slot_name(tex), tex.sokol_slot);
+    return fmt::format("  {} = {};", texture_bind_slot_name(tex), tex.sokol_slot);
 }
 
 std::string SokolDelphiGenerator::sampler_bind_slot_definition(const Sampler& smp) {
-    return fmt::format("#define {} ({})", sampler_bind_slot_name(smp), smp.sokol_slot);
+    return fmt::format("  {} = {};", sampler_bind_slot_name(smp), smp.sokol_slot);
 }
 
 std::string SokolDelphiGenerator::uniform_block_bind_slot_definition(const UniformBlock& ub) {
-    return fmt::format("#define {} ({})", uniform_block_bind_slot_name(ub), ub.sokol_slot);
+    return fmt::format("  {} = {};", uniform_block_bind_slot_name(ub), ub.sokol_slot);
 }
 
 std::string SokolDelphiGenerator::storage_buffer_bind_slot_definition(const StorageBuffer& sbuf) {
-    return fmt::format("#define {} ({})", storage_buffer_bind_slot_name(sbuf), sbuf.sokol_slot);
+    return fmt::format("  {} = {};", storage_buffer_bind_slot_name(sbuf), sbuf.sokol_slot);
 }
 
 std::string SokolDelphiGenerator::storage_image_bind_slot_definition(const StorageImage& simg) {
-    return fmt::format("#define {} ({})", storage_image_bind_slot_name(simg), simg.sokol_slot);
+    return fmt::format("  {} = {};", storage_image_bind_slot_name(simg), simg.sokol_slot);
 }
 
 } // namespace

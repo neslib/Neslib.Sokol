@@ -26,7 +26,6 @@ type
     FX: UInt32;
   private
     function XorShift32: UInt32;
-    procedure DrawFallback;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -37,7 +36,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { Cube vertex buffer }
@@ -67,7 +67,9 @@ begin
   FShader.Free;
   FBind.IndexBuffer.Free;
   FBind.VertexBuffers[0].Free;
-  FBind.FragmentShaderImages[0].Free;
+  FBind.Views[VIEW_TEX].Image.Free;
+  FBind.Views[VIEW_TEX].Free;
+  FBind.Samplers[SMP_SMP].Free;
   inherited;
 end;
 
@@ -80,25 +82,8 @@ begin
   AConfig.WindowTitle := '3D Texture Rendering';
 end;
 
-procedure TTex3DApp.DrawFallback;
-begin
-  var PassAction := TPassAction.Create;
-  PassAction.Colors[0].Init(TAction.Clear, 1, 0, 0, 1);
-  TGfx.BeginDefaultPass(PassAction, FramebufferWidth, FramebufferHeight);
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
 procedure TTex3DApp.Frame;
 begin
-  { Can't do anything without 3D texture support }
-  if (not (TFeature.ImageType3D in TGfx.Features)) then
-  begin
-    DrawFallback;
-    Exit;
-  end;
-
   { Compute vertex-shader params (mvp and texcoord-scale) }
   var T: Single := FrameDuration * 60;
   FRX := FRX + (1 * T);
@@ -106,8 +91,8 @@ begin
   FT := FT + 0.03 * T;
 
   var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), FramebufferHeight / FramebufferWidth, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  Proj.InitPerspectiveFovRH(Radians(60), FramebufferWidth / FramebufferHeight, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
   var RXM, RYM: TMatrix4;
@@ -119,10 +104,14 @@ begin
   VSParams.Scale := (FastSin(FT) + 1) * 0.5;
 
   { Render the scene }
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, 36, 1);
 
   DebugFrame;
@@ -135,21 +124,17 @@ var
   Pixels: array [0..TEX3D_DIM - 1, 0..TEX3D_DIM - 1, 0..TEX3D_DIM - 1] of UInt32;
 begin
   inherited;
-  { Can't do anything without 3D texture support (this will render a red screen
-    in the frame callback) }
-  if (not (TFeature.ImageType3D in TGfx.Features)) then
-    Exit;
-
   FX := $12345678;
-  FPassAction.Colors[0].Init(TAction.Clear, 0.25, 0.5, 0.75, 1);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.5, 0.75, 1);
 
   var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Usage.VertexBuffer := True;
   BufferDesc.Data := TRange.Create(VERTICES);
   BufferDesc.TraceLabel := 'CubeVertices';
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
   BufferDesc.TraceLabel := 'CubeIndices';
   FBind.IndexBuffer := TBuffer.Create(BufferDesc);
@@ -158,7 +143,7 @@ begin
   FShader := TShader.Create(CubeShaderDesc);
 
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_CUBE_POSITION].Format := TVertexFormat.Float3;
   PipDesc.Shader := FShader;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;
@@ -168,7 +153,7 @@ begin
 
   FPip := TPipeline.Create(PipDesc);
 
-  { Create a 3d texture with random content }
+  { Create a 3d image with random content, and a texture view for binding }
   for var X := 0 to TEX3D_DIM - 1 do
     for var Y := 0 to TEX3D_DIM - 1 do
       for var Z := 0 to TEX3D_DIM - 1 do
@@ -181,11 +166,20 @@ begin
   ImgDesc.NumSlices := TEX3D_DIM;
   ImgDesc.NumMipmaps := 1;
   ImgDesc.PixelFormat := TPixelFormat.Rgba8;
-  ImgDesc.MinFilter := TFilter.Linear;
-  ImgDesc.MagFilter := TFilter.Linear;
   ImgDesc.TraceLabel := '3D Texture';
-  ImgDesc.Data.SubImages[0] := TRange.Create(Pixels);
-  FBind.FragmentShaderImages[0] := TImage.Create(ImgDesc);
+  ImgDesc.Data.MipLevels[0] := TRange.Create(Pixels);
+  var Image := TImage.Create(ImgDesc);
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := Image;
+  FBind.Views[VIEW_TEX] := TView.Create(ViewDesc);
+
+  { ...and a sampler object }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  SamplerDesc.TraceLabel := 'Sampler';
+  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
 end;
 
 function TTex3DApp.XorShift32: UInt32;

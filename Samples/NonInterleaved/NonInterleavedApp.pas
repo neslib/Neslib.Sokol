@@ -23,6 +23,8 @@ type
     FPassAction: TPassAction;
     FRX: Single;
     FRY: Single;
+  private
+    function ComputeVSParams: TVSParams;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -33,7 +35,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { Cube vertex buffer }
@@ -75,6 +78,22 @@ begin
   inherited;
 end;
 
+function TNonInterleavedApp.ComputeVSParams: TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
+end;
+
 procedure TNonInterleavedApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -86,29 +105,20 @@ end;
 
 procedure TNonInterleavedApp.Frame;
 begin
-  { Compute model-view-projection matrix for vertex shader }
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
   var T: Single := FrameDuration * 60;
-
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), H / W, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
   FRX := FRX + (1 * T);
   FRY := FRY + (2 * T);
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  var VSParams: TVSParams;
-  VSParams.MVP := ViewProj * Model;
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var VSParams := ComputeVSParams;
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, 36, 1);
 
   DebugFrame;
@@ -124,7 +134,7 @@ begin
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
   FBind.IndexBuffer := TBuffer.Create(BufferDesc);
 
@@ -135,12 +145,12 @@ begin
 
   { Note how the vertex components are pulled from different buffer bind slots.
     Positions come from vertex buffer slot 0 }
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].BufferIndex := 0;
+  PipDesc.Layout.Attrs[ATTR_NONINTERLEAVED_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_NONINTERLEAVED_POSITION].BufferIndex := 0;
 
   { Colors come from vertex buffer slot 1 }
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.Float4;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].BufferIndex := 1;
+  PipDesc.Layout.Attrs[ATTR_NONINTERLEAVED_COLOR0].Format := TVertexFormat.Float4;
+  PipDesc.Layout.Attrs[ATTR_NONINTERLEAVED_COLOR0].BufferIndex := 1;
 
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;

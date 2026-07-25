@@ -121,40 +121,13 @@ sokol-shdc command line parameters:
 
 * `-h --help`: Print usage information and exit
 
-* `-i --input=[GLSL file]`: The path to the input shader file in sokol-shdc's "annotated GLSL" format, this must be either relative to the current working directory, or an absolute path.
+* `-i --input [GLSL file]`: The path to the input shader file in sokol-shdc's "annotated GLSL" format, this must be either relative to the current working directory, or an absolute path.
 
-* `-o --output=[path]`: The path to the generated output source file, either relative to the current working directory, or as absolute path. The target directory must exist. Note that some output generators may generate more than one output file, in that case the `-o` argument is used as the base path.
+* `-o --output [path]`: The path to the generated output source file, either relative to the current working directory, or as absolute path. The target directory must exist. Note that some output generators may generate more than one output file, in that case the `-o` argument is used as the base path.
 
-* `-t --tmpdir=[path]`: Optional path to a directory used for storing intermediate files when generating Metal bytecode. If no separate temporary directory is provided, intermediate files will be written to the same directory as the generated C header defined via `--output`. In both cases, the target directory must exist.
+* `-f --format [sokol,sokol_impl,...]`: set output backend (default: `sokol_delphi`)
 
-* `-l --slang=[shader languages]`: One or multiple output shader languages. If multiple languages are provided, they must be separated by a **colon**. Valid shader language names are:
-  * `glsl410`: desktop GL 4.1 (e.g. macOS: no SSBOs and compute shaders)
-    
-     * `glsl430`: desktop GL 4.3
-     * `glsl300es`: GLES3.0 / WebGL2
-     * `glsl310es`: GLES3.1 (currently not supported by Neslib.Sokol.Gfx)
-     * `hlsl4`: D3D11
-  * `hlsl5`: D3D11
-  * `metal_macos`: Metal on macOS
-  * `metal_ios`: Metal on iOS device
-  * `metal_sim`: Metal on iOS simulator
-  * `wgsl`: WebGPU
-  * `spirv_vk`: Vulkan-flavoured SPIRV
-
-  For instance, to generate a header with support for Metal on macOS and desktop GL: `--slang glsl430:metal_macos`
-
-* `-b --bytecode`: If possible, compile shaders to bytecode instead of embedding source code. The restrictions to generate shader bytecode are as follows:
-
-  - target language must be `hlsl4`, `hlsl5`, `metal_macos` or `metal_ios`
-  - sokol-shdc must run on the respective platforms:
-    - `hlsl4, hlsl5`: only possible when sokol-shdc is running on Windows
-    - `metal_macos, metal_ios`: only possible when sokol-shdc is running on macOS
-
-  ...if these restrictions are not met, sokol-shdc will fall back to generating shader source code without returning an error. Note that the `metal_sim` target for the iOS simulator doesn't support generating bytecode, this will always emit Metal source code.
-
-- `-f --format=[sokol,sokol_impl,...]`: set output backend (default: `sokol-delphi`)
-
-  - `sokol-delphi`: Generate a Delphi unit
+  - `sokol_delphi`: Generate a Delphi unit (default)
   - `sokol`: Generate a C header where data is declared as `static` and functions are declared as `static inline`. If this header is included multiple times, you should be aware that the executable may contain duplicate data.
   - `sokol_impl`: This generates an STB-style header. In exactly one place where the header is included, the define `SOKOL_SHDC_IMPL` must be defined to compile the implementation, all other places, only the declarations will be included.
   - `sokol_decl`: This is a special backward-compatible mode and shouldn't be used. In this mode, data is declared `static` and functions are declared `static inline`, and the implementation is included when the `SOKOL_SHDC_DECL` is *not* defined
@@ -171,10 +144,38 @@ sokol-shdc command line parameters:
 
   Note that some options and features of sokol-shdc can be contradictory to (and thus, ignored by) backends. For example, the `bare` backend only writes shader code, and disregards all other information.
 
-- `-e --errfmt=[gcc,msvc]`: set the error message format to be either GCC-compatible or Visual-Studio-compatible, the default is `gcc`
+* `-t --tmpdir [path]`: Optional path to a directory used for storing intermediate files when generating Metal bytecode. If no separate temporary directory is provided, intermediate files will be written to the same directory as the generated C header defined via `--output`. In both cases, the target directory must exist.
 
-- `-g --genver=[integer]`: set a version number to embed in the generated header, this is useful to detect whether all shader files need to be recompiled because the tooling has been updated (sokol-shdc will not check this though, this must be done in the build-system-integration)
+* `-l --slang [shader languages]`: One or multiple output shader languages. If multiple languages are provided, they must be separated by a **colon**. Valid shader language names are:
+  
+  * `glsl410`: desktop GL 4.1 (e.g. macOS: no SSBOs and compute shaders)
+  
+     * `glsl430`: desktop GL 4.3 (selected by default for Delphi output)
+     * `glsl300es`: GLES3.0 / WebGL2
+     * `glsl310es`: GLES3.1 (currently not supported by Neslib.Sokol.Gfx)
+  * `hlsl4`: D3D11
+  * `hlsl5`: D3D11 (selected by default for Delphi output)
+  * `metal_macos`: Metal on macOS (selected by default for Delphi output)
+  * `metal_ios`: Metal on iOS device (selected by default for Delphi output)
+  * `metal_sim`: Metal on iOS simulator
+  * `wgsl`: WebGPU
+  * `spirv_vk`: Vulkan-flavoured SPIRV (selected by default for Delphi output)
+  
+  For instance, to generate a header with support for Metal on macOS and desktop GL: `--slang glsl430:metal_macos`
+  
+  When using Delphi output, this argument is optional and defaults to `glsl410:glsl300es:hlsl5:metal_macos:metal_ios:spirv_vk`.
+  
+* `-b --bytecode`: If possible, compile shaders to bytecode instead of embedding source code. The restrictions to generate shader bytecode are as follows:
 
+  - target language must be `hlsl4`, `hlsl5`, `metal_macos` or `metal_ios`
+  - sokol-shdc must run on the respective platforms:
+    - `hlsl4, hlsl5`: only possible when sokol-shdc is running on Windows
+    - `metal_macos, metal_ios`: only possible when sokol-shdc is running on macOS
+
+  ...if these restrictions are not met, sokol-shdc will fall back to generating shader source code without returning an error. Note that the `metal_sim` target for the iOS simulator doesn't support generating bytecode, this will always emit Metal source code.
+
+- `-e --errfmt [gcc,msvc]`: set the error message format to be either GCC-compatible or Visual-Studio-compatible, the default is `gcc`
+- `-g --genver [integer]`: set a version number to embed in the generated header, this is useful to detect whether all shader files need to be recompiled because the tooling has been updated (sokol-shdc will not check this though, this must be done in the build-system-integration)
 - `--ifdef`: this tells the code generator to wrap 3D-backend-specific code into `{$IFDEF}..{$ENDIF}` pairs using the backend-selection defines:
 
   - SOKOL_GLCORE
@@ -183,19 +184,14 @@ sokol-shdc command line parameters:
   - SOKOL_METAL
   - SOKOL_VULKAN
 
+  Note that this option always set when using Delphi output.
 - `-d --dump`: Enable verbose debug output, this basically dumps all internal information to stdout. Useful for debugging and understanding how sokol-shdc works, but not much else :)
-
-- `--defines=[define1:define2:define3]`: a colon-separated list of preprocessor defines for the initial GLSL-to-SPIRV compilation pass
-
-- `--module=[name]`: a command-line override for the `@module` keyword
-
+- `--defines [define1:define2:define3]`: a colon-separated list of preprocessor defines for the initial GLSL-to-SPIRV compilation pass
+- `--module [name]`: a command-line override for the `@module` keyword
 - `--reflection`: if present, code-generate additional runtime-inspection functions (not that this is not supported by all code generation backends)
-
 - `--save-intermediate-spirv`: debug feature to save out the intermediate SPIRV blob, useful for debug inspection
-
 - `--no-log-cmdline`: don't log the command line to the output file (useful when the output is committed to version control and sokol-shdc is called with absolute input/output paths)
-
-- `--dependency-file=[path]`: generate a Clang/GCC style dep-file for use with build systems
+- `--dependency-file [path]`: generate a Clang/GCC style dep-file for use with build systems
 
 ## Shader Tags reference
 

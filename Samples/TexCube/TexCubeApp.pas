@@ -19,6 +19,8 @@ type
     FBind: TBindings;
     FRX: Single;
     FRY: Single;
+  private
+    function ComputeVSParams: TVSParams;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -29,7 +31,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 type
   TVertex = record
@@ -102,10 +105,28 @@ procedure TTexCubeApp.Cleanup;
 begin
   FPip.Free;
   FShader.Free;
-  FBind.FragmentShaderImages[SLOT_TEX].Free;
+  FBind.Views[VIEW_TEX].Image.Free;
+  FBind.Views[VIEW_TEX].Free;
   FBind.IndexBuffer.Free;
   FBind.VertexBuffers[0].Free;
+  FBind.Samplers[SMP_SMP].Free;
   inherited;
+end;
+
+function TTexCubeApp.ComputeVSParams: TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
 end;
 
 procedure TTexCubeApp.Configure(var AConfig: TAppConfig);
@@ -119,29 +140,19 @@ end;
 
 procedure TTexCubeApp.Frame;
 begin
-  { Compute model-view-projection matrix for vertex shader }
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
   var T: Single := FrameDuration * 60;
-
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), H / W, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
   FRX := FRX + (1 * T);
   FRY := FRY + (2 * T);
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  var VSParams: TVSParams;
-  VSParams.MVP := ViewProj * Model;
+  var VSParams := ComputeVSParams;
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, 36, 1);
 
   DebugFrame;
@@ -154,39 +165,49 @@ begin
   inherited;
   var BufferDesc := TBufferDesc.Create;
   BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'CubeVertices';
+  BufferDesc.TraceLabel := 'TexCubeVertices';
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
-  BufferDesc.TraceLabel := 'CubeIndices';
+  BufferDesc.TraceLabel := 'TexCubeIndices';
   FBind.IndexBuffer := TBuffer.Create(BufferDesc);
 
-  { NOTE: SLOT_TEX is provided by shader code generation }
+  { Create a checkerboard texture and view }
   var ImageDesc := TImageDesc.Create;
   ImageDesc.Width := 4;
   ImageDesc.Height := 4;
-  ImageDesc.Data.SubImages[0] := TRange.Create(PIXELS);
-  ImageDesc.TraceLabel := 'CubeTexture';
-  FBind.FragmentShaderImages[SLOT_TEX] := TImage.Create(ImageDesc);
+  ImageDesc.Data.MipLevels[0] := TRange.Create(PIXELS);
+  ImageDesc.TraceLabel := 'TexCubeImage';
+  var Image := TImage.Create(ImageDesc);
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := Image;
+  ViewDesc.TraceLabel := 'TexCubeTextureView';
+  FBind.Views[VIEW_TEX] := TView.Create(ViewDesc);
+
+  { Create a sampler object with default attributes }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.TraceLabel := 'TexCubeSampler';
+  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
 
   FShader := TShader.Create(TexCubeShaderDesc);
 
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POS].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.UByte4N;
-  PipDesc.Layout.Attrs[ATTR_VS_TEXCOORD0].Format := TVertexFormat.Short2N;
+  PipDesc.Layout.Attrs[ATTR_TEXCUBE_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_TEXCUBE_COLOR0].Format := TVertexFormat.UByte4N;
+  PipDesc.Layout.Attrs[ATTR_TEXCUBE_TEXCOORD0].Format := TVertexFormat.Short2N;
   PipDesc.Shader := FShader;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
   PipDesc.Depth.WriteEnabled := True;
-  PiPDesc.TraceLabel := 'CubePipeline';
+  PiPDesc.TraceLabel := 'TexCubePipeline';
 
   FPip := TPipeline.Create(PipDesc);
 
-  FPassAction.Colors[0].Init(TAction.Clear, 0.25, 0.5, 0.75, 1);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.5, 0.75, 1);
 end;
 
 end.

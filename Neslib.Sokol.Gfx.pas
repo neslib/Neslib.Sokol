@@ -5088,13 +5088,6 @@ end;
 procedure TBufferDesc.Init;
 begin
   FillChar(Self, SizeOf(Self), 0);
-
-  var Def: _sg_buffer_desc;
-  FillChar(Def, SizeOf(Def), 0);
-  Def := _sg_query_buffer_defaults(@Def);
-
-  Size := Def.size;
-  Usage.FHandle := Def.usage;
 end;
 
 procedure TBufferDesc.InitFrom(const ASrc: _sg_buffer_desc);
@@ -5335,19 +5328,6 @@ end;
 procedure TImageDesc.Init;
 begin
   FillChar(Self, SizeOf(Self), 0);
-
-  var Def: _sg_image_desc;
-  FillChar(Def, SizeOf(Def), 0);
-  Def := _sg_query_image_defaults(@Def);
-
-  ImageType := TImageType(Def.&type);
-  Usage.FHandle := Def.usage;
-  Width := Def.width;
-  Height := Def.height;
-  NumSlices := Def.num_slices;
-  NumMipmaps := Def.num_mipmaps;
-//  PixelFormat := TPixelFormat(Def.pixel_format); // Will be set to default later
-//  SampleCount := Def.sample_count; // Will be set to default later
 end;
 
 { TImage }

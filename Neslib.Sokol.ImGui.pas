@@ -40,7 +40,7 @@ type
     * ALevel: log level
     * AItem: log item
     * AMessage: the log message corresponding to AItem.
-    * ALineNr: line number in original sokol_gfx.h file. }
+    * ALineNr: line number in original sokol_imgui.h file. }
   TImGuiLogger = procedure(const ALevel: TLogLevel; const AItem: TImGuiLogItem;
     const AMessage: String; const ALineNr: Integer) of object;
 

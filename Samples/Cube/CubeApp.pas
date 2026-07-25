@@ -17,6 +17,8 @@ type
     FBind: TBindings;
     FRX: Single;
     FRY: Single;
+  private
+    function ComputeVSParams: TVSParams;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -27,7 +29,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { Cube vertex buffer }
@@ -83,6 +86,22 @@ begin
   inherited;
 end;
 
+function TCubeApp.ComputeVSParams: TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
+end;
+
 procedure TCubeApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -94,32 +113,19 @@ end;
 
 procedure TCubeApp.Frame;
 begin
-  { Compute model-view-projection matrix for vertex shader }
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
   var T: Single := FrameDuration * 60;
-
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), H / W, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
   FRX := FRX + (1 * T);
   FRY := FRY + (2 * T);
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  var VSParams: TVSParams;
-  VSParams.MVP := ViewProj * Model;
+  var VSParams := ComputeVSParams;
 
-  var PassAction := TPassAction.Create;
-  PassAction.Colors[0].Init(TAction.Clear, 0.25, 0.5, 0.75, 1.0);
+  var Pass := TPass.Create;
+  Pass.Action.Colors[0].Init(TLoadAction.Clear, 0.25, 0.5, 0.75, 1);
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
 
-  TGfx.BeginDefaultPass(PassAction, FramebufferWidth, FramebufferHeight);
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, 36, 1);
 
   DebugFrame;
@@ -136,7 +142,7 @@ begin
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
   BufferDesc.TraceLabel := 'CubeIndices';
   FBind.IndexBuffer := TBuffer.Create(BufferDesc);
@@ -147,8 +153,8 @@ begin
 
   { Test to provide buffer stride, but no attr offsets }
   PipDesc.Layout.Buffers[0].Stride := 28;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.Float4;
+  PipDesc.Layout.Attrs[ATTR_CUBE_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_CUBE_COLOR0].Format := TVertexFormat.Float4;
   PipDesc.Shader := FShader;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;

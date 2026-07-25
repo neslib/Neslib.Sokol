@@ -28,7 +28,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { TAudioApp }
 
@@ -43,13 +44,15 @@ begin
   inherited;
   AConfig.Width := 400;
   AConfig.Height := 300;
-  AConfig.AndroidForceGles2 := True;
-  AConfig.WindowTitle := 'Sokol Audio Test';
+  AConfig.WindowTitle := 'Audio';
 end;
 
 procedure TAudioApp.Frame;
 begin
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
 
   var NumFrames := TAudio.Expect;
   var S: Single;
@@ -78,7 +81,7 @@ end;
 procedure TAudioApp.Init;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TAction.Clear, 1, 0.5, 0);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0.5, 0);
 
   var AudioDesc := TAudioDesc.Create;
   TAudio.Setup(AudioDesc);

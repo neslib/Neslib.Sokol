@@ -11,10 +11,11 @@ uses
 type
   TBufferOffsetsApp = class(TSampleApp)
   private
+    FVBuf: TBuffer;
+    FIBuf: TBuffer;
     FPassAction: TPassAction;
     FShader: TShader;
     FPip: TPipeline;
-    FBind: TBindings;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -26,6 +27,7 @@ implementation
 
 uses
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   BufferOffsetsShader;
 
 type
@@ -59,8 +61,8 @@ procedure TBufferOffsetsApp.Cleanup;
 begin
   FPip.Free;
   FShader.Free;
-  FBind.IndexBuffer.Free;
-  FBind.VertexBuffers[0].Free;
+  FVBuf.Free;
+  FIBuf.Free;
   inherited;
 end;
 
@@ -74,19 +76,24 @@ end;
 
 procedure TBufferOffsetsApp.Frame;
 begin
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
 
-  { Render the triangle }
-  FBind.VertexBufferOffsets[0] := 0;
-  FBind.IndexBufferOffset := 0;
-  TGfx.ApplyBindings(FBind);
+  { Render the triangle (located at start of vertex- and index-buffer) }
+  var Bindings := TBindings.Create;
+  Bindings.VertexBuffers[0] := FVBuf;
+  Bindings.IndexBuffer := FIBuf;
+  TGfx.ApplyBindings(Bindings);
   TGfx.Draw(0, 3, 1);
 
-  { Render the quad }
-  FBind.VertexBufferOffsets[0] := 3 * SizeOf(TVertex);
-  FBind.IndexBufferOffset := 3 * SizeOf(UInt16);
-  TGfx.ApplyBindings(FBind);
+  { Render the quad (located after triangle data in vertex- and index-buffer) }
+  Bindings.VertexBufferOffsets[0] := 3 * SizeOf(TVertex);
+  Bindings.IndexBufferOffset := 3 * SizeOf(UInt16);
+  TGfx.ApplyBindings(Bindings);
   TGfx.Draw(0, 6, 1);
 
   DebugFrame;
@@ -98,24 +105,26 @@ end;
 procedure TBufferOffsetsApp.Init;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TAction.Clear, 0.5, 0.5, 1.0, 1.0);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.5, 0.5, 1.0, 1.0);
 
   var BufferDesc := TBufferDesc.Create;
   BufferDesc.Data := TRange.Create(VERTICES);
-  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+  BufferDesc.TraceLabel := 'VertexBuffer';
+  FVBuf := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
-  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
+  BufferDesc.TraceLabel := 'IndexBuffer';
+  FIBuf := TBuffer.Create(BufferDesc);
 
   FShader := TShader.Create(BufferOffsetsShaderDesc);
 
   var PipDesc := TPipelineDesc.Create;
   PipDesc.Shader := FShader;
   PipDesc.IndexType := TIndexType.UInt16;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float2;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_BUFFEROFFSETS_POSITION].Format := TVertexFormat.Float2;
+  PipDesc.Layout.Attrs[ATTR_BUFFEROFFSETS_COLOR0].Format := TVertexFormat.Float3;
   FPip := TPipeline.Create(PipDesc);
 end;
 
