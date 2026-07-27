@@ -71,10 +71,8 @@ const
 
 procedure TNonInterleavedApp.Cleanup;
 begin
-  FPip.Free;
-  FShader.Free;
-  FBind.IndexBuffer.Free;
-  FBind.VertexBuffers[0].Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 

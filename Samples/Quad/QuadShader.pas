@@ -31,6 +31,8 @@ const
   ATTR_QUAD_POSITION = 0;
   ATTR_QUAD_COLOR0 = 1;
 
+const
+
 function QuadShaderDesc: PNativeShaderDesc;
 
 implementation

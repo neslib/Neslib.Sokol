@@ -47,10 +47,8 @@ const
 
 procedure TQuadApp.Cleanup;
 begin
-  FPip.Free;
-  FBind.VertexBuffers[0].Free;
-  FBind.IndexBuffer.Free;
-  FShader.Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 

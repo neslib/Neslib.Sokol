@@ -120,11 +120,11 @@ After the shape builder method has been called, the following methods are used t
   function TShapeBuffer.ElementRange: TShapeElementRange;
   function TShapeBuffer.VertexBufferDesc: TBufferDesc;
   function TShapeBuffer.IndexBufferDesc: TBufferDesc;
-  function TShapeBuffer.BufferLayoutDesc: TBufferLayoutDesc;
-  function TShapeBuffer.PositionAttrDesc: TVertexAttrDesc;
-  function TShapeBuffer.NormalAttrDesc: TVertexAttrDesc;
-  function TShapeBuffer.TexCoordAttrDesc: TVertexAttrDesc;
-  function TShapeBuffer.ColorAttrDesc: TVertexAttrDesc;
+  function TShapeBuffer.VertexBufferLayoutState: TVertexBufferLayoutState;
+  function TShapeBuffer.PositionVertexAttrState: TVertexAttrState;
+  function TShapeBuffer.NormalVertexAttrState: TVertexAttrState;
+  function TShapeBuffer.TexCoordVertexAttrState: TVertexAttrState;
+  function TShapeBuffer.ColorVertexAttrState: TVertexAttrState;
 ```
 
 The `TShapeElementRange` record struct contains the base-index and number of indices which can be plugged into the `TGfx.Draw` call:
@@ -149,15 +149,15 @@ The remaining methods are used to populate the vertex-layout item in `TPipelineD
 
 ```pascal
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Buffers[0] := Buf.BufferLayoutDesc;
-  PipDesc.Layout.Attrs[0] := Buf.PositionAttrDesc;
-  PipDesc.Layout.Attrs[1] := Buf.NormalAttrDesc;
-  PipDesc.Layout.Attrs[2] := Buf.TexCoordAttrDesc;
-  PipDesc.Layout.Attrs[3] := Buf.ColorAttrDesc;
+  PipDesc.Layout.Buffers[0] := Buf.VertexBufferLayoutState;
+  PipDesc.Layout.Attrs[0] := Buf.PositionVertexAttrState;
+  PipDesc.Layout.Attrs[1] := Buf.NormalVertexAttrState;
+  PipDesc.Layout.Attrs[2] := Buf.TexCoordVertexAttrState;
+  PipDesc.Layout.Attrs[3] := Buf.ColorVertexAttrState;
   ...
 ```
 
-Note that you don't have to use all generated vertex attributes in the pipeline's vertex layout; The `TBufferLayoutDesc` record returned by `TShapeBuffer.BufferLayoutDesc` contains the correct vertex stride to skip vertex components.
+Note that you don't have to use all generated vertex attributes in the pipeline's vertex layout; The `TVertexBufferLayoutState` record returned by `TShapeBuffer.VertexBufferLayoutState` contains the correct vertex stride to skip vertex components.
 
 ## Writing multiple shapes into the same buffer
 

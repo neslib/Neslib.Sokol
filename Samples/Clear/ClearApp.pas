@@ -28,6 +28,8 @@ uses
 
 procedure TClearApp.Cleanup;
 begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 

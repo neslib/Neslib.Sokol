@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 // shared code for all shaders
 @block uniforms
-uniform vs_params {
+layout(binding=0) uniform vs_params {
     mat4 mvp;
 };
 @end
@@ -51,7 +51,8 @@ void main() {
 @end
 
 @fs fs_default
-uniform sampler2D tex;
+layout(binding=0) uniform texture2D tex;
+layout(binding=0) uniform sampler smp;
 
 in vec4 nrm;
 in vec2 uv;
@@ -59,11 +60,10 @@ in vec2 uv;
 out vec4 frag_color;
 
 void main() {
-    vec4 c = texture(tex, uv * vec2(20.0, 10.0));
+    vec4 c = texture(sampler2D(tex, smp), uv * vec2(20.0, 10.0));
     float l = clamp(dot(nrm.xyz, normalize(vec3(1.0, 1.0, -1.0))), 0.0, 1.0) * 2.0;
     frag_color = vec4(c.xyz * (l + 0.25), 1.0);
 }
 @end
 
 @program default vs_default fs_default
-

@@ -84,6 +84,7 @@ begin
   FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0.5, 0);
 
   var AudioDesc := TAudioDesc.Create;
+  AudioDesc.UseDelphiMemoryManager := True;
   TAudio.Setup(AudioDesc);
 end;
 

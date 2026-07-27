@@ -42,9 +42,8 @@ const
 
 procedure TTriangleApp.Cleanup;
 begin
-  FPip.Free;
-  FShader.Free;
-  FVB.Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 

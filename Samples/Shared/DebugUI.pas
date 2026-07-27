@@ -40,12 +40,14 @@ begin
   TAppImGui.Setup;
 
   var GfxDesc := TGfxImGuiDesc.Create;
+  GfxDesc.UseDelphiMemoryManager := True;
   TGfxImGui.Setup(GfxDesc);
 
   var ImGuiDesc := TSokolImGuiDesc.Create;
   ImGuiDesc.SampleCount := TApplication.SampleCount;
   ImGuiDesc.Logger := ImGuiDesc.DefaultLogger;
   ImGuiDesc.WriteAlphaChannel := True;
+  ImGuiDesc.UseDelphiMemoryManager := True;
 
   Assert(TApplication.Instance is TSampleApp);
   TSampleAppAccess(TApplication.Instance).ConfigureSokolImGui(ImGuiDesc);

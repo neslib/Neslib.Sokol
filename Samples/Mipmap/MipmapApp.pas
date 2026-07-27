@@ -26,10 +26,11 @@ type
 type
   TMipmapApp = class(TSampleApp)
   private
-    FImg: array [0..11] of TImage;
-    FShader: TShader;
     FPip: TPipeline;
-    FBind: TBindings;
+    FVBuf: TBuffer;
+    FTexView: TView;
+    FShader: TShader;
+    FSmp: array [0..11] of TSampler;
     FPixels: TPixels;
     FR: Single;
   protected
@@ -42,7 +43,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { A plane vertex buffer }
@@ -65,23 +67,21 @@ const
     $FFA000FF);    { purple }
 
 const
-  MIN_FILTER: array [0..3] of TFilter = (
-    TFilter.NearestMipmapNearest,
-    TFilter.LinearMipmapNearest,
-    TFilter.NearestMipmapLinear,
-    TFilter.LinearMipmapLinear);
+  FILTERS: array [0..1] of TFilter = (
+    TFilter.Nearest,
+    TFilter.Linear);
+
+const
+  MIPMAP_FILTERS: array [0..1] of TFilter = (
+    TFilter.Nearest,
+    TFilter.Linear);
 
 { TMipmapApp }
 
 procedure TMipmapApp.Cleanup;
-var
-  I: Integer;
 begin
-  for I := 0 to 11 do
-    FImg[I].Free;
-  FPip.Free;
-  FShader.Free;
-  FBind.VertexBuffers[0].Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 
@@ -100,15 +100,21 @@ begin
   var W: Single := FramebufferWidth;
   var H: Single := FramebufferHeight;
   var Proj, View, RM, Translate, Model: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(90), H / W, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 0, 5), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  Proj.InitPerspectiveFovRH(Radians(90), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 0, 3.5), Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
   FR := FR + (0.1 * 60 * FrameDuration);
   RM.InitRotationX(Radians(FR));
 
-  var PassAction := TPassAction.Create;
-  TGfx.BeginDefaultPass(PassAction, FramebufferWidth, FramebufferHeight);
+  var Bind := TBindings.Create;
+  Bind.VertexBuffers[0] := FVBuf;
+  Bind.Views[VIEW_TEX] := FTexView;
+
+  var Pass := TPass.Create;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
 
   for var I := 0 to 11 do
@@ -120,9 +126,9 @@ begin
     var VSParams: TVSParams;
     VSParams.MVP := ViewProj * Model;
 
-    FBind.FragmentShaderImages[SLOT_TEX] := FImg[I];
-    TGfx.ApplyBindings(FBind);
-    TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+    Bind.Samplers[SMP_SMP] := FSmp[I];
+    TGfx.ApplyBindings(Bind);
+    TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
     TGfx.Draw(0, 4);
   end;
 
@@ -136,7 +142,7 @@ begin
   inherited;
   var BufferDesc := TBufferDesc.Create;
   BufferDesc.Data := TRange.Create(VERTICES);
-  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+  FVBuf := TBuffer.Create(BufferDesc);
 
   { Initialize mipmap content, different colors and checkboard pattern }
   var ImgData: TImageData;
@@ -145,7 +151,7 @@ begin
   for var MipIndex := 0 to 8 do
   begin
     var Dim := 1 shl (8 - MipIndex);
-    ImgData.SubImages[MipIndex] := TRange.Create(Ptr, Dim * Dim * 4);
+    ImgData.MipLevels[MipIndex] := TRange.Create(Ptr, Dim * Dim * 4);
     for var Y := 0 to Dim - 1 do
     begin
       for var X := 0 to Dim - 1 do
@@ -162,43 +168,63 @@ begin
     end;
   end;
 
-  { The first 4 images are just different min-filters.
-    The last 4 images are different anistropy levels. }
   var ImgDesc := TImageDesc.Create;
   ImgDesc.Width := 256;
   ImgDesc.Height := 256;
   ImgDesc.NumMipmaps := 9;
   ImgDesc.PixelFormat := TPixelFormat.Rgba8;
-  ImgDesc.MagFilter := TFilter.Linear;
   ImgDesc.Data := ImgData;
+  var Img := TImage.Create(ImgDesc);
 
+  { ...and a texture view for the image }
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := Img;
+  FTexView := TView.Create(ViewDesc);
+
+  { The first 4 samplers are just different min-filters }
+  var SmpDesc := TSamplerDesc.Create;
+  SmpDesc.MagFilter := TFilter.Linear;
+
+  var SmpIndex := 0;
+  for var I := 0 to 1 do
+    for var J := 0 to 1 do
+    begin
+      SmpDesc.MinFilter := FILTERS[I];
+      SmpDesc.MipmapFilter := MIPMAP_FILTERS[J];
+      FSmp[SmpIndex] := TSampler.Create(SmpDesc);
+      Inc(SmpIndex);
+    end;
+
+  { The next 4 samplers use MinLod/MaxLod }
+  SmpDesc.MinLod := 2;
+  SmpDesc.MaxLod := 4;
+  for var I := 0 to 1 do
+    for var J := 0 to 1 do
+    begin
+      SmpDesc.MinFilter := FILTERS[I];
+      SmpDesc.MipmapFilter := MIPMAP_FILTERS[J];
+      FSmp[SmpIndex] := TSampler.Create(SmpDesc);
+      Inc(SmpIndex);
+    end;
+
+  { The last 4 samplers use different anistropy levels }
+  SmpDesc.MinLod := 0;
+  SmpDesc.MaxLod := 0; { MaxLod = 0 means Single.MaxValue }
+  SmpDesc.MinFilter := TFilter.Linear;
+  SmpDesc.MagFilter := TFilter.Linear;
   for var I := 0 to 3 do
   begin
-    ImgDesc.MinFilter := MIN_FILTER[I];
-    FImg[I] := TImage.Create(ImgDesc);
+    SmpDesc.MaxAnisotropy := 1 shl I;
+    FSmp[SmpIndex] := TSampler.Create(SmpDesc);
+    Inc(SmpIndex);
   end;
-
-  ImgDesc.MinLod := 2;
-  ImgDesc.MaxLod := 4;
-  for var I := 4 to 7 do
-  begin
-    ImgDesc.MinFilter := MIN_FILTER[I - 4];
-    FImg[I] := TImage.Create(ImgDesc);
-  end;
-
-  ImgDesc.MinLod := 0;
-  ImgDesc.MaxLod := 0; { MaxLod = 0 means Single.MaxValue }
-  for var I := 8 to 11 do
-  begin
-    ImgDesc.MaxAnisotropy := 1 shl (I - 7);
-    FImg[I] := TImage.Create(ImgDesc);
-  end;
+  Assert(SmpIndex = 12);
 
   FShader := TShader.Create(MipmapShaderDesc);
 
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POS].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_UV0].Format := TVertexFormat.Float2;
+  PipDesc.Layout.Attrs[ATTR_MIPMAP_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_MIPMAP_UV0].Format := TVertexFormat.Float2;
   PipDesc.Shader := FShader;
   PipDesc.PrimitiveType := TPrimitiveType.TriangleStrip;
 

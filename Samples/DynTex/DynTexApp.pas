@@ -90,13 +90,8 @@ const
 
 procedure TDynTexApp.Cleanup;
 begin
-  FPip.Free;
-  FShader.Free;
-  FImage.Free;
-  FBind.Samplers[SMP_SMP].Free;
-  FBind.Views[VIEW_TEX].Free;
-  FBind.IndexBuffer.Free;
-  FBind.VertexBuffers[0].Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 

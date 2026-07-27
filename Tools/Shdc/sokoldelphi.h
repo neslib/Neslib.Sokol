@@ -6,6 +6,9 @@ namespace shdc::gen {
 class SokolDelphiGenerator: public Generator {
     std::string mod_prefix;
     std::string func_prefix;
+    bool need_const;
+private:
+    void start_const();
 protected:
     virtual ErrMsg begin(const GenInput& gen);
     virtual void gen_prolog(const GenInput& gen);

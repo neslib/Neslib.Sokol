@@ -31,6 +31,8 @@ const
   ATTR_BUFFEROFFSETS_POSITION = 0;
   ATTR_BUFFEROFFSETS_COLOR0 = 1;
 
+const
+
 function BufferoffsetsShaderDesc: PNativeShaderDesc;
 
 implementation

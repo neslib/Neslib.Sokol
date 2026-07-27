@@ -14,7 +14,7 @@ uses
 type
   TBlendApp = class(TSampleApp)
   private const
-    NUM_BLEND_FACTORS = 15;
+    NUM_BLEND_FACTORS = 15; // ignore dual-source-blend-factor!
   private
     FPassAction: TPassAction;
     FBGShader: TShader;
@@ -37,7 +37,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { A quad vertex buffer }
@@ -52,13 +53,8 @@ const
 
 procedure TBlendApp.Cleanup;
 begin
-  for var Src := 0 to NUM_BLEND_FACTORS - 1 do
-    for var Dst := 0 to NUM_BLEND_FACTORS - 1 do
-      FPips[Src, Dst].Free;
-  FBGPip.Free;
-  FBGShader.Free;
-  FQuadShader.Free;
-  FBind.VertexBuffers[0].Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 
@@ -75,7 +71,7 @@ end;
 procedure TBlendApp.ConfigureGfx(var ADesc: TGfxDesc);
 begin
   inherited;
-  ADesc.PipelinePoolSize := NUM_BLEND_FACTORS * NUM_BLEND_FACTORS + 1;
+  ADesc.PipelinePoolSize := NUM_BLEND_FACTORS * NUM_BLEND_FACTORS + 16;
 end;
 
 procedure TBlendApp.Frame;
@@ -84,22 +80,24 @@ begin
   var W: Single := FramebufferWidth;
   var H: Single := FramebufferHeight;
   var Proj, View, RM, Translate, Model: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(90), H / W, 0.01, 100.0, True);
-  View.InitLookAtRH(Vector3(0, 0, 25), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  Proj.InitPerspectiveFovRH(Radians(90), W / H, 0.01, 100.0);
+  View.InitLookAtRH(Vector3(0, 0, 20), Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
   { Start rendering }
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
 
   { Draw a background quad }
   TGfx.ApplyPipeline(FBGPip);
   TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.FragmentShader, SLOT_BG_FS_PARAMS,
-    TRange.Create(FBGFSParams));
+  TGfx.ApplyUniforms(UB_BG_FS_PARAMS, TRange.Create(FBGFSParams));
   TGfx.Draw(0, 4);
 
   { Draw the blended quads }
-  var R0 := FR;
+  var R0: Single := FR;
   for var Src := 0 to NUM_BLEND_FACTORS - 1 do
   begin
     for var Dst := 0 to NUM_BLEND_FACTORS - 1 do
@@ -116,8 +114,7 @@ begin
 
         TGfx.ApplyPipeline(FPips[Src, Dst]);
         TGfx.ApplyBindings(FBind);
-        TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_QUAD_VS_PARAMS,
-          TRange.Create(FQuadVSParams));
+        TGfx.ApplyUniforms(UB_QUAD_VS_PARAMS, TRange.Create(FQuadVSParams));
         TGfx.Draw(0, 4);
       end;
       R0 := R0 + 0.6;
@@ -138,9 +135,9 @@ begin
   inherited;
   { A default pass action which does not clear, since the entire screen is
     overwritten anyway. }
-  FPassAction.Colors[0].Action := TAction.DontCare;
-  FPassAction.Depth.Action := TAction.DontCare;
-  FPassAction.Stencil.Action := TAction.DontCare;
+  FPassAction.Colors[0].LoadAction := TLoadAction.DontCare;
+  FPassAction.Depth.LoadAction := TLoadAction.DontCare;
+  FPassAction.Stencil.LoadAction := TLoadAction.DontCare;
 
   var BufferDesc := TBufferDesc.Create;
   BufferDesc.Data := TRange.Create(VERTICES);
@@ -156,7 +153,7 @@ begin
     first two floats from the position, need to provide a stride to skip the gap
     to the next vertex. }
   PipDesc.Layout.Buffers[0].Stride := 28;
-  PipDesc.Layout.Attrs[ATTR_VS_BG_POSITION].Format := TVertexFormat.Float2;
+  PipDesc.Layout.Attrs[ATTR_BG_POSITION].Format := TVertexFormat.Float2;
   PipDesc.Shader := FBGShader;
   PipDesc.PrimitiveType := TPrimitiveType.TriangleStrip;
   FBGPip := TPipeline.Create(PipDesc);
@@ -166,8 +163,8 @@ begin
 
   { One pipeline object per blend-factor combination }
   PipDesc.Init;
-  PipDesc.Layout.Attrs[ATTR_VS_QUAD_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_QUAD_COLOR0].Format := TVertexFormat.Float4;
+  PipDesc.Layout.Attrs[ATTR_QUAD_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_QUAD_COLOR0].Format := TVertexFormat.Float4;
   PipDesc.Shader := FQuadShader;
   PipDesc.PrimitiveType := TPrimitiveType.TriangleStrip;
   PipDesc.BlendColor := TColor.Create(1, 0, 0, 1);
@@ -178,28 +175,25 @@ begin
     for var Dst := 0 to NUM_BLEND_FACTORS - 1 do
     begin
       var DstBlend := TBlendFactor(Dst + 1);
-      var Valid := True;
 
-      if (DstBlend = TBlendFactor.SrcAlphaSaturated) then
-        Valid := False
-      else if (SrcBlend in [TBlendFactor.BlendColor, TBlendFactor.OneMinusBlendColor]) then
+      { GL-ES3 specific exceptions (not handled by the sokol-gfx validation
+        layer since it is specifically a GL-ES3 quirk caused by ANGLE's D3D11
+        backend) }
+      if (SrcBlend in [TBlendFactor.BlendColor, TBlendFactor.OneMinusBlendColor]) then
       begin
         if (DstBlend in [TBlendFactor.BlendAlpha, TBlendFactor.OneMinusBlendAlpha]) then
-          Valid := False;
+          Continue;
       end
       else if (SrcBlend in [TBlendFactor.BlendAlpha, TBlendFactor.OneMinusBlendAlpha]) then
       begin
         if (DstBlend in [TBlendFactor.BlendColor, TBlendFactor.OneMinusBlendColor]) then
-          Valid := False;
+          Continue;
       end;
 
-      if (Valid) then
-      begin
-        PipDesc.Colors[0].Blend.Init(True, SrcBlend, DstBlend, TBlendOp.Default,
-          TBlendFactor.One, TBlendFactor.Zero, TBlendOp.Default);
-        FPips[Src, Dst] := TPipeline.Create(PipDesc);
-        Assert(FPips[Src, Dst].Id <> INVALID_ID);
-      end;
+      PipDesc.Colors[0].Blend.Init(True, SrcBlend, DstBlend, TBlendOp.Default,
+        TBlendFactor.One, TBlendFactor.Zero, TBlendOp.Default);
+      FPips[Src, Dst] := TPipeline.Create(PipDesc);
+      Assert(FPips[Src, Dst].Id <> INVALID_ID);
     end;
   end;
 end;

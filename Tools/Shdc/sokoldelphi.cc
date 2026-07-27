@@ -43,6 +43,13 @@ std::string delphi_case(const std::string str)
         return pystring::capitalize(str);
 }
 
+void SokolDelphiGenerator::start_const() {
+    if (need_const) {
+        l("const\n");
+        need_const = false;
+    }
+}
+
 ErrMsg SokolDelphiGenerator::begin(const GenInput& gen) {
     tab_width = 2;
     if (!gen.inp.module.empty()) {
@@ -82,15 +89,17 @@ void SokolDelphiGenerator::gen_prerequisites(const GenInput& gen) {
 }
 
 void SokolDelphiGenerator::gen_vertex_attr_consts(const GenInput& gen) {
-    l("const\n");
+    need_const = true;
     Generator::gen_vertex_attr_consts(gen);
-    l("\n");
+    if (!need_const)
+        l("\n");
 }
 
 void SokolDelphiGenerator::gen_bind_slot_consts(const GenInput& gen) {
-    l("const\n");
+    need_const = true;
     Generator::gen_bind_slot_consts(gen);
-    l("\n");
+    if (!need_const)
+        l("\n");
 }
 
 void SokolDelphiGenerator::gen_uniform_block_decl(const GenInput &gen, const UniformBlock& ub) {
@@ -836,26 +845,32 @@ std::string SokolDelphiGenerator::uniform_block_bind_slot_name(const UniformBloc
 }
 
 std::string SokolDelphiGenerator::vertex_attr_definition(const std::string& prog_name, const StageAttr& attr) {
+    start_const();
     return fmt::format("  {} = {};", vertex_attr_name(prog_name, attr), attr.slot);
 }
 
 std::string SokolDelphiGenerator::texture_bind_slot_definition(const Texture& tex) {
+    start_const();
     return fmt::format("  {} = {};", texture_bind_slot_name(tex), tex.sokol_slot);
 }
 
 std::string SokolDelphiGenerator::sampler_bind_slot_definition(const Sampler& smp) {
+    start_const();
     return fmt::format("  {} = {};", sampler_bind_slot_name(smp), smp.sokol_slot);
 }
 
 std::string SokolDelphiGenerator::uniform_block_bind_slot_definition(const UniformBlock& ub) {
+    start_const();
     return fmt::format("  {} = {};", uniform_block_bind_slot_name(ub), ub.sokol_slot);
 }
 
 std::string SokolDelphiGenerator::storage_buffer_bind_slot_definition(const StorageBuffer& sbuf) {
+    start_const();
     return fmt::format("  {} = {};", storage_buffer_bind_slot_name(sbuf), sbuf.sokol_slot);
 }
 
 std::string SokolDelphiGenerator::storage_image_bind_slot_definition(const StorageImage& simg) {
+    start_const();
     return fmt::format("  {} = {};", storage_image_bind_slot_name(simg), simg.sokol_slot);
 }
 

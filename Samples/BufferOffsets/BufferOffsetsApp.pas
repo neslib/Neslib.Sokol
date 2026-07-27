@@ -59,10 +59,8 @@ const
 
 procedure TBufferOffsetsApp.Cleanup;
 begin
-  FPip.Free;
-  FShader.Free;
-  FVBuf.Free;
-  FIBuf.Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 

@@ -271,26 +271,26 @@ type
   {$REGION 'Internal Declarations'}
   private class var
     FHasDescs: Boolean;
-    FBufferLayoutDesc: TBufferLayoutDesc;
-    FPositionAttrDesc: TVertexAttrDesc;
-    FNormalAttrDesc: TVertexAttrDesc;
-    FTexCoordAttrDesc: TVertexAttrDesc;
-    FColorAttrDesc: TVertexAttrDesc;
+    FVertexBufferLayoutState: TVertexBufferLayoutState;
+    FPositionVertexAttrState: TVertexAttrState;
+    FNormalVertexAttrState: TVertexAttrState;
+    FTexCoordVertexAttrState: TVertexAttrState;
+    FColorVertexAttrState: TVertexAttrState;
   private
     FHandle: _sshape_buffer_t;
     function GetElementRange: TShapeElementRange;
     function GetVertexBufferDesc: TBufferDesc; inline;
     function GetIndexBufferDesc: TBufferDesc; inline;
-    class function GetBufferLayoutDesc: TBufferLayoutDesc; inline; static;
-    class function GetColorAttrDesc: TVertexAttrDesc; inline; static;
-    class function GetNormalAttrDesc: TVertexAttrDesc; inline; static;
-    class function GetPositionAttrDesc: TVertexAttrDesc; inline; static;
-    class function GetTexCoordAttrDesc: TVertexAttrDesc; inline; static;
+    class function GetVertexBufferLayoutState: TVertexBufferLayoutState; inline; static;
+    class function GetColorVertexAttrState: TVertexAttrState; inline; static;
+    class function GetNormalVertexAttrState: TVertexAttrState; inline; static;
+    class function GetPositionVertexAttrState: TVertexAttrState; inline; static;
+    class function GetTexCoordVertexAttrState: TVertexAttrState; inline; static;
   private
     class procedure ConvertBufferDesc(const ASrc: _sg_buffer_desc;
       out ADst: TBufferDesc); static;
-    class procedure ConvertAttrDesc(const ASrc: _sg_vertex_attr_desc;
-      out ADst: TVertexAttrDesc); static;
+    class procedure ConvertVertexAttrState(const ASrc: _sg_vertex_attr_state;
+      out ADst: TVertexAttrState); static;
     class procedure GetDescs; static;
   {$ENDREGION 'Internal Declarations'}
   public
@@ -320,11 +320,11 @@ type
     property ElementRange: TShapeElementRange read GetElementRange;
     property VertexBufferDesc: TBufferDesc read GetVertexBufferDesc;
     property IndexBufferDesc: TBufferDesc read GetIndexBufferDesc;
-    class property BufferLayoutDesc: TBufferLayoutDesc read GetBufferLayoutDesc;
-    class property PositionAttrDesc: TVertexAttrDesc read GetPositionAttrDesc;
-    class property NormalAttrDesc: TVertexAttrDesc read GetNormalAttrDesc;
-    class property TexCoordAttrDesc: TVertexAttrDesc read GetTexCoordAttrDesc;
-    class property ColorAttrDesc: TVertexAttrDesc read GetColorAttrDesc;
+    class property VertexBufferLayoutState: TVertexBufferLayoutState read GetVertexBufferLayoutState;
+    class property PositionVertexAttrState: TVertexAttrState read GetPositionVertexAttrState;
+    class property NormalVertexAttrState: TVertexAttrState read GetNormalVertexAttrState;
+    class property TexCoordVertexAttrState: TVertexAttrState read GetTexCoordVertexAttrState;
+    class property ColorVertexAttrState: TVertexAttrState read GetColorVertexAttrState;
 
     { Whether the buffer is valid }
     property Valid: Boolean read FHandle.valid;
@@ -491,8 +491,8 @@ begin
   Result.FHandle := _sshape_build_torus(@FHandle, @AParams);
 end;
 
-class procedure TShapeBuffer.ConvertAttrDesc(const ASrc: _sg_vertex_attr_desc;
-  out ADst: TVertexAttrDesc);
+class procedure TShapeBuffer.ConvertVertexAttrState(
+  const ASrc: _sg_vertex_attr_state; out ADst: TVertexAttrState);
 begin
   ADst.BufferIndex := ASrc.buffer_index;
   ADst.Offset := ASrc.offset;
@@ -503,13 +503,12 @@ class procedure TShapeBuffer.ConvertBufferDesc(const ASrc: _sg_buffer_desc;
   out ADst: TBufferDesc);
 begin
   ADst.Size := ASrc.size;
-  ADst.BufferType := TBufferType(ASrc.&type);
-  ADst.Usage := TUsage(ASrc.usage);
+  ADst.Usage := TBufferUsage(ASrc.usage);
   ADst.Data := TRange.Create(ASrc.data.ptr, ASrc.data.size);
   if (ASrc.&label = nil) then
     ADst.TraceLabel := ''
   else
-    ADst.TraceLabel := String(UTF8String(ASrc.&label));
+    ADst.TraceLabel := UTF8String(ASrc.&label);
   Move(ASrc.gl_buffers, ADst.GLBuffers, SizeOf(ADst.GLBuffers));
   Move(ASrc.mtl_buffers, ADst.MetalBuffers, SizeOf(ADst.MetalBuffers));
   ADst.D3D11Buffer := IInterface(ASrc.d3d11_buffer);
@@ -525,31 +524,24 @@ begin
   Result := TShapeSizes(_sshape_cylinder_sizes(ASlices, AStacks));
 end;
 
-class function TShapeBuffer.GetBufferLayoutDesc: TBufferLayoutDesc;
+class function TShapeBuffer.GetColorVertexAttrState: TVertexAttrState;
 begin
   if (not FHasDescs) then
     GetDescs;
-  Result := FBufferLayoutDesc;
-end;
-
-class function TShapeBuffer.GetColorAttrDesc: TVertexAttrDesc;
-begin
-  if (not FHasDescs) then
-    GetDescs;
-  Result := FColorAttrDesc;
+  Result := FColorVertexAttrState;
 end;
 
 class procedure TShapeBuffer.GetDescs;
 begin
-  var Desc := _sshape_buffer_layout_desc;
-  FBufferLayoutDesc.Stride := Desc.stride;
-  FBufferLayoutDesc.StepFunc := TVertexStep(Desc.step_func);
-  FBufferLayoutDesc.StepRate := Desc.step_rate;
+  var Desc := _sshape_vertex_buffer_layout_state;
+  FVertexBufferLayoutState.Stride := Desc.stride;
+  FVertexBufferLayoutState.StepFunc := TVertexStep(Desc.step_func);
+  FVertexBufferLayoutState.StepRate := Desc.step_rate;
 
-  TShapeBuffer.ConvertAttrDesc(_sshape_position_attr_desc, FPositionAttrDesc);
-  TShapeBuffer.ConvertAttrDesc(_sshape_normal_attr_desc, FNormalAttrDesc);
-  TShapeBuffer.ConvertAttrDesc(_sshape_texcoord_attr_desc, FTexCoordAttrDesc);
-  TShapeBuffer.ConvertAttrDesc(_sshape_color_attr_desc, FColorAttrDesc);
+  TShapeBuffer.ConvertVertexAttrState(_sshape_position_vertex_attr_state, FPositionVertexAttrState);
+  TShapeBuffer.ConvertVertexAttrState(_sshape_normal_vertex_attr_state, FNormalVertexAttrState);
+  TShapeBuffer.ConvertVertexAttrState(_sshape_texcoord_vertex_attr_state, FTexCoordVertexAttrState);
+  TShapeBuffer.ConvertVertexAttrState(_sshape_color_vertex_attr_state, FColorVertexAttrState);
 
   FHasDescs := True;
 end;
@@ -570,30 +562,37 @@ begin
   ConvertBufferDesc(_sshape_index_buffer_desc(@FHandle), Result);
 end;
 
-class function TShapeBuffer.GetNormalAttrDesc: TVertexAttrDesc;
+class function TShapeBuffer.GetNormalVertexAttrState: TVertexAttrState;
 begin
   if (not FHasDescs) then
     GetDescs;
-  Result := FNormalAttrDesc;
+  Result := FNormalVertexAttrState;
 end;
 
-class function TShapeBuffer.GetPositionAttrDesc: TVertexAttrDesc;
+class function TShapeBuffer.GetPositionVertexAttrState: TVertexAttrState;
 begin
   if (not FHasDescs) then
     GetDescs;
-  Result := FPositionAttrDesc;
+  Result := FPositionVertexAttrState;
 end;
 
-class function TShapeBuffer.GetTexCoordAttrDesc: TVertexAttrDesc;
+class function TShapeBuffer.GetTexCoordVertexAttrState: TVertexAttrState;
 begin
   if (not FHasDescs) then
     GetDescs;
-  Result := FTexCoordAttrDesc;
+  Result := FTexCoordVertexAttrState;
 end;
 
 function TShapeBuffer.GetVertexBufferDesc: TBufferDesc;
 begin
   ConvertBufferDesc(_sshape_vertex_buffer_desc(@FHandle), Result);
+end;
+
+class function TShapeBuffer.GetVertexBufferLayoutState: TVertexBufferLayoutState;
+begin
+  if (not FHasDescs) then
+    GetDescs;
+  Result := FVertexBufferLayoutState;
 end;
 
 procedure TShapeBuffer.Init(const AVertices, AIndices: TRange);

@@ -1,6 +1,6 @@
 unit OffScreenApp;
-{ Render to an offscreen rendertarget texture, and use this texture for
-  rendering to the display. }
+{ Render to a offscreen rendertarget texture without multisampling, and use this
+  texture for rendering to the display (with multisampling).}
 
 interface
 
@@ -15,18 +15,19 @@ uses
 type
   TOffScreenApp = class(TSampleApp)
   private const
-    SAMPLE_COUNT = 4;
+    OFFSCREEN_SAMPLE_COUNT = 1;
+    OFFSCREEN_PIXEL_FORMAT = TPixelFormat.Rgba8;
+    DISPLAY_SAMPLE_COUNT   = 4;
   private type
     TOffScreen = record
     public
-      PassAction: TPassAction;
       Pass: TPass;
       Shader: TShader;
       Pip: TPipeline;
       Bind: TBindings;
     end;
   private type
-    TDefault = record
+    TDisplay = record
     public
       PassAction: TPassAction;
       Shader: TShader;
@@ -35,7 +36,7 @@ type
     end;
   private
     FOffScreen: TOffScreen;
-    FDefault: TDefault;
+    FDisplay: TDisplay;
     FDonut: TShapeElementRange;
     FSphere: TShapeElementRange;
     FColorImage: TImage;
@@ -55,21 +56,15 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { TOffScreenApp }
 
 procedure TOffScreenApp.Cleanup;
 begin
-  FOffScreen.Bind.IndexBuffer.Free;
-  FOffScreen.Bind.VertexBuffers[0].Free;
-  FDefault.Pip.Free;
-  FDefault.Shader.Free;
-  FOffScreen.Pip.Free;
-  FOffScreen.Shader.Free;
-  FOffScreen.Pass.Free;
-  FDepthImage.Free;
-  FColorImage.Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 
@@ -93,7 +88,7 @@ begin
   inherited;
   AConfig.Width := 800;
   AConfig.Height := 600;
-  AConfig.SampleCount := 4;
+  AConfig.SampleCount := DISPLAY_SAMPLE_COUNT;
   AConfig.WindowTitle := 'Offscreen Rendering';
 end;
 
@@ -108,10 +103,10 @@ begin
   var VSParams: TVSParams;
   VSParams.Mvp := ComputeMvp(FRX, FRY, 1, 2.5);
 
-  TGfx.BeginPass(FOffScreen.Pass, FOffScreen.PassAction);
+  TGfx.BeginPass(FOffScreen.Pass);
   TGfx.ApplyPipeline(FOffScreen.Pip);
   TGfx.ApplyBindings(FOffScreen.Bind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(FDonut.BaseElement, FDonut.NumElements);
   TGfx.EndPass;
 
@@ -121,10 +116,15 @@ begin
   var H: Single := FramebufferHeight;
   VSParams.Mvp := ComputeMvp(-FRX * 0.25, FRY * 0.25, H / W, 2);
 
-  TGfx.BeginDefaultPass(FDefault.PassAction, FramebufferWidth, FramebufferHeight);
-  TGfx.ApplyPipeline(FDefault.Pip);
-  TGfx.ApplyBindings(FDefault.Bind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  var Pass := TPass.Create;
+  Pass.Action^ := FDisplay.PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  Pass.TraceLabel := 'SwapchainPass';
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FDisplay.Pip);
+  TGfx.ApplyBindings(FDisplay.Bind);
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(FSphere.BaseElement, FSphere.NumElements);
   DebugFrame;
   TGfx.EndPass;
@@ -138,35 +138,46 @@ var
   Indices: array [0..23999] of UInt16;
 begin
   inherited;
-  { Default pass action: clear to blue-ish }
-  FDefault.PassAction.Colors[0].Init(TAction.Clear, 0.25, 0.45, 0.65, 1.0);
+  { Display pass action: clear to blue-ish }
+  FDisplay.PassAction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.45, 0.65, 1.0);
 
-  { Offscreen pass action }
-  FOffScreen.PassAction.Colors[0].Init(TAction.Clear, 0.25, 0.25, 0.25, 1.0);
-
-  { A render pass with one color- and one depth-attachment image }
+  { Setup a render pass struct with one color and one depth render attachment
+    image.
+    NOTE: we need to explicitly set the sample count in the attachment image
+    objects, because the offscreen pass uses a different sample count than the
+    display render pass (the display render pass is multi-sampled, the offscreen
+    pass is not) }
   var ImgDesc := TImageDesc.Create;
-  ImgDesc.RenderTarget := True;
+  ImgDesc.Usage.ColorAttachment := True;
   ImgDesc.Width := 256;
   ImgDesc.Height := 256;
-  ImgDesc.PixelFormat := TPixelFormat.Rgba8;
-  ImgDesc.MinFilter := TFilter.Linear;
-  ImgDesc.MagFilter := TFilter.Linear;
-  ImgDesc.WrapU := TWrap.Repeating;
-  ImgDesc.WrapV := TWrap.Repeating;
-  ImgDesc.SampleCount := SAMPLE_COUNT;
+  ImgDesc.PixelFormat := OFFSCREEN_PIXEL_FORMAT;
+  ImgDesc.SampleCount := OFFSCREEN_SAMPLE_COUNT;
   ImgDesc.TraceLabel := 'ColorImage';
   FColorImage := TImage.Create(ImgDesc);
 
   ImgDesc.PixelFormat := TPixelFormat.Depth;
+  ImgDesc.Usage.ColorAttachment := False;
+  ImgDesc.Usage.DepthStencilAttachment := True;
   ImgDesc.TraceLabel := 'DepthImage';
   FDepthImage := TImage.Create(ImgDesc);
 
-  var PassDesc := TPassDesc.Create;
-  PassDesc.ColorAttachments[0].Image := FColorImage;
-  PassDesc.DepthStencilAttachment.Image := FDepthImage;
-  PassDesc.TraceLabel := 'OffscreenPass';
-  FOffScreen.Pass := TPass.Create(PassDesc);
+  { Setup a pass struct with attachment views and pass-actions }
+  FOffScreen.Pass := TPass.Create;
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.ColorAttachment.Image := FColorImage;
+  ViewDesc.TraceLabel := 'ColorAttachment';
+  FOffScreen.Pass.Attachments.Colors[0] := TView.Create(ViewDesc);
+
+  ViewDesc := TViewDesc.Create;
+  ViewDesc.DepthStencilAttachment.Image := FDepthImage;
+  ViewDesc.TraceLabel := 'DepthAttachment';
+  FOffScreen.Pass.Attachments.DepthStencil := TView.Create(ViewDesc);
+
+  FOffScreen.Pass.Action.Colors[0]^ := TColorAttachmentAction.Create(
+    TLoadAction.Clear, 0.25, 0.25, 0.25, 1);
+  FOffScreen.Pass.TraceLabel := 'OffscreenPass';
 
   { A donut shape which is rendered into the offscreen render target, and a
     sphere shape which is rendered into the default framebuffer }
@@ -184,41 +195,56 @@ begin
   Assert(Buf.Valid);
   FSphere := Buf.ElementRange;
 
-  var VBuf := TBuffer.Create(Buf.VertexBufferDesc);
-  var IBuf := TBuffer.Create(Buf.IndexBufferDesc);
+  var VBufDesc := Buf.VertexBufferDesc;
+  var IBufDesc := Buf.IndexBufferDesc;
+  VBufDesc.TraceLabel := 'ShapeVBuf';
+  IBufDesc.TraceLabel := 'ShapeIBuf';
+  var VBuf := TBuffer.Create(VBufDesc);
+  var IBuf := TBuffer.Create(IBufDesc);
 
-  { Pipeline-state-object for offscreen-rendered donut, don't need texture coord
-    here }
+  { Pipeline-state-object for offscreen-rendered donut.
+    NOTE: we need to explicitly set the SampleCount here because the offscreen
+    pass uses a different sample count than the default pass (the display pass
+    is multi-sampled, but the offscreen pass isn't) }
   FOffScreen.Shader := TShader.Create(OffScreenShaderDesc);
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Buffers[0] := Buf.BufferLayoutDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_OFFSCREEN_POSITION] := Buf.PositionAttrDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_OFFSCREEN_NORMAL] := Buf.NormalAttrDesc;
+  PipDesc.Layout.Buffers[0] := Buf.VertexBufferLayoutState;
+  PipDesc.Layout.Attrs[ATTR_OFFSCREEN_POSITION] := Buf.PositionVertexAttrState;
+  PipDesc.Layout.Attrs[ATTR_OFFSCREEN_NORMAL] := Buf.NormalVertexAttrState;
   PipDesc.Shader := FOffScreen.Shader;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;
-  PipDesc.SampleCount := SAMPLE_COUNT;
+  PipDesc.SampleCount := OFFSCREEN_SAMPLE_COUNT;
   PipDesc.Depth.PixelFormat := TPixelFormat.Depth;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
   PipDesc.Depth.WriteEnabled := True;
-  PipDesc.Colors[0].PixelFormat := TPixelFormat.Rgba8;
+  PipDesc.Colors[0].PixelFormat := OFFSCREEN_PIXEL_FORMAT;
   PipDesc.TraceLabel := 'OffscreenPipeline';
   FOffScreen.Pip := TPipeline.Create(PipDesc);
 
   { And another pipeline-state-object for the default pass }
-  FDefault.Shader := TShader.Create(DefaultShaderDesc);
+  FDisplay.Shader := TShader.Create(DefaultShaderDesc);
   PipDesc.Init;
-  PipDesc.Layout.Buffers[0] := Buf.BufferLayoutDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_DEFAULT_POSITION] := Buf.PositionAttrDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_DEFAULT_NORMAL] := Buf.NormalAttrDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_DEFAULT_TEXCOORD0] := Buf.TexCoordAttrDesc;
-  PipDesc.Shader := FDefault.Shader;
+  PipDesc.Layout.Buffers[0] := Buf.VertexBufferLayoutState;
+  PipDesc.Layout.Attrs[ATTR_DEFAULT_POSITION] := Buf.PositionVertexAttrState;
+  PipDesc.Layout.Attrs[ATTR_DEFAULT_NORMAL] := Buf.NormalVertexAttrState;
+  PipDesc.Layout.Attrs[ATTR_DEFAULT_TEXCOORD0] := Buf.TexCoordVertexAttrState;
+  PipDesc.Shader := FDisplay.Shader;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
   PipDesc.Depth.WriteEnabled := True;
   PipDesc.TraceLabel := 'DefaultPipeline';
-  FDefault.Pip := TPipeline.Create(PipDesc);
+  FDisplay.Pip := TPipeline.Create(PipDesc);
+
+  { A sampler object for sampling the render target texture }
+  var SmpDesc := TSamplerDesc.Create;
+  SmpDesc.MinFilter := TFilter.Linear;
+  SmpDesc.MagFilter := TFilter.Linear;
+  SmpDesc.WrapU := TWrap.Repeating;
+  SmpDesc.WrapV := TWrap.Repeating;
+  SmpDesc.TraceLabel := 'Sampler';
+  FDisplay.Bind.Samplers[SMP_SMP] := TSampler.Create(SmpDesc);
 
   { The resource bindings for rendering a non-textured shape into offscreen
     render target }
@@ -227,9 +253,13 @@ begin
 
   { Resource bindings to render a textured shape, using the offscreen render
     target as texture }
-  FDefault.Bind.VertexBuffers[0] := VBuf;
-  FDefault.Bind.IndexBuffer := IBuf;
-  FDefault.Bind.FragmentShaderImages[0] := FColorImage;
+  FDisplay.Bind.VertexBuffers[0] := VBuf;
+  FDisplay.Bind.IndexBuffer := IBuf;
+
+  ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := FColorImage;
+  ViewDesc.TraceLabel := 'TextureView';
+  FDisplay.Bind.Views[VIEW_TEX] := TView.Create(ViewDesc);
 end;
 
 end.

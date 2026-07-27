@@ -33,6 +33,7 @@ begin
   TApplication.AddEventHandler(EventHandler);
 
   var Desc := TSokolImGuiDesc.Create;
+  Desc.UseDelphiMemoryManager := True;
   Desc.SampleCount := TApplication.SampleCount;
 
   Assert(TApplication.Instance is TSampleApp);

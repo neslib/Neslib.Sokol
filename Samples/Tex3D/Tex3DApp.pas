@@ -63,13 +63,8 @@ const
 
 procedure TTex3DApp.Cleanup;
 begin
-  FPip.Free;
-  FShader.Free;
-  FBind.IndexBuffer.Free;
-  FBind.VertexBuffers[0].Free;
-  FBind.Views[VIEW_TEX].Image.Free;
-  FBind.Views[VIEW_TEX].Free;
-  FBind.Samplers[SMP_SMP].Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 

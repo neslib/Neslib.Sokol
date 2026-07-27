@@ -84,6 +84,7 @@ begin
   AConfig.HighDpi := True;
   AConfig.SampleCount := 4;
   AConfig.Icon.UseDefault := True;
+  AConfig.UseDelphiMemoryManager := True;
   AConfig.Logger := DefaultLogger;
 end;
 
@@ -108,6 +109,7 @@ begin
   ConfigureGfx(Desc);
   Desc.Environment.FromAppEnvironment;
   Desc.Logger := Desc.DefaultLogger;
+  Desc.UseDelphiMemoryManager := True;
   TGfx.Setup(Desc);
 
   {$IF Defined(USE_DBG_UI)}
