@@ -13,19 +13,60 @@ interface
 uses
   Neslib.FastMath,
   Neslib.Sokol.Api,
+  Neslib.Sokol.Types,
   Neslib.Sokol.Gfx;
+
+type
+  { An enum with a unique item for each log message, warning, error and
+    validation layer message. Note that these messages are only visible when a
+    logger function is installed in the sglSetup call. }
+  TGLLogItem = (
+    Ok,
+    MallocFailed,
+    MakePipelineFailed,
+    PipelinePoolExhausted,
+    AddCommitListenerFailed,
+    ContextPoolExhausted,
+    CannotDestroyDefaultContext);
+
+type
+  _TGLLogItemHelper = record helper for TGLLogItem
+  public
+    function ToString: String;
+  end;
+
+type
+  { Used in TGLDesc to provide a logging function. Please be aware that without
+    logging function, Neslib.Sokol.GL will be completely silent, e.g. it will
+    not report errors and warnings. For maximum error verbosity, compile in
+    debug mode and provide a compatible logger function in the sglSetup call (
+    for instance the standard logging function TGLDesc.DefaultLogger).
+
+    Parameters:
+    * ALevel: log level
+    * AItem: log item
+    * AMessage: the log message corresponding to AItem.
+    * ALineNr: line number in original sokol_gl.h file. }
+  TGLLogger = procedure(const ALevel: TLogLevel; const AItem: TGLLogItem;
+    const AMessage: String; const ALineNr: Integer) of object;
 
 type
   { Errors are reset each frame after calling sglDraw().
     Get the last error code with sglError(). }
-  TGLError = (
-    NoError        = _SGL_NO_ERROR,
-    VerticesFull   = _SGL_ERROR_VERTICES_FULL,
-    UniformsFull   = _SGL_ERROR_UNIFORMS_FULL,
-    CommandsFull   = _SGL_ERROR_COMMANDS_FULL,
-    StackOverflow  = _SGL_ERROR_STACK_OVERFLOW,
-    StackUnderflow = _SGL_ERROR_STACK_UNDERFLOW,
-    NoContext      = _SGL_ERROR_NO_CONTEXT);
+  TGLError = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sgl_error_t;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    property Any: Boolean read FHandle.any;
+    property VerticesFull: Boolean read FHandle.vertices_full;
+    property UniformsFull: Boolean read FHandle.uniforms_full;
+    property CommandsFull: Boolean read FHandle.commands_full;
+    property StackOverflow: Boolean read FHandle.stack_overflow;
+    property StackUnderflow: Boolean read FHandle.stack_underflow;
+    property NoContext: Boolean read FHandle.no_context;
+  end;
 
 type
   { Describes the initialization parameters of a rendering context.
@@ -55,8 +96,14 @@ type
 type
   TGLDesc = record
   {$REGION 'Internal Declarations'}
+  private class var
+    GLogger: TGLLogger;
   private
     procedure Convert(out ADst: _sgl_desc_t);
+  private
+    class procedure LogCallback(const ATag: PUTF8Char; ALogLevel,
+      ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+      const AFilenameOrNull: PUTF8Char; AUserData: Pointer); cdecl; static;
   {$ENDREGION 'Internal Declarations'}
   public
     { Default: 64k }
@@ -84,9 +131,16 @@ type
       When SOKOL_MEM_TRACK is defined, it always uses Delphi's memory manager.
       Default: False }
     UseDelphiMemoryManager: Boolean;
+
+    { Optional log function override }
+    Logger: TGLLogger;
   public
     class function Create: TGLDesc; static;
     procedure Init; inline;
+
+    { A default log function you can assign to the Logger field. }
+    procedure DefaultLogger(const ALevel: TLogLevel; const AItem: TGLLogItem;
+      const AMessage: String; const ALineNr: Integer);
   end;
   PGLDesc = ^TGLDesc;
 
@@ -108,6 +162,10 @@ type
     procedure Free; inline;
 
     procedure MakeCurrent; inline;
+
+    { Draw recorded commands (call inside a Neslib.Sokol.Gfx render pass) }
+    procedure Draw; inline;
+    procedure DrawLayer(const ALayerId: Integer); inline;
 
     class property Current: TGLContext read GetCurrent write SetCurrent;
     class property Default: TGLContext read FDefault;
@@ -156,6 +214,24 @@ function sglGetContext: TGLContext; inline;
 procedure sglSetContext(const ACtx: TGLContext); inline;
 procedure sglSetDefaultContext; inline;
 
+{ Get information about recorded vertices and commands in current context }
+
+function sglNumVertices: Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_num_vertices';
+
+function sglNumCommands: Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_num_commands';
+
+{ Draw recorded commands (call inside a Neslib.Sokol.Gfx render pass) }
+
+procedure sglDraw; overload; cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_draw';
+
+procedure sglDrawLayer(const ALayerId: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_draw_layer';
+
+procedure sglDraw(const ACtx: TGLContext); overload; inline;
+
 { Render state functions }
 
 procedure sglDefaults(); cdecl;
@@ -179,7 +255,10 @@ procedure sglEnableTexture(); cdecl;
 procedure sglDisableTexture(); cdecl;
   external _LIB_SOKOL name _PU + 'sgl_disable_texture';
 
-procedure sglTexture(const AImg: TImage); inline;
+procedure sglTexture(const ATexView: TView; const ASampler: TSampler); inline;
+
+procedure sglLayer(const ALayerId: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'sgl_layer';
 
 { Pipeline stack functions }
 
@@ -366,13 +445,6 @@ procedure sglV3F_T2F_C1I(AX, AY, AZ, AU, AV: Single; ARgba: UInt32); cdecl;
 procedure sglEnd(); cdecl;
   external _LIB_SOKOL name _PU + 'sgl_end';
 
-{ Render recorded commands }
-
-procedure sglDraw(); overload; cdecl;
-  external _LIB_SOKOL name _PU + 'sgl_draw';
-
-procedure sglDraw(const ACtx: TGLContext); overload; inline;
-
 implementation
 
 uses
@@ -409,9 +481,9 @@ begin
   _sgl_set_context(_sgl_default_context);
 end;
 
-procedure sglTexture(const AImg: TImage);
+procedure sglTexture(const ATexView: TView; const ASampler: TSampler); inline;
 begin
-  _sgl_texture(_sg_image(AImg));
+  _sgl_texture(_sg_view(ATexView), _sg_sampler(ASampler));
 end;
 
 procedure sglLoadPipeline(const APip: TGLPipeline);
@@ -422,6 +494,22 @@ end;
 procedure sglDraw(const ACtx: TGLContext);
 begin
   _sgl_context_draw(ACtx.FHandle);
+end;
+
+{ _TGLLogItemHelper }
+
+function _TGLLogItemHelper.ToString: String;
+const
+  STRINGS: array [TGLLogItem] of String = (
+    'Ok',
+    'memory allocation failed',
+    'TGLPipeline.Create failed',
+    'pipeline pool exhausted (use TGLDesc.PipelinePoolSize to adjust)',
+    'setting TGfx.CommitListener failed',
+    'context pool exhausted (use TGLDesc.ContextPoolSize to adjust)',
+    'cannot destroy default context');
+begin
+  Result := STRINGS[Self];
 end;
 
 { TGLContextDesc }
@@ -449,6 +537,7 @@ end;
 
 procedure TGLDesc.Convert(out ADst: _sgl_desc_t);
 begin
+  FillChar(ADst, SizeOf(ADst), 0);
   ADst.max_vertices := MaxVertices;
   ADst.max_commands := MaxCommands;
   ADst.context_pool_size := ContextPoolSize;
@@ -458,21 +547,21 @@ begin
   ADst.sample_count := SampleCount;
   ADst.face_winding := Ord(FaceWinding);
   {$IFDEF SOKOL_MEM_TRACK}
-  ADst.allocator.alloc := _MemTrackAlloc;
-  ADst.allocator.free := _MemTrackFree;
+  ADst.allocator.alloc_fn := _MemTrackAlloc;
+  ADst.allocator.free_fn := _MemTrackFree;
   {$ELSE}
   if (UseDelphiMemoryManager) then
   begin
-    ADst.allocator.alloc := _AllocCallback;
-    ADst.allocator.free := _FreeCallback;
-  end
-  else
-  begin
-    ADst.allocator.alloc := nil;
-    ADst.allocator.free := nil;
+    ADst.allocator.alloc_fn := _AllocCallback;
+    ADst.allocator.free_fn := _FreeCallback;
   end;
   {$ENDIF}
-  ADst.allocator.user_data := nil;
+
+  if Assigned(Logger) then
+  begin
+    GLogger := Logger;
+    ADst.logger.func := LogCallback;
+  end
 end;
 
 class function TGLDesc.Create: TGLDesc;
@@ -480,9 +569,29 @@ begin
   Result.Init;
 end;
 
+procedure TGLDesc.DefaultLogger(const ALevel: TLogLevel;
+  const AItem: TGLLogItem; const AMessage: String; const ALineNr: Integer);
+begin
+  _LogDefault(ALevel, Ord(AItem), AMessage, ALineNr);
+end;
+
 procedure TGLDesc.Init;
 begin
   FillChar(Self, SizeOf(Self), 0);
+end;
+
+class procedure TGLDesc.LogCallback(const ATag: PUTF8Char; ALogLevel,
+  ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+  const AFilenameOrNull: PUTF8Char; AUserData: Pointer);
+begin
+  Assert(Assigned(GLogger));
+  var Msg: String;
+  if (ALogItemId <= Cardinal(Ord(High(TGLLogItem)))) then
+    Msg := TGLLogItem(ALogItemId).ToString
+  else
+    Msg := String(UTF8String(AMessageOrNull));
+
+  GLogger(TLogLevel(ALogLevel), TGLLogItem(ALogItemId), Msg, ALineNr);
 end;
 
 { TGLContext }
@@ -490,6 +599,16 @@ end;
 constructor TGLContext.Create(const ADesc: TGLContextDesc);
 begin
   Init(ADesc);
+end;
+
+procedure TGLContext.Draw;
+begin
+  _sgl_context_draw(FHandle);
+end;
+
+procedure TGLContext.DrawLayer(const ALayerId: Integer);
+begin
+  _sgl_context_draw_layer(FHandle, ALayerId);
 end;
 
 class constructor TGLContext.Create;

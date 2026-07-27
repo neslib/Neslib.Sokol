@@ -27,7 +27,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { TDebugTextFormatApp }
 
@@ -43,6 +44,7 @@ begin
   AConfig.Width := 640;
   AConfig.Height := 480;
   AConfig.HighDpi := False;
+  AConfig.DepthFormat := TAppPixelFormat.None;
   AConfig.WindowTitle := 'DebugTextFormat';
 end;
 
@@ -73,7 +75,11 @@ begin
     TDbgText.MoveY(2);
   end;
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TDbgText.Draw;
   DebugFrame;
   TGfx.EndPass;
@@ -83,7 +89,7 @@ end;
 procedure TDebugTextFormatApp.Init;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0.125, 0.25, 0);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.125, 0.25, 0);
   FPalette[0] := $FF3643F4;
   FPalette[1] := $FFF39621;
   FPalette[2] := $FF50AF4C;
@@ -92,6 +98,8 @@ begin
   Desc.Fonts[0] := TDbgTextFont.KC854;
   Desc.Fonts[1] := TDbgTextFont.C64;
   Desc.Fonts[2] := TDbgTextFont.Oric;
+  Desc.UseDelphiMemoryManager := True;
+  Desc.Logger := Desc.DefaultLogger;
   TDbgText.Setup(Desc);
 end;
 

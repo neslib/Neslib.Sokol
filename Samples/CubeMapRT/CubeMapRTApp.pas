@@ -46,21 +46,20 @@ type
 type
   TCubeMapRTApp = class(TSampleApp)
   private const
-    { Change the OFFSCREEN_SAMPLE_COUNT between 1 and 4 to test the different
-      cubemap-rendering-paths in sokol (one rendering to a separate MSAA
-      surface, and MSAA-resolve in TGfx.EndPass, and the other (without MSAA)
-      rendering directly to the cubemap faces. }
-    OFFSCREEN_SAMPLE_COUNT = 4;
+    { NOTE: cubemaps can't be multisampled, so (OFFSCREEN_SAMPLE_COUNT > 1) will
+      be a validation error }
+    OFFSCREEN_SAMPLE_COUNT = 1;
     DISPLAY_SAMPLE_COUNT   = 4;
     NUM_SHAPES             = 32;
+    NUM_FACES              = 6;
   private
     FCubeMap: TImage;
-    FDepthImg: TImage;
-    FOffscreenPass: array [TCubeFace] of TPass;
+    FCubeMapTexView: TView;
+    FSampler: TSampler;
+    FOffscreenColorViews: array [0..NUM_FACES - 1] of TView;
+    FOffscreenDepthView: TView;
     FOffscreenPassAction: TPassAction;
     FDisplayPassAction: TPassAction;
-    FShapesShader: TShader;
-    FCubeShader: TShader;
     FCube: TMesh;
     FOffscreenShapesPip: TPipeline;
     FDisplayShapesPip: TPipeline;
@@ -83,13 +82,15 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  System.SysUtils,
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { Offscreen pass which renders the environment cubemap.
   FIXME: these values work for Metal and D3D11, not for GL, because of the
   different handedness of the cubemap coordinate systems }
 type
-  TCenterAndUp = array [TCubeFace, 0..1] of TVector3;
+  TCenterAndUp = array [0..TCubeMapRTApp.NUM_FACES - 1, 0..1] of TVector3;
   PCenterAndUp = ^TCenterAndUp;
 
 const
@@ -114,17 +115,8 @@ const
 
 procedure TCubeMapRTApp.Cleanup;
 begin
-  for var Face := Low(TCubeFace) to High(TCubeFace) do
-    FOffscreenPass[Face].Free;
-
-  FDisplayCubePip.Free;
-  FDisplayShapesPip.Free;
-  FOffscreenShapesPip.Free;
-  FCubeShader.Free;
-  FShapesShader.Free;
-  FCube.Free;
-  FDepthImg.Free;
-  FCubeMap.Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 
@@ -157,8 +149,7 @@ begin
     Uniforms.LightDir := FLightDir;
     Uniforms.EyePos.Init(AEyePos, 1);
 
-    TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_SHAPE_UNIFORMS,
-      TRange.Create(Uniforms));
+    TGfx.ApplyUniforms(UB_SHAPE_UNIFORMS, TRange.Create(Uniforms));
     TGfx.Draw(0, FCube.NumElements);
   end;
 end;
@@ -186,9 +177,13 @@ begin
     CenterAndUp := @CENTER_AND_UP_GL;
 
   var View: TMatrix4;
-  for var Face := Low(TCubeFace) to High(TCubeFace) do
+  for var Face := 0 to NUM_FACES - 1 do
   begin
-    TGfx.BeginPass(FOffscreenPass[Face], FOffscreenPassAction);
+    var Pass := TPass.Create;
+    Pass.Action^ := FOffscreenPassAction;
+    Pass.Attachments.Colors[0] := FOffscreenColorViews[Face];
+    Pass.Attachments.DepthStencil := FOffscreenDepthView;
+    TGfx.BeginPass(Pass);
 
     View.InitLookAtRH(TVector3.Zero, CenterAndUp[Face, 0], CenterAndUp[Face, 1]);
     var ViewProj := FOffscreenProj * View;
@@ -200,12 +195,15 @@ begin
   { Render the default pass }
   var W := FramebufferWidth;
   var H := FramebufferHeight;
-  TGfx.BeginDefaultPass(FDisplayPassAction, W, H);
+  var Pass := TPass.Create;
+  Pass.Action^ := FDisplayPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
 
   var EyePos: TVector3;
   var Proj: TMatrix4;
-  EyePos.Init(0, 0, 30);
-  Proj.InitPerspectiveFovRH(Radians(45), H / W, 0.01, 100.0, True);
+  EyePos.Init(0, 0, 20);
+  Proj.InitPerspectiveFovRH(Radians(45), W / H, 0.01, 100.0);
   View.InitLookAtRH(EyePos, Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
@@ -227,7 +225,8 @@ begin
   var Bind := TBindings.Create;
   Bind.VertexBuffers[0] := FCube.VBuf;
   Bind.IndexBuffer := FCube.IBuf;
-  Bind.FragmentShaderImages[SLOT_TEX] := FCubeMap;
+  Bind.Views[VIEW_TEX] := FCubeMapTexView;
+  Bind.Samplers[SMP_SMP] := FSampler;
   TGfx.ApplyBindings(Bind);
 
   var Uniforms: TShapeUniforms;
@@ -236,8 +235,7 @@ begin
   Uniforms.ShapeColor.Init(1, 1, 1, 1);
   Uniforms.LightDir := FLightDir;
   Uniforms.EyePos := Vector4(EyePos, 1);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_SHAPE_UNIFORMS,
-    TRange.Create(Uniforms));
+  TGfx.ApplyUniforms(UB_SHAPE_UNIFORMS, TRange.Create(Uniforms));
 
   TGfx.Draw(0, FCube.NumElements);
 
@@ -250,62 +248,63 @@ procedure TCubeMapRTApp.Init;
 begin
   inherited;
 
-  { Create a cubemap as render target, and a matching depth-buffer texture }
+  { Create a cubemap as render target, a texture view, and a matching
+    depth-buffer texture }
   var ImageDesc := TImageDesc.Create;
   ImageDesc.ImageType := TImageType.Cube;
-  ImageDesc.RenderTarget := True;
+  ImageDesc.Usage.ColorAttachment := True;
   ImageDesc.Width := 1024;
   ImageDesc.Height := 1024;
   ImageDesc.SampleCount := OFFSCREEN_SAMPLE_COUNT;
-  ImageDesc.MinFilter := TFilter.Linear;
-  ImageDesc.MagFilter := TFilter.Linear;
   ImageDesc.TraceLabel := 'CubemapColorRT';
   FCubeMap := TImage.Create(ImageDesc);
 
-  { ... and a matching depth-buffer image }
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := FCubeMap;
+  ViewDesc.TraceLabel := 'CubemapTexview';
+  FCubeMapTexView := TView.Create(ViewDesc);
+
   ImageDesc.Init;
   ImageDesc.ImageType := TImageType.TwoD;
-  ImageDesc.RenderTarget := True;
+  ImageDesc.Usage.DepthStencilAttachment := True;
   ImageDesc.Width := 1024;
   ImageDesc.Height := 1024;
   ImageDesc.PixelFormat := TPixelFormat.Depth;
   ImageDesc.SampleCount := OFFSCREEN_SAMPLE_COUNT;
   ImageDesc.TraceLabel := 'CubemapDepthRT';
-  FDepthImg := TImage.Create(ImageDesc);
+  var DepthImg := TImage.Create(ImageDesc);
 
   { Create 6 pass objects, one for each cubemap face }
-  for var Face := Low(TCubeFace) to High(TCubeFace) do
+  for var Face := 0 to NUM_FACES - 1 do
   begin
-    var PassDesc := TPassDesc.Create;
-    PassDesc.ColorAttachments[0].Image := FCubeMap;
-    PassDesc.ColorAttachments[0].Slice := Ord(Face);
-    PassDesc.DepthStencilAttachment.Image := FDepthImg;
-    PassDesc.TraceLabel := 'OffscreenPass';
-    FOffscreenPass[Face] := TPass.Create(PassDesc);
+    ViewDesc.Init;
+    ViewDesc.ColorAttachment.Image := FCubeMap;
+    ViewDesc.ColorAttachment.Slice := Face;
+    ViewDesc.TraceLabel := UTF8String(Format('CubemapTexview%d', [Face]));
+    FOffscreenColorViews[Face] := TView.Create(ViewDesc);
   end;
 
+  ViewDesc.Init;
+  ViewDesc.DepthStencilAttachment.Image := DepthImg;
+  ViewDesc.TraceLabel := 'DepthStencilAttachment';
+  FOffscreenDepthView := TView.Create(ViewDesc);
+
   { Pass action for offscreen pass (clear to dark grey) }
-  FOffscreenPassAction.Colors[0].Init(TAction.Clear, 0.5, 0.5, 0.5, 1.0);
+  FOffscreenPassAction.Colors[0].Init(TLoadAction.Clear, 0.5, 0.5, 0.5, 1.0);
 
   { Pass action for default pass (clear to light grey) }
-  FDisplayPassAction.Colors[0].Init(TAction.Clear, 0.75, 0.75, 0.75, 1.0);
+  FDisplayPassAction.Colors[0].Init(TLoadAction.Clear, 0.75, 0.75, 0.75, 1.0);
 
   { Vertex- and index-buffers for cube }
   FCube.MakeCube;
 
-  { Same vertex layout for all shaders }
-  var Layout := TLayoutDesc.Create;
-  Layout.Attrs[ATTR_VS_POS].Offset := 0;
-  Layout.Attrs[ATTR_VS_POS].Format := TVertexFormat.Float3;
-  Layout.Attrs[ATTR_VS_NORM].Offset := SizeOf(TVector3);
-  Layout.Attrs[ATTR_VS_NORM].Format := TVertexFormat.Float3;
-
   { Shader and pipeline objects for offscreen-rendering }
-  FShapesShader := TShader.Create(ShapesShaderDesc);
-
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Shader := FShapesShader;
-  PipDesc.Layout := Layout;
+  PipDesc.Shader := TShader.Create(ShapesShaderDesc);
+  PipDesc.Layout.Attrs[ATTR_SHAPES_POS].Offset := 0;
+  PipDesc.Layout.Attrs[ATTR_SHAPES_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_SHAPES_NORM].Offset := SizeOf(TVector3);
+  PipDesc.Layout.Attrs[ATTR_SHAPES_NORM].Format := TVertexFormat.Float3;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;
   PipDesc.SampleCount := OFFSCREEN_SAMPLE_COUNT;
@@ -321,17 +320,24 @@ begin
   FDisplayShapesPip := TPipeline.Create(PipDesc);
 
   { Shader and pipeline objects for display-rendering }
-  FCubeShader := TShader.Create(CubeShaderDesc);
-
   PipDesc.Init;
-  PipDesc.Shader := FCubeShader;
-  PipDesc.Layout := Layout;
+  PipDesc.Shader := TShader.Create(CubeShaderDesc);
+  PipDesc.Layout.Attrs[ATTR_CUBE_POS].Offset := 0;
+  PipDesc.Layout.Attrs[ATTR_CUBE_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_CUBE_NORM].Offset := SizeOf(TVector3);
+  PipDesc.Layout.Attrs[ATTR_CUBE_NORM].Format := TVertexFormat.Float3;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;
   PipDesc.SampleCount := DISPLAY_SAMPLE_COUNT;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
   PipDesc.Depth.WriteEnabled := True;
   FDisplayCubePip := TPipeline.Create(PipDesc);
+
+  { A sampler to sample the cubemap render target as texture }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  FSampler := TSampler.Create(SamplerDesc);
 
   { 1:1 aspect ration projection matrix for offscreen rendering }
   FOffscreenProj.InitPerspectiveFovRH(Radians(90), 1.0, 0.01, 100.0);
@@ -407,7 +413,7 @@ begin
   VBuf := TBuffer.Create(Desc);
 
   Desc.Init;
-  Desc.BufferType := TBufferType.IndexBuffer;
+  Desc.Usage.IndexBuffer := True;
   Desc.Data := TRange.Create(INDICES);
   Desc.TraceLabel := 'CubeIndices';
   IBuf := TBuffer.Create(Desc);

@@ -36,13 +36,13 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { TSglLinesApp }
 
 procedure TSglLinesApp.Cleanup;
 begin
-  FDepthTestPip.Free;
   sglShutdown;
   inherited;
 end;
@@ -131,7 +131,11 @@ begin
 
   sglPopPipeline;
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   sglDraw;
 
   DebugFrame;
@@ -201,6 +205,8 @@ begin
   inherited;
   { Setup Neslib.Sokol.GL }
   var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
   sglSetup(GLDesc);
 
   { A pipeline object with less-equal depth-testing }
@@ -211,7 +217,7 @@ begin
 
   { A default pass action }
   FPassAction.Init;
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
   FX := $12345678;
 end;
 

@@ -19,7 +19,13 @@ This is a light-weight OOP layer on top of [sokol_debugtext.h](https://github.co
   var Desc := TDbgTextDesc.Create;
   TDbgText.Setup(Desc);
   ```
-
+  To see any warnings and errors, you should always install a logging callback. The easiest way is to use the default logger:
+  
+  ```pascal
+  var Desc := TDbgTextDesc.Create;
+  Desc.Logger := Desc.DefaultLogger;
+  TDbgText.Setup(Desc);
+  ```
 * Configure `TDbgText` by populating the `TDbgTextDesc` record:
 
     * `.ContextPoolSize` (default: 8): The max number of text contexts that can be created.
@@ -41,12 +47,14 @@ This is a light-weight OOP layer on top of [sokol_debugtext.h](https://github.co
     
     * `.Context`: The setup parameters for the default text context. This will be active right after `TDbgText.Setup`, or when calling `TDbgText.SetDefaultContext`.    
     
+        * `.MaxCommands` (default: 4096): The max number of render commands that can be recorded into the internal command buffer. This directly translates to the number of render layer changes in a single frame.
+    
         * `.CharBufSize` (default: 4096):  The number of characters that can be rendered per frame in this context, defines the size of an internal fixed-size vertex buffer.  Any additional characters will be silently ignored.
     
         * `.CanvasWidth` (default: 640), `.CanvasHeight` (default: 480): The 'virtual canvas size' in pixels. This defines how big characters will be rendered relative to the default framebuffer dimensions. Each character occupies a grid of 8x8 'virtual canvas pixels' (so a virtual canvas size of 640x480 means that 80x60 characters fit on the screen). For rendering in a resizable window, you should dynamically update the canvas size in each frame by calling `TDbgText.Canvas(W, H)`.
     
         * `.TabWidth` (default: 4): The width of a tab character in number of character cells.
-    
+        
         * `.ColorFormat` (default: `TPixelFormat.Default`), `.DepthFormat` (default: `TPixelFormat.Default`), `.SampleCount` (default: 0): The pixel format description for the default context needed for creating the context's `TPipeline` object. When rendering to the default framebuffer you can leave those zero-initialized. In this case the proper values will be filled in by Sokol Gfx. You only need to provide non-default values here when rendering to render targets with different pixel format attributes than the default framebuffer.
     
 
@@ -140,17 +148,19 @@ Neslib.Sokol.DebugText provides 8 font slots which can be populated with the bui
     * #10: carriage return + line feed (same as `TDbgText.NewLine`)
     * #9: A tab character
 
-* Finally, from within a Sokol Gfx render pass, call:
+* You can 'record' text into render layers, this allows to mix/interleave DebugText rendering with other rendering operations inside Neslib.Sokol.Gfx render passes. To start recording text into a different render layer, call `TDbgText.Layer(const ALayerId: Integer)` inside a Neslib.Sokol.Gfx render pass.
 
-  ```pascal
-  TDbgText.Draw;
-  ```
-  to actually render the text. Calling `TDbgText.Draw` will also rewind the text context:
+* Finally, from within a Sokol Gfx render pass, call `TDbgText.Draw` for non-layered rendering, or `TDbgText.DrawLayer(const ALayerId: Integer)` to draw a specific layer.
+  Note that `TDbgText.Draw` is equivalent to `TDbgText.DrawLayer(0)`, so `TDbgText.Draw` will **not** render all text layers. Instead it will only render the 'default layer' 0.
   
-  - the internal vertex buffer pointer is reset to the beginning
-  - the current font is set to 0
-  - the cursor position is reset
-  
+* At the end of a frame (defined by the call to `TGfx.Commit`), Neslib.Sokol.DebugText will rewind all contexts:
+
+  * the internal vertex index is set to 0
+  * the internal command index is set to 0
+  * the current layer id is set to 0
+  * the current font is set to 0
+  * the cursor position is reset
+
 ## Rendering with Multiple Contexts
 
 Use multiple text contexts if you need to render debug text in different Sokol Gfx render passes, or want to render text to different layers in the same render pass, each with its own set of parameters.
@@ -188,7 +198,8 @@ A context keeps track of the following parameters:
 - the origin position
 - the current cursor position
 - the current tab width
-- and the current color
+- the current color
+- and the current layer-id
 
 You can get the currently active context with:
 
@@ -209,6 +220,8 @@ Ctx.Free;
 ```
 
 If a context is set as active that no longer exists, all DebugText functions that require an active context will silently fail.
+
+You can directly draw the recorded text in a specific context without setting the active context using `TDbgTextContext.Draw` and `TDbgTextContext.DrawLayer`.
 
 Using your own Font Data
 ------------------------
@@ -255,3 +268,22 @@ TDbgText.Setup(Desc);
 ```
 
 Character tiles that haven't been defined in the font will be rendered as a solid 8x8 quad.
+
+## Memory Allocation Override
+
+You can use Delphi's memory manager instead of the system memory manager by settings `TDbgTextDesc.UseDelphiMemoryManager` to `True`.  This only affects memory allocation calls done by Neslib.Sokol.DebugText itself though, not any allocations in OS libraries.
+
+## Error reporting and logging
+
+To get any logging information at all you need to provide a logging callback in the `TDbgTextDesc` record. The easiest way is using the DefaultLogger provided by Sokol:
+
+```pascal
+  var Desc := TDbgTextDesc.Create;
+  Desc.Logger := Desc.DefaultLogger;
+  ...
+  TDbgText(Desc);
+```
+
+The provided logging function must be reentrant (e.g. be callable from different threads).
+
+If you don't want to provide your own custom logger it is highly recommended to use the standard logger, otherwise you won't see any warnings or errors.

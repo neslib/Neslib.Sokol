@@ -38,18 +38,16 @@ type
     TFacePass = record
     public
       TextContext: TDbgTextContext;
-      Image: TImage;
-      RenderPass: TPass;
-      PassAction: TPassAction;
+      TexView: TView;
+      Pass: TPass;
     public
       procedure Init(const ABGColor: TColor);
-      procedure Free;
     end;
   private
     FVBuf: TBuffer;
     FIBuf: TBuffer;
-    FShader: TShader;
     FPip: TPipeline;
+    FSampler: TSampler;
 
     { Just keep this default-initialized, which clears to gray }
     FPassAction: TPassAction;
@@ -69,7 +67,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { Face background colors }
@@ -124,12 +123,6 @@ const
 
 procedure TDebugTextContextApp.Cleanup;
 begin
-  FVBuf.Free;
-  FIBuf.Free;
-  FShader.Free;
-  FPip.Free;
-  for var I := 0 to NUM_FACES - 1 do
-    FPasses[I].Free;
   TDbgText.Shutdown;
   inherited;
 end;
@@ -190,24 +183,28 @@ begin
     decoupled from the actual rendering }
   for var I := 0 to NUM_FACES - 1 do
   begin
-    TGfx.BeginPass(FPasses[I].RenderPass, FPasses[I].PassAction);
+    TGfx.BeginPass(FPasses[I].Pass);
     TDbgText.Context := FPasses[I].TextContext;
     TDbgText.Draw;
     TGfx.EndPass;
   end;
 
   { Finally render to the default framebuffer }
-  TGfx.BeginDefaultPass(FPassAction, DispWidth, DispHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
 
   { Draw the cube as 6 separate draw calls (because each has its own texture) }
   TGfx.ApplyPipeline(FPip);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   var Bindings := TBindings.Create;
   for var I := 0 to NUM_FACES - 1 do
   begin
     Bindings.VertexBuffers[0] := FVBuf;
     Bindings.IndexBuffer := FIBuf;
-    Bindings.FragmentShaderImages[0] := FPasses[I].Image;
+    Bindings.Views[VIEW_TEX] := FPasses[I].TexView;
+    Bindings.Samplers[SMP_SMP] := FSampler;
     TGfx.ApplyBindings(Bindings);
     TGfx.Draw(I * 6, 6);
   end;
@@ -243,17 +240,15 @@ begin
   FVBuf := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
   BufferDesc.TraceLabel := 'CubeIndices';
   FIBuf := TBuffer.Create(BufferDesc);
 
-  FShader := TShader.Create(DebugtextContextShaderDesc);
-
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POS].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_TEXCOORD0].Format := TVertexFormat.Short2N;
-  PipDesc.Shader := FShader;
+  PipDesc.Layout.Attrs[ATTR_DEBUGTEXT_CONTEXT_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_DEBUGTEXT_CONTEXT_TEXCOORD0].Format := TVertexFormat.Short2N;
+  PipDesc.Shader := TShader.Create(DebugtextContextShaderDesc);
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;
   PipDesc.Depth.WriteEnabled := True;
@@ -265,16 +260,15 @@ begin
   { Create resources for each offscreen-rendered cube face }
   for var I := 0 to NUM_FACES - 1 do
     FPasses[I].Init(BG_COLORS[I]);
+
+  { Create a sampler for sampling offscreen render targets as texture }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  FSampler := TSampler.Create(SamplerDesc);
 end;
 
 { TDebugTextContextApp.TFacePass }
-
-procedure TDebugTextContextApp.TFacePass.Free;
-begin
-  TextContext.Free;
-  Image.Free;
-  RenderPass.Free;
-end;
 
 procedure TDebugTextContextApp.TFacePass.Init(const ABGColor: TColor);
 begin
@@ -292,21 +286,23 @@ begin
 
   { The render target texture, render pass }
   var ImgDesc := TImageDesc.Create;
-  ImgDesc.RenderTarget := True;
+  ImgDesc.Usage.ColorAttachment := True;
   ImgDesc.Width := OFFSCREEN_WIDTH;
   ImgDesc.Height := OFFSCREEN_HEIGHT;
   ImgDesc.PixelFormat := OFFSCREEN_PIXELFORMAT;
   ImgDesc.SampleCount := OFFSCREEN_SAMPLE_COUNT;
-  ImgDesc.MinFilter := TFilter.Nearest;
-  ImgDesc.MagFilter := TFilter.Nearest;
-  Image := TImage.Create(ImgDesc);
+  var Image := TImage.Create(ImgDesc);
 
-  var PassDesc := TPassDesc.Create;
-  PassDesc.ColorAttachments[0].Image := Image;
-  RenderPass := TPass.Create(PassDesc);
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := Image;
+  TexView := TView.Create(ViewDesc);
+
+  ViewDesc.Init;
+  ViewDesc.ColorAttachment.Image := Image;
+  Pass.Attachments.Colors[0] := TView.Create(ViewDesc);
 
   { Each render target is cleared to a different background color }
-  PassAction.Colors[0].Init(TAction.Clear, ABGColor);
+  Pass.Action.Colors[0].Init(TLoadAction.Clear, ABGColor);
 end;
 
 end.

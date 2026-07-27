@@ -19,7 +19,6 @@ type
     FPip: TPipeline;
     FBind: TBindings;
     FPassAction: TPassAction;
-    FShader: TShader;
     FVSParams: TVSParams;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
@@ -31,7 +30,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { A vertex buffer to render a 'fullscreen triangle' }
@@ -44,9 +44,8 @@ const
 
 procedure TSdfApp.Cleanup;
 begin
-  FPip.Free;
-  FShader.Free;
-  FBind.VertexBuffers[0].Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 
@@ -56,6 +55,7 @@ begin
   AConfig.WindowTitle := 'SDF Rendering';
   AConfig.Width := 512;
   AConfig.Height := 512;
+  AConfig.DepthFormat := TAppPixelFormat.None;
 end;
 
 procedure TSdfApp.Frame;
@@ -64,10 +64,15 @@ begin
   var H := FramebufferHeight;
   FVSParams.Time := FVSParams.Time + FrameDuration;
   FVSParams.Aspect := W / H;
-  TGfx.BeginDefaultPass(FPassAction, W, H);
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(FVSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(FVSParams));
 
   TGfx.Draw(0, 3);
   DebugFrame;
@@ -85,15 +90,13 @@ begin
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   { Shader and pipeline object for rendering a fullscreen quad }
-  FShader := TShader.Create(SdfShaderDesc);
-
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float2;
-  PipDesc.Shader := FShader;
+  PipDesc.Layout.Attrs[ATTR_SDF_POSITION].Format := TVertexFormat.Float2;
+  PipDesc.Shader := TShader.Create(SdfShaderDesc);
   FPip := TPipeline.Create(PipDesc);
 
   { Don't need to clear since the whole framebuffer is overwritten }
-  FPassAction.Colors[0].Action := TAction.DontCare;
+  FPassAction.Colors[0].LoadAction := TLoadAction.DontCare;
 end;
 
 end.

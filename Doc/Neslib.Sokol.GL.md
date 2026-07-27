@@ -6,7 +6,7 @@ This is a light-weight OOP layer on top of [sokol_gl.h](https://github.com/flooo
 
 ## Feature Overview
 
-This unit implements a subset of the OpenGLES 1.x feature set useful for when you just want to quickly render a bunch of colored triangles or lines without having to mess with buffers and shaders.
+This unit implements a subset of the OpenGLES 1.x feature set useful for when you just want to quickly render a bunch of triangles or lines without having to mess with buffers and shaders.
 
 The current feature set is mostly useful for debug visualizations and simple UI-style 2D rendering:
 
@@ -49,16 +49,25 @@ Notable differences to GL:
 
   Note that `sglSetup` must be called *after* initializing [Neslib.Sokol.Gfx](Neslib.Sokol.Gfx.md) (via `TGfx.Setup`). This is because `sglSetup` needs to create Gfx resource objects.
 
-  If you're intending to render to the default pass, and also don't want to tweak memory usage, you can just keep `TGLDesc` zero-initialized:
+  If you're intending to render to the default pass, and also don't want to tweak memory usage, and don't want any logging output you can just keep `TGLDesc` zero-initialized:
 
   ```pascal
-    var Desc := TGDDesc.Create;
+    var Desc := TGLDesc.Create;
   ```
 
-  In this case, this unit will create internal `TPipeline` objects that are compatible with the [Neslib.Sokol.App](Neslib.Sokol.App.md) default framebuffer. If you want to render into a framebuffer with different pixel-format and MSAA attributes you need to provide the matching attributes in the `sglSetup` call:
+  In this case, this unit will create internal `TPipeline` objects that are compatible with the [Neslib.Sokol.App](Neslib.Sokol.App.md) default framebuffer. 
+
+  I would recommend to at least install a logging callback so that you'll see any warnings and errors. The easiest way is to use the default logger:
 
   ```pascal
-    var Desc := TGDDesc.Create;
+  var Desc := TGLDesc.Create;
+  Desc.Logger := Desc.DefaultLogger;
+  ```
+
+  If you want to render into a framebuffer with different pixel-format and MSAA attributes you need to provide the matching attributes in the `sglSetup` call:
+
+  ```pascal
+    var Desc := TGLDesc.Create;
     Desc.ColorFormat := TPixelFormat....
     Desc.DepthFormat := TPixelFormat....
     Desc.SampleCount := ...
@@ -78,25 +87,25 @@ Notable differences to GL:
   The default winding for front faces is counter-clock-wise. This is the same as OpenGL's default, but different from [Neslib.Sokol.Gfx](Neslib.Sokol.Gfx.md).
 
 * Optionally create additional context objects if you want to render into multiple Gfx render passes (or generally if you want to use multiple independent GL "state buckets")
-  
+
   ```pascal
     constructor TGLContext.Create(const ADesc: TGLContextDesc);
   ```
 
   For details on rendering with GL contexts, see the section [Working with contexts](#working-with-contexts).
-  
+
 * Optionally, create pipeline-state-objects if you need render state that differs from GL's default state:
-  
+
   ```pascal
     constructor TGLPipeline.Create(const ADesc: TPipelineDesc);
   ```
-  
+
   This creates a pipeline object that's compatible with the currently active context. Alternatively call:
 
   ```pascal
     constructor TGLPipeline.Create(const ACtx:TGLContext; const ADesc: TPipelineDesc);
   ```
-  
+
   To create a pipeline object that's compatible with an explicitly provided context.
 
   The similarity with Gfx's `TPipeline` is intended. `TGLPipeline.Create` also takes a standard Gfx `TPipelineDesc` record to describe the render state, but without:
@@ -105,11 +114,11 @@ Notable differences to GL:
   - color- and depth-pixel-formats
   - primitive type (lines, triangles, ...)
   - MSAA sample count
-  
+
   Those will be filled in by `TGLPipeline.Create`. Note that each call to `TGLPipeline.Create` needs to create several Gfx pipeline objects (one for each primitive type).
 
   `Depth.WriteEnabled` will be forced to `False` if the context this pipeline object is intended for has its depth pixel format set to `TPixelFormat.None` (which means the framebuffer this context is used with doesn't have a depth-stencil surface).
-  
+
 * If you need to destroy `TGLPipeline` objects before `sglShutdown`:
 
     ```pascal
@@ -117,13 +126,13 @@ Notable differences to GL:
     ```
 
 * After `sglSetup` you can call any of the Sokol GL functions anywhere in a frame, *except* `sglDraw`. The 'vanilla' functions will only change internal Sokol GL state, and not call any Sokol Gfx functions.
-  
+
 * Unlike OpenGL, Sokol GL has a method to reset internal state to a known default. This is useful at the start of a sequence of rendering operations:
-  
+
   ```pascal
     procedure sglDefaults;
   ```
-  
+
   This will set the following default state:
   - current texture coordinate to u=0.0, v=0.0
   - current color to white (rgba all 1.0)
@@ -132,35 +141,37 @@ Notable differences to GL:
   - *all* matrices will be set to identity (also the projection matrix)
   - the default render state will be set by loading the 'default pipeline' into the top of the pipeline stack
     
-  
+
   The current matrix- and pipeline-stack-depths will not be changed by `sglDefaults`.
 
 * Change the currently active renderstate through the pipeline-stack methods. This works similar to the traditional GL matrix stack:
-  
+
   ...load the default pipeline state on the top of the pipeline stack:
-  
+
   ```pascal
   procedure sglLoadDefaultPipeline;
   ```
-  
+
   ...load a specific pipeline on the top of the pipeline stack:
-  
+
   ```pascal
   procedure sglLoadPipeline(const APip: TGLPipeline);
   ```
-  
+
   ...push and pop the pipeline stack:
-  
+
   * `sglPushPipeline`
   * `sglPopPipeline`
-  
+
 * Control texturing with:
 
     * `sglEnableTexture`
 
     * `sglDisableTexture`
 
-    * `sglTexture(const AImg: TImage)`
+    * `sglTexture(const ATexView: TView; const ASampler: TSampler)`
+
+  Note that `ATexView` and `ASampler` handles can be invalid. In this case, Neslib.Sokol.GL will fall back to the internal default (white) texture and sampler.
 
 * Set the current viewport and scissor rect with:
 
@@ -275,7 +286,7 @@ Notable differences to GL:
   
   This will render everything that has been recorded in the context since the last call to sglDraw through Sokol Gfx, and will 'rewind' the internal vertex-, uniform- and command-buffers.
   
-* Each Sokol GL context tracks an internal error code, to query the current error code for the currently active context call:
+* Each Sokol GL context tracks internal error states which can be obtained via:
   
   * `sglError: TGLError;`
   
@@ -283,17 +294,38 @@ Notable differences to GL:
   
   * `sglError(const ACtx: TGLContext): TGLError;`
   
-  ...which can return the following error codes:
+  ...this returns a record with following `Boolean` values:
   
-  * `.NoError` - all OK, no error occurred since last `sglDraw`
-  * `.ErrorVerticesFull` - internal vertex buffer is full (checked in `sglEnd`)
-  * `.ErrorUniformsFull` - the internal uniforms buffer is full (checked in `sglEnd`)
-  * `.ErrorCommandsFull` - the internal command buffer is full (checked in `sglEnd`)
-  * `.ErrorStackOverflow` - matrix- or pipeline-stack overflow
-  * `.ErrorStackUnderflow` - matrix- or pipeline-stack underflow
-  * `.ErrorNoContext` - the active context no longer exists
+  * `.Any` - True if any of the below errors is true.
+  * `.VerticesFull` - internal vertex buffer is full (checked in `sglEnd`)
+  * `.UniformsFull` - the internal uniforms buffer is full (checked in `sglEnd`)
+  * `.CommandsFull` - the internal command buffer is full (checked in `sglEnd`)
+  * `.StackOverflow` - matrix- or pipeline-stack overflow
+  * `.StackUnderflow` - matrix- or pipeline-stack underflow
+  * `.NoContext` - the active context no longer exists
   
-  ...if Sokol GL is in an error-state, `sglDraw` will skip any rendering, and reset the error code to `TGLError.NoError`.
+  ...depending on the above error state, `sglDraw` may skip rendering completely, or only draw partial geometry.
+
+* You can get the number of recorded vertices and draw commands in the current fame and active Neslib.Sokol.GL context via `sglNumVertices` and `sglNumCommands`. This allows you to check whether the vertex or command pools are running full before the overflow actually happens (in this case you could also check the error booleans in the result of `sglError`).
+
+## Render Layers
+
+Render layers allow to split Neslib.Sokol.GL rendering into separate draw-command groups which can then be rendered separately in a Neslib.Sokol.Gfx draw pass. This allows to mix/interleave Neslib.Sokol.GL rendering with other render operations.
+
+Layered rendering is controlled through two routines:
+
+```pascal
+procedure sglLayer(const ALayerId: Integer);
+procedure sglDrawLayer(const ALayerId: Integer);
+```
+
+(and the context-variant sglDrawLayer: `TGLContext.DrawLayer`).
+
+The `sglLayer` routine sets the 'current layer'. Any Neslib.Sokol.GL calls which internally record draw commands will also store the current layer in the draw command, and later in a Neslib.Sokol.Gfx render pass, a call to `sglDrawLayer` will only render the draw commands that have a matching layer.
+
+The default layer is `0`. This is active after Neslib.Sokol.GL setup, and is also restored at the start of a new frame (but *not* by calling `sglDefaults`).
+
+Note that calling `sglDraw` is equivalent with `sglDrawLayer(0)`. (In general you should either use either use `sglDraw` or `sglDrawLayer` in an application, but not both).
 
 ## Working with Contexts
 
@@ -335,7 +367,7 @@ Creating a context does *not* make the context current. To do this, call:
   sglSetContext(Ctx);
 ```
 
-The currently active context will implicitely be used by most Sokol GL functions which don't take an explicit context handle as argument.
+The currently active context will implicitly be used by most Sokol GL functions which don't take an explicit context handle as argument.
 
 To switch back to the default context, call:
 
@@ -376,3 +408,22 @@ The following functions exist in two overloads, one which use the currently acti
 Except for using the currently active context versus a provided context handle, the two variants are exactly identical.
 
 Destroying the currently active context is a 'soft error'. All following calls which require a currently active context will silently fail, and `sglError` will return `TGLError.NoContext`.
+
+## Memory Allocation Override
+
+You can use Delphi's memory manager instead of the system memory manager by settings `TGLDesc.UseDelphiMemoryManager` to `True`.  This only affects memory allocation calls done by Neslib.Sokol.GL itself though, not any allocations in OS libraries.
+
+## Error reporting and logging
+
+To get any logging information at all you need to provide a logging callback in the `TGLDesc` record. The easiest way is using the DefaultLogger provided by Sokol:
+
+```pascal
+  var Desc := TGLDesc.Create;
+  Desc.Logger := Desc.DefaultLogger;
+  ...
+  sglSetup(Desc);
+```
+
+The provided logging function must be reentrant (e.g. be callable from different threads).
+
+If you don't want to provide your own custom logger it is highly recommended to use the standard logger, otherwise you won't see any warnings or errors.

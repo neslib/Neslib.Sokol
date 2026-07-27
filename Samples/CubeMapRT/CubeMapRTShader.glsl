@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 // same vertex shader for offscreen- and default-pass
 @vs vs
-uniform shape_uniforms {
+layout(binding=0) uniform shape_uniforms {
     mat4 mvp;           // model-view-projection matrix
     mat4 model;         // model matrix
     vec4 shape_color;
@@ -72,7 +72,8 @@ void main() {
 @include_block lighting
 @include_block fs_inputs
 
-uniform samplerCube tex;
+layout(binding=0) uniform textureCube tex;
+layout(binding=0) uniform sampler smp;
 out vec4 frag_color;
 
 void main() {
@@ -80,7 +81,7 @@ void main() {
     vec3 nrm = normalize(world_normal);
     vec3 light_dir = normalize(world_lightdir);
     vec3 refl_vec = normalize(world_position);
-    vec3 refl_color = texture(tex, refl_vec).xyz;
+    vec3 refl_color = texture(samplerCube(tex, smp), refl_vec).xyz;
     frag_color = vec4(light(refl_color * color.xyz, eye_vec, nrm, light_dir), 1.0);
 }
 @end

@@ -31,7 +31,7 @@ type
     Pos: TVector2;
     Scale: TVector2;
     Rotation: Single;
-    Image: TImage;
+    View: TView;
     Pipeline: TGLPipeline;
   end;
 
@@ -40,10 +40,12 @@ type
   private
     FPassaction: TPassAction;
     FAlphaPip: TGLPipeline;
-    FOpaqueImg: TImage;
-    FAlphaImg: TImage;
+    FOpaqueView: TView;
+    FAlphaView: TView;
+    FSampler: TSampler;
+    FAngleDeg: Double;
   private
-    class procedure DrawQuad(const AParams: TQuadParams); static;
+    procedure DrawQuad(const AParams: TQuadParams);
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -55,6 +57,7 @@ implementation
 
 uses
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   BasisUAssets;
 
 function PixelFormatToString(const AFormat: TPixelFormat): String;
@@ -62,8 +65,6 @@ begin
   case AFormat of
     TPixelFormat.Bc3Rgba      : Result := 'BC3 RGBA';
     TPixelFormat.Bc1Rgba      : Result := 'BC1 RGBA';
-    TPixelFormat.PvrtcRgb4Bpp : Result := 'PVRTC RGB 4BPP';
-    TPixelFormat.PvrtcRgba4Bpp: Result := 'PVRTC RGBA 4BPP';
     TPixelFormat.Etc2Rgba8    : Result := 'ETC2 RGBA8';
     TPixelFormat.Etc2Rgb8     : Result := 'ETC2 RGB8';
   else
@@ -75,13 +76,10 @@ end;
 
 procedure TBasisUApp.Cleanup;
 begin
-  inherited;
-  FAlphaPip.Free;
-  FOpaqueImg.Free;
-  FAlphaImg.Free;
   TDbgText.Shutdown;
   TBasisU.Shutdown;
   sglShutdown;
+  inherited;
 end;
 
 procedure TBasisUApp.Configure(var AConfig: TAppConfig);
@@ -93,9 +91,9 @@ begin
   AConfig.WindowTitle := 'BasisU';
 end;
 
-class procedure TBasisUApp.DrawQuad(const AParams: TQuadParams);
+procedure TBasisUApp.DrawQuad(const AParams: TQuadParams);
 begin
-  sglTexture(AParams.Image);
+  sglTexture(AParams.View, FSampler);
   if (AParams.Pipeline.Id <> 0) then
     sglLoadPipeline(AParams.Pipeline)
   else
@@ -132,25 +130,28 @@ begin
   sglOrtho(-1, 1, Aspect, -Aspect, -1, 1);
 
   sglMatrixModeModelview;
-  var T: Single := FrameDuration * 60;
-  var Angle := sglRad(FrameCount * T);
+  FAngleDeg := FAngleDeg + (FrameDuration * 60);
 
   var Params: TQuadParams;
   FillChar(Params, SizeOf(Params), 0);
   Params.Pos.Init(-0.425, 0);
   Params.Scale.Init(0.4, 0.4);
-  Params.Rotation := Angle;
-  Params.Image := FOpaqueImg;
+  Params.Rotation := sglRad(FAngleDeg);
+  Params.View := FOpaqueView;
   DrawQuad(Params);
 
   Params.Pos.Init(0.425, 0);
-  Params.Rotation := -Angle;
-  Params.Image := FAlphaImg;
+  Params.Rotation := -sglRad(FAngleDeg);
+  Params.View := FAlphaView;
   Params.Pipeline := FAlphaPip;
   DrawQuad(Params);
 
   { ...and the actual rendering }
-  TGfx.BeginDefaultPass(FPassaction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   sglDraw;
   TDbgText.Draw;
   DebugFrame;
@@ -161,23 +162,38 @@ end;
 procedure TBasisUApp.Init;
 begin
   inherited;
-  FPassaction.Colors[0].Init(TAction.Clear, 0.25, 0.25, 1, 1);
+  FPassaction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.25, 1, 1);
 
   { Setup debug text }
   var DbgTextDesc := TDbgTextDesc.Create;
   DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
+  DbgTextDesc.UseDelphiMemoryManager := True;
+  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
   TDbgText.Setup(DbgTextDesc);
 
   { Setup Sokol GL }
   var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
   sglSetup(GLDesc);
 
   { Setup Basis Universal via our own minimal wrapper code }
   TBasisU.Setup;
 
   { Create Sokol Gfx textures from the embedded Basis Universal textures }
-  FOpaqueImg := TBasisU.CreateImage(TRange.Create(EMBED_TESTCARD_BASIS));
-  FAlphaImg := TBasisU.CreateImage(TRange.Create(EMBED_TESTCARD_RGBA_BASIS));
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := TBasisU.CreateImage(TRange.Create(EMBED_TESTCARD_BASIS));
+  FOpaqueView := TView.Create(ViewDesc);
+  ViewDesc.Texture.Image := TBasisU.CreateImage(TRange.Create(EMBED_TESTCARD_RGBA_BASIS));
+  FAlphaView := TView.Create(ViewDesc);
+
+  { Create a sampler object }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  SamplerDesc.MipmapFilter := TFilter.Linear;
+  SamplerDesc.MaxAnisotropy := 8;
+  FSampler := TSampler.Create(SamplerDesc);
 
   { A Sokol GL pipeline object for alpha-blended rendering }
   var PipDesc := TPipelineDesc.Create;

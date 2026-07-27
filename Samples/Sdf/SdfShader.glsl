@@ -6,7 +6,7 @@
 
 //--- vertex shader
 @vs vs
-uniform vs_params {
+layout(binding=0) uniform vs_params {
     float aspect;
     float time;
 };
@@ -17,7 +17,6 @@ out vec3 eye;
 out vec3 up;
 out vec3 right;
 out vec3 fwd;
-out float sin_t;
 
 // compute eye position (orbit around center)
 vec3 eye_pos(float time, vec3 center) {
@@ -32,7 +31,6 @@ void lookat(vec3 eye, vec3 center, vec3 up, out vec3 out_fwd, out vec3 out_right
 }
 
 void main() {
-    sin_t = sin(time * 0.5);
     gl_Position = position;
     pos.x = position.x * aspect;
     pos.y = position.y;
@@ -50,7 +48,6 @@ in vec3 eye;
 in vec3 up;
 in vec3 right;
 in vec3 fwd;
-in float sin_t;
 
 out vec4 frag_color;
 
@@ -123,7 +120,6 @@ vec3 calc_color(vec3 ro, vec3 rd, float t, vec4 tra) {
     vec3 pos = ro + rd * t;
     vec3 nrm = surface_normal(pos, t);
     vec3 hal = normalize(light1 - rd);
-    vec3 ref = reflect(rd, nrm);
     float occ = clamp(0.05 * log(tra.x), 0.0, 1.0);
     float fac = clamp(1.0 + dot(rd, nrm), 0.0, 1.0);
 
@@ -186,4 +182,3 @@ void main() {
 @end
 
 @program sdf vs fs
-

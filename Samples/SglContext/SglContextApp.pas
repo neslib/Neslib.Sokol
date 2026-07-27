@@ -19,23 +19,21 @@ const
 type
   TOffscreen = record
   public
-    PassAction: TPassAction;
+    TexView: TView;
     Pass: TPass;
-    Img: TImage;
     GLCtx: TGLContext;
   public
     procedure Init;
-    procedure Free;
   end;
 
 type
   TDisplay = record
   public
     PassAction: TPassAction;
+    Sampler: TSampler;
     GLPip: TGLPipeline;
   public
     procedure Init;
-    procedure Free;
   end;
 
 type
@@ -43,6 +41,7 @@ type
   private
     FOffscreen: TOffscreen;
     FDisplay: TDisplay;
+    FAngleDeg: Double;
   private
     class procedure DrawQuad; static;
     class procedure DrawCube; static;
@@ -56,14 +55,13 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { TSglContextApp }
 
 procedure TSglContextApp.Cleanup;
 begin
-  FOffscreen.Free;
-  FDisplay.Free;
   sglShutdown;
   inherited;
 end;
@@ -119,8 +117,8 @@ end;
 
 procedure TSglContextApp.Frame;
 begin
-  var T: Single := FrameDuration * 60;
-  var A: Single := sglRad(FrameCount * T);
+  FAngleDeg := FAngleDeg + (FrameDuration * 60);
+  var A: Single := sglRad(FAngleDeg);
 
   { Draw a rotating quad into the offscreen render target texture }
   sglSetContext(FOffscreen.GLCtx);
@@ -133,7 +131,7 @@ begin
   sglSetDefaultContext;
   sglDefaults;
   sglEnableTexture;
-  sglTexture(FOffscreen.Img);
+  sglTexture(FOffscreen.TexView, FDisplay.Sampler);
   sglLoadPipeline(FDisplay.GLPip);
   sglMatrixModeProjection;
   sglPerspective(sglRad(45), FramebufferWidth / FramebufferHeight, 0.1, 100);
@@ -142,12 +140,16 @@ begin
   DrawCube;
 
   { Do the actual offscreen and display rendering in Sokol Gfx passes }
-  TGfx.BeginPass(FOffscreen.Pass, FOffscreen.PassAction);
-  sglDraw(FOffscreen.GLCtx);
+  TGfx.BeginPass(FOffscreen.Pass);
+  FOffscreen.GLCtx.Draw;
   TGfx.EndPass;
 
-  TGfx.BeginDefaultPass(FDisplay.PassAction, FramebufferWidth, FramebufferHeight);
-  sglDraw(TGLContext.Default);
+  var Pass := TPass.Create;
+  Pass.Action^ := FDisplay.PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGLContext.Default.Draw;
   DebugFrame;
   TGfx.EndPass;
   TGfx.Commit;
@@ -161,6 +163,8 @@ begin
   var GLDesc := TGLDesc.Create;
   GLDesc.MaxVertices := 64;
   GLDesc.MaxCommands := 16;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
   sglSetup(GLDesc);
 
   FDisplay.Init;
@@ -168,13 +172,6 @@ begin
 end;
 
 { TOffscreen }
-
-procedure TOffscreen.Free;
-begin
-  Pass.Free;
-  Img.Free;
-  GLCtx.Free;
-end;
 
 procedure TOffscreen.Init;
 begin
@@ -188,43 +185,47 @@ begin
   CtxDesc.SampleCount := OFFSCREEN_SAMPLECOUNT;
   GLCtx := TGLContext.Create(CtxDesc);
 
-  { Create an offscreen render target texture, pass, and pass action }
+  { Create an offscreen render target image, texture, pass, and attachment views }
   var ImgDesc := TImageDesc.Create;
-  ImgDesc.RenderTarget := True;
+  ImgDesc.Usage.ColorAttachment := True;
   ImgDesc.Width := OFFSCREEN_WIDTH;
   ImgDesc.Height := OFFSCREEN_HEIGHT;
   ImgDesc.PixelFormat := OFFSCREEN_PIXELFORMAT;
   ImgDesc.SampleCount := OFFSCREEN_SAMPLECOUNT;
-  ImgDesc.WrapU := TWrap.ClampToEdge;
-  ImgDesc.WrapV := TWrap.ClampToEdge;
-  ImgDesc.MinFilter := TFilter.Nearest;
-  ImgDesc.MagFilter := TFilter.Nearest;
-  Img := TImage.Create(ImgDesc);
+  var Img := TImage.Create(ImgDesc);
 
-  var PassDesc := TPassDesc.Create;
-  PassDesc.ColorAttachments[0].Image := Img;
-  Pass := TPass.Create(PassDesc);
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := Img;
+  TexView := TView.Create(ViewDesc);
 
-  PassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
+  ViewDesc.Init;
+  ViewDesc.ColorAttachment.Image := Img;
+
+  Pass := TPass.Create;
+  Pass.Action.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
+  Pass.Attachments.Colors[0] := TView.Create(ViewDesc);
 end;
 
 { TDisplay }
 
-procedure TDisplay.Free;
-begin
-  GLPip.Free;
-end;
-
 procedure TDisplay.Init;
 begin
   { Pass action and pipeline for the default render pass }
-  PassAction.Colors[0].Init(TAction.Clear, 0.5, 0.7, 1, 1);
+  PassAction.Colors[0].Init(TLoadAction.Clear, 0.5, 0.7, 1, 1);
 
   var PipDesc := TPipelineDesc.Create;
   PipDesc.CullMode := TCullMode.Back;
   PipDesc.Depth.WriteEnabled := True;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
   GLPip := TGLPipeline.Create(PipDesc);
+
+  { A sampler for sampling the offscreen render target }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  Sampler := TSampler.Create(SamplerDesc);
 end;
 
 end.

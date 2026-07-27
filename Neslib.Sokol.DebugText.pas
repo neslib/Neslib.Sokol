@@ -14,7 +14,42 @@ uses
   System.UITypes,
   System.SysUtils,
   Neslib.Sokol.Api,
-  Neslib.Sokol.Gfx;
+  Neslib.Sokol.Gfx,
+  Neslib.Sokol.Types;
+
+type
+  { An enum with a unique item for each log message, warning, error and
+    validation layer message. Note that these messages are only visible when a
+    logger function is installed in the sglSetup call. }
+  TDbgTextLogItem = (
+    Ok,
+    MallocFailed,
+    AddCommitListenerFailed,
+    CommandBufferFull,
+    ContextPoolExhausted,
+    CannotDestroyDefaultContext);
+
+type
+  _TDbgTextLogItemHelper = record helper for TDbgTextLogItem
+  public
+    function ToString: String;
+  end;
+
+type
+  { Used in TDbgTextDesc to provide a logging function. Please be aware that
+    without logging function, Neslib.Sokol.DebugText will be completely silent, e.
+    g. it will not report errors and warnings. For maximum error verbosity,
+    compile in debug mode and provide a compatible logger function in the
+    TDbgText.Setup call (for instance the standard logging function
+    TDbgTextDesc.DefaultLogger).
+
+    Parameters:
+    * ALevel: log level
+    * AItem: log item
+    * AMessage: the log message corresponding to AItem.
+    * ALineNr: line number in original sokol_debugtext.h file. }
+  TDbgTextLogger = procedure(const ALevel: TLogLevel; const AItem: TDbgTextLogItem;
+    const AMessage: String; const ALineNr: Integer) of object;
 
 const
   DEBUG_TEXT_MAX_FONTS = _SDTX_MAX_FONTS;
@@ -70,6 +105,10 @@ type
     procedure Convert(out ADst: _sdtx_context_desc_t);
   {$ENDREGION 'Internal Declarations'}
   public
+    { Max number of draw commands, each layer transition counts as a command.
+      Default: 4096 }
+    MaxCommands: Integer;
+
     { Max number of characters rendered in one frame.
       Default: 4096 }
     CharBufSize: Integer;
@@ -115,8 +154,14 @@ type
       TDbgTextFont.Oric }
   TDbgTextDesc = record
   {$REGION 'Internal Declarations'}
+  private class var
+    GLogger: TDbgTextLogger;
   private
     procedure Convert(out ADst: _sdtx_desc_t);
+  private
+    class procedure LogCallback(const ATag: PUTF8Char; ALogLevel,
+      ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+      const AFilenameOrNull: PUTF8Char; AUserData: Pointer); cdecl; static;
   {$ENDREGION 'Internal Declarations'}
   public
     { Max number of rendering contexts that can be created.
@@ -129,12 +174,20 @@ type
     { The default context creation parameters }
     Context: TDbgTextContextDesc;
 
-    { Whether to use Delphi's memory manager instead of Sokol's built-in one
-      When SOKOL_MEM_TRACK is defined, it always uses Delphi's memory manager. }
+    { Whether to use Delphi's memory manager instead of Sokol's internal one.
+      When SOKOL_MEM_TRACK is defined, it always uses Delphi's memory manager.
+      Default: False }
     UseDelphiMemoryManager: Boolean;
+
+    { Optional log function override }
+    Logger: TDbgTextLogger;
   public
     class function Create: TDbgTextDesc; static;
     procedure Init; inline;
+
+    { A default log function you can assign to the Logger field. }
+    procedure DefaultLogger(const ALevel: TLogLevel; const AItem: TDbgTextLogItem;
+      const AMessage: String; const ALineNr: Integer);
   end;
   PDbgTextDesc = ^TDbgTextDesc;
 
@@ -177,6 +230,10 @@ type
     procedure Init(const ADesc: TDbgTextContextDesc); inline;
     procedure Free; inline;
 
+    { Call inside a Neslib.Sokol.Gfx render pass. }
+    procedure Draw; inline;
+    procedure DrawLayer(const ALayerId: Integer); inline;
+
     class property Default: TDbgTextContext read FDefault;
     property Id: Cardinal read FHandle.id;
   end;
@@ -194,8 +251,13 @@ type
     class procedure Setup(const ADesc: TDbgTextDesc); static;
     class procedure Shutdown; static;
 
-    { Draw and rewind the current context }
+    { Draw and rewind the current context.
+      Call inside a Neslib.Sokol.Gfx render pass. }
     class procedure Draw; inline; static;
+    class procedure DrawLayer(const ALayerId: Integer); inline; static;
+
+    { Switch render layer }
+    class procedure Layer(const ALayerId: Integer); inline; static;
 
     { Switch to a different font }
     class procedure Font(const AFontIndex: Integer); inline; static;
@@ -260,6 +322,21 @@ uses
   Neslib.Sokol.Utils;
   {$ENDIF}
 
+{ _TDbgTextLogItemHelper }
+
+function _TDbgTextLogItemHelper.ToString: String;
+const
+  STRINGS: array [TDbgTextLogItem] of String = (
+    'Ok',
+    'memory allocation failed',
+    'setting TGfx.CommitListener failed',
+    'command buffer full (adjust via TDbgTextContextDesc.MaxCommands)',
+    'context pool exhausted (use TDbgTextDesc.ContextPoolSize to adjust)',
+    'cannot destroy default context');
+begin
+  Result := STRINGS[Self];
+end;
+
 { TDbgTextFontDesc }
 
 procedure TDbgTextFontDesc.Convert(out ADst: _sdtx_font_desc_t);
@@ -295,6 +372,7 @@ end;
 
 procedure TDbgTextContextDesc.Convert(out ADst: _sdtx_context_desc_t);
 begin
+  ADst.max_commands := MaxCommands;
   ADst.char_buf_size := CharBufSize;
   ADst.canvas_width := CanvasWidth;
   ADst.canvas_height := CanvasHeight;
@@ -318,27 +396,28 @@ end;
 
 procedure TDbgTextDesc.Convert(out ADst: _sdtx_desc_t);
 begin
+  FillChar(ADst, SizeOf(ADst), 0);
   ADst.context_pool_size := ContextPoolSize;
-  ADst.printf_buf_size := 0;
   for var I := 0 to Length(Fonts) - 1 do
     Fonts[I].Convert(ADst.fonts[I]);
   Context.Convert(ADst.context);
 
   {$IFDEF SOKOL_MEM_TRACK}
-  ADst.allocator.alloc := _MemTrackAlloc;
-  ADst.allocator.free := _MemTrackFree;
+  ADst.allocator.alloc_fn := _MemTrackAlloc;
+  ADst.allocator.free_fn := _MemTrackFree;
   {$ELSE}
   if (UseDelphiMemoryManager) then
   begin
-    ADst.allocator.alloc := _AllocCallback;
-    ADst.allocator.free := _FreeCallback;
-  end
-  else
-  begin
-    ADst.allocator.alloc := nil;
-    ADst.allocator.free := nil;
+    ADst.allocator.alloc_fn := _AllocCallback;
+    ADst.allocator.free_fn := _FreeCallback;
   end;
   {$ENDIF}
+
+  if Assigned(Logger) then
+  begin
+    GLogger := Logger;
+    ADst.logger.func := LogCallback;
+  end
 end;
 
 class function TDbgTextDesc.Create: TDbgTextDesc;
@@ -346,9 +425,29 @@ begin
   Result.Init;
 end;
 
+procedure TDbgTextDesc.DefaultLogger(const ALevel: TLogLevel;
+  const AItem: TDbgTextLogItem; const AMessage: String; const ALineNr: Integer);
+begin
+  _LogDefault(ALevel, Ord(AItem), AMessage, ALineNr);
+end;
+
 procedure TDbgTextDesc.Init;
 begin
   FillChar(Self, SizeOf(Self), 0);
+end;
+
+class procedure TDbgTextDesc.LogCallback(const ATag: PUTF8Char; ALogLevel,
+  ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+  const AFilenameOrNull: PUTF8Char; AUserData: Pointer);
+begin
+  Assert(Assigned(GLogger));
+  var Msg: String;
+  if (ALogItemId <= Cardinal(Ord(High(TDbgTextLogItem)))) then
+    Msg := TDbgTextLogItem(ALogItemId).ToString
+  else
+    Msg := String(UTF8String(AMessageOrNull));
+
+  GLogger(TLogLevel(ALogLevel), TDbgTextLogItem(ALogItemId), Msg, ALineNr);
 end;
 
 { TDbgTextFont }
@@ -373,6 +472,16 @@ end;
 constructor TDbgTextContext.Create(const ADesc: TDbgTextContextDesc);
 begin
   Init(ADesc);
+end;
+
+procedure TDbgTextContext.Draw;
+begin
+  _sdtx_context_draw(FHandle);
+end;
+
+procedure TDbgTextContext.DrawLayer(const ALayerId: Integer);
+begin
+  _sdtx_context_draw_layer(FHandle, ALayerId);
 end;
 
 procedure TDbgTextContext.Free;
@@ -429,6 +538,11 @@ begin
   _sdtx_draw();
 end;
 
+class procedure TDbgText.DrawLayer(const ALayerId: Integer);
+begin
+  _sdtx_draw_layer(ALayerId);
+end;
+
 class procedure TDbgText.Font(const AFontIndex: Integer);
 begin
   _sdtx_font(AFontIndex);
@@ -442,6 +556,11 @@ end;
 class procedure TDbgText.Home;
 begin
   _sdtx_home();
+end;
+
+class procedure TDbgText.Layer(const ALayerId: Integer);
+begin
+  _sdtx_layer(ALayerId);
 end;
 
 class procedure TDbgText.Move(const ADX, ADY: Single);

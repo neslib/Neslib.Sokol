@@ -12,8 +12,10 @@ type
   TSglApp = class(TSampleApp)
   private
     FPassAction: TPassAction;
-    FImage: TImage;
+    FTexView: TView;
+    FSampler: TSampler;
     FPip3D: TGLPipeline;
+    FFrameCount: Single;
     FAngleDeg: Single;
     FRot: array [0..1] of Single;
   private
@@ -32,15 +34,14 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { TSglApp }
 
 procedure TSglApp.Cleanup;
 begin
-  FPip3D.Free;
   sglShutdown;
-  FImage.Free;
   inherited;
 end;
 
@@ -151,7 +152,8 @@ end;
 
 procedure TSglApp.DrawTexCube(const ATime: Single);
 begin
-  var A := sglRad(FrameCount * ATime);
+  FFrameCount := FFrameCount + ATime;
+  var A: Single := sglRad(FFrameCount);
 
   { Texture matrix rotation and scale }
   var TexRot: Single := 0.5 * A;
@@ -166,7 +168,7 @@ begin
   sglLoadPipeline(FPip3D);
 
   sglEnableTexture;
-  sglTexture(FImage);
+  sglTexture(FTexView, FSampler);
 
   sglMatrixModeProjection;
   sglPerspective(sglRad(45), 1, 0.1, 100);
@@ -227,8 +229,11 @@ begin
     happened so far are rendered inside sglDraw, and this is the only
     Neslib.Sokol.GL function that must be called inside a begin/end pass pair.
     sglDraw also 'rewinds' Neslib.Sokol.GL for the next frame. }
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
 
-  TGfx.BeginDefaultPass(FPassAction, DW, DH);
   sglDraw;
 
   DebugFrame;
@@ -244,6 +249,8 @@ begin
   inherited;
   { Setup Neslib.Sokol.GL }
   var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
   sglSetup(GLDesc);
 
   { Checkerboard texture }
@@ -259,8 +266,17 @@ begin
   var ImageDesc := TImageDesc.Create;
   ImageDesc.Width := 8;
   ImageDesc.Height := 8;
-  ImageDesc.Data.SubImages[0] := TRange.Create(Pixels);
-  FImage := TImage.Create(ImageDesc);
+  ImageDesc.Data.MipLevels[0] := TRange.Create(Pixels);
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := TImage.Create(ImageDesc);
+  FTexView := TView.Create(ViewDesc);
+
+  { ... and a sampler }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  FSampler := TSampler.Create(SamplerDesc);
 
   { Create a pipeline object for 3d rendering, with less-equal depth-test and
     cull-face enabled. Note that we don't provide a shader, vertex-layout, pixel
@@ -273,7 +289,7 @@ begin
 
   { Default pass action }
   FPassAction.Init;
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
 end;
 
 end.

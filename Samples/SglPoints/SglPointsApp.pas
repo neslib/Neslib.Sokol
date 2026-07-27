@@ -30,7 +30,8 @@ implementation
 
 uses
   Neslib.FastMath,
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   PALETTE: array [0..15] of TRgb = (
@@ -107,9 +108,13 @@ begin
   sglEnd;
 
   var PassAction := TPassAction.Create;
-  PassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
+  PassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
 
-  TGfx.BeginDefaultPass(PassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   sglDraw;
   DebugFrame;
   TGfx.EndPass;
@@ -121,6 +126,8 @@ begin
   inherited;
   { Setup Neslib.Sokol.GL }
   var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
   sglSetup(GLDesc);
 end;
 

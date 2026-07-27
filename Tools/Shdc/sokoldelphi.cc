@@ -37,10 +37,15 @@ static const char* sokol_define(Slang::Enum slang) {
 
 std::string delphi_case(const std::string str)
 {
-    if (str.length() == 2)
-        return pystring::upper(str);
-    else
-        return pystring::capitalize(str);
+    auto words = pystring::split(str, "_");
+    for (std::string& s : words)
+    {
+        if (s.length() == 2)
+            s = pystring::upper(s);
+        else
+            s = pystring::capitalize(s);
+    }
+    return pystring::join("", words);
 }
 
 void SokolDelphiGenerator::start_const() {
@@ -78,6 +83,20 @@ void SokolDelphiGenerator::gen_epilog(const GenInput& gen) {
 
     // Convert ",);" at end of arrays with ");"
     content = pystring::replace(content, ",);", ");");
+    content = pystring::replace(content, ",\n);", ");");
+
+    // Lines in Delphi can be at most 1023 characters long
+    // Some comments may be longer than that. Trim those.
+    auto lines = pystring::splitlines(content);
+    bool has_long_lines = false;
+    for (std::string& s : lines) {
+        if (s.length() > 1000) {
+            s = s.substr(0, 1000) + "...";
+            has_long_lines = true;
+        }
+    }
+    if (has_long_lines)
+        content = pystring::join("\n", lines);
 }
 
 void SokolDelphiGenerator::gen_prerequisites(const GenInput& gen) {
@@ -812,11 +831,7 @@ std::string SokolDelphiGenerator::backend(Slang::Enum e) {
 }
 
 std::string SokolDelphiGenerator::struct_name(const std::string& name) {
-    auto words = pystring::split(name, "_");
-    for (std::string& s : words) 
-        s = delphi_case(s);
-    
-    auto s = pystring::join("", words);
+    auto s = delphi_case(name);
     return fmt::format("T{}{}", mod_prefix, s);
 }
 

@@ -6548,7 +6548,7 @@ end;
 
 procedure TPipelineDesc._Convert(out ADst: _sg_pipeline_desc);
 begin
-  ADst._start_canary := 0;
+  FillChar(ADst, SizeOf(ADst), 0);
   ADst.shader.id := Shader.FHandle.id;
   Layout.Convert(ADst.layout);
   Depth.Convert(ADst.depth);
@@ -6565,11 +6565,8 @@ begin
   ADst.sample_count := SampleCount;
   ADst.blend_color := _sg_color(BlendColor);
   ADst.alpha_to_coverage_enabled := AlphaToCoverageEnabled;
-  if (TraceLabel = '') then
-    ADst.&label := nil
-  else
+  if (TraceLabel <> '') then
     ADst.&label := PUTF8Char(TraceLabel);
-  ADst._end_canary := 0;
 end;
 
 procedure TPipelineDesc._InitFrom(const ASrc: _sg_pipeline_desc);
