@@ -24,22 +24,29 @@ const
   OFFSCREEN_HEIGHT = 512;
 
 type
+  TImageAndViews = record
+  public
+    Image: TImage;
+    AttView: TView;
+    TexView: TView;
+  public
+    procedure Init(const AImgDesc: TImageDesc; const AAttLabel,
+      ATexLabel: PUTF8Char);
+  end;
+
+type
   TOffscreen = record
   public
-    DepthImg: TImage;
-    NormalImg: TImage;
-    ColorImg: TImage;
-    ZBufferImg: TImage;
-    PassAction: TPassAction;
+    Depth: TImageAndViews;
+    Normal: TImageAndViews;
+    Color: TImageAndViews;
     Pass: TPass;
     Pip: TPipeline;
-    Shader: TShader;
     Bind: TBindings;
     ViewProj: TMatrix4;
     Donut: TShapeElementRange;
   public
     procedure Init;
-    procedure Free;
   end;
 
 type
@@ -47,11 +54,10 @@ type
   public
     PassAction: TPassAction;
     VBuf: TBuffer;
-    Shader: TShader;
+    Sampler: TSampler;
     Pip: TPipeline;
   public
     procedure Init;
-    procedure Free;
   end;
 
 type
@@ -75,7 +81,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   { Cube vertex buffer }
@@ -124,8 +131,6 @@ const
 
 procedure TMrtPixelFormatsApp.Cleanup;
 begin
-  FOffscreen.Free;
-  FDisplay.Free;
   inherited;
 end;
 
@@ -149,8 +154,13 @@ end;
 procedure TMrtPixelFormatsApp.DrawFallback;
 begin
   var PassAction: TPassAction;
-  PassAction.Colors[0].Init(TAction.Clear, 1, 0, 0, 1);
-  TGfx.BeginDefaultPass(PassAction, FramebufferWidth, FramebufferHeight);
+  PassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0, 1);
+
+  var Pass := TPass.Create;
+  Pass.Action^ := PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   DebugFrame;
   TGfx.EndPass;
   TGfx.Commit;
@@ -170,11 +180,10 @@ begin
 
   { Render donut shape into MRT offscreen render targets }
   var OffscreenParams := ComputeOffscreenParams;
-  TGfx.BeginPass(FOffscreen.Pass, FOffscreen.PassAction);
+  TGfx.BeginPass(FOffscreen.Pass);
   TGfx.ApplyPipeline(FOffscreen.Pip);
   TGfx.ApplyBindings(FOffscreen.Bind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_OFFSCREEN_PARAMS,
-    TRange.Create(OffscreenParams));
+  TGfx.ApplyUniforms(UB_OFFSCREEN_PARAMS, TRange.Create(OffscreenParams));
   TGfx.Draw(FOffscreen.Donut.BaseElement, FOffscreen.Donut.NumElements);
   TGfx.EndPass;
 
@@ -188,8 +197,13 @@ begin
   var Y0 := (DispHeight - QuadHeight) div 2;
   var Bind := TBindings.Create;
   Bind.VertexBuffers[0] := FDisplay.VBuf;
+  Bind.Samplers[SMP_SMP] := FDisplay.Sampler;
 
-  TGfx.BeginDefaultPass(FDisplay.PassAction, DispWidth, DispHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FDisplay.PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FDisplay.Pip);
 
   var QuadParams: TQuadParams;
@@ -201,23 +215,22 @@ begin
     TGfx.ApplyViewport(X0 + (I * (QuadWidth + QuadGap)), Y0, QuadWidth, QuadHeight, True);
     case I of
       0: begin
-           Bind.FragmentShaderImages[0] := FOffscreen.DepthImg;
+           Bind.Views[VIEW_TEX] := FOffscreen.Depth.TexView;
            QuadParams.ColorBias := 0;
            QuadParams.ColorScale := 0.5;
          end;
       1: begin
-           Bind.FragmentShaderImages[0] := FOffscreen.NormalImg;
+           Bind.Views[VIEW_TEX] := FOffscreen.Normal.TexView;
            QuadParams.ColorBias := 1;
            QuadParams.ColorScale := 0.5;
          end;
       2: begin
-           Bind.FragmentShaderImages[0] := FOffscreen.ColorImg;
+           Bind.Views[VIEW_TEX] := FOffscreen.Color.TexView;
            QuadParams.ColorBias := 0;
            QuadParams.ColorScale := 1;
          end;
     end;
-    TGfx.ApplyUniforms(TShaderStage.FragmentShader, SLOT_QUAD_PARAMS,
-      TRange.Create(QuadParams));
+    TGfx.ApplyUniforms(UB_QUAD_PARAMS, TRange.Create(QuadParams));
     TGfx.ApplyBindings(Bind);
     TGfx.Draw(0, 4);
   end;
@@ -231,10 +244,9 @@ procedure TMrtPixelFormatsApp.Init;
 begin
   inherited;
   { Check if requires features are supported }
-  FFeaturesOK := (TFeature.MultipleRenderTargets in TGfx.Features)
-    and DEPTH_PIXEL_FORMAT.Render
-    and NORMAL_PIXEL_FORMAT.Render
-    and COLOR_PIXEL_FORMAT.Render;
+  FFeaturesOK := DEPTH_PIXEL_FORMAT.Render
+             and NORMAL_PIXEL_FORMAT.Render
+             and COLOR_PIXEL_FORMAT.Render;
   if (not FFeaturesOK) then
     Exit;
 
@@ -245,58 +257,69 @@ begin
   FDisplay.Init;
 end;
 
-{ TOffscreen }
+{ TImageAndViews }
 
-procedure TOffscreen.Free;
+procedure TImageAndViews.Init(const AImgDesc: TImageDesc; const AAttLabel,
+  ATexLabel: PUTF8Char);
 begin
-  DepthImg.Free;
-  NormalImg.Free;
-  ColorImg.Free;
-  ZBufferImg.Free;
-  Shader.Free;
-  Pip.Free;
-  Bind.VertexBuffers[0].Free;
-  Bind.IndexBuffer.Free;
+  Image := TImage.Create(AImgDesc);
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.ColorAttachment.Image := Image;
+  ViewDesc.TraceLabel := AAttLabel;
+  AttView := TView.Create(ViewDesc);
+
+  ViewDesc.Init;
+  ViewDesc.Texture.Image := Image;
+  ViewDesc.TraceLabel := ATexLabel;
+  TexView := TView.Create(ViewDesc);
 end;
+
+{ TOffscreen }
 
 procedure TOffscreen.Init;
 var
   Vertices: array [0..2999] of TShapeVertex;
   Indices: array [0..5999] of UInt16;
 begin
-  PassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 0);
-  PassAction.Colors[1].Init(TAction.Clear, 0, 0, 0, 0);
-  PassAction.Colors[2].Init(TAction.Clear, 0, 0, 0, 0);
-
   { Create 3 render target textures with different formats }
   var ImgDesc := TImageDesc.Create;
-  ImgDesc.RenderTarget := True;
+  ImgDesc.Usage.ColorAttachment := True;
   ImgDesc.PixelFormat := DEPTH_PIXEL_FORMAT;
   ImgDesc.Width := OFFSCREEN_WIDTH;
   ImgDesc.Height := OFFSCREEN_HEIGHT;
   ImgDesc.SampleCount := 1;
-  ImgDesc.MinFilter := TFilter.Nearest;
-  ImgDesc.MagFilter := TFilter.Nearest;
-  ImgDesc.WrapU := TWrap.ClampToEdge;
-  ImgDesc.WrapV := TWrap.ClampToEdge;
-  DepthImg := TImage.Create(ImgDesc);
+  ImgDesc.TraceLabel := 'DepthImage';
+  Depth.Init(ImgDesc, 'DepthAttachment', 'DepthTexture');
 
   ImgDesc.PixelFormat := NORMAL_PIXEL_FORMAT;
-  NormalImg := TImage.Create(ImgDesc);
+  ImgDesc.TraceLabel := 'NormalImage';
+  Normal.Init(ImgDesc, 'NormalAttachment', 'NormalTexture');
 
   ImgDesc.PixelFormat := COLOR_PIXEL_FORMAT;
-  ColorImg := TImage.Create(ImgDesc);
+  ImgDesc.TraceLabel := 'ColorImage';
+  Color.Init(ImgDesc, 'ColorAttachment', 'ColorTexture');
 
+  ImgDesc.Usage.ColorAttachment := False;
+  ImgDesc.Usage.DepthStencilAttachment := True;
   ImgDesc.PixelFormat := TPixelFormat.Depth;
-  ZBufferImg := TImage.Create(ImgDesc);
+  ImgDesc.TraceLabel := 'DepthBufferImage';
+  var ZBufImg := TImage.Create(ImgDesc);
 
-  { Create pass object for MRT offscreen rendering }
-  var PassDesc := TPassDesc.Create;
-  PassDesc.ColorAttachments[0].Image := DepthImg;
-  PassDesc.ColorAttachments[1].Image := NormalImg;
-  PassDesc.ColorAttachments[2].Image := ColorImg;
-  PassDesc.DepthStencilAttachment.Image := ZBufferImg;
-  Pass := TPass.Create(PassDesc);
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.DepthStencilAttachment.Image := ZBufImg;
+  ViewDesc.TraceLabel := 'DepthBufferAttachment';
+  var ZBufView := TView.Create(ViewDesc);
+
+  { A render pass descriptor for mrt rendering }
+  Pass.Init;
+  Pass.Action.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 0);
+  Pass.Action.Colors[1].Init(TLoadAction.Clear, 0, 0, 0, 0);
+  Pass.Action.Colors[2].Init(TLoadAction.Clear, 0, 0, 0, 0);
+  Pass.Attachments.Colors[0] := Depth.AttView;
+  Pass.Attachments.Colors[1] := Normal.AttView;
+  Pass.Attachments.Colors[2] := Color.AttView;
+  Pass.Attachments.DepthStencil := ZBufView;
 
   { Create a shape to render into the offscreen render target }
   FillChar(Vertices, SizeOf(Vertices), 0);
@@ -314,15 +337,14 @@ begin
   Bind.IndexBuffer := TBuffer.Create(IBufDesc);
 
   { Create shader and pipeline object for offscreen MRT rendering }
-  Shader := TShader.Create(OffscreenShaderDesc);
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Shader := Shader;
+  PipDesc.Shader := TShader.Create(OffscreenShaderDesc);;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;
-  PipDesc.Layout.Buffers[0] := TShapeBuffer.BufferLayoutDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_OFFSCREEN_IN_POS] := TShapeBuffer.PositionAttrDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_OFFSCREEN_IN_NORMAL] := TShapeBuffer.NormalAttrDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_OFFSCREEN_IN_COLOR] := TShapeBuffer.ColorAttrDesc;
+  PipDesc.Layout.Buffers[0] := TShapeBuffer.VertexBufferLayoutState;
+  PipDesc.Layout.Attrs[ATTR_OFFSCREEN_IN_POS] := TShapeBuffer.PositionVertexAttrState;
+  PipDesc.Layout.Attrs[ATTR_OFFSCREEN_IN_NORMAL] := TShapeBuffer.NormalVertexAttrState;
+  PipDesc.Layout.Attrs[ATTR_OFFSCREEN_IN_COLOR] := TShapeBuffer.ColorVertexAttrState;
   PipDesc.Depth.PixelFormat := TPixelFormat.Depth;
   PipDesc.Depth.WriteEnabled := True;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
@@ -335,25 +357,18 @@ begin
 
   { Constant ViewProj matrix for offscreen rendering }
   var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), 1, 0.01, 5.0, True);
+  Proj.InitPerspectiveFovRH(Radians(60), 1, 0.01, 5.0);
   View.InitLookAtRH(Vector3(0, 0, 2), Vector3(0, 0, 0), Vector3(0, 1, 0));
   ViewProj := Proj * View;
 end;
 
 { TDisplay }
 
-procedure TDisplay.Free;
-begin
-  VBuf.Free;
-  Shader.Free;
-  Pip.Free;
-end;
-
 procedure TDisplay.Init;
 const
   QUAD_VERTICES: array [0..7] of Single = (0, 0, 1, 0, 0, 1, 1, 1);
 begin
-  PassAction.Colors[0].Init(TAction.Clear, 0.25, 0.5, 0.75, 1);
+  PassAction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.5, 0.75, 1);
 
   { A vertex buffer for rendering a quad }
   var BufferDesc := TBufferDesc.Create;
@@ -361,12 +376,19 @@ begin
   VBuf := TBuffer.Create(BufferDesc);
 
   { Shader and pipeline object to render a quad }
-  Shader := TShader.Create(QuadShaderDesc);
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Shader := Shader;
+  PipDesc.Shader := TShader.Create(QuadShaderDesc);
   PipDesc.PrimitiveType := TPrimitiveType.TriangleStrip;
-  PipDesc.Layout.Attrs[ATTR_VS_QUAD_POS].Format := TVertexFormat.Float2;
+  PipDesc.Layout.Attrs[ATTR_QUAD_POS].Format := TVertexFormat.Float2;
   Pip := TPipeline.Create(PipDesc);
+
+  { A sampler for sampling the offscreen render target as textures }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  Sampler := TSampler.Create(SamplerDesc);
 end;
 
 end.

@@ -20,11 +20,12 @@ Asynchronous data loading/streaming.
 
 This is the most-simple example code to load a single data file with a known maximum size:
 
-1. Initialize Neslib.Sokol.Fetch with default parameters (but note that the default setup parameters provide a safe-but-slow "serialized" operation):
+1. Initialize Neslib.Sokol.Fetch with default parameters (but note that the default setup parameters provide a safe-but-slow "serialized" operation). In order to see any logging output in case of errors you should always provide a logging function (such as `TFetchDesc.DefaultLogger`):
 
    ```pascal
    var Desc := TFetchDesc.Create;
    Desc.BaseDirectory := 'Data';
+   Desc.Logger := Desc.DefaultLogger;
    TFetch.Setup(Desc);
    ```
 2. Send a fetch-request to load a file from the current directory into a buffer big enough to hold the entire file content:
@@ -34,11 +35,19 @@ This is the most-simple example code to load a single data file with a known max
    var Request := TFetchRequest.Create;
    Request.Path := 'MyFile.txt';
    Request.Callback := ResponseCallback;
-   Request.BufferPtr := @Buf;
-   Request.BufferSize := SizeOf(Buf);
+   Request.Buffer.Ptr := @Buf;
+   Request.Buffer.Size := SizeOf(Buf);
    Request.Send;
    ```
-
+   If `Buf` is a value (e.g. a static array or record, the `.Buffer` item can be initialized with the `TFetchRange.Create helper`:
+   ```pascal
+   var Buf: array [0..MAX_FILE_SIZE - 1] of Byte;
+   var Request := TFetchRequest.Create;
+   Request.Path := 'MyFile.txt';
+   Request.Callback := ResponseCallback;
+   Request.Buffer.Ptr := TFetchRange.Create(Buf);
+   Request.Send;
+   ```
 3. Write a 'response-callback' method, this will be called whenever the user-code must respond to state changes of the request (most importantly when data has been loaded):
 
    ```pascal
@@ -47,8 +56,8 @@ This is the most-simple example code to load a single data file with a known max
      if (AResponse.Fetched) then
      begin
        // Data has been loaded
-       var Data: Pointer := AResponse.BufferPtr;
-       var NumBytes: Int64 := AResponse.FetchedSize;/
+       var Data: Pointer := AResponse.Data.Ptr;
+       var NumBytes: NativeInt := AResponse.Data.Size;
      end;
      if (AResponse.Finished) then
      begin
@@ -140,8 +149,8 @@ The `TFetchRequest` record contains the following parameters (optional parameter
 * `.Callback` (required): A response-callback function which is called when the request needs "user code attention". See the [Request States and the Response Callback](#request-states-and-the-response-callback) below for detailed information about handling responses in the response callback.
 * `.Channel` (optional): Index of the IO channel where the request should be processed. Channels are used to parallelize and prioritize requests relative to each other. See the [Channels and Lanes](#channels-and-lanes) section below for more information. The default channel is 0.
 * `.ChunkSize` (optional): The `ChunkSize` field is used for streaming data incrementally in small chunks. After `ChunkSize` bytes have been loaded into to the streaming buffer, the response callback will be called with the buffer containing the fetched data for the current chunk. If `ChunkSize` is 0 (the default), than the whole file will be loaded. 
-* `.BufferPtr, .BufferSize` (optional): This is an optional pointer/size pair describing a chunk of memory where data will be loaded into (if no buffer is provided upfront, this must happen in the response callback). If a buffer is provided, it must be big enough to either hold the entire file (if `ChunkSize` is zero), or the *uncompressed* data for one downloaded chunk (if `ChunkSize` is > 0).
-* `.UserData, .UserDataSize` (optional):  POD (plain-old-data) associated with the request, which will be copied(!) into an internal memory block. The maximum size of this memory  block is 128 bytes. Since this block is copied, you must *not* put any managed data in here (like strings or object interfaces).
+* `.Buffer` (`TFetchRange`, optional): This is an optional pointer/size pair describing a chunk of memory where data will be loaded into (if no buffer is provided upfront, this must happen in the response callback). If a buffer is provided, it must be big enough to either hold the entire file (if `ChunkSize` is zero), or the *uncompressed* data for one downloaded chunk (if `ChunkSize` is > 0).
+* `.UserData` (`TFetchRange`, optional):  POD (plain-old-data) associated with the request, which will be copied(!) into an internal memory block. The maximum size of this memory  block is 128 bytes. Since this block is copied, you must *not* put any managed data in here (like strings or object interfaces).
 
 Note that request handles are strictly thread-local and only unique within the thread the handle was created on, and all function calls involving a request handle must happen on that same thread.
 
@@ -179,9 +188,9 @@ This pauses the active request in the next `TFetch.DoWork` call and puts it into
 
 Continues the paused request. Counterpart to the `TFetchHandle.Pause` method.
 
-### procedure TFetchHandle.BindBuffer(const ABuffer: Pointer; const ABufferSize: Int64);
+### procedure TFetchHandle.BindBuffer(const ABuffer: TFetchRange);
 
-This "binds" a new buffer (pointer/size pair) to the active request. The function *must* be called from inside the response-callback, and there must not already be another buffer bound.
+This "binds" a new buffer (as pointer/size pair) to the active request. The function *must* be called from inside the response-callback, and there must not already be another buffer bound.
 
 ### function TFetchHandle.UnbindBuffer: Pointer;
 
@@ -238,25 +247,28 @@ All state transitions and callback invocations happen inside the `TFetch.DoWork`
 An active request goes through the following states:
 
 * `TFetchState.Allocated` (user-thread): The request has been allocated in TFetchRequest.Send and is waiting to be dispatched into its IO channel.  When this happens, the request will transition into the `TFetchState.Dispatched` state.
+
 * `TFetchState.Dispatched` (IO thread): The request has been dispatched into its IO channel, and a lane has been assigned to the request.
     If a buffer was provided in `TFetchRequest.Send`, the request will immediately transition into the `TFetchState.Fetching` state and start loading data into the buffer.
     If no buffer was provided in `TFetchRequest.Send`, the response callback will be called with `(AResponse.Dispatched = True)`, so that the response callback can bind a buffer to the request. Binding the buffer in the response callback makes sense if the buffer isn't dynamically allocated, but instead a pre-allocated buffer must be selected from the request's channel and lane.
     Note that it isn't possible to get a file size in the response callback which would help with allocating a buffer of the right size.
     If opening the file failed, the request will transition into the `TFetchState.Failed` state with the error code `TFetchError.FileNotFound`.
+    
 * `TFetchState.Fetching` (IO thread): While a request is in the `TFetchState.Fetching` state, data will be loaded into the user-provided buffer.
     If no buffer was provided, the request will go into the `TFetchState.Failed` state with the error code `TFetchError.NoBuffer`.
     If a buffer was provided, but it is too small to contain the fetched data, the request will go into the `TFetchState.Failed` state with error code `TFetchError.BufferTooSmall`.
     If less data can be read from the file than expected, the request will go into the `TFetchState.Failed` state with error code `TFetchError.UnexpectedEof`.
     If loading data into the provided buffer works as expected, the request will go into the `TFetchState.Fetched` state.
+    
 * `TFetchState.Fetched` (user thread): The request goes into the TFetchState.Fetched state either when the entire file has been loaded into the provided buffer (when `Request.ChunkSize = 0`), or a chunk has been loaded (and optionally decompressed) into the buffer (when `Request.ChunkSize > 0`).
     The response callback will be called so that the user-code can process the loaded data using the following `TFetchResponse` record members:
     
-    * `.FetchedSize`: the number of bytes in the provided buffer
-    * `.BufferPtr`: pointer to the start of fetched data
-    * `.FetchedOffset`: the byte offset of the loaded data chunk in the overall file (this is only set to a non-zero value in a streaming scenario)
+    * `.Data.Ptr`: pointer to the start of fetched data
+    * `.Data.Size`: the number of bytes in the provided buffer
+    * `.DataOffset`: the byte offset of the loaded data chunk in the overall file (this is only set to a non-zero value in a streaming scenario)
     
     Once all file data has been loaded, the `Finished` flag will be set in the response callback's `TFetchResponse` argument.
-    After the user callback returns, and all file data has been loaded (`AResponse.Finished` flag is set) the request has reached its end-of-life and will recycled.
+    After the user callback returns, and all file data has been loaded (`AResponse.Finished` flag is set) the request has reached its end-of-life and will be recycled.
     Otherwise, if there's still data to load (because streaming was requested by providing a non-zero `Request.ChunkSize`), the request will switch back to the `TFetchState.Fetching` state to load the next chunk of data.
     Note that it is ok to associate a different buffer or buffer-size with the request by calling `TFetchHandle.BindBuffer` in the response-callback.
     To check in the response callback for the `TFetchState.Fetched` state, and independently whether the request is finished:
@@ -267,10 +279,10 @@ An active request goes through the following states:
       if (AResponse.Fetched) then
       begin
         // Request is in Fetched state. The loaded data is available
-        // in .BufferPtr, and the number of bytes that have been
-        // loaded in .FetchedSize:
-        var Data := AResponse.BufferPtr;
-        var NumBytes := AResponse.FetchedSize;
+        // in .Data.Ptr, and the number of bytes that have been
+        // loaded in .Data.Size:
+        var Data := AResponse.Data.Ptr;
+        var NumBytes := AResponse.Data.Size;
       end;
       if (AResponse.Finished) then
       begin
@@ -358,7 +370,7 @@ Channels are completely separate from each other, and a request will never "hop"
 
 Each channel consists of a fixed number of "lanes" for automatic rate limiting:
 
-When a request is sent to a channel via `TFetchRequest.Send`, a "free lane" will be picked and assigned to the request. The request will occupy this lane for its entire life time (also while it is paused). If all lanes of a channel are currently occupied, new requests will need to wait until a lane becomes unoccupied.
+When a request is sent to a channel via `TFetchRequest.Send`, a "free lane" will be picked and assigned to the request. The request will occupy this lane for its entire life time (also while it is paused). If all lanes of a channel are currently occupied, new requests will wait until a lane becomes unoccupied.
 
 Since the number of channels and lanes is known upfront, it is guaranteed that there will never be more than `NumChannels * NumLanes` requests in flight at any one time.
 
@@ -444,4 +456,19 @@ Apart from the memory requirements for the streaming buffers (which is under you
 
 The last option for tweaking latency and throughput is channels. Each channel works independently from other channels, so while one channel is busy working through a large number of requests (or one very long streaming download), you can set aside a high-priority channel for requests that need to start as soon as possible.
 
-On platforms with threading support, each channel runs on its own thread, but this is mainly an implementation detail to work around the blocking traditional file IO functions, not for performance reasons.
+On platforms with threading support, each channel runs on its own thread, but this is mainly an implementation detail to work around the traditional blocking file IO functions, not for performance reasons.
+
+## Error reporting and logging
+
+To get any logging information at all you need to provide a logging callback in the `TFetchDesc` record. The easiest way is using the DefaultLogger provided by Sokol:
+
+```pascal
+  var Desc := TFetchDesc.Create;
+  Desc.Logger := Desc.DefaultLogger;
+  ...
+  TFetch.Setup(Desc);
+```
+
+The provided logging function must be reentrant (e.g. be callable from different threads).
+
+If you don't want to provide your own custom logger it is highly recommended to use the standard logger, otherwise you won't see any warnings or errors.

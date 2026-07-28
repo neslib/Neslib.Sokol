@@ -240,6 +240,7 @@ type
   private
     function GetGfxMagFilter: TFilter;
     function GetGfxMinFilter: TFilter;
+    function GetGfxMipmapFilter: TFilter;
     function GetGfxWrapS: TWrap;
     function GetGfxWrapT: TWrap;
   {$ENDREGION 'Internal Declarations'}
@@ -252,6 +253,7 @@ type
   public
     property GfxMagFilter: TFilter read GetGfxMagFilter;
     property GfxMinFilter: TFilter read GetGfxMinFilter;
+    property GfxMipmapFilter: TFilter read GetGfxMipmapFilter;
     property GfxWrapS: TWrap read GetGfxWrapS;
     property GfxWrapT: TWrap read GetGfxWrapT;
   end;
@@ -654,16 +656,30 @@ begin
   FreeMem(Ptr);
 end;
 
-function ToFilter(const ASrc: Integer): TFilter; inline;
+function ToMinFilter(const ASrc: Integer): TFilter; inline;
 { https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#samplerminfilter }
 begin
+  if (ASrc = 9728) then
+    Result := TFilter.Nearest
+  else
+    Result := TFilter.Linear;
+end;
+
+function ToMagFilter(const ASrc: Integer): TFilter; inline;
+begin
+  if (ASrc = 9728) then
+    Result := TFilter.Nearest
+  else
+    Result := TFilter.Linear;
+end;
+
+function ToMipmapFilter(const ASrc: Integer): TFilter; inline;
+begin
   case ASrc of
-    9728: Result := TFilter.Nearest;
-    9729: Result := TFilter.Linear;
-    9984: Result := TFilter.NearestMipmapNearest;
-    9985: Result := TFilter.LinearMipmapNearest;
-    9986: Result := TFilter.NearestMipmapLinear;
-    9987: Result := TFilter.LinearMipmapLinear;
+    9728,
+    9729,
+    9984,
+    9985: Result := TFilter.Nearest;
   else
     Result := TFilter.Linear;
   end;
@@ -812,12 +828,17 @@ end;
 
 function TglTFSampler.GetGfxMagFilter: TFilter;
 begin
-  Result := ToFilter(MagFilter);
+  Result := ToMagFilter(MagFilter);
 end;
 
 function TglTFSampler.GetGfxMinFilter: TFilter;
 begin
-  Result := ToFilter(MinFilter);
+  Result := ToMinFilter(MinFilter);
+end;
+
+function TglTFSampler.GetGfxMipmapFilter: TFilter;
+begin
+  Result := ToMipmapFilter(MinFilter);
 end;
 
 function TglTFSampler.GetGfxWrapS: TWrap;

@@ -143,6 +143,7 @@ FONS_DEF int fonsValidateTexture(FONScontext* s, int* dirty);
 
 // Draws the stash texture for debugging
 FONS_DEF void fonsDrawDebug(FONScontext* s, float x, float y);
+int fonsAddFontMem(FONScontext* stash, const char* name, unsigned char* data, int dataSize, int freeData);
 
 #ifdef __cplusplus
 }

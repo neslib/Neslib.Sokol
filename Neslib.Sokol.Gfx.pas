@@ -2312,6 +2312,9 @@ type
     procedure Deallocate; inline;
     procedure Fail; inline;
 
+    { The resource Id }
+    property Id: Cardinal read FHandle.id write FHandle.id;
+
     { Current resource state }
     property State: TResourceState read GetState;
 
@@ -2547,6 +2550,9 @@ type
     procedure Teardown; inline;
     procedure Deallocate; inline;
     procedure Fail; inline;
+
+    { The resource Id }
+    property Id: Cardinal read FHandle.id write FHandle.id;
 
     { Current resource state }
     property State: TResourceState read GetState;

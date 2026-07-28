@@ -24,7 +24,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   COLOR_PALETTE: array [0..(16 * 3) - 1] of Byte = (
@@ -197,6 +198,7 @@ begin
   AConfig.Width := 800;
   AConfig.Height := 600;
   AConfig.HighDpi := False;
+  AConfig.DepthFormat := TAppPixelFormat.None;
   AConfig.WindowTitle := 'DebugTextUserFont';
 end;
 
@@ -225,7 +227,11 @@ begin
     TDbgText.Write(C);
   end;
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TDbgText.Draw;
   DebugFrame;
   TGfx.EndPass;
@@ -235,7 +241,7 @@ end;
 procedure TDebugTextUserFontApp.Init;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0.125, 0.25, 0);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.125, 0.25, 0);
 
   { Setup Neslib.Sokol.DebugText with the user font as the only font.
     Note that the user font only provides pixel data for the characters #$20 to
@@ -244,6 +250,8 @@ begin
   Desc.Fonts[USER_FONT].Data := TRange.Create(USER_FONT_DATA);
   Desc.Fonts[USER_FONT].FirstChar := #$20;
   Desc.Fonts[USER_FONT].LastChar := #$9F;
+  Desc.UseDelphiMemoryManager := True;
+  Desc.Logger := Desc.DefaultLogger;
   TDbgText.Setup(Desc);
 end;
 

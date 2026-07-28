@@ -1,5 +1,5 @@
 # Updating the Sokol libraries
-The current version is based on these commits of the Sokol and Sokol-Samples repositories from October 12, 2022:
+The current version is based on these commits of the Sokol and Sokol-Samples repositories:
 
 * https://github.com/floooh/sokol/tree/d299f70423dcf3c72355715131b22fb2b8232914
 * https://github.com/floooh/sokol-samples/tree/a4e148e81675c8f6fe2ccdec29357cedfe78bc72
@@ -22,8 +22,9 @@ To update Neslib.Sokol:
 7. Update the "spine\\src" subdirectory with the contents from the "libs\\spine-c\\src\\spine" directory of the samples repo.
 8. If there are new or renamed APIs in sokol\deps\fontstash.h or sokol\libs\basisu\sokol_basisu.h, then update the "sokol.def" accordingly.
 9. Update the subdirectories in the "chet" directory accordingly, but only with those header files we want to translate to be accessible from Delphi.
-10. Rebuild the header translations by opening the "sokol.chet" file in [Chet](https://github.com/neslib/Chet) and running the translator.
-11. Compare the old and new header files and update the Delphi OOP-wrappers and documentation (in the Doc folder) accordingly.
+10. Open the "chet\\sokol\\deps\\fontstash.h" file and copy the `fonsAddFontMem` signature in the "implementation" section to the "interface" section (under the `fonsDrawDebug` signature). Make sure the line ends with a semicolon.
+11. Rebuild the header translations by opening the "sokol.chet" file in [Chet](https://github.com/neslib/Chet) and running the translator.
+12. Compare the old and new header files and update the Delphi OOP-wrappers and documentation (in the Doc folder) accordingly.
 
 ## Building for Windows
 This requires Visual Studio (the Community edition suffices).

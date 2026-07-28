@@ -34,3 +34,4 @@ EXPORTS
   fonsGetTextureData
   fonsValidateTexture
   fonsDrawDebug
+  fonsAddFontMem

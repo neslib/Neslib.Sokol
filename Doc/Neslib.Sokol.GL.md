@@ -411,7 +411,7 @@ Destroying the currently active context is a 'soft error'. All following calls w
 
 ## Memory Allocation Override
 
-You can use Delphi's memory manager instead of the system memory manager by settings `TGLDesc.UseDelphiMemoryManager` to `True`.  This only affects memory allocation calls done by Neslib.Sokol.GL itself though, not any allocations in OS libraries.
+You can use Delphi's memory manager instead of the system memory manager by setting `TGLDesc.UseDelphiMemoryManager` to `True`.  This only affects memory allocation calls done by Neslib.Sokol.GL itself though, not any allocations in OS libraries.
 
 ## Error reporting and logging
 

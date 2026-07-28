@@ -4234,6 +4234,9 @@ function _fonsValidateTexture(s: _PFONScontext; dirty: PInteger): Integer; cdecl
 procedure _fonsDrawDebug(s: _PFONScontext; x: Single; y: Single); cdecl;
   external _LIB_SOKOL name _PU + 'fonsDrawDebug';
 
+function _fonsAddFontMem(stash: _PFONScontext; const name: PUTF8Char; data: PByte; dataSize: Integer; freeData: Integer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'fonsAddFontMem';
+
 function _stbtt_BakeFontBitmap(const data: PByte; offset: Integer; pixel_height: Single; pixels: PByte; pw: Integer; ph: Integer; first_char: Integer; num_chars: Integer; chardata: _Pstbtt_bakedchar): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_BakeFontBitmap';
 

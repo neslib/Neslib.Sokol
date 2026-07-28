@@ -49,24 +49,19 @@ class function TSokolFontStash.Create(const AWidth, AHeight: Integer;
   const AUseDelphiMemoryManager: Boolean): TFontStash;
 begin
   var Desc: _sfons_desc_t;
+  FillChar(Desc, SizeOf(Desc), 0);
   Desc.width := AWidth;
   Desc.height := AHeight;
   {$IFDEF SOKOL_MEM_TRACK}
-  ADst.allocator.alloc := _MemTrackAlloc;
-  ADst.allocator.free := _MemTrackFree;
+  ADst.allocator.alloc_fn := _MemTrackAlloc;
+  ADst.allocator.free_fn := _MemTrackFree;
   {$ELSE}
   if (AUseDelphiMemoryManager) then
   begin
-    Desc.allocator.alloc := _AllocCallback;
-    Desc.allocator.free := _FreeCallback;
-  end
-  else
-  begin
-    Desc.allocator.alloc := nil;
-    Desc.allocator.free := nil;
+    Desc.allocator.alloc_fn := _AllocCallback;
+    Desc.allocator.free_fn := _FreeCallback;
   end;
   {$ENDIF}
-  Desc.allocator.user_data := nil;
   Result._Init(_sfons_create(@Desc));
 end;
 

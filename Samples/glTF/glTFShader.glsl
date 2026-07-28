@@ -4,8 +4,12 @@
     https://github.com/KhronosGroup/glTF-Sample-Viewer/tree/master/src/shaders
  */
 
+// this is just here to test the `@module` prefix feature of the sokol-shdc
+// Delphi code generator, other then that it's not needed
+@module gltf
+
 @vs vs
-uniform vs_params {
+layout(binding=0) uniform vs_params {
     mat4 model;
     mat4 view_proj;
     vec3 eye_pos;
@@ -48,25 +52,31 @@ struct material_info_t {
     vec3 specular_color;            // color contribution from specular lighting
 };
 
-uniform metallic_params {
+layout(binding=1) uniform metallic_params {
     vec4 base_color_factor;
     vec3 emissive_factor;
     float metallic_factor;
     float roughness_factor;
 };
 
-uniform light_params {
+layout(binding=2) uniform light_params {
     vec3 light_pos;
     float light_range;
     vec3 light_color;
     float light_intensity;
 };
 
-uniform sampler2D base_color_texture;
-uniform sampler2D metallic_roughness_texture;
-uniform sampler2D normal_texture;
-uniform sampler2D occlusion_texture;
-uniform sampler2D emissive_texture;
+layout(binding=0) uniform texture2D base_color_tex;
+layout(binding=1) uniform texture2D metallic_roughness_tex;
+layout(binding=2) uniform texture2D normal_tex;
+layout(binding=3) uniform texture2D occlusion_tex;
+layout(binding=4) uniform texture2D emissive_tex;
+
+layout(binding=0) uniform sampler base_color_smp;
+layout(binding=1) uniform sampler metallic_roughness_smp;
+layout(binding=2) uniform sampler normal_smp;
+layout(binding=3) uniform sampler occlusion_smp;
+layout(binding=4) uniform sampler emissive_smp;
 
 vec3 linear_to_srgb(vec3 linear) {
     return pow(linear, vec3(1.0/2.2));
@@ -86,7 +96,7 @@ vec3 get_normal() {
     t = normalize(t - ng * dot(ng, t));
     vec3 b = normalize(cross(ng, t));
     mat3 tbn = mat3(t, b, ng);
-    vec2 n_xy = texture(normal_texture, v_uv).xw * 2.0 - 1.0;
+    vec2 n_xy = texture(sampler2D(normal_tex, normal_smp), v_uv).xw * 2.0 - 1.0;
     vec3 n = vec3(n_xy.x, n_xy.y, sqrt(1.0 - n_xy.x*n_xy.x - n_xy.y*n_xy.y));
     n = normalize(tbn * n);
     return n;
@@ -229,11 +239,11 @@ void main() {
 
     // Roughness is stored in the 'a' channel, metallic is stored in the 'r' channel.
     // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-    vec4 mr_sample = texture(metallic_roughness_texture, v_uv);
+    vec4 mr_sample = texture(sampler2D(metallic_roughness_tex, metallic_roughness_smp), v_uv);
     float perceptual_roughness = clamp(mr_sample.w * roughness_factor, 0.0, 1.0);
     float metallic = clamp(mr_sample.x * metallic_factor, 0.0, 1.0);
 
-    vec4 base_color = srgb_to_linear(texture(base_color_texture, v_uv)) * base_color_factor;
+    vec4 base_color = srgb_to_linear(texture(sampler2D(base_color_tex, base_color_smp), v_uv)) * base_color_factor;
     vec3 diffuse_color = base_color.rgb * (vec3(1.0)-f0) * (1.0 - metallic);
     vec3 specular_color = mix(f0, base_color.rgb, metallic);
 
@@ -259,40 +269,10 @@ void main() {
     vec3 normal = get_normal();
     vec3 view = normalize(v_eye_pos - v_pos);
     vec3 color = apply_point_light(material_info, normal, view);
-    color *= texture(occlusion_texture, v_uv).r;
-    color += srgb_to_linear(texture(emissive_texture, v_uv)).rgb * emissive_factor;
+    color *= texture(sampler2D(occlusion_tex, occlusion_smp), v_uv).r;
+    color += srgb_to_linear(texture(sampler2D(emissive_tex, emissive_smp), v_uv)).rgb * emissive_factor;
     frag_color = vec4(tone_map(color), 1.0);
 }
 @end
 
-/*
-@fs specular_fs
-in vec3 nrm;
-in vec2 uv;
-out vec4 frag_color;
-
-uniform specular_params {
-    vec4 diffuse_factor;
-    vec3 specular_factor;
-    vec3 emissive_factor;
-    float glossiness_factor;
-};
-
-uniform sampler2D diffuse_texture;
-uniform sampler2D specular_glossiness_texture;
-uniform sampler2D normal_texture;
-uniform sampler2D occlusion_texture;
-uniform sampler2D emissive_texture;
-
-void main() {
-    vec3 nrm = texture(normal_texture, uv).xyz;
-    vec3 occl = texture(occlusion_texture, uv).xyz;
-    //vec3 diff = texture(diffuse_texture, uv);
-    frag_color = vec4(occl * nrm, 1.0) * diffuse_factor;
-}
-@end
-*/
-
-@program gltf_metallic vs metallic_fs
-//@program gltf_specular vs specular_fs
-
+@program metallic vs metallic_fs

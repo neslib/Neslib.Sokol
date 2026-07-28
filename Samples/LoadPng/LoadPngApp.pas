@@ -18,15 +18,15 @@ type
   TLoadPngApp = class(TSampleApp)
   private
     FPassAction: TPassAction;
-    FShader: TShader;
+    FView: TView;
     FPip: TPipeline;
     FBind: TBindings;
-    FImage: TImage;
     FRX: Single;
     FRY: Single;
     FFileBuffer: array [0..(256 * 1024) - 1] of Byte;
   private
     procedure FetchCallback(const AResponse: TFetchResponse);
+    function ComputeVSParams: TVSParams;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -38,7 +38,8 @@ implementation
 
 uses
   Neslib.Stb.Image,
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 type
   TVertex = record
@@ -102,13 +103,24 @@ const
 
 procedure TLoadPngApp.Cleanup;
 begin
-  FPip.Free;
-  FShader.Free;
-  FImage.Free;
-  FBind.IndexBuffer.Free;
-  FBind.VertexBuffers[0].Free;
   TFetch.Shutdown;
   inherited;
+end;
+
+function TLoadPngApp.ComputeVSParams: TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
 end;
 
 procedure TLoadPngApp.Configure(var AConfig: TAppConfig);
@@ -130,18 +142,20 @@ begin
       can be sure that all data has been loaded here. }
     var Image := TStbImage.Create;
     try
-      if (Image.Load(AResponse.BufferPtr, AResponse.BufferSize, 4)) then
+      if (Image.Load(AResponse.Data.Ptr, AResponse.Data.Size, 4)) then
       begin
         { OK, time to actually initialize the Sokol Gfx texture }
         var ImgDesc := TImageDesc.Create;
         ImgDesc.Width := Image.Width;
         ImgDesc.Height := Image.Height;
         ImgDesc.PixelFormat := TPixelFormat.Rgba8;
-        ImgDesc.MinFilter := TFilter.Linear;
-        ImgDesc.MagFilter := TFilter.Linear;
-        ImgDesc.Data.SubImages[0] := TRange.Create(Image.Data, Image.Width * Image.Height * 4);
-        FImage.Setup(ImgDesc);
-        FBind.FragmentShaderImages[SLOT_TEX] := FImage;
+        ImgDesc.Data.MipLevels[0] := TRange.Create(Image.Data, Image.Width * Image.Height * 4);
+        ImgDesc.TraceLabel := 'PngImage';
+
+        var ViewDesc := TViewDesc.Create;
+        ViewDesc.Texture.Image := TImage.Create(ImgDesc);
+        ViewDesc.TraceLabel := 'PngTextureView';
+        FView.Setup(ViewDesc);
       end;
     finally
       Image.Free;
@@ -150,7 +164,7 @@ begin
   else if (AResponse.Failed) then
   begin
     { If loading the file failed, set clear color to red }
-    FPassAction.Colors[0].Init(TAction.Clear, 1, 0, 0, 1);
+    FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0, 1);
   end;
 end;
 
@@ -165,27 +179,18 @@ begin
 
   { Compute model-view-projection matrix for vertex shader }
   var T: Single := FrameDuration * 60;
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), H / W, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
   FRX := FRX + (1 * T);
   FRY := FRY + (2 * T);
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  var VSParams: TVSParams;
-  VSParams.MVP := ViewProj * Model;
+  var VSParams := ComputeVSParams;
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, 36, 1);
 
   DebugFrame;
@@ -202,16 +207,24 @@ begin
   FetchDesc.NumChannels := 1;
   FetchDesc.NumLanes := 1;
   FetchDesc.BaseDirectory := 'Data';
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
   TFetch.Setup(FetchDesc);
 
   { Pass action for clearing the framebuffer to some color }
-  FPassAction.Colors[0].Init(TAction.Clear, 0.125, 0.25, 0.35, 1);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.125, 0.25, 0.35, 1);
 
-  { Allocate an image handle, but don't actually initialize the image yet. This
-    happens later when the asynchronous file load has finished. Any draw calls
-    containing such an "incomplete" image handle will be silently dropped. }
-  FImage.Allocate;
-  FBind.FragmentShaderImages[SLOT_TEX] := FImage;
+  { Allocate a view handle, but don't actually initialize it yet. This happens
+    later when the asynchronous file load has finished. Any draw calls
+    containing such an "incomplete" view handle will be silently dropped. }
+  FView.Allocate;
+  FBind.Views[VIEW_TEX] := FView;
+
+  { A sampler object }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  SamplerDesc.TraceLabel := 'PngSampler';
+  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
 
   var BufferDesc := TBufferDesc.Create;
   BufferDesc.Data := TRange.Create(VERTICES);
@@ -219,18 +232,16 @@ begin
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
   BufferDesc.TraceLabel := 'CubeIndices';
   FBind.IndexBuffer := TBuffer.Create(BufferDesc);
 
   { A pipeline state object }
-  FShader := TShader.Create(LoadpngShaderDesc);
-
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Shader := FShader;
-  PipDesc.Layout.Attrs[ATTR_VS_POS].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_TEXCOORD0].Format := TVertexFormat.Short2N;
+  PipDesc.Shader := TShader.Create(LoadpngShaderDesc);
+  PipDesc.Layout.Attrs[ATTR_LOADPNG_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_LOADPNG_TEXCOORD0].Format := TVertexFormat.Short2N;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
@@ -241,7 +252,7 @@ begin
   { Start loading the PNG file. We don't need the returned handle since we can
     also get that inside the fetch-callback from the response structure. }
   var Request := TFetchRequest.Create('baboon.png', FetchCallback,
-    @FFileBuffer, SizeOf(FFileBuffer));
+    TFetchRange.Create(FFileBuffer));
   Request.Send;
 end;
 

@@ -5,7 +5,7 @@
 //--- offscreen MRT shader
 @vs vs_offscreen
 
-uniform offscreen_params {
+layout(binding=0) uniform offscreen_params {
     mat4 mvp;
 };
 
@@ -58,18 +58,21 @@ void main() {
 @end
 
 @fs fs_quad
-uniform sampler2D tex;
+@image_sample_type tex unfilterable_float
+@sampler_type smp nonfiltering
+layout(binding=0) uniform texture2D tex;
+layout(binding=0) uniform sampler smp;
 
 in vec2 uv;
 out vec4 frag_color;
 
-uniform quad_params {
+layout(binding=0) uniform quad_params {
     float color_bias;
     float color_scale;
 };
 
 void main() {
-    frag_color = vec4((texture(tex, uv).xyz + color_bias) * color_scale, 1.0);
+    frag_color = vec4((texture(sampler2D(tex, smp), uv).xyz + color_bias) * color_scale, 1.0);
 }
 @end
 

@@ -10,9 +10,90 @@ unit Neslib.Sokol.Fetch;
 
 interface
 
+uses
+  System.SysUtils,
+  Neslib.Sokol.Types;
+
 const
   FETCH_MAX_USERDATA_UINT64 = 16;
   FETCH_MAX_CHANNELS        = 16;
+
+type
+  { An enum with a unique item for each log message, warning, error and
+    validation layer message. Note that these messages are only visible when a
+    logger function is installed in the TFetch.Setup call. }
+  TFetchLogItem = (
+    Ok,
+    SendQueueFull,
+    RequestChannelIndexTooBig,
+    RequestPathIsEmpty,
+    RequestCallbackMissing,
+    RequestChunkSizeGreaterBufferSize,
+    RequestUserdataPtrIsSetButUserdataSizeIsZero,
+    RequestUserdataPtrIsNilButUserdataSizeIsNotZero,
+    RequestUserdataSizeTooBig,
+    ClampingNumChannelsToMaxChannels,
+    RequestPoolExhausted);
+
+type
+  _TFetchLogItemHelper = record helper for TFetchLogItem
+  public
+    function ToString: String;
+  end;
+
+type
+  { Used in TFetchDesc to provide a logging function. Please be aware that without
+    logging function, Neslib.Sokol.Fetch will be completely silent, e.g. it will
+    not report errors, warnings and validation layer messages. For maximum error
+    verbosity, compile in debug mode and provide a compatible logger function in
+    the TFetch.Setup call (for instance the standard logging function
+    TFetchDesc.DefaultLogger).
+
+    Parameters:
+    * ALevel: log level
+    * AItem: log item
+    * AMessage: the log message corresponding to AItem.
+    * ALineNr: currently not used for Neslib.Sokol.Fetch (always 0). }
+  TFetchLogger = procedure(const ALevel: TLogLevel; const AItem: TFetchLogItem;
+    const AMessage: String; const ALineNr: Integer) of object;
+
+type
+  { A memory blob containing either a TBytes memory buffer or a pointer to
+    memory stored at another location. }
+  TFetchRange = record
+  {$REGION 'Internal Declarations'}
+  private
+    FBytes: TBytes;
+    FPtr: Pointer;
+    FSize: NativeInt;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    { Creates a range from a TBytes memory buffer.
+
+      Parameters:
+        ABytes: the memory buffer }
+    constructor Create(const ABytes: TBytes); overload;
+
+    { Creates a range from a pointer to a memory buffer.
+
+      Parameters:
+        APointer: pointer to the memory buffer
+        ASize: size of the memory buffer }
+    constructor Create(const APointer: Pointer; const ASize: NativeInt); overload;
+
+    { Creates a range from a generic memory buffer.
+
+      Parameters:
+        AData: the memory buffer }
+    class function Create<T>(const [ref] AData: T): TFetchRange; overload; static;
+
+    { Pointer to the data in the buffer }
+    property Ptr: Pointer read FPtr;
+
+    { Size of the data in the buffer }
+    property Size: NativeInt read FSize;
+  end;
+  PFetchRange = ^TFetchRange;
 
 type
   { Error codes }
@@ -28,6 +109,8 @@ type
   { Configuration values for TFetch.Setup }
   TFetchDesc = record
   {$REGION 'Internal Declarations'}
+  private class var
+    GLogger: TFetchLogger;
   private
     function Defaults: TFetchDesc;
   {$ENDREGION 'Internal Declarations'}
@@ -59,9 +142,16 @@ type
 
       The base directory can use both '/' and '\' as directory separators. }
     BaseDirectory: String;
+
+    { Optional log function override }
+    Logger: TFetchLogger;
   public
     class function Create: TFetchDesc; static;
     procedure Init; inline;
+
+    { A default log function you can assign to the Logger field. }
+    procedure DefaultLogger(const ALevel: TLogLevel; const AItem: TFetchLogItem;
+      const AMessage: String; const ALineNr: Integer);
   end;
   PFetchDesc = ^TFetchDesc;
 
@@ -79,7 +169,7 @@ type
     { Bind a data buffer to a request.
       Request must not currently have a buffer bound.
       Must be called from response callback. }
-    procedure BindBuffer(const ABufferPtr: Pointer; const ABufferSize: Integer);
+    procedure BindBuffer(const ABuffer: TFetchRange);
 
     { Clear the 'buffer binding' of a request.
       Returns previous buffer pointer (can be nil).
@@ -108,13 +198,12 @@ type
   private
     FPath: String;
     FHandle: TFetchHandle;
-    FBufferPtr: Pointer;
     FUserData: Pointer;
+    FData: TFetchRange;
+    FBuffer: TFetchRange;
     FChannel: Integer;
     FLane: Integer;
-    FFetchedOffset: Integer;
-    FFetchedSize: Integer;
-    FBufferSize: Integer;
+    FDataOffset: Integer;
     FDispatched: Boolean;
     FFetched: Boolean;
     FPaused: Boolean;
@@ -159,17 +248,15 @@ type
     { The original filesystem path of the request }
     property Path: String read FPath;
 
-    { Current offset of fetched data chunk in file data }
-    property FetchedOffset: Integer read FFetchedOffset;
+    { Current offset of fetched data chunk in the overall file data }
+    property DataOffset: Integer read FDataOffset;
 
-    { Size of fetched data chunk in number of bytes }
-    property FetchedSize: Integer read FFetchedSize;
+    { The fetched data as Pointer/Size pair (Data.Ptr = Buffer.Ptr,
+      Data.Size <= Buffer.Size) }
+    property Data: TFetchRange read FData;
 
-    { Pointer to buffer with fetched data }
-    property BufferPtr: Pointer read FBufferPtr;
-
-    { Overall buffer size (may be >= FetchedSize!) }
-    property BufferSize: Integer read FBufferSize;
+    { The user-provided buffer which holds the fetched data }
+    property Buffer: TFetchRange read FBuffer;
 
     { The user data passed to the fetch request }
     property UserData: Pointer read FUserData;
@@ -200,21 +287,16 @@ type
     Callback: TFetchCallback;
     CallbackProc: TFetchCallbackProc;
 
-    { Buffer pointer where data will be loaded into (optional) }
-    BufferPtr: Pointer;
+    { A memory buffer where the data will be loaded into (optional) }
+    Buffer: TFetchRange;
 
-    { Buffer size in number of bytes (optional) }
-    BufferSize: Integer;
+    { Pointer/Size of a POD (plain-old-data) user data block which will be
+      copied (optional). Since this block is copied, you must *not* put any
+      managed data in here (like strings or object interfaces) }
+    UserData: TFetchRange;
 
     { Number of bytes to load per stream-block (optional) }
     ChunkSize: Integer;
-
-    { Optional POD (plain-old-data) associated with the request, which will be
-      copied(!) into an internal memory block. The maximum size of this memory
-      block is 128 bytes. Since this block is copied, you must *not* put any
-      managed data in here (like strings or object interfaces) }
-    UserData: Pointer;
-    UserDataSize: Integer;
   public
     { Initialization }
     class function Create: TFetchRequest; overload; static;
@@ -222,11 +304,19 @@ type
       const ABuffer: Pointer = nil; const ABufferSize: Integer = 0); overload;
     constructor Create(const APath: String; const ACallback: TFetchCallbackProc;
       const ABuffer: Pointer = nil; const ABufferSize: Integer = 0); overload;
+    constructor Create(const APath: String; const ACallback: TFetchCallback;
+      const ABuffer: TFetchRange); overload;
+    constructor Create(const APath: String; const ACallback: TFetchCallbackProc;
+      const ABuffer: TFetchRange); overload;
     procedure Init; overload; inline;
     procedure Init(const APath: String; const ACallback: TFetchCallback;
       const ABuffer: Pointer = nil; const ABufferSize: Integer = 0); overload; inline;
     procedure Init(const APath: String; const ACallback: TFetchCallbackProc;
       const ABuffer: Pointer = nil; const ABufferSize: Integer = 0); overload; inline;
+    procedure Init(const APath: String; const ACallback: TFetchCallback;
+      const ABuffer: TFetchRange); overload; inline;
+    procedure Init(const APath: String; const ACallback: TFetchCallbackProc;
+      const ABuffer: TFetchRange); overload; inline;
 
     { Send the fetch-request. Get handle to request back. }
     function Send: TFetchHandle;
@@ -300,11 +390,19 @@ uses
   {$IFDEF SOKOL_MEM_TRACK}
   Neslib.Sokol.MemTrack,
   {$ENDIF}
+  Neslib.Sokol.Utils,
   System.Math,
   System.Classes,
   System.IOUtils,
-  System.SysUtils,
   System.SyncObjs;
+
+procedure Log(const ALevel: TLogLevel; const AItem: TFetchLogItem);
+begin
+  if Assigned(TFetchDesc.GLogger) then
+    TFetchDesc.GLogger(ALevel, AItem, AItem.ToString, 0)
+  else if (ALevel = TLogLevel.Panic) then
+    Abort;
+end;
 
 const
   FETCH_INVALID_LANE = -1;
@@ -339,14 +437,6 @@ type
   TFetchFileHandle = THandle;
 
 type
-  TFetchBuffer = record
-  public
-    Ptr: PByte;
-    Size: Integer;
-  end;
-  PFetchBuffer = ^TFetchBuffer;
-
-type
   { User-side per-request state }
   TFetchItemUser = record
   public
@@ -369,7 +459,7 @@ type
     Finished: Boolean;
 
     { User thread only }
-    UserDataSize: Integer;
+    UserDataSize: NativeInt;
     UserData: array [0..FETCH_MAX_USERDATA_UINT64 - 1] of UInt64;
   end;
   PFetchItemUser = ^TFetchItemUser;
@@ -408,13 +498,15 @@ type
     FChunkSize: Integer;
     FCallback: TFetchCallback;
     FCallbackProc: TFetchCallbackProc;
-    FBuffer: TFetchBuffer;
+    FBuffer: TFetchRange;
 
     { Updated by IO-thread, off-limits to user thread }
     FThread: TFetchItemThread;
 
     { Accessible by user-thread, off-limits to IO thread }
     FUser: TFetchItemUser;
+  private
+    procedure Cancel;
   public
     procedure Init(const ASlotId: Cardinal; const ARequest: TFetchRequest);
     procedure Discard;
@@ -651,11 +743,58 @@ begin
 end;
 {$ENDIF}
 
+{ _TFetchLogItemHelper }
+
+function _TFetchLogItemHelper.ToString: String;
+const
+  STRINGS: array [TFetchLogItem] of String = (
+    'Ok',
+    'send queue full (adjust via TFetchDesc.MaxRrequests)',
+    'channel index too big (adjust via TFetchDesc.NumChannels)',
+    'file path is empty (TFetchRequest.Path)',
+    'no callback provided (TFetchRequest.Callback)',
+    'chunk size is greater buffer size (TFetchRequest.ChunkSize vs .Buffer.Size)',
+    'user data ptr is set but user data size is 0 (TFetchRequest.UserData.Ptr vs .Size)',
+    'user data ptr is nil but size is not 0 (TFetchRequest.UserData.Ptr vs .Size)',
+    'user data size too big (see FETCH_MAX_USERDATA_UINT64)',
+    'clamping num channels to FETCH_MAX_CHANNELS',
+    'request pool exhausted (tweak via TFetchDesc.MaxRequests)');
+begin
+  Result := STRINGS[Self];
+end;
+
+{ TFetchRange }
+
+constructor TFetchRange.Create(const ABytes: TBytes);
+begin
+  FBytes := ABytes;
+  FPtr := Pointer(ABytes);
+  FSize := Length(ABytes);
+end;
+
+constructor TFetchRange.Create(const APointer: Pointer; const ASize: NativeInt);
+begin
+  FPtr := APointer;
+  FSize := ASize;
+end;
+
+class function TFetchRange.Create<T>(const [ref] AData: T): TFetchRange;
+begin
+  Result.FPtr := @AData;
+  Result.FSize := SizeOf(AData);
+end;
+
 { TFetchDesc }
 
 class function TFetchDesc.Create: TFetchDesc;
 begin
   Result.Init;
+end;
+
+procedure TFetchDesc.DefaultLogger(const ALevel: TLogLevel;
+  const AItem: TFetchLogItem; const AMessage: String; const ALineNr: Integer);
+begin
+  _LogDefault(ALevel, Ord(AItem), AMessage, ALineNr);
 end;
 
 function TFetchDesc.Defaults: TFetchDesc;
@@ -676,18 +815,17 @@ end;
 
 { TFetchHandle }
 
-procedure TFetchHandle.BindBuffer(const ABufferPtr: Pointer;
-  const ABufferSize: Integer);
+procedure TFetchHandle.BindBuffer(const ABuffer: TFetchRange);
 begin
   var Context := GFetch;
   Assert(Assigned(Context) and (Context.FValid));
   Assert(Context.FInCallback);
+  Assert((ABuffer.Ptr <> nil) and (ABuffer.Size > 0));
   var Item := Context.FPool.ItemLookup(FId);
   if (Item <> nil) then
   begin
     Assert((Item.FBuffer.Ptr = nil) and (Item.FBuffer.Size = 0));
-    Item.FBuffer.Ptr := ABufferPtr;
-    Item.FBuffer.Size := ABufferSize;
+    Item.FBuffer := ABuffer;
   end;
 end;
 
@@ -747,8 +885,8 @@ begin
   if (Item <> nil) then
   begin
     Result := Item.FBuffer.Ptr;
-    Item.FBuffer.Ptr := nil;
-    Item.FBuffer.Size := 0;
+    Item.FBuffer.FPtr := nil;
+    Item.FBuffer.FSize := 0;
   end
   else
     Result := nil;
@@ -775,6 +913,18 @@ begin
   Init(APath, ACallback, ABuffer, ABufferSize);
 end;
 
+constructor TFetchRequest.Create(const APath: String;
+  const ACallback: TFetchCallback; const ABuffer: TFetchRange);
+begin
+  Init(APath, ACallback, ABuffer);
+end;
+
+constructor TFetchRequest.Create(const APath: String;
+  const ACallback: TFetchCallbackProc; const ABuffer: TFetchRange);
+begin
+  Init(APath, ACallback, ABuffer);
+end;
+
 procedure TFetchRequest.Init(const APath: String;
   const ACallback: TFetchCallbackProc; const ABuffer: Pointer;
   const ABufferSize: Integer);
@@ -782,8 +932,8 @@ begin
   Init;
   Path := APath;
   CallbackProc := ACallback;
-  BufferPtr := ABuffer;
-  BufferSize := ABufferSize;
+  Buffer.FPtr := ABuffer;
+  Buffer.FSize := ABufferSize;
 end;
 
 procedure TFetchRequest.Init(const APath: String;
@@ -793,12 +943,31 @@ begin
   Init;
   Path := APath;
   Callback := ACallback;
-  BufferPtr := ABuffer;
-  BufferSize := ABufferSize;
+  Buffer.FPtr := ABuffer;
+  Buffer.FSize := ABufferSize;
+end;
+
+procedure TFetchRequest.Init(const APath: String;
+  const ACallback: TFetchCallback; const ABuffer: TFetchRange);
+begin
+  Init;
+  Path := APath;
+  Callback := ACallback;
+  Buffer := ABuffer;
+end;
+
+procedure TFetchRequest.Init(const APath: String;
+  const ACallback: TFetchCallbackProc; const ABuffer: TFetchRange);
+begin
+  Init;
+  Path := APath;
+  CallbackProc := ACallback;
+  Buffer := ABuffer;
 end;
 
 procedure TFetchRequest.Init;
 begin
+  Path := '';
   FillChar(Self, SizeOf(Self), 0);
 end;
 
@@ -811,51 +980,50 @@ end;
 
 function TFetchRequest.Validate: Boolean;
 begin
-  {$IFDEF DEBUG}
   var Ctx := GFetch;
   Assert(Ctx <> nil);
   if (Channel >= Ctx.FDesc.NumChannels) then
   begin
-    Assert(False, 'TFetchRequest.Validate: Channel too big!');
+    Log(TLogLevel.Error, TFetchLogItem.RequestChannelIndexTooBig);
     Exit(False);
   end;
 
   if (Path.Trim = '') then
   begin
-    Assert(False, 'TFetchRequest.Validate: Path is empty!');
+    Log(TLogLevel.Error, TFetchLogItem.RequestPathIsEmpty);
     Exit(False);
   end;
 
   if (not Assigned(Callback)) and (not Assigned(CallbackProc)) then
   begin
-    Assert(False, 'TFetchRequest.Validate: Callback missing!');
+    Log(TLogLevel.Error, TFetchLogItem.RequestCallbackMissing);
     Exit(False);
   end;
 
-  if (ChunkSize > BufferSize) then
+  if (ChunkSize > Buffer.Size) then
   begin
-    Assert(False, 'TFetchRequest.Validate: ChunkSize is greater than BufferSize!');
+    Log(TLogLevel.Error, TFetchLogItem.RequestChunkSizeGreaterBufferSize);
     Exit(False);
   end;
 
-  if (UserData <> nil) and (UserDataSize = 0) then
+  if (UserData.Ptr <> nil) and (UserData.Size = 0) then
   begin
-    Assert(False, 'TFetchRequest.Validate: UserData is set, but UserDataSize is 0!');
+    Log(TLogLevel.Error, TFetchLogItem.RequestUserdataPtrIsSetButUserdataSizeIsZero);
     Exit(False);
   end;
 
-  if (UserData = nil) and (UserDataSize > 0) then
+  if (UserData.Ptr = nil) and (UserData.Size > 0) then
   begin
-    Assert(False, 'TFetchRequest.Validate: UserData is nil, but UserDataSize is not 0!');
+    Log(TLogLevel.Error, TFetchLogItem.RequestUserdataPtrIsNilButUserdataSizeIsNotZero);
     Exit(False);
   end;
 
-  if (UserDataSize > (FETCH_MAX_USERDATA_UINT64 * SizeOf(UInt64))) then
+  if (UserData.Size > (FETCH_MAX_USERDATA_UINT64 * SizeOf(UInt64))) then
   begin
-    Assert(False, 'TFetchRequest.Validate: UserDataSize is too big!');
+    Log(TLogLevel.Error, TFetchLogItem.RequestUserdataSizeTooBig);
     Exit(False);
   end;
-  {$ENDIF}
+
   Result := True;
 end;
 
@@ -904,7 +1072,7 @@ begin
   var State := AItem.FState;
   Assert(State in [TFetchState.Fetching, TFetchState.Paused, TFetchState.Failed]);
   var Path := AItem.FPath;
-  var Buffer := PFetchBuffer(@AItem.FBuffer);
+  var Buffer := PFetchRange(@AItem.FBuffer);
   var ChunkSize := AItem.FChunkSize;
 
   if (FFailed) then
@@ -998,6 +1166,13 @@ end;
 
 { TFetchItem }
 
+procedure TFetchItem.Cancel;
+begin
+  FState := TFetchState.Failed;
+  FUser.Finished := True;
+  FUser.ErrorCode := TFetchError.Cancelled;
+end;
+
 procedure TFetchItem.Discard;
 begin
   Assert(FHandle.FId <> 0);
@@ -1019,17 +1194,16 @@ begin
   FLane := FETCH_INVALID_LANE;
   FCallback := ARequest.Callback;
   FCallbackProc := ARequest.CallbackProc;
-  FBuffer.Ptr := ARequest.BufferPtr;
-  FBuffer.Size := ARequest.BufferSize;
+  FBuffer := ARequest.Buffer;
 
   FPath := ARequest.Path;
   FThread.FFileHandle := FETCH_INVALID_FILE_HANDLE;
 
-  if (ARequest.UserData <> nil) and (ARequest.UserDataSize > 0)
-    and (ARequest.UserDataSize < (FETCH_MAX_USERDATA_UINT64 * SizeOf(UInt64))) then
+  if (ARequest.UserData.Ptr <> nil) and (ARequest.UserData.Size > 0)
+    and (ARequest.UserData.Size < (FETCH_MAX_USERDATA_UINT64 * SizeOf(UInt64))) then
   begin
-    FUser.UserDataSize := ARequest.UserDataSize;
-    Move(ARequest.UserData^, FUser.UserData[0], ARequest.UserDataSize);
+    FUser.UserDataSize := ARequest.UserData.Size;
+    Move(ARequest.UserData.Ptr^, FUser.UserData[0], ARequest.UserData.Size);
   end;
 end;
 
@@ -1049,10 +1223,10 @@ begin
   Response.FLane := FLane;
   Response.FPath := FPath;
   Response.FUserData := @FUser.UserData;
-  Response.FFetchedOffset := FUser.FetchedOffset - FUser.FetchedSize;
-  Response.FFetchedSize := FUser.FetchedSize;
-  Response.FBufferPtr := FBuffer.Ptr;
-  Response.FBufferSize := FBuffer.Size;
+  Response.FDataOffset := FUser.FetchedOffset - FUser.FetchedSize;
+  Response.FData.FPtr := FBuffer.Ptr;
+  Response.FData.FSize := FUser.FetchedSize;
+  Response.FBuffer := FBuffer;
   if Assigned(FCallback) then
     FCallback(Response)
   else
@@ -1485,6 +1659,16 @@ begin
     Item := APool.ItemLookup(SlotId);
     Assert(Assigned(Item));
     Assert(Item.FState = TFetchState.Allocated);
+
+    { If the item was cancelled early, kick it out immediately }
+    if (Item.FUser.Cancel) then
+    begin
+      Item.Cancel;
+      Item.InvokeResponseCallback;
+      APool.ItemFree(SlotId);
+      Continue;
+    end;
+
     Item.FState := TFetchState.Dispatched;
     Item.FLane := FFreeLanes.Dequeue;
 
@@ -1520,10 +1704,7 @@ begin
     end;
 
     if (Item.FUser.Cancel) then
-    begin
-      Item.FState := TFetchState.Failed;
-      Item.FUser.Finished := True;
-    end;
+      Item.Cancel;
 
     if (Item.FState in [TFetchState.Dispatched, TFetchState.Fetched]) then
       Item.FState := TFetchState.Fetching;
@@ -1549,7 +1730,7 @@ begin
     Item.FUser.FetchedSize := Item.FThread.FFetchedSize;
 
     if (Item.FUser.Cancel) then
-      Item.FUser.ErrorCode := TFetchError.Cancelled
+      Item.Cancel
     else
       Item.FUser.ErrorCode := Item.FThread.FErrorCode;
 
@@ -1564,7 +1745,7 @@ begin
 
     Item.InvokeResponseCallback;
 
-    { When the request is finish, free the lane for another request, otherwise
+    { When the request is finished, free the lane for another request, otherwise
       feed it back into the incoming queue }
     if (Item.FUser.Finished) then
     begin
@@ -1606,7 +1787,9 @@ begin
   Assert(FValid);
   Result := (not FUserSent.IsFull);
   if (Result) then
-    FUserSent.Enqueue(ASlotId);
+    FUserSent.Enqueue(ASlotId)
+  else
+    Log(TLogLevel.Error, TFetchLogItem.SendQueueFull);
 end;
 
 { TFetchInstance }
@@ -1614,10 +1797,15 @@ end;
 constructor TFetchInstance.Create(const ADesc: TFetchDesc);
 begin
   inherited Create;
+  TFetchDesc.GLogger := ADesc.Logger;
   FDesc := ADesc;
   FSetup := True;
 
-  FDesc.NumChannels := Min(FDesc.NumChannels, FETCH_MAX_CHANNELS);
+  if (FDesc.NumChannels > FETCH_MAX_CHANNELS) then
+  begin
+    FDesc.NumChannels := FETCH_MAX_CHANNELS;
+    Log(TLogLevel.Warning, TFetchLogItem.ClampingNumChannelsToMaxChannels);
+  end;
 
   FBaseDirectory := FDesc.BaseDirectory;
   if (PathDelim = '\') then
@@ -1703,7 +1891,10 @@ begin
   Assert(ARequest.Channel < FDesc.NumChannels);
   var SlotId := FPool.ItemAlloc(ARequest);
   if (SlotId = 0) then
+  begin
+    Log(TLogLevel.Warning, TFetchLogItem.RequestPoolExhausted);
     Exit;
+  end;
 
   if (not FChannels[ARequest.Channel].Send(SlotId)) then
   begin

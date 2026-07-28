@@ -62,7 +62,7 @@ type
   { Fragment-shader-params and textures for metallic material }
   TMetallicMaterial = record
   public
-    FragmentShaderParams: TMetallicParams;
+    FragmentShaderParams: TGltfMetallicParams;
     Images: TMetallicImages;
   end;
   PMetallicMaterial = ^TMetallicMaterial;
@@ -82,7 +82,7 @@ type
   TVertexBufferMapping = record
   public
     Count: Integer;
-    Buffer: array [0..MAX_SHADERSTAGE_BUFFERS - 1] of Integer;
+    Buffer: array [0..MAX_VERTEXBUFFER_BINDSLOTS - 1] of Integer;
   end;
 
 type
@@ -119,6 +119,14 @@ type
   PNode = ^TNode;
 
 type
+  TImageEx = record
+  public
+    Image: TImage;
+    TexView: TView;
+    Sampler: TSampler;
+  end;
+
+type
   { The complete scene }
   TScene = record
   public
@@ -130,14 +138,12 @@ type
     NumMeshes: Integer;
     NumNodes: Integer;
     Buffers: array [0..SCENE_MAX_BUFFERS - 1] of TBuffer;
-    Images: array [0..SCENE_MAX_IMAGES - 1] of TImage;
+    Images: array [0..SCENE_MAX_IMAGES - 1] of TImageEx;
     Pipelines: array [0..SCENE_MAX_PIPELINES - 1] of TPipeline;
     Materials: array [0..SCENE_MAX_MATERIALS - 1] of TMaterial;
     Primitives: array [0..SCENE_MAX_PRIMITIVES - 1] of TPrimitive;
     Meshes: array [0..SCENE_MAX_MESHES - 1] of TMesh;
     Nodes: array [0..SCENE_MAX_NODES - 1] of TNode;
-  public
-    procedure Free;
   end;
 
 { Resource creation helper params. These are stored until the async-loaded
@@ -146,7 +152,7 @@ type
 type
   TBufferCreationParams = record
   public
-    BufferType: TBufferType;
+    Usage: TBufferUsage;
     Offset: Integer;
     Size: Integer;
     glTFBufferIndex: Integer;
@@ -154,21 +160,22 @@ type
   PBufferCreationParams = ^TBufferCreationParams;
 
 type
-  TImageCreationParams = record
+  TImageSamplerCreationParams = record
   public
     Minfilter: TFilter;
     Magfilter: TFilter;
+    MipmapFilter: TFilter;
     WrapS: TWrap;
     WrapT: TWrap;
-    gltfImageIndex: Integer;
+    glTFImageIndex: Integer;
   end;
-  PImageCreationParams = ^TImageCreationParams;
+  PImageSamplerCreationParams = ^TImageSamplerCreationParams;
 
 type
   { Pipeline cache helper record to avoid duplicate pipeline-state-objects }
   TPipelineCacheParams = record
   public
-    Layout: TLayoutDesc;
+    Layout: TVertexLayoutState;
     PrimitiveType: TPrimitiveType;
     IndexType: TIndexType;
     Alpha: Boolean;
@@ -194,14 +201,13 @@ type
     Specular: TShader;
   public
     procedure Init;
-    procedure Free;
   end;
 
 type
   TCreationParams = record
   public
     Buffers: array [0..SCENE_MAX_BUFFERS - 1] of TBufferCreationParams;
-    Images: array [0..SCENE_MAX_IMAGES - 1] of TImageCreationParams;
+    Images: array [0..SCENE_MAX_IMAGES - 1] of TImageSamplerCreationParams;
   end;
 
 type
@@ -213,12 +219,12 @@ type
 type
   TPlaceholders = record
   public
-    White: TImage;
-    Normal: TImage;
-    Black: TImage;
+    White: TView;
+    Normal: TView;
+    Black: TView;
+    Sampler: TSampler;
   public
     procedure Init;
-    procedure Free;
   end;
 
 type
@@ -230,7 +236,7 @@ type
     FShaders: TShaders;
     FScene: TScene;
     FCamera: TCamera;
-    FPointLight: TLightParams; // Code generated from shader
+    FPointLight: TGltfLightParams; // Code generated from shader
     FRootTransform: TMatrix4;
     FRX: Single;
     FCreationParams: TCreationParams;
@@ -240,7 +246,7 @@ type
     procedure FetchCallback(const AResponse: TFetchResponse);
     procedure FetchBufferCallback(const AResponse: TFetchResponse);
     procedure FetchImageCallback(const AResponse: TFetchResponse);
-    procedure glTFParse(const ABuffer: Pointer; const ASize: Int64);
+    procedure glTFParse(const AFileData: TFetchRange);
     procedure glTFParseBuffers(const AData: PglTFData);
     procedure glTFParseImages(const AData: PglTFData);
     procedure glTFParseMaterials(const AData: PglTFData);
@@ -248,16 +254,16 @@ type
     procedure glTFParseNodes(const AData: PglTFData);
     procedure CreateGfxBuffersForGlTFBuffer(const AGlTFBufferIndex: Integer;
       const AData: TRange);
-    procedure CreateGfxImagesForGlTFImage(const AGlTFImageIndex: Integer;
+    procedure CreateGfxImageSamplersForGlTFImage(const AGlTFImageIndex: Integer;
       const AData: TRange);
     function CreateVertexBufferMappingForGlTFPrimitive(const AData: PglTFData;
       const APrim: PglTFPrimitive): TVertexBufferMapping;
     function CreateGfxPipelineForGlTFPrimitive(const AData: PglTFData;
       const APrim: PglTFPrimitive; var AVBufMap: TVertexBufferMapping): Integer;
     function CreateGfxLayoutForGlTFPrimitive(const AData: PglTFData;
-      const APrim: PglTFPrimitive; const AVBufMap: TVertexBufferMapping): TLayoutDesc;
+      const APrim: PglTFPrimitive; const AVBufMap: TVertexBufferMapping): TVertexLayoutState;
     procedure UpdateScene;
-    function VSParamsForNode(const ANodeIndex: Integer): TVSParams;
+    function VSParamsForNode(const ANodeIndex: Integer): TGltfVSParams;
   private
     class function AttrTypeToVSInputSlot(const AAttrType: TglTFAttributeType): Integer; static;
   protected
@@ -271,23 +277,8 @@ implementation
 
 uses
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.Cgltf.Api;
-
-{ TScene }
-
-procedure TScene.Free;
-begin
-  var I: Integer;
-
-  for I := 0 to NumBuffers - 1 do
-    Buffers[I].Free;
-
-  for I := 0 to NumImages - 1 do
-    Images[I].Free;
-
-  for I := 0 to NumPipelines - 1 do
-    Pipelines[I].Free;
-end;
 
 { TPipelineCacheParams }
 
@@ -305,8 +296,8 @@ begin
 
   for var I := 0 to MAX_VERTEX_ATTRIBUTES - 1 do
   begin
-    var A0 := PVertexAttrDesc(@ALeft.Layout.Attrs[I]);
-    var A1 := PVertexAttrDesc(@ARight.Layout.Attrs[I]);
+    var A0 := PVertexAttrState(@ALeft.Layout.Attrs[I]);
+    var A1 := PVertexAttrState(@ARight.Layout.Attrs[I]);
     if (A0.BufferIndex <> A1.BufferIndex)
       or (A0.Offset <> A1.Offset)
       or (A0.Format <> A1.Format)
@@ -321,30 +312,18 @@ end;
 
 procedure TPassActions.Init;
 begin
-  OK.Colors[0].Init(TAction.Clear, 0, 0.569, 0.918, 1);
-  Failed.Colors[0].Init(TAction.Clear, 1, 0, 0, 1);
+  OK.Colors[0].Init(TLoadAction.Clear, 0, 0.569, 0.918, 1);
+  Failed.Colors[0].Init(TLoadAction.Clear, 1, 0, 0, 1);
 end;
 
 { TShaders }
 
-procedure TShaders.Free;
-begin
-  Metallic.Free;
-end;
-
 procedure TShaders.Init;
 begin
-  Metallic := TShader.Create(gltfMetallicShaderDesc);
+  Metallic := TShader.Create(GltfMetallicShaderDesc);
 end;
 
 { TPlaceholders }
-
-procedure TPlaceholders.Free;
-begin
-  Normal.Free;
-  Black.Free;
-  White.Free;
-end;
 
 procedure TPlaceholders.Init;
 var
@@ -355,16 +334,24 @@ begin
   Desc.Width := 8;
   Desc.Height := 8;
   Desc.PixelFormat := TPixelFormat.Rgba8;
-  Desc.Data.SubImages[0] := TRange.Create(Pixels);
-  White := TImage.Create(Desc);
+  Desc.Data.MipLevels[0] := TRange.Create(Pixels);
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := TImage.Create(Desc);
+  White := TView.Create(ViewDesc);
 
   for var I := 0 to 63 do
     Pixels[I] := $FF000000;
-  Black := TImage.Create(Desc);
+  Black := TView.Create(ViewDesc);
 
   for var I := 0 to 63 do
     Pixels[I] := $FF0000FF;
-  Normal := TImage.Create(Desc);
+  Normal := TView.Create(ViewDesc);
+
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  Sampler := TSampler.Create(SamplerDesc);
 end;
 
 { TglTFApp }
@@ -374,13 +361,13 @@ class function TglTFApp.AttrTypeToVSInputSlot(
 begin
   case AAttrType of
     TglTFAttributeType.Position:
-      Result := ATTR_VS_POSITION;
+      Result := ATTR_GLTF_METALLIC_POSITION;
 
     TglTFAttributeType.Normal:
-      Result := ATTR_VS_NORMAL;
+      Result := ATTR_GLTF_METALLIC_NORMAL;
 
     TglTFAttributeType.TexCoord:
-      Result := ATTR_VS_TEXCOORD;
+      Result := ATTR_GLTF_METALLIC_TEXCOORD;
   else
     Result := SCENE_INVALID_INDEX;
   end;
@@ -390,9 +377,6 @@ procedure TglTFApp.Cleanup;
 begin
   inherited;
   FCamera.Free;
-  FScene.Free;
-  FPlaceholders.Free;
-  FShaders.Free;
   TFetch.Shutdown;
   TDbgText.Shutdown;
   TBasisU.Shutdown;
@@ -419,30 +403,42 @@ begin
     begin
       Assert((P.Offset + P.Size) <= NativeInt(AData.Size));
       var BufferDesc := TBufferDesc.Create;
-      BufferDesc.BufferType := P.BufferType;
+      BufferDesc.Usage := P.Usage;
       BufferDesc.Data := TRange.Create(PByte(AData.Data) + P.Offset, P.Size);
       FScene.Buffers[I].Init(BufferDesc);
     end;
   end;
 end;
 
-procedure TglTFApp.CreateGfxImagesForGlTFImage(const AGlTFImageIndex: Integer;
-  const AData: TRange);
+procedure TglTFApp.CreateGfxImageSamplersForGlTFImage(
+  const AGlTFImageIndex: Integer; const AData: TRange);
 { Create the Sokol Gfx image objects associated with a glTF image }
 begin
   for var I := 0 to FScene.NumImages - 1 do
   begin
-    var P := PImageCreationParams(@FCreationParams.Images[I]);
+    var P := PImageSamplerCreationParams(@FCreationParams.Images[I]);
     if (P.gltfImageIndex = AGlTFImageIndex) then
-      FScene.Images[I] := TBasisU.CreateImage(AData);
+    begin
+      FScene.Images[I].Image := TBasisU.CreateImage(AData);
+
+      var ViewDesc := TViewDesc.Create;
+      ViewDesc.Texture.Image := FScene.Images[I].Image;
+      FScene.Images[I].TexView := TView.Create(ViewDesc);
+
+      var SamplerDesc := TSamplerDesc.Create;
+      SamplerDesc.MinFilter := P.Minfilter;
+      SamplerDesc.MagFilter := P.Magfilter;
+      SamplerDesc.MipmapFilter := P.MipmapFilter;
+      FScene.Images[I].Sampler := TSampler.Create(SamplerDesc);
+    end;
   end;
 end;
 
 function TglTFApp.CreateGfxLayoutForGlTFPrimitive(const AData: PglTFData;
-  const APrim: PglTFPrimitive; const AVBufMap: TVertexBufferMapping): TLayoutDesc;
+  const APrim: PglTFPrimitive; const AVBufMap: TVertexBufferMapping): TVertexLayoutState;
 begin
   Assert(APrim.AttributeCount <= MAX_VERTEX_ATTRIBUTES);
-  Result := TLayoutDesc.Create;
+  Result.Init;
   for var AttrIndex := 0 to APrim.AttributeCount - 1 do
   begin
     var Attr := APrim.Attributes[AttrIndex];
@@ -523,7 +519,7 @@ function TglTFApp.CreateVertexBufferMappingForGlTFPrimitive(
 { Creates a vertex buffer bind slot mapping for a specific glTF primitive }
 begin
   FillChar(Result, SizeOf(Result), 0);
-  for var I := 0 to MAX_SHADERSTAGE_BUFFERS - 1 do
+  for var I := 0 to MAX_VERTEXBUFFER_BINDSLOTS - 1 do
     Result.Buffer[I] := SCENE_INVALID_INDEX;
 
   for var AttrIndex := 0 to APrim.AttributeCount - 1 do
@@ -539,13 +535,13 @@ begin
       Inc(I);
     end;
 
-    if (I = Result.Count) and (Result.Count < MAX_SHADERSTAGE_BUFFERS) then
+    if (I = Result.Count) and (Result.Count < MAX_VERTEXBUFFER_BINDSLOTS) then
     begin
       Result.Buffer[Result.Count] := BufferViewIndex;
       Inc(Result.Count);
     end;
 
-    Assert(Result.Count <= MAX_SHADERSTAGE_BUFFERS);
+    Assert(Result.Count <= MAX_VERTEXBUFFER_BINDSLOTS);
   end;
 end;
 
@@ -554,14 +550,16 @@ procedure TglTFApp.FetchCallback(const AResponse: TFetchResponse);
 begin
   if (AResponse.Dispatched) then
     { Bind buffer to load file into }
-    AResponse.Handle.BindBuffer(@FFetchBuffers[AResponse.Channel, AResponse.Lane], MAX_FILE_SIZE)
+    AResponse.Handle.BindBuffer(TFetchRange.Create(FFetchBuffers[AResponse.Channel, AResponse.Lane]))
   else if (AResponse.Fetched) then
     { File has been loaded. Parse as glTF }
-    glTFParse(AResponse.BufferPtr, AResponse.FetchedSize);
+    glTFParse(AResponse.Data);
 
   if (AResponse.Finished) then
+  begin
     if (AResponse.Failed) then
       FFailed := True;
+  end;
 end;
 
 procedure TglTFApp.FetchImageCallback(const AResponse: TFetchResponse);
@@ -569,19 +567,21 @@ procedure TglTFApp.FetchImageCallback(const AResponse: TFetchResponse);
 begin
   if (AResponse.Dispatched) then
     { Bind buffer to load file into }
-    AResponse.Handle.BindBuffer(@FFetchBuffers[AResponse.Channel, AResponse.Lane], MAX_FILE_SIZE)
+    AResponse.Handle.BindBuffer(TFetchRange.Create(FFetchBuffers[AResponse.Channel, AResponse.Lane]))
   else if (AResponse.Fetched) then
   begin
     { File has been loaded. }
     var UserData: PNativeInt := AResponse.UserData;
     var glTFImageIndex := UserData^;
-    CreateGfxImagesForGlTFImage(glTFImageIndex,
-      TRange.Create(AResponse.BufferPtr, AResponse.FetchedSize));
+    CreateGfxImageSamplersForGlTFImage(glTFImageIndex,
+      TRange.Create(AResponse.Data.Ptr, AResponse.Data.Size));
   end;
 
   if (AResponse.Finished) then
+  begin
     if (AResponse.Failed) then
       FFailed := True;
+  end;
 end;
 
 procedure TglTFApp.FetchBufferCallback(const AResponse: TFetchResponse);
@@ -589,19 +589,21 @@ procedure TglTFApp.FetchBufferCallback(const AResponse: TFetchResponse);
 begin
   if (AResponse.Dispatched) then
     { Bind buffer to load file into }
-    AResponse.Handle.BindBuffer(@FFetchBuffers[AResponse.Channel, AResponse.Lane], MAX_FILE_SIZE)
+    AResponse.Handle.BindBuffer(TFetchRange.Create(FFetchBuffers[AResponse.Channel, AResponse.Lane]))
   else if (AResponse.Fetched) then
   begin
     { File has been loaded. }
     var UserData: PNativeInt := AResponse.UserData;
     var glTFBufferIndex := UserData^;
     CreateGfxBuffersForGlTFBuffer(glTFBufferIndex,
-      TRange.Create(AResponse.BufferPtr, AResponse.FetchedSize));
+      TRange.Create(AResponse.Data.Ptr, AResponse.Data.Size));
   end;
 
   if (AResponse.Finished) then
+  begin
     if (AResponse.Failed) then
       FFailed := True;
+  end;
 end;
 
 procedure TglTFApp.Frame;
@@ -630,14 +632,21 @@ begin
   { Render the scene }
   if (FFailed) then
   begin
-    TGfx.BeginDefaultPass(FPassActions.Failed, FBWidth, FBHeight);
+    var Pass := TPass.Create;
+    Pass.Action^ := FPassActions.Failed;
+    Pass.Swapchain.FromAppSwapchain;
+    TGfx.BeginPass(Pass);
+
     DebugFrame;
     TGfx.EndPass;
     TGfx.Commit;
     Exit;
   end;
 
-  TGfx.BeginDefaultPass(FPassActions.OK, FBWidth, FBHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassActions.OK;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
   for var NodeIndex := 0 to FScene.NumNodes - 1 do
   begin
     var Node := PNode(@FScene.Nodes[NodeIndex]);
@@ -657,39 +666,66 @@ begin
       if (Prim.IndexBuffer <> SCENE_INVALID_INDEX) then
         Bind.IndexBuffer := FScene.Buffers[Prim.IndexBuffer];
 
-      TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
-      TGfx.ApplyUniforms(TShaderStage.FragmentShader, SLOT_LIGHT_PARAMS, TRange.Create(FPointLight));
+      TGfx.ApplyUniforms(UB_GLTF_VS_PARAMS, TRange.Create(VSParams));
+      TGfx.ApplyUniforms(UB_GLTF_LIGHT_PARAMS, TRange.Create(FPointLight));
 
       if (Mat.IsMetallic) then
       begin
-        var BaseColorTex := FScene.Images[Mat.Metallic.Images.BaseColor];
-        var MetallicRoughnessTex := FScene.Images[Mat.Metallic.Images.MetallicRoughness];
-        var NormalTex := FScene.Images[Mat.Metallic.Images.Normal];
-        var OcclusionTex := FScene.Images[Mat.Metallic.Images.Occlusion];
-        var EmissiveTex := FScene.Images[Mat.Metallic.Images.Emissive];
+        var BaseColorTex := FScene.Images[Mat.Metallic.Images.BaseColor].TexView;
+        var MetallicRoughnessTex := FScene.Images[Mat.Metallic.Images.MetallicRoughness].TexView;
+        var NormalTex := FScene.Images[Mat.Metallic.Images.Normal].TexView;
+        var OcclusionTex := FScene.Images[Mat.Metallic.Images.Occlusion].TexView;
+        var EmissiveTex := FScene.Images[Mat.Metallic.Images.Emissive].TexView;
+
+        var BaseColorSmp := FScene.Images[Mat.Metallic.Images.BaseColor].Sampler;
+        var MetallicRoughnessSmp := FScene.Images[Mat.Metallic.Images.MetallicRoughness].Sampler;
+        var NormalSmp := FScene.Images[Mat.Metallic.Images.Normal].Sampler;
+        var OcclusionSmp := FScene.Images[Mat.Metallic.Images.Occlusion].Sampler;
+        var EmissiveSmp := FScene.Images[Mat.Metallic.Images.Emissive].Sampler;
 
         if (BaseColorTex.Id = 0) then
+        begin
           BaseColorTex := FPlaceholders.White;
+          BaseColorSmp := FPlaceholders.Sampler;
+        end;
 
         if (MetallicRoughnessTex.Id = 0) then
+        begin
           MetallicRoughnessTex := FPlaceholders.White;
+          MetallicRoughnessSmp := FPlaceholders.Sampler;
+        end;
 
         if (NormalTex.Id = 0) then
+        begin
           NormalTex := FPlaceholders.Normal;
+          NormalSmp := FPlaceholders.Sampler;
+        end;
 
         if (OcclusionTex.Id = 0) then
+        begin
           OcclusionTex := FPlaceholders.White;
+          OcclusionSmp := FPlaceholders.Sampler;
+        end;
 
         if (EmissiveTex.Id = 0) then
+        begin
           EmissiveTex := FPlaceholders.Black;
+          EmissiveSmp := FPlaceholders.Sampler;
+        end;
 
-        Bind.FragmentShaderImages[SLOT_BASE_COLOR_TEXTURE] := BaseColorTex;
-        Bind.FragmentShaderImages[SLOT_METALLIC_ROUGHNESS_TEXTURE] := MetallicRoughnessTex;
-        Bind.FragmentShaderImages[SLOT_NORMAL_TEXTURE] := NormalTex;
-        Bind.FragmentShaderImages[SLOT_OCCLUSION_TEXTURE] := OcclusionTex;
-        Bind.FragmentShaderImages[SLOT_EMISSIVE_TEXTURE] := EmissiveTex;
+        Bind.Views[VIEW_GLTF_BASE_COLOR_TEX] := BaseColorTex;
+        Bind.Views[VIEW_GLTF_METALLIC_ROUGHNESS_TEX] := MetallicRoughnessTex;
+        Bind.Views[VIEW_GLTF_NORMAL_TEX] := NormalTex;
+        Bind.Views[VIEW_GLTF_OCCLUSION_TEX] := OcclusionTex;
+        Bind.Views[VIEW_GLTF_EMISSIVE_TEX] := EmissiveTex;
 
-        TGfx.ApplyUniforms(TShaderStage.FragmentShader, SLOT_METALLIC_PARAMS,
+        Bind.Samplers[SMP_GLTF_BASE_COLOR_SMP] := BaseColorSmp;
+        Bind.Samplers[SMP_GLTF_METALLIC_ROUGHNESS_SMP] := MetallicRoughnessSmp;
+        Bind.Samplers[SMP_GLTF_NORMAL_SMP] := NormalSmp;
+        Bind.Samplers[SMP_GLTF_OCCLUSION_SMP] := OcclusionSmp;
+        Bind.Samplers[SMP_GLTF_EMISSIVE_SMP] := EmissiveSmp;
+
+        TGfx.ApplyUniforms(UB_GLTF_METALLIC_PARAMS,
           TRange.Create(Mat.Metallic.FragmentShaderParams));
       end;
 
@@ -703,11 +739,11 @@ begin
   TGfx.Commit;
 end;
 
-procedure TglTFApp.glTFParse(const ABuffer: Pointer; const ASize: Int64);
+procedure TglTFApp.glTFParse(const AFileData: TFetchRange);
 begin
   var Options := TglTFOptions.Create;
   var Data: PglTFData := nil;
-  var Rslt := TglTF.Parse(Options, ABuffer, ASize, Data);
+  var Rslt := TglTF.Parse(Options, AFileData.Ptr, AFileData.Size, Data);
   if (Rslt = TglTFResult.Success) then
   try
     glTFParseBuffers(Data);
@@ -740,9 +776,9 @@ begin
     P.Size := glTFBufView.Size;
 
     if (glTFBufView.ViewType = TglTFBufferViewType.Indices) then
-      P.BufferType := TBufferType.IndexBuffer
+      P.Usage.IndexBuffer := True
     else
-      P.BufferType := TBufferType.VertexBuffer;
+      P.Usage.VertexBuffer := True;
 
     { Allocate a Sokol Gfx buffer handle }
     FScene.Buffers[I].Allocate;
@@ -755,8 +791,7 @@ begin
     var UserData: NativeInt := I;
     var Path := String(UTF8String(glTFBuf.Uri));
     var Request := TFetchRequest.Create(Path, FetchBufferCallback);
-    Request.UserData := @UserData;
-    Request.UserDataSize := SizeOf(UserData);
+    Request.UserData := TFetchRange.Create(UserData);
     Request.Send;
   end;
 end;
@@ -774,13 +809,16 @@ begin
   for var I := 0 to FScene.NumImages - 1 do
   begin
     var glTFTex := AData.Textures[I];
-    var P := PImageCreationParams(@FCreationParams.Images[I]);
+    var P := PImageSamplerCreationParams(@FCreationParams.Images[I]);
     P.gltfImageIndex := AData.GetImageIndex(glTFTex.Image);
     P.Minfilter := glTFTex.Sampler.GfxMinFilter;
     P.Magfilter := glTFTex.Sampler.GfxMagFilter;
+    P.MipmapFilter := glTFTex.Sampler.GfxMipmapFilter;
     P.WrapS := glTFTex.Sampler.GfxWrapS;
     P.WrapT := glTFTex.Sampler.GfxWrapT;
-    FScene.Images[I].Id := INVALID_ID;
+    Assert(FScene.Images[I].Image.Id = INVALID_ID);
+    Assert(FScene.Images[I].TexView.Id = INVALID_ID);
+    Assert(FScene.Images[I].Sampler.Id = INVALID_ID);
   end;
 
   { Start loading all images }
@@ -790,8 +828,7 @@ begin
     var UserData: NativeInt := I;
     var Path := String(UTF8String(glTFImg.Uri));
     var Request := TFetchRequest.Create(Path, FetchImageCallback);
-    Request.UserData := @UserData;
-    Request.UserDataSize := SizeOf(UserData);
+    Request.UserData := TFetchRange.Create(UserData);
     Request.Send;
   end;
 end;
@@ -873,7 +910,7 @@ begin
       if (glTFPrim.Indices <> nil) then
       begin
         Prim.IndexBuffer := AData.GetBufferViewIndex(glTFPrim.Indices.BufferView);
-        Assert(FCreationParams.Buffers[Prim.IndexBuffer].BufferType = TBufferType.IndexBuffer);
+        Assert(FCreationParams.Buffers[Prim.IndexBuffer].Usage.IndexBuffer);
         Assert(glTFPrim.Indices.Stride <> 0);
         Prim.BaseElement := 0;
         Prim.NumElements := glTFPrim.Indices.Count;
@@ -917,13 +954,11 @@ end;
 procedure TglTFApp.Init;
 begin
   inherited;
-  ReportMemoryLeaksOnShutdown := False;
-
   { Initialize camera helper }
   var CamDesc := TCameraDesc.Create;
   CamDesc.Latitude := -10;
   CamDesc.Longitude := 45;
-  Camdesc.Distance := 3;
+  Camdesc.Distance := 2.5;
   FCamera := TCamera.Create(CamDesc);
 
   { Initialize Basis Universal }
@@ -932,6 +967,8 @@ begin
   { Setup Debug Text }
   var DbgTextDesc := TDbgTextDesc.Create;
   DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
+  DbgTextDesc.UseDelphiMemoryManager := True;
+  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
   TDbgText.Setup(DbgTextDesc);
 
   { Setup Neslib.Sokol.Fetch with 1 channel and 4 lanes per channel.
@@ -941,6 +978,7 @@ begin
   FetchDesc.NumChannels := FETCH_NUM_CHANNELS;
   FetchDesc.NumLanes := FETCH_NUM_LANES;
   FetchDesc.BaseDirectory := 'Data/glTF';
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
   TFetch.Setup(FetchDesc);
 
   { Normal background color, and a "load failed" background color }
@@ -959,7 +997,7 @@ begin
   var Request := TFetchRequest.Create(FILENAME, FetchCallback);
   Request.Send;
 
-  { Create placeholder textures }
+  { Create placeholder textures and sampler }
   FPlaceholders.Init;
 end;
 
@@ -968,7 +1006,7 @@ begin
   FRootTransform.InitRotationY(Radians(FRX));
 end;
 
-function TglTFApp.VSParamsForNode(const ANodeIndex: Integer): TVSParams;
+function TglTFApp.VSParamsForNode(const ANodeIndex: Integer): TGltfVSParams;
 begin
   Result.Model :=  FRootTransform * FScene.Nodes[ANodeIndex].Transform;
   Result.ViewProj := FCamera.ViewProj;

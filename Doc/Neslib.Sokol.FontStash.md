@@ -41,3 +41,7 @@ This is a light-weight OOP layer on top of [sokol_fontstash.h](https://github.co
     ```
 
     before `sglShutdown` and TGfx`.Shutdown`.
+
+## Memory Allocation Override
+
+You can use Delphi's memory manager instead of the system memory manager by setting the optional `AUseDelphiMemoryManager` parameter of `TSokolFontStash` to `True`.  This only affects memory allocation calls done by Neslib.Sokol.FontStash itself though, not any allocations in OS libraries.
