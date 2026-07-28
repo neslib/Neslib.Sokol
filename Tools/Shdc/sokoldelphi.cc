@@ -58,7 +58,8 @@ void SokolDelphiGenerator::start_const() {
 ErrMsg SokolDelphiGenerator::begin(const GenInput& gen) {
     tab_width = 2;
     if (!gen.inp.module.empty()) {
-        mod_prefix = fmt::format("{}_", gen.inp.module);
+        mod_prefix = delphi_case(gen.inp.module);
+        mod_prefix_underscore = mod_prefix + "_";
     }
     if (gen.args.output_format != Format::SOKOL_IMPL) {
         func_prefix = "static inline ";
@@ -291,7 +292,7 @@ void SokolDelphiGenerator::gen_storage_buffer_decl(const GenInput& gen, const Ty
 }
 
 void SokolDelphiGenerator::gen_shader_desc_func_prototype(const ProgramReflection& prog) {
-    l("function {}ShaderDesc: PNativeShaderDesc;\n", delphi_case(prog.name));
+    l("function {}{}ShaderDesc: PNativeShaderDesc;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const ProgramReflection& prog) {
@@ -836,27 +837,27 @@ std::string SokolDelphiGenerator::struct_name(const std::string& name) {
 }
 
 std::string SokolDelphiGenerator::vertex_attr_name(const std::string& prog_name, const StageAttr& attr) {
-    return pystring::upper(fmt::format("ATTR_{}{}_{}", mod_prefix, prog_name, attr.name));
+    return pystring::upper(fmt::format("ATTR_{}{}_{}", mod_prefix_underscore, prog_name, attr.name));
 }
 
 std::string SokolDelphiGenerator::texture_bind_slot_name(const Texture& tex) {
-    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix, tex.name));
+    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix_underscore, tex.name));
 }
 
 std::string SokolDelphiGenerator::storage_buffer_bind_slot_name(const StorageBuffer& sbuf) {
-    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix, sbuf.name));
+    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix_underscore, sbuf.name));
 }
 
 std::string SokolDelphiGenerator::storage_image_bind_slot_name(const StorageImage& simg) {
-    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix, simg.name));
+    return pystring::upper(fmt::format("VIEW_{}{}", mod_prefix_underscore, simg.name));
 }
 
 std::string SokolDelphiGenerator::sampler_bind_slot_name(const Sampler& smp) {
-    return pystring::upper(fmt::format("SMP_{}{}", mod_prefix, smp.name));
+    return pystring::upper(fmt::format("SMP_{}{}", mod_prefix_underscore, smp.name));
 }
 
 std::string SokolDelphiGenerator::uniform_block_bind_slot_name(const UniformBlock& ub) {
-    return pystring::upper(fmt::format("UB_{}{}", mod_prefix, ub.name));
+    return pystring::upper(fmt::format("UB_{}{}", mod_prefix_underscore, ub.name));
 }
 
 std::string SokolDelphiGenerator::vertex_attr_definition(const std::string& prog_name, const StageAttr& attr) {

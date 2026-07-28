@@ -30,7 +30,7 @@ uses
   PLMpegShader;
 
 const
-  BUFFER_SIZE    = 512 * 1024;
+  BUFFER_SIZE    = 1024 * 1024;
   CHUNK_SIZE     = 128 * 1024;
   NUM_BUFFERS    = 4;
   RING_NUM_SLOTS = NUM_BUFFERS + 1;
@@ -59,6 +59,7 @@ type
     Width: Integer;
     Height: Integer;
     LastUpdFrame: Int64;
+    Img: TImage;
   end;
 
 type
@@ -67,11 +68,10 @@ type
     FBuffer: array [0..NUM_BUFFERS - 1, 0..BUFFER_SIZE - 1] of Byte;
     FMpeg: TMpeg;
     FMpegBuffer: TMpegBuffer;
-    FShader: TShader;
     FPip: TPipeline;
     FBind: TBindings;
     FPassAction: TPassAction;
-    FImageAttrs: array [0..2] of TImageAttr;
+    FImages: array [0..2] of TImageAttr;
     FFreeBuffers: TRing;
     FFullBuffers: TRing;
     FCurDownloadBuffer: Integer;
@@ -84,7 +84,8 @@ type
     procedure MpegLoad(const ABuffer: TMpegBuffer);
     procedure MpegVideoDecode(const AMpeg: TMpeg; const AFrame: TMpegFrame);
     procedure MpegAudioDecode(const AMpeg: TMpeg; const ASamples: TMpegSamples);
-    procedure ValidateTexture(const ASlot: Integer; const APlane: TMpegPlane);
+    procedure ValidateTexture(const ASlot: Integer; const APlane: TMpegPlane;
+      const AImgLabel, AViewLabel: UTF8String);
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -96,6 +97,7 @@ implementation
 
 uses
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.PLMpeg.Api;
 
 type
@@ -143,12 +145,6 @@ procedure TPLMpegApp.Cleanup;
 begin
   FMpeg.Free;
   FMpegBuffer.Free;
-  FPip.Free;
-  FShader.Free;
-  FBind.VertexBuffers[0].Free;
-  for var I := 0 to 2 do
-    FBind.FragmentShaderImages[I].Free;
-  FBind.IndexBuffer.Free;
   TFetch.Shutdown;
   TAudio.Shutdown;
   inherited;
@@ -178,7 +174,7 @@ begin
       { ...otherwise start streaming into the next free buffer }
       FCurDownloadBuffer := FFreeBuffers.Dequeue;
       AResponse.Handle.UnbindBuffer;
-      AResponse.Handle.BindBuffer(@FBuffer[FCurDownloadBuffer], BUFFER_SIZE);
+      AResponse.Handle.BindBuffer(TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
     end;
   end
   else if (AResponse.Paused) then
@@ -189,7 +185,7 @@ begin
     begin
       FCurDownloadBuffer := FFreeBuffers.Dequeue;
       AResponse.Handle.UnbindBuffer;
-      AResponse.Handle.BindBuffer(@FBuffer[FCurDownloadBuffer], BUFFER_SIZE);
+      AResponse.Handle.BindBuffer(TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
       AResponse.Handle.Continue;
     end;
   end;
@@ -229,6 +225,8 @@ begin
       AudioDesc.BufferFrames := 4096;
       AudioDesc.NumPackets := 256;
       AudioDesc.NumChannels := 2;
+      AudioDesc.UseDelphiMemoryManager := True;
+      AudioDesc.Logger := AudioDesc.DefaultLogger;
       TAudio.Setup(AudioDesc);
     end;
   end;
@@ -238,8 +236,8 @@ begin
   var H: Single := FramebufferHeight;
 
   var Proj, View, Model: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), H / W, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 0, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 0, 5), Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
   FRY := FRY - (0.1 * 60 * FrameDuration);
@@ -250,12 +248,16 @@ begin
 
   { Start rendering, but not before the first video frame has been decoded into
     textures }
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
-  if (FBind.FragmentShaderImages[0].Id <> INVALID_ID) then
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  if (FBind.Views[0].Id <> INVALID_ID) then
   begin
     TGfx.ApplyPipeline(FPip);
     TGfx.ApplyBindings(FBind);
-    TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+    TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
     TGfx.Draw(0, 24);
   end;
 
@@ -282,37 +284,47 @@ begin
   FetchDesc.NumChannels := 1;
   FetchDesc.NumLanes := 1;
   FetchDesc.BaseDirectory := 'Data';
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
   TFetch.Setup(FetchDesc);
 
   var Request := TFetchRequest.Create('bjork-all-is-full-of-love.mpg',
-    FetchCallback, @FBuffer[FCurDownloadBuffer], BUFFER_SIZE);
+    FetchCallback, TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
   Request.ChunkSize := CHUNK_SIZE;
   Request.Send;
 
   { Initialize Sokol Gfx }
   var BufferDesc := TBufferDesc.Create;
   BufferDesc.Data := TRange.Create(VERTICES);
+  BufferDesc.TraceLabel := 'Vertices';
   FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(INDICES);
+  BufferDesc.TraceLabel := 'Indices';
   FBind.IndexBuffer := TBuffer.Create(BufferDesc);
 
-  FShader := TShader.Create(PlmpegShaderDesc);
-
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POS].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_NORMAL].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_TEXCOORD].Format := TVertexFormat.Float2;
-  PipDesc.Shader := FShader;
+  PipDesc.Layout.Attrs[ATTR_PLMPEG_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_PLMPEG_NORMAL].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_PLMPEG_TEXCOORD].Format := TVertexFormat.Float2;
+  PipDesc.Shader := TShader.Create(PlmpegShaderDesc);
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.None;
   PipDesc.Depth.WriteEnabled := True;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+  PipDesc.TraceLabel := 'Pipeline';
   FPip := TPipeline.Create(PipDesc);
 
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0.569, 0.918, 1);
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  SamplerDesc.TraceLabel := 'Sampler';
+  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
+
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.569, 0.918, 1);
 
   { Note: texture creation is deferred until first frame is decoded }
 end;
@@ -349,46 +361,50 @@ procedure TPLMpegApp.MpegVideoDecode(const AMpeg: TMpeg;
   const AFrame: TMpegFrame);
 { Copy decoded video data into textures }
 begin
-  ValidateTexture(SLOT_TEX_Y, AFrame.Y);
-  ValidateTexture(SLOT_TEX_CB, AFrame.Cb);
-  ValidateTexture(SLOT_TEX_CR, AFrame.Cr);
+  ValidateTexture(VIEW_TEX_Y, AFrame.Y, 'ImageY', 'TexViewY');
+  ValidateTexture(VIEW_TEX_CB, AFrame.Cb, 'ImageCb', 'TexViewCb');
+  ValidateTexture(VIEW_TEX_CR, AFrame.Cr, 'ImageCr', 'TexViewCr');
 end;
 
 procedure TPLMpegApp.ValidateTexture(const ASlot: Integer;
-  const APlane: TMpegPlane);
+  const APlane: TMpegPlane; const AImgLabel, AViewLabel: UTF8String);
 { (Re-)create a video plane texture on demand, and update it with decoded
   video-plane data. }
 begin
-  if (FImageAttrs[ASlot].Width <> APlane.Width)
-    or (FImageAttrs[ASlot].Height <> APlane.Height) then
+  if (FImages[ASlot].Width <> APlane.Width)
+    or (FImages[ASlot].Height <> APlane.Height) then
   begin
-    FImageAttrs[ASlot].Width := APlane.Width;
-    FImageAttrs[ASlot].Height := APlane.Height;
+    FImages[ASlot].Width := APlane.Width;
+    FImages[ASlot].Height := APlane.Height;
 
     { Note: it's OK to call TImage.Free on nil images }
-    FBind.FragmentShaderImages[ASlot].Free;
+    FImages[ASlot].Img.Free;
 
     var ImgDesc := TImageDesc.Create;
     ImgDesc.Width := APlane.Width;
     ImgDesc.Height := APlane.Height;
     ImgDesc.PixelFormat := TPixelFormat.R8;
-    ImgDesc.Usage := TUsage.Stream;
-    ImgDesc.MinFilter := TFilter.Linear;
-    ImgDesc.MagFilter := TFilter.Linear;
-    ImgDesc.WrapU := TWrap.ClampToEdge;
-    ImgDesc.WrapV := TWrap.ClampToEdge;
+    ImgDesc.Usage.StreamUpdate := True;
+    ImgDesc.TraceLabel := AImgLabel;
 
-    FBind.FragmentShaderImages[ASlot] := TImage.Create(ImgDesc);
+    FImages[ASlot].Img := TImage.Create(ImgDesc);
+
+    { Recreate associated view }
+    FBind.Views[ASlot].Free;
+    var ViewDesc := TViewDesc.Create;
+    ViewDesc.Texture.Image := FImages[ASlot].Img;
+    ViewDesc.TraceLabel := AViewLabel;
+    FBind.Views[ASlot] := TView.Create(ViewDesc);
   end;
 
   { Copy decoded plane pixels into texture. Need to prevent that TImage.Update
     is called more than once per frame. }
-  if (FImageAttrs[ASlot].LastUpdFrame <> FCurFrame) then
+  if (FImages[ASlot].LastUpdFrame <> FCurFrame) then
   begin
-    FImageAttrs[ASlot].LastUpdFrame := FCurFrame;
+    FImages[ASlot].LastUpdFrame := FCurFrame;
     var ImgData := TImageData.Create;
-    ImgData.SubImages[0] := TRange.Create(APlane.Data, APlane.Width * APlane.Height);
-    FBind.FragmentShaderImages[ASlot].Update(ImgData);
+    ImgData.MipLevels[0] := TRange.Create(APlane.Data, APlane.Width * APlane.Height);
+    FImages[ASlot].Img.Update(ImgData);
   end;
 end;
 

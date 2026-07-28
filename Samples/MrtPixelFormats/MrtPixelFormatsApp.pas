@@ -31,7 +31,7 @@ type
     TexView: TView;
   public
     procedure Init(const AImgDesc: TImageDesc; const AAttLabel,
-      ATexLabel: PUTF8Char);
+      ATexLabel: UTF8String);
   end;
 
 type
@@ -260,7 +260,7 @@ end;
 { TImageAndViews }
 
 procedure TImageAndViews.Init(const AImgDesc: TImageDesc; const AAttLabel,
-  ATexLabel: PUTF8Char);
+  ATexLabel: UTF8String);
 begin
   Image := TImage.Create(AImgDesc);
 

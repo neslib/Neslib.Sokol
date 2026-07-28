@@ -18,7 +18,7 @@ const
   NUM_LINE_INDICES           = NUM_X * (NUM_Y - 1) * 2;
   NUM_LINE_STRIP_INDICES     = NUM_X * (NUM_Y - 1);
   NUM_TRIANGLE_INDICES       = (NUM_X - 1) * (NUM_Y - 1) * 3;
-  NUM_TRIANGLE_STRIP_INDICES = ((NUM_X - 1) * (NUM_Y - 1) * 2) + ((NUM_Y - 1) * 2);
+  NUM_TRIANGLE_STRIP_INDICES = (NUM_X * (NUM_Y - 1) * 2) + ((NUM_Y - 1) * 2);
 
 type
   TVertex = record
@@ -59,7 +59,6 @@ type
   private
     FCurPrimType: TPrimitiveType;
     FPassAction: TPassAction;
-    FShader: TShader;
     FVBuf: TBuffer;
     FPrim: array [TPrimitiveType] of TPrimitiveData;
     FRX: Single;
@@ -84,27 +83,23 @@ implementation
 
 uses
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.ImGui;
 
 { TPrimTypesApp }
 
 procedure TPrimTypesApp.Cleanup;
 begin
-  FVBuf.Free;
-  for var PrimType := TPrimitiveType.Lines to TPrimitiveType.TriangleStrip do
-  begin
-    FPrim[PrimType].IBuf.Free;
-    FPrim[PrimType].Pip.Free;
-  end;
-  FShader.Free;
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
 end;
 
 function TPrimTypesApp.ComputeVSParams(const ADispW, ADispH: Single): TVSParams;
 begin
   var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), ADispH / ADispW, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 0, 1.5), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  Proj.InitPerspectiveFovRH(Radians(60), ADispW / ADispH, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 0, 1.25), Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
   var RXM, RYM: TMatrix4;
@@ -134,7 +129,7 @@ begin
   ImGui.SetNextWindowSize(Vector2(300, 0));
   if (ImGui.&Begin('Settings', nil, [TImGuiWindowFlag.NoResize])) then
   begin
-    ImGui.SliderFloat('Point Size', FPointSize, 1, 50);
+    ImGui.SliderFloat('Point Size', @FPointSize, 1, 50);
 
     if (ImGui.RadioButton('Point List', FCurPrimType = TPrimitiveType.Points)) then
       FCurPrimType := TPrimitiveType.Points;
@@ -165,7 +160,11 @@ begin
 
   var VSParams := ComputeVSParams(W, H);
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPrim[FCurPrimType].Pip);
 
   var Bind := TBindings.Create;
@@ -173,7 +172,7 @@ begin
   Bind.IndexBuffer := FPrim[FCurPrimType].IBuf;
   TGfx.ApplyBindings(Bind);
 
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, FPrim[FCurPrimType].NumElements);
 
   DebugFrame;
@@ -206,7 +205,7 @@ begin
   IndexData[TPrimitiveType.Triangles] := TRange.Create(FIndices.Triangles);
   IndexData[TPrimitiveType.TriangleStrip] := TRange.Create(FIndices.TriangleStrip);
 
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   for var PrimType := TPrimitiveType.Lines to TPrimitiveType.TriangleStrip do
   begin
     BufferDesc.Data := IndexData[PrimType];
@@ -214,13 +213,11 @@ begin
   end;
 
   { Create pipeline state objects for each primitive type }
-  FShader := TShader.Create(PrimtypesShaderDesc);
-
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float2;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.UByte4N;
+  PipDesc.Layout.Attrs[ATTR_PRIMTYPES_POSITION].Format := TVertexFormat.Float2;
+  PipDesc.Layout.Attrs[ATTR_PRIMTYPES_COLOR0].Format := TVertexFormat.UByte4N;
   PipDesc.IndexType := TIndexType.None; { No indices for point lists }
-  PipDesc.Shader := FShader;
+  PipDesc.Shader := TShader.Create(PrimtypesShaderDesc);
   PipDesc.Depth.WriteEnabled := True;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
 
@@ -241,7 +238,7 @@ begin
   FPrim[TPrimitiveType.TriangleStrip].NumElements := NUM_TRIANGLE_STRIP_INDICES;
 
   { Pass action for clearing the framebuffer }
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0.2, 0.4, 1);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.2, 0.4, 1);
 end;
 
 procedure TPrimTypesApp.TouchesBegan(const ATouches: TTouches);
@@ -351,7 +348,7 @@ begin
   I := 0;
   for Y := 0 to NUM_Y - 2 do
   begin
-    for X := 0 to NUM_X - 2 do
+    for X := 0 to NUM_X - 1 do
     begin
       I0 := X + (Y * NUM_X);
       I1 := I0 + NUM_X;

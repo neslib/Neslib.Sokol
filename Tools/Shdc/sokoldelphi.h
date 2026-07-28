@@ -5,6 +5,7 @@ namespace shdc::gen {
 
 class SokolDelphiGenerator: public Generator {
     std::string mod_prefix;
+    std::string mod_prefix_underscore;
     std::string func_prefix;
     bool need_const;
 private:
