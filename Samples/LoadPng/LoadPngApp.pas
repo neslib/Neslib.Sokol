@@ -101,28 +101,6 @@ const
 
 { TLoadPngApp }
 
-procedure TLoadPngApp.Cleanup;
-begin
-  TFetch.Shutdown;
-  inherited;
-end;
-
-function TLoadPngApp.ComputeVSParams: TVSParams;
-begin
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
-  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  Result.MVP := ViewProj * Model;
-end;
-
 procedure TLoadPngApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -130,72 +108,6 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'Async PNG Loading';
-end;
-
-procedure TLoadPngApp.FetchCallback(const AResponse: TFetchResponse);
-{ This method is called by Neslib.Sokol.Fetchh when the data is loaded, or when
-  an error has occurred. }
-begin
-  if (AResponse.Fetched) then
-  begin
-    { The file data has been fetched. Since we provided a big-enough buffer we
-      can be sure that all data has been loaded here. }
-    var Image := TStbImage.Create;
-    try
-      if (Image.Load(AResponse.Data.Ptr, AResponse.Data.Size, 4)) then
-      begin
-        { OK, time to actually initialize the Sokol Gfx texture }
-        var ImgDesc := TImageDesc.Create;
-        ImgDesc.Width := Image.Width;
-        ImgDesc.Height := Image.Height;
-        ImgDesc.PixelFormat := TPixelFormat.Rgba8;
-        ImgDesc.Data.MipLevels[0] := TRange.Create(Image.Data, Image.Width * Image.Height * 4);
-        ImgDesc.TraceLabel := 'PngImage';
-
-        var ViewDesc := TViewDesc.Create;
-        ViewDesc.Texture.Image := TImage.Create(ImgDesc);
-        ViewDesc.TraceLabel := 'PngTextureView';
-        FView.Setup(ViewDesc);
-      end;
-    finally
-      Image.Free;
-    end;
-  end
-  else if (AResponse.Failed) then
-  begin
-    { If loading the file failed, set clear color to red }
-    FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0, 1);
-  end;
-end;
-
-procedure TLoadPngApp.Frame;
-{ The frame-function is fairly boring. Note that no special handling is needed
-  for the case where the texture isn't loaded yet.
-  Also note the TFetch.DoWork call. This is usually called once a frame to pump
-  the Neslib.Sokol.Fetch message queues. }
-begin
-  { Pump the Fetch message queues, and invoke response callbacks }
-  TFetch.DoWork;
-
-  { Compute model-view-projection matrix for vertex shader }
-  var T: Single := FrameDuration * 60;
-  FRX := FRX + (1 * T);
-  FRY := FRY + (2 * T);
-  var VSParams := ComputeVSParams;
-
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FPip);
-  TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
-  TGfx.Draw(0, 36, 1);
-
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TLoadPngApp.Init;
@@ -254,6 +166,94 @@ begin
   var Request := TFetchRequest.Create('baboon.png', FetchCallback,
     TFetchRange.Create(FFileBuffer));
   Request.Send;
+end;
+
+procedure TLoadPngApp.Frame;
+{ The frame-function is fairly boring. Note that no special handling is needed
+  for the case where the texture isn't loaded yet.
+  Also note the TFetch.DoWork call. This is usually called once a frame to pump
+  the Neslib.Sokol.Fetch message queues. }
+begin
+  { Pump the Fetch message queues, and invoke response callbacks }
+  TFetch.DoWork;
+
+  { Compute model-view-projection matrix for vertex shader }
+  var T: Single := FrameDuration * 60;
+  FRX := FRX + (1 * T);
+  FRY := FRY + (2 * T);
+  var VSParams := ComputeVSParams;
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPip);
+  TGfx.ApplyBindings(FBind);
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.Draw(0, 36, 1);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TLoadPngApp.Cleanup;
+begin
+  TFetch.Shutdown;
+  inherited;
+end;
+
+procedure TLoadPngApp.FetchCallback(const AResponse: TFetchResponse);
+{ This method is called by Neslib.Sokol.Fetchh when the data is loaded, or when
+  an error has occurred. }
+begin
+  if (AResponse.Fetched) then
+  begin
+    { The file data has been fetched. Since we provided a big-enough buffer we
+      can be sure that all data has been loaded here. }
+    var Image := TStbImage.Create;
+    try
+      if (Image.Load(AResponse.Data.Ptr, AResponse.Data.Size, 4)) then
+      begin
+        { OK, time to actually initialize the Sokol Gfx texture }
+        var ImgDesc := TImageDesc.Create;
+        ImgDesc.Width := Image.Width;
+        ImgDesc.Height := Image.Height;
+        ImgDesc.PixelFormat := TPixelFormat.Rgba8;
+        ImgDesc.Data.MipLevels[0] := TRange.Create(Image.Data, Image.Width * Image.Height * 4);
+        ImgDesc.TraceLabel := 'PngImage';
+
+        var ViewDesc := TViewDesc.Create;
+        ViewDesc.Texture.Image := TImage.Create(ImgDesc);
+        ViewDesc.TraceLabel := 'PngTextureView';
+        FView.Setup(ViewDesc);
+      end;
+    finally
+      Image.Free;
+    end;
+  end
+  else if (AResponse.Failed) then
+  begin
+    { If loading the file failed, set clear color to red }
+    FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0, 1);
+  end;
+end;
+
+function TLoadPngApp.ComputeVSParams: TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
 end;
 
 end.

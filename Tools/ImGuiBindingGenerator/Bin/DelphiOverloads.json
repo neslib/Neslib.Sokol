@@ -305,4 +305,26 @@
       "impl": "*"
     }
   ],
+  "igInputTextMultiline": [
+    { 
+      "intf": "class function InputTextMultiline(const ALabel: PUTF8Char; const AText: TImGuiText): Boolean; overload; static; inline;",
+      "impl": "Result := InputTextMultiline(ALabel, AText, TVector2.Zero);",
+    },
+    { 
+      "intf": "class function InputTextMultiline(const ALabel: PUTF8Char; const AText: TImGuiText;|const ASize: TVector2; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; static; inline;",
+      "impl": "var Flags := AFlags + [TImGuiInputTextFlag.CallbackResize];\r\n  AText.Validate;\r\n  Result := _igInputTextMultilineEx(ALabel, Pointer(AText.FBuffer), Length(AText.FBuffer), _ImVec2(ASize), Cardinal(Flags), @__ImGuiInputTextCallback, @AText);",
+    },
+  ],
+  "igInputTextEx": [
+    { 
+      "intf": "class function InputText(const ALabel: PUTF8Char; const AText: TImGUiText;|const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;",
+      "impl": "var Flags := AFlags + [TImGuiInputTextFlag.CallbackResize];\r\n  AText.Validate;\r\n  Result := _igInputTextEx(ALabel, Pointer(AText.FBuffer), Length(AText.FBuffer), Cardinal(Flags), @__ImGuiInputTextCallback, @AText);",
+    },
+  ],
+  "igInputTextWithHintEx": [
+    { 
+      "intf": "class function InputTextWithHint(const ALabel, AHint: PUTF8Char; const AText: TImGUiText;|const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;",
+      "impl": "var Flags := AFlags + [TImGuiInputTextFlag.CallbackResize];\r\n  AText.Validate;\r\n  Result := _igInputTextWithHintEx(ALabel, AHint, Pointer(AText.FBuffer), Length(AText.FBuffer), Cardinal(Flags), @__ImGuiInputTextCallback, @AText);",
+    },
+  ],
 }

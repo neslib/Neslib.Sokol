@@ -62,13 +62,6 @@ const
 
 { TInstancingApp }
 
-procedure TInstancingApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TInstancingApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -76,6 +69,49 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'Instancing';
+end;
+
+procedure TInstancingApp.Init;
+begin
+  inherited;
+  FX := $12345678;
+
+  { A pass action for the default render pass }
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
+
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(VERTICES);
+  BufferDesc.TraceLabel := 'GeometryVertices';
+  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
+  BufferDesc.Data := TRange.Create(INDICES);
+  BufferDesc.TraceLabel := 'GeometryIndices';
+  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
+
+  { Empty, dynamic instance-data vertex buffer.
+    Goes into vertex-buffer-slot 1 }
+  BufferDesc.Init;
+  BufferDesc.Size := MAX_PARTICLES * SizeOf(TVector3);
+  BufferDesc.Usage.StreamUpdate := True;
+  BufferDesc.TraceLabel := 'InstanceData';
+  FBind.VertexBuffers[1] := TBuffer.Create(BufferDesc);
+
+  FShader := TShader.Create(InstancingShaderDesc);
+
+  var PipDesc := TPipelineDesc.Create;
+  { Vertex buffer at slot 1 must step per instance }
+  PipDesc.Layout.Buffers[1].StepFunc := TVertexStep.PerInstance;
+  PipDesc.Layout.Attrs[ATTR_INSTANCING_POS].Init(0, 0, TVertexFormat.Float3);
+  PipDesc.Layout.Attrs[ATTR_INSTANCING_COLOR0].Init(0, 0, TVertexFormat.Float4);
+  PipDesc.Layout.Attrs[ATTR_INSTANCING_INST_POS].Init(1, 0, TVertexFormat.Float3);
+  PipDesc.Shader := FShader;
+  PipDesc.IndexType := TIndexType.UInt16;
+  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.TraceLabel := 'InstancingPipeline';
+  FPip := TPipeline.Create(PipDesc);
 end;
 
 procedure TInstancingApp.Frame;
@@ -143,47 +179,11 @@ begin
   TGfx.Commit;
 end;
 
-procedure TInstancingApp.Init;
+procedure TInstancingApp.Cleanup;
 begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
-  FX := $12345678;
-
-  { A pass action for the default render pass }
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
-
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'GeometryVertices';
-  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
-
-  BufferDesc.Init;
-  BufferDesc.Usage.IndexBuffer := True;
-  BufferDesc.Data := TRange.Create(INDICES);
-  BufferDesc.TraceLabel := 'GeometryIndices';
-  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
-
-  { Empty, dynamic instance-data vertex buffer.
-    Goes into vertex-buffer-slot 1 }
-  BufferDesc.Init;
-  BufferDesc.Size := MAX_PARTICLES * SizeOf(TVector3);
-  BufferDesc.Usage.StreamUpdate := True;
-  BufferDesc.TraceLabel := 'InstanceData';
-  FBind.VertexBuffers[1] := TBuffer.Create(BufferDesc);
-
-  FShader := TShader.Create(InstancingShaderDesc);
-
-  var PipDesc := TPipelineDesc.Create;
-  { Vertex buffer at slot 1 must step per instance }
-  PipDesc.Layout.Buffers[1].StepFunc := TVertexStep.PerInstance;
-  PipDesc.Layout.Attrs[ATTR_INSTANCING_POS].Init(0, 0, TVertexFormat.Float3);
-  PipDesc.Layout.Attrs[ATTR_INSTANCING_COLOR0].Init(0, 0, TVertexFormat.Float4);
-  PipDesc.Layout.Attrs[ATTR_INSTANCING_INST_POS].Init(1, 0, TVertexFormat.Float3);
-  PipDesc.Shader := FShader;
-  PipDesc.IndexType := TIndexType.UInt16;
-  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-  PipDesc.Depth.WriteEnabled := True;
-  PipDesc.TraceLabel := 'InstancingPipeline';
-  FPip := TPipeline.Create(PipDesc);
 end;
 
 function TInstancingApp.XorShift32: UInt32;

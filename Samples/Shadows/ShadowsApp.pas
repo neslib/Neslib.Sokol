@@ -1,6 +1,10 @@
 unit ShadowsApp;
-{  Render to an offscreen rendertarget texture, and use this texture
-   for rendering shadows to the screen. }
+{ Shadow mapping via a regular RGBA8 texture as shadow map. The depth value is
+  encoded to RGBA8 in the shadow pass fragment shader, and decoded from RGBA8 in
+  the display-pass fragment shader.
+
+  Also see ShadowsDepthTex for a similar sample using a depth-only pass and
+  depth-buffer as shadow map. }
 
 interface
 
@@ -11,44 +15,47 @@ uses
   SampleApp,
   ShadowsShader;
 
-const
-  SCREEN_SAMPLE_COUNT = 4;
-
 type
-  TShadows = record
+  TShadow = record
   public
-    PassAction: TPassAction;
     Pass: TPass;
     Pip: TPipeline;
     Bind: TBindings;
-    ColorImg: TImage;
-    DepthImg: TImage;
-    Shader: TShader;
+    TexView: TView;
+    Sampler: TSampler;
   public
     procedure Init(const AVBuf, AIBuf: TBuffer);
-    procedure Free;
   end;
 
 type
-  TDefault = record
+  TDisplay = record
   public
     PassAction: TPassAction;
     Pip: TPipeline;
     Bind: TBindings;
-    Shader: TShader;
   public
-    procedure Init(const AVBuf, AIBuf: TBuffer; const AImage: TImage);
-    procedure Free;
+    procedure Init(const AVBuf, AIBuf: TBuffer; const AShadowMapTexView: TView;
+      const AShadowSampler: TSampler);
+  end;
+
+type
+  TDebug = record
+  public
+    Pip: TPipeline;
+    Bind: TBindings;
+  public
+    procedure Init(const AShadowMapTexView: TView);
   end;
 
 type
   TShadowsApp = class(TSampleApp)
   private
-    FShadows: TShadows;
-    FDefault: TDefault;
     FVBuf: TBuffer;
     FIBuf: TBuffer;
     FRY: Single;
+    FShadow: TShadow;
+    FDisplay: TDisplay;
+    FDebug: TDebug;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
     procedure Init; override;
@@ -59,11 +66,12 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
-  { cube vertex buffer with positions & normals }
-  VERTICES: array [0..167] of Single = (
+  { Vertex buffer for a cube and plane }
+  SCENE_VERTICES: array [0..167] of Single = (
   // Pos                 Normal
     -1.0, -1.0, -1.0,    0.0, 0.0, -1.0,  //CUBE BACK FACE
      1.0, -1.0, -1.0,    0.0, 0.0, -1.0,
@@ -95,14 +103,14 @@ const
      1.0,  1.0,  1.0,    0.0, 1.0, 0.0,
      1.0,  1.0, -1.0,    0.0, 1.0, 0.0,
 
-    -1.0,  0.0, -1.0,    0.0, 1.0, 0.0,   //PLANE GEOMETRY
-    -1.0,  0.0,  1.0,    0.0, 1.0, 0.0,
-     1.0,  0.0,  1.0,    0.0, 1.0, 0.0,
-     1.0,  0.0, -1.0,    0.0, 1.0, 0.0);
+    -5.0,  0.0, -5.0,    0.0, 1.0, 0.0,   //PLANE GEOMETRY
+    -5.0,  0.0,  5.0,    0.0, 1.0, 0.0,
+     5.0,  0.0,  5.0,    0.0, 1.0, 0.0,
+     5.0,  0.0, -5.0,    0.0, 1.0, 0.0);
 
 const
-  { Index buffer for the cube }
-  INDICES: array [0..41] of UInt16 = (
+  { And a matching index buffer for the scene }
+  SCENE_INDICES: array [0..41] of UInt16 = (
     0, 1, 2,  0, 2, 3,
     6, 5, 4,  7, 6, 4,
     8, 9, 10,  8, 10, 11,
@@ -111,24 +119,39 @@ const
     22, 21, 20,  23, 22, 20,
     26, 25, 24,  27, 26, 24);
 
-{ TShadowsApp }
+const
+  { A vertex bufferto render a debug visualization of the shadow map }
+  DEBUG_VERTICES: array [0..7] of Single = (
+    0.0, 0.0,  1.0, 0.0,  0.0, 1.0,  1.0, 1.0);
 
-procedure TShadowsApp.Cleanup;
-begin
-  FShadows.Free;
-  FDefault.Free;
-  FVBuf.Free;
-  FIBuf.Free;
-  inherited;
-end;
+{ TShadowsApp }
 
 procedure TShadowsApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
   AConfig.Width := 800;
   AConfig.Height := 600;
-  AConfig.SampleCount := SCREEN_SAMPLE_COUNT;
+  AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'Shadow Rendering';
+end;
+
+procedure TShadowsApp.Init;
+begin
+  inherited;
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(SCENE_VERTICES);
+  BufferDesc.TraceLabel := 'CubeVertices';
+  FVBuf := TBuffer.Create(BufferDesc);
+
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
+  BufferDesc.Data := TRange.Create(SCENE_INDICES);
+  BufferDesc.TraceLabel := 'CubeIndices';
+  FIBuf := TBuffer.Create(BufferDesc);
+
+  FShadow.Init(FVBuf, FIBuf);
+  FDisplay.Init(FVBuf, FIBuf, FShadow.TexView, FShadow.Sampler);
+  FDebug.Init(FShadow.TexView);
 end;
 
 procedure TShadowsApp.Frame;
@@ -136,204 +159,225 @@ begin
   var T: Single := FrameDuration * 60;
   FRY := FRY + (0.2 * T);
 
-  { Calculate matrices for shadow pass }
-  var RYM, LightView, LightProj, Ortho, Proj, View, Scale, Translate: TMatrix4;
-  RYM.InitRotationY(Radians(FRY));
-  var LightDir := RYM * Vector4(50, 50, -50, 0);
-  LightView.InitLookAtRH(Vector3(LightDir), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var EyePos := Vector3(5, 5, 5);
+  var PlaneModel := TMatrix4.Identity;
+  var CubeModel: TMatrix4;
+  CubeModel.InitTranslation(0, 1.5, 0);
+  var PlaneColor := Vector3(1, 0.5, 0);
+  var CubeColor := Vector3(0.5, 0.5, 1);
 
-  { Configure a bias matrix for converting view-space coordinates into uv
-    coordinates }
-  LightProj.Init(
-    0.5, 0.0, 0.0, 0,
-    0.0, 0.5, 0.0, 0,
-    0.0, 0.0, 0.5, 0,
-    0.5, 0.5, 0.5, 1);
-  Ortho.InitOrthoOffCenterRH(-4, 4, 4, -4, 0, 200);
-  LightProj := LightProj * Ortho;
+  { Calculate matrices for shadow pass }
+  var RYM, LightView, LightProj: TMatrix4;
+  RYM.InitRotationY(Radians(FRY));
+  var LightPos := RYM * Vector4(50, 50, -50, 1);
+  LightView.InitLookAtRH(Vector3(LightPos), Vector3(0, 1.5, 0), Vector3(0, 1, 0));
+  LightProj.InitOrthoOffCenterRH(-5, 5, 5, -5, 0, 100);
   var LightViewProj := LightProj * LightView;
 
-  { Calculate matrices for camera pass }
-  Proj.InitPerspectiveFovRH(Radians(60), FramebufferHeight / FramebufferWidth,
-    0.01, 100, True);
-  View.InitLookAtRH(Vector3(5, 5, 5), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var CubeVSShadowParams: TVSShadowParams;
+  CubeVSShadowParams.Mvp := LightViewProj * CubeModel;
+
+  { Calculate matrices for display pass }
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), FramebufferWidth / FramebufferHeight,
+    0.01, 100);
+  View.InitLookAtRH(EyePos, Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
-  { Calculate transform matrices for plane and cube }
-  Scale.InitScaling(5, 0, 5);
-  Translate.InitTranslation(0, 1.5, 0);
+  var FSDisplayParams: TFSDisplayParams;
+  FSDisplayParams.LightDir := Vector3(LightPos).Normalize;
+  FSDisplayParams.EyePos := EyePos;
 
-  { Initialise fragment uniforms for light shader }
-  var FSLightParams: TFSLightParams;
-  FSLightParams.LightDir := Vector3(LightDir).Normalize;
-  FSLightParams.ShadowMapSize.Init(2048, 2048);
-  FSLightParams.EyePos.Init(5, 5, 5);
+  var PlaneVSDisplayParams: TVSDisplayParams;
+  PlaneVSDisplayParams.Mvp := ViewProj * PlaneModel;
+  PlaneVSDisplayParams.Model := PlaneModel;
+  PlaneVSDisplayParams.LightMvp := LightViewProj * PlaneModel;
+  PlaneVSDisplayParams.DiffColor := PlaneColor;
 
-  { The shadow map pass, render the vertices into the depth image }
-  TGfx.BeginPass(FShadows.Pass, FShadows.PassAction);
-  TGfx.ApplyPipeline(FShadows.Pip);
-  TGfx.ApplyBindings(FShadows.Bind);
+  var CubeVSDisplayParams: TVSDisplayParams;
+  CubeVSDisplayParams.Mvp := ViewProj * CubeModel;
+  CubeVSDisplayParams.Model := CubeModel;
+  CubeVSDisplayParams.LightMvp := LightViewProj * CubeModel;
+  CubeVSDisplayParams.DiffColor := CubeColor;
 
-  { Render the cube into the shadow map }
-  var VSShadowParams: TVSShadowParams;
-  VSShadowParams.Mvp := LightViewProj * Translate;
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_SHADOW_PARAMS,
-    TRange.Create(VSShadowParams));
+  { the shadow map pass, render scene from light source into shadow map texture }
+  TGfx.BeginPass(FShadow.Pass);
+  TGfx.ApplyPipeline(FShadow.Pip);
+  TGfx.ApplyBindings(FShadow.Bind);
+  TGfx.ApplyUniforms(UB_VS_SHADOW_PARAMS, TRange.Create(CubeVSShadowParams));
   TGfx.Draw(0, 36);
   TGfx.EndPass;
 
-  { And the display-pass, rendering the scene, using the previously rendered
-    shadow map as a texture }
-  TGfx.BeginDefaultPass(FDefault.PassAction, FramebufferWidth, FramebufferHeight);
-  TGfx.ApplyPipeline(FDefault.Pip);
-  TGfx.ApplyBindings(FDefault.Bind);
-  TGfx.ApplyUniforms(TShaderStage.FragmentShader, SLOT_FS_LIGHT_PARAMS,
-    TRange.Create(FSLightParams));
+  { The display pass, render scene from camera and sample the shadow map }
+  var Pass := TPass.Create;
+  Pass.Action^ := FDisplay.PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
 
-  { Render the plane in the light pass }
-  var VSLightParams: TVSLightParams;
-  VSLightParams.Mvp := ViewProj * Scale;
-  VSLightParams.LightMVP := LightViewProj * Scale;
-  VSLightParams.Model := TMatrix4.Identity;
-  VSLightParams.DiffColor.Init(0.5, 0.5, 0.5);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_LIGHT_PARAMS,
-    TRange.Create(VSLightParams));
+  TGfx.ApplyPipeline(FDisplay.Pip);
+  TGfx.ApplyBindings(FDisplay.Bind);
+  TGfx.ApplyUniforms(UB_FS_DISPLAY_PARAMS, TRange.Create(FSDisplayParams));
+
+  { Render plane }
+  TGfx.ApplyUniforms(UB_VS_DISPLAY_PARAMS, TRange.Create(PlaneVSDisplayParams));
   TGfx.Draw(36, 6, 1);
 
-  { Render the cube in the light pass }
-  VSLightParams.LightMVP := LightViewProj * Translate;
-  VSLightParams.Model := Translate;
-  VSLightParams.Mvp := ViewProj * Translate;
-  VSLightParams.DiffColor.Init(1, 1, 1);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_LIGHT_PARAMS,
-    TRange.Create(VSLightParams));
+  { Render cube }
+  TGfx.ApplyUniforms(UB_VS_DISPLAY_PARAMS, TRange.Create(CubeVSDisplayParams));
   TGfx.Draw(0, 36, 1);
+
+  { Render debug visualization of shadow-map }
+  var DebugSize: Single := 150 * DpiScale;
+  TGfx.ApplyPipeline(FDebug.Pip);
+  TGfx.ApplyBindings(FDebug.Bind);
+  TGfx.ApplyViewport(FramebufferWidth - DebugSize, 0, DebugSize, DebugSize, False);
+  TGfx.Draw(0, 4, 1);
 
   DebugFrame;
   TGfx.EndPass;
   TGfx.Commit;
 end;
 
-procedure TShadowsApp.Init;
+procedure TShadowsApp.Cleanup;
 begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'CubeVertices';
-  FVBuf := TBuffer.Create(BufferDesc);
-
-  BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
-  BufferDesc.Data := TRange.Create(INDICES);
-  BufferDesc.TraceLabel := 'CubeIndices';
-  FIBuf := TBuffer.Create(BufferDesc);
-
-  FShadows.Init(FVBuf, FIBuf);
-  FDefault.Init(FVBuf, FIBuf, FShadows.ColorImg);
 end;
 
-{ TShadows }
+{ TShadow }
 
-procedure TShadows.Free;
+procedure TShadow.Init(const AVBuf, AIBuf: TBuffer);
 begin
-  Pass.Free;
-  Pip.Free;
-  ColorImg.Free;
-  DepthImg.Free;
-  Shader.Free;
-end;
-
-procedure TShadows.Init(const AVBuf, AIBuf: TBuffer);
-begin
-  { Shadow pass action: clear to white }
-  PassAction.Colors[0].Init(TAction.Clear, 1, 1, 1, 1);
-
-  { A render pass with one color- and one depth-attachment image  }
+  { A regular RGBA8 render target image as shadow map  }
   var ImgDesc := TImageDesc.Create;
-  ImgDesc.RenderTarget := True;
+  ImgDesc.Usage.ColorAttachment := True;
   ImgDesc.Width := 2048;
   ImgDesc.Height := 2048;
   ImgDesc.PixelFormat := TPixelFormat.Rgba8;
-  ImgDesc.MinFilter := TFilter.Linear;
-  ImgDesc.MagFilter := TFilter.Linear;
   ImgDesc.SampleCount := 1;
-  ImgDesc.TraceLabel := 'ShadowMapColorImage';
-  ColorImg := TImage.Create(ImgDesc);
+  ImgDesc.TraceLabel := 'ShadowMap';
+  var ShadowMapImg := TImage.Create(ImgDesc);
 
+  { We also need a separate depth-buffer image for the shadow pass }
+  ImgDesc.Usage.ColorAttachment := False;
+  ImgDesc.Usage.DepthStencilAttachment := True;
   ImgDesc.PixelFormat := TPixelFormat.Depth;
-  ImgDesc.TraceLabel := 'ShadowMapDepthImage';
-  DepthImg := TImage.Create(ImgDesc);
+  ImgDesc.TraceLabel := 'ShadowDepthBuffer';
+  var ShadowDepthImg := TImage.Create(ImgDesc);
 
-  var PassDesc := TPassDesc.Create;
-  PassDesc.ColorAttachments[0].Image := ColorImg;
-  PassDesc.DepthStencilAttachment.Image := DepthImg;
-  PassDesc.TraceLabel := 'ShadowMapPass';
-  Pass := TPass.Create(PassDesc);
+  { Attachment and texture views}
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.ColorAttachment.Image := ShadowMapImg;
+  ViewDesc.TraceLabel := 'ShadowMapAttView';
+  var ShadowMapAttView := TView.Create(ViewDesc);
 
-  Shader := TShader.Create(ShadowShaderDesc);
+  ViewDesc.Init;
+  ViewDesc.Texture.Image := ShadowMapImg;
+  ViewDesc.TraceLabel := 'ShadowMapTexView';
+  TexView := TView.Create(ViewDesc);
 
+  ViewDesc.Init;
+  ViewDesc.DepthStencilAttachment.Image := ShadowDepthImg;
+  ViewDesc.TraceLabel := 'ShadowDepthAttachment';
+  var ShadowDepthAttView := TView.Create(ViewDesc);
+
+  { Shadow render pass descriptor }
+  { Clear the shadow map to (1,1,1,1) }
+  Pass.Action.Colors[0].Init(TLoadAction.Clear, 1, 1, 1, 1);
+
+  { Attachment views }
+  Pass.Attachments.Colors[0] := ShadowMapAttView;
+  Pass.Attachments.DepthStencil := ShadowDepthAttView;
+
+  { A regular sampler with nearest filtering to sample the shadow map }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  SamplerDesc.TraceLabel := 'ShadowSampler';
+  Sampler := TSampler.Create(SamplerDesc);
+
+  { A pipeline object for the shadow pass }
   var PipDesc := TPipelineDesc.Create;
 
   { Need to provide stride, because the buffer's normal vector is skipped }
   PipDesc.Layout.Buffers[0].Stride := 6 * SizeOf(Single);
 
-  { But don't need to provide attr offsets, because pos and normal are
-    continuous }
-  PipDesc.Layout.Attrs[ATTR_SHADOWVS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Shader := Shader;
+  PipDesc.Layout.Attrs[ATTR_SHADOW_POS].Format := TVertexFormat.Float3;
+  PipDesc.Shader := TShader.Create(ShadowShaderDesc);
   PipDesc.IndexType := TIndexType.UInt16;
 
-  { Cull front faces in the shadow map pass }
+  { Render back-faces in shadow pass to prevent shadow acne on front-faces }
   PipDesc.CullMode := TCullMode.Front;
   PipDesc.SampleCount := 1;
-  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.Colors[0].PixelFormat := TPixelFormat.Rgba8;
   PipDesc.Depth.PixelFormat := TPixelFormat.Depth;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-  PipDesc.Colors[0].PixelFormat := TPixelFormat.Rgba8;
-  PipDesc.TraceLabel := 'ShadowMapPipeline';
+  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.TraceLabel := 'ShadowPipeline';
   Pip := TPipeline.Create(PipDesc);
 
-  { The resource bindings for rendering the cube into the shadow map render
-    target }
+  { Resource bindings to render shadow scene }
   Bind.VertexBuffers[0] := AVBuf;
   Bind.IndexBuffer := AIBuf;
 end;
 
-{ TDefault }
+{ TDisplay }
 
-procedure TDefault.Free;
-begin
-  Pip.Free;
-  Shader.Free;
-end;
-
-procedure TDefault.Init(const AVBuf, AIBuf: TBuffer; const AImage: TImage);
+procedure TDisplay.Init(const AVBuf, AIBuf: TBuffer;
+  const AShadowMapTexView: TView; const AShadowSampler: TSampler);
 begin
   { Default pass action: clear to blue-ish }
-  PassAction.Colors[0].Init(TAction.Clear, 0, 0.25, 1, 1);
+  PassAction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.5, 0.25, 1);
 
-  Shader := TShader.Create(ColorShaderDesc);
-
+  { A pipeline object for the display pass }
   var PipDesc := TPipelineDesc.Create;
-
-  { Don't need to provide buffer stride or attr offsets, no gaps here }
-  PipDesc.Layout.Attrs[ATTR_COLORVS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_COLORVS_NORMAL].Format := TVertexFormat.Float3;
-  PipDesc.Shader := Shader;
+  PipDesc.Layout.Attrs[ATTR_DISPLAY_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_DISPLAY_NORM].Format := TVertexFormat.Float3;
+  PipDesc.Shader := TShader.Create(DisplayShaderDesc);
   PipDesc.IndexType := TIndexType.UInt16;
-
-  { Cull back faces when rendering to the screen }
   PipDesc.CullMode := TCullMode.Back;
-  PipDesc.Depth.WriteEnabled := True;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-  PipDesc.TraceLabel := 'DefaultPipeline';
+  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.TraceLabel := 'DisplayPipeline';
   Pip := TPipeline.Create(PipDesc);
 
-  { Resource bindings to render the cube, using the shadow map render target as
-    texture }
+  { Resource bindings to render display scene }
   Bind.VertexBuffers[0] := AVBuf;
   Bind.IndexBuffer := AIBuf;
-  Bind.FragmentShaderImages[SLOT_SHADOWMAP] := AImage;
+  Bind.Views[VIEW_SHADOW_MAP] := AShadowMapTexView;
+  Bind.Samplers[SMP_SHADOW_SAMPLER] := AShadowSampler;
+end;
+
+{ TDebug }
+
+procedure TDebug.Init(const AShadowMapTexView: TView);
+begin
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(DEBUG_VERTICES);
+  BufferDesc.TraceLabel := 'DebugVertices';
+  var VBuf := TBuffer.Create(BufferDesc);
+
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Layout.Attrs[ATTR_DBG_POS].Format := TVertexFormat.Float2;
+  PipDesc.Shader := TShader.Create(DbgShaderDesc);
+  PipDesc.PrimitiveType := TPrimitiveType.TriangleStrip;
+  PipDesc.TraceLabel := 'DebugPipeline';
+  Pip := TPipeline.Create(PipDesc);
+
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  SamplerDesc.TraceLabel := 'DebugSampler';
+  var Sampler := TSampler.Create(SamplerDesc);
+
+  Bind.VertexBuffers[0] := VBuf;
+  Bind.Views[VIEW_DBG_TEX] := AShadowMapTexView;
+  Bind.Samplers[SMP_DBG_SMP] := Sampler;
 end;
 
 end.

@@ -42,13 +42,6 @@ const
 
 { TSdfApp }
 
-procedure TSdfApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TSdfApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -56,6 +49,25 @@ begin
   AConfig.Width := 512;
   AConfig.Height := 512;
   AConfig.DepthFormat := TAppPixelFormat.None;
+end;
+
+procedure TSdfApp.Init;
+begin
+  inherited;
+  { A vertex buffer to render a 'fullscreen triangle' }
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(VERTICES);
+  BufferDesc.TraceLabel := 'Fsq Vertices';
+  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+
+  { Shader and pipeline object for rendering a fullscreen quad }
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Layout.Attrs[ATTR_SDF_POSITION].Format := TVertexFormat.Float2;
+  PipDesc.Shader := TShader.Create(SdfShaderDesc);
+  FPip := TPipeline.Create(PipDesc);
+
+  { Don't need to clear since the whole framebuffer is overwritten }
+  FPassAction.Colors[0].LoadAction := TLoadAction.DontCare;
 end;
 
 procedure TSdfApp.Frame;
@@ -80,23 +92,11 @@ begin
   TGfx.Commit;
 end;
 
-procedure TSdfApp.Init;
+procedure TSdfApp.Cleanup;
 begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
-  { A vertex buffer to render a 'fullscreen triangle' }
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'Fsq Vertices';
-  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
-
-  { Shader and pipeline object for rendering a fullscreen quad }
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_SDF_POSITION].Format := TVertexFormat.Float2;
-  PipDesc.Shader := TShader.Create(SdfShaderDesc);
-  FPip := TPipeline.Create(PipDesc);
-
-  { Don't need to clear since the whole framebuffer is overwritten }
-  FPassAction.Colors[0].LoadAction := TLoadAction.DontCare;
 end;
 
 end.

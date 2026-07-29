@@ -35,7 +35,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   HELP_TEXT: array [TIconMode] of AnsiString = (
@@ -43,10 +44,16 @@ const
 
 { TIconApp }
 
-procedure TIconApp.Cleanup;
+procedure TIconApp.Init;
 begin
   inherited;
-  TDbgText.Shutdown;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.25, 0.5, 1);
+
+  var DbgDesc := TDbgTextDesc.Create;
+  DbgDesc.Fonts[0] := TDbgTextFont.Oric;
+  DbgDesc.UseDelphiMemoryManager := True;
+  DbgDesc.Logger := DbgDesc.DefaultLogger;
+  TDbgText.Setup(DbgDesc);
 end;
 
 procedure TIconApp.Configure(var AConfig: TAppConfig);
@@ -55,6 +62,7 @@ begin
   AConfig.Width := 800;
   AConfig.Height := 600;
   AConfig.HighDpi := False;
+  AConfig.DepthFormat := TAppPixelFormat.None;
   AConfig.WindowTitle := 'Window Icon Test';
   AConfig.Icon.UseDefault := False;
 end;
@@ -95,21 +103,20 @@ begin
     TDbgText.WriteAnsiLn(HELP_TEXT[Mode]);
   end;
 
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
   TDbgText.Draw;
   DebugFrame;
   TGfx.EndPass;
   TGfx.Commit;
 end;
 
-procedure TIconApp.Init;
+procedure TIconApp.Cleanup;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0.25, 0.5, 1);
-
-  var DbgDesc := TDbgTextDesc.Create;
-  DbgDesc.Fonts[0] := TDbgTextFont.Oric;
-  TDbgText.Setup(DbgDesc);
+  TDbgText.Shutdown;
 end;
 
 procedure TIconApp.KeyChar(const AChar: UCS4Char; const AModifiers: TModifiers;

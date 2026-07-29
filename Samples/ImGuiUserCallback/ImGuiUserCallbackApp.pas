@@ -17,12 +17,10 @@ type
     RX: Single;
     RY: Single;
     PassAction: TPassAction;
-    Shader: TShader;
     Pip: TPipeline;
     Bind: TBindings;
   public
     procedure Init;
-    procedure Free;
     procedure Draw(const ACmd: PImDrawCmd);
   end;
 
@@ -36,7 +34,6 @@ type
     class procedure DrawCube; static;
   public
     procedure Init;
-    procedure Free;
     procedure Draw(const ACmd: PImDrawCmd);
   end;
 
@@ -47,8 +44,8 @@ type
     FScene1: TScene1;
     FScene2: TScene2;
   private
-    class procedure DrawScene1(const AParentList: PImDrawList;
-      const ACmd: PImDrawCmd); cdecl; static;
+    class procedure DrawScene1(AParentList: PImDrawList;
+      ACmd: PImDrawCmd); cdecl; static;
     class procedure DrawScene2(const AParentList: PImDrawList;
       const ACmd: PImDrawCmd); cdecl; static;
   protected
@@ -66,15 +63,10 @@ implementation
 uses
   Neslib.FastMath,
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   ImGuiUserCallbackShader;
 
 { TImGuiUserCallbackApp }
-
-procedure TImGuiUserCallbackApp.Cleanup;
-begin
-  inherited;
-  sglShutdown;
-end;
 
 procedure TImGuiUserCallbackApp.Configure(var AConfig: TAppConfig);
 begin
@@ -84,13 +76,48 @@ begin
   AConfig.WindowTitle := 'ImGui User Callback';
 end;
 
+procedure TImGuiUserCallbackApp.Init;
+begin
+  inherited;
+  var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
+
+  FDefaultPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.5, 0.7, 1);
+  FScene1.Init;
+  FScene2.Init;
+end;
+
+procedure TImGuiUserCallbackApp.Frame;
+begin
+  var Pass := TPass.Create;
+  Pass.Action^ := FDefaultPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TImGuiUserCallbackApp.Cleanup;
+begin
+  inherited;
+  sglShutdown;
+end;
+
+class function TImGuiUserCallbackApp.HasImGui: Boolean;
+begin
+  Result := True;
+end;
+
 procedure TImGuiUserCallbackApp.DrawImGui;
 begin
   ImGui.SetNextWindowPos(Vector2(20, 20), TImGuiCond.Once);
   ImGui.SetNextWindowSize(Vector2(800, 400), TImGuiCond.Once);
   if (ImGui.Begin('Dear ImGui')) then
   begin
-    if (ImGui.BeginChild('sokol-gfx', Vector2(360, 360), True)) then
+    if (ImGui.BeginChild('sokol-gfx', Vector2(360, 360), [TImGuiChildFlag.Borders])) then
     begin
       var DrawList := ImGui.GetWindowDrawList;
       DrawList.AddCallback(DrawScene1, Self);
@@ -121,30 +148,6 @@ class procedure TImGuiUserCallbackApp.DrawScene2(const AParentList: PImDrawList;
 begin
   Assert(TObject(ACmd.UserCallbackData) is TImGuiUserCallbackApp);
   TImGuiUserCallbackApp(ACmd.UserCallbackData).FScene2.Draw(ACmd);
-end;
-
-procedure TImGuiUserCallbackApp.Frame;
-begin
-  TGfx.BeginDefaultPass(FDefaultPassAction, FramebufferWidth, FramebufferHeight);
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TImGuiUserCallbackApp.HasImGui: Boolean;
-begin
-  Result := True;
-end;
-
-procedure TImGuiUserCallbackApp.Init;
-begin
-  inherited;
-  var GLDesc := TGLDesc.Create;
-  sglSetup(GLDesc);
-
-  FDefaultPassAction.Colors[0].Init(TAction.Clear, 0, 0.5, 0.7, 1);
-  FScene1.Init;
-  FScene2.Init;
 end;
 
 { TScene1 }
@@ -233,14 +236,6 @@ begin
   TGfx.Draw(0, 36);
 end;
 
-procedure TScene1.Free;
-begin
-  Shader.Free;
-  Pip.Free;
-  Bind.VertexBuffers[0].Free;
-  Bind.IndexBuffer.Free;
-end;
-
 procedure TScene1.Init;
 begin
   { Setup the Sokol Gfx resources needed for the first user draw callback }
@@ -249,16 +244,16 @@ begin
   BufferDesc.TraceLabel := 'CubeVertices';
   Bind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(CUBE_INDICES);
   BufferDesc.TraceLabel := 'CubeIndices';
   Bind.IndexBuffer := TBuffer.Create(BufferDesc);
 
-  Shader := TShader.Create(SceneShaderDesc);
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0].Format := TVertexFormat.Float4;
-  PipDesc.Shader := Shader;
+  PipDesc.Layout.Attrs[ATTR_SCENE_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_SCENE_COLOR0].Format := TVertexFormat.Float4;
+  PipDesc.Shader := TShader.Create(SceneShaderDesc);
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
   PipDesc.Depth.WriteEnabled := True;
@@ -351,11 +346,6 @@ begin
     sglV3F_T2F( 1.0,  1.0,  1.0,  1.0, -1.0);
     sglV3F_T2F( 1.0,  1.0, -1.0, -1.0, -1.0);
   sglEnd;
-end;
-
-procedure TScene2.Free;
-begin
-  Pip.Free;
 end;
 
 procedure TScene2.Init;

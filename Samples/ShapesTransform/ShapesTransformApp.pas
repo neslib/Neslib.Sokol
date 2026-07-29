@@ -17,7 +17,6 @@ type
   TShapesTransformApp = class(TSampleApp)
   private
     FPassAction: TPassAction;
-    FShader: TShader;
     FPip: TPipeline;
     FBind: TBindings;
     FElems: TShapeElementRange;
@@ -39,18 +38,10 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 { TShapesTransformApp }
-
-procedure TShapesTransformApp.Cleanup;
-begin
-  FPip.Free;
-  FShader.Free;
-  FBind.VertexBuffers[0].Free;
-  FBind.IndexBuffer.Free;
-  inherited;
-end;
 
 procedure TShapesTransformApp.Configure(var AConfig: TAppConfig);
 begin
@@ -62,53 +53,6 @@ begin
   AConfig.WindowTitle := 'Shapes Transform';
 end;
 
-procedure TShapesTransformApp.Frame;
-begin
-  { Help text }
-  TDbgText.Canvas(FramebufferWidth * 0.5, FramebufferHeight * 0.5);
-  TDbgText.Pos(1, 2);
-  {$IF Defined(IOS) or Defined(ANDROID)}
-  TDbgText.WriteAnsiLn('Tap the screen to switch draw mode');
-  {$ELSE}
-  TDbgText.WriteAnsiLn('Click the window to switch draw mode');
-  {$ENDIF}
-  TDbgText.WriteAnsi(' Current draw mode: ');
-  if (FVSParams.DrawMode = 0) then
-    TDbgText.WriteAnsi('vertex normals')
-  else if (FVSParams.DrawMode = 1) then
-    TDbgText.WriteAnsi('texture coords')
-  else
-    TDbgText.WriteAnsi('vertex color');
-
-  { Build model-view-projection matrix }
-  var T: Single := FrameDuration * 60;
-  FRX := FRX + (1 * T);
-  FRY := FRY + (2 * T);
-
-  var Proj, View, RXM, RYM: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), FramebufferHeight / FramebufferWidth,
-    0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  FVSParams.Mvp := ViewProj * Model;
-
-  { Render the single shape }
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
-  TGfx.ApplyPipeline(FPip);
-  TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS,
-    TRange.Create(FVSParams));
-  TGfx.Draw(FElems.BaseElement, FElems.NumElements);
-
-  TDbgText.Draw;
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
 procedure TShapesTransformApp.Init;
 var
   Vertices: array [0..(6 * 1024) - 1] of TShapeVertex;
@@ -117,21 +61,21 @@ begin
   inherited;
   var DbgTextDesc := TDbgTextDesc.Create;
   DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
+  DbgTextDesc.UseDelphiMemoryManager := True;
+  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
   TDbgText.Setup(DbgTextDesc);
 
   { Clear to black }
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
 
   { Shader and pipeline object }
-  FShader := TShader.Create(ShapesShaderDesc);
-
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Shader := FShader;
-  PipDesc.Layout.Buffers[0] := TShapeBuffer.BufferLayoutDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION] := TShapeBuffer.PositionAttrDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_NORMAL] := TShapeBuffer.NormalAttrDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_TEXCOORD] := TShapeBuffer.TexCoordAttrDesc;
-  PipDesc.Layout.Attrs[ATTR_VS_COLOR0] := TShapeBuffer.ColorAttrDesc;
+  PipDesc.Shader := TShader.Create(ShapesShaderDesc);
+  PipDesc.Layout.Buffers[0] := TShapeBuffer.VertexBufferLayoutState;
+  PipDesc.Layout.Attrs[ATTR_SHAPES_POSITION] := TShapeBuffer.PositionVertexAttrState;
+  PipDesc.Layout.Attrs[ATTR_SHAPES_NORMAL] := TShapeBuffer.NormalVertexAttrState;
+  PipDesc.Layout.Attrs[ATTR_SHAPES_TEXCOORD] := TShapeBuffer.TexCoordVertexAttrState;
+  PipDesc.Layout.Attrs[ATTR_SHAPES_COLOR0] := TShapeBuffer.ColorVertexAttrState;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.None;
   PipDesc.Depth.WriteEnabled := True;
@@ -173,6 +117,62 @@ begin
   { And finally create the vertex- and index-buffer }
   FBind.VertexBuffers[0] := TBuffer.Create(Buf.VertexBufferDesc);
   FBind.IndexBuffer := TBuffer.Create(Buf.IndexBufferDesc);
+end;
+
+procedure TShapesTransformApp.Frame;
+begin
+  { Help text }
+  TDbgText.Canvas(FramebufferWidth * 0.5, FramebufferHeight * 0.5);
+  TDbgText.Pos(1, 2);
+  {$IF Defined(IOS) or Defined(ANDROID)}
+  TDbgText.WriteAnsiLn('Tap the screen to switch draw mode');
+  {$ELSE}
+  TDbgText.WriteAnsiLn('Click the window to switch draw mode');
+  {$ENDIF}
+  TDbgText.WriteAnsi(' Current draw mode: ');
+  if (FVSParams.DrawMode = 0) then
+    TDbgText.WriteAnsi('vertex normals')
+  else if (FVSParams.DrawMode = 1) then
+    TDbgText.WriteAnsi('texture coords')
+  else
+    TDbgText.WriteAnsi('vertex color');
+
+  { Build model-view-projection matrix }
+  var T: Single := FrameDuration * 60;
+  FRX := FRX + (1 * T);
+  FRY := FRY + (2 * T);
+
+  var Proj, View, RXM, RYM: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), FramebufferWidth / FramebufferHeight,
+    0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  FVSParams.Mvp := ViewProj * Model;
+
+  { Render the single shape }
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPip);
+  TGfx.ApplyBindings(FBind);
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(FVSParams));
+  TGfx.Draw(FElems.BaseElement, FElems.NumElements);
+
+  TDbgText.Draw;
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TShapesTransformApp.Cleanup;
+begin
+  TDbgText.Shutdown;
+  inherited;
 end;
 
 procedure TShapesTransformApp.MouseDown(const AButton: TMouseButton; const AX, AY: Single;

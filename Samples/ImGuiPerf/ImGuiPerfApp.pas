@@ -11,7 +11,7 @@ uses
   SampleApp;
 
 const
-  MAX_WINDOWS = 999;
+  MAX_WINDOWS = 128;
 
 type
   TImGuiPerfApp = class(TSampleApp)
@@ -39,25 +39,53 @@ type
 implementation
 
 uses
+  System.Math,
   Neslib.FastMath,
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.ImGui;
 
 { TImGuiPerfApp }
-
-procedure TImGuiPerfApp.Cleanup;
-begin
-  inherited;
-end;
 
 procedure TImGuiPerfApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
   AConfig.Width := 800;
   AConfig.Height := 600;
+  AConfig.DepthFormat := TAppPixelFormat.None;
   AConfig.WindowTitle := 'ImGui Performance Test';
-  AConfig.iOSKeyboardResizesCanvas := False;
+  AConfig.iOS.KeyboardResizesCanvas := False;
   AConfig.EnableClipboard := True;
+end;
+
+procedure TImGuiPerfApp.Init;
+begin
+  inherited;
+  TTime.Setup;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.5, 0.7, 1);
+  FWindowCount := 16;
+  ResetMinMaxFrameTimes;
+end;
+
+procedure TImGuiPerfApp.Frame;
+begin
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TImGuiPerfApp.Cleanup;
+begin
+  inherited;
+end;
+
+class function TImGuiPerfApp.HasImGui: Boolean;
+begin
+  Result := True;
 end;
 
 procedure TImGuiPerfApp.DrawImGui;
@@ -83,7 +111,7 @@ begin
   ImGui.SetNextWindowPos(Vector2(10, 20), TImGuiCond.Once);
   ImGui.SetNextWindowSize(Vector2(500, 0), TImGuiCond.Once);
   ImGui.Begin('Controls', nil, [TImGuiWindowFlag.NoResize, TImGuiWindowFlag.NoScrollbar]);
-  ImGui.SliderInt('Num Windows', FWindowCount, 1, MAX_WINDOWS, '%d');
+  ImGui.SliderInt('Num Windows', @FWindowCount, 1, MAX_WINDOWS, '%d');
 
   ImGui.Text(ImGui.Format('raw frame time:     %.3fms (min: %.3f, max: %.3f)',
     [RawFrameTime * 1000, FMinRawFrameTime * 1000, FMaxRawFrameTime * 1000]));
@@ -117,28 +145,6 @@ begin
        TImGuiWindowFlag.NoFocusOnAppearing]);
     ImGui.End;
   end;
-end;
-
-procedure TImGuiPerfApp.Frame;
-begin
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TImGuiPerfApp.HasImGui: Boolean;
-begin
-  Result := True;
-end;
-
-procedure TImGuiPerfApp.Init;
-begin
-  inherited;
-  TTime.Setup;
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0.5, 0.7, 1);
-  FWindowCount := 16;
-  ResetMinMaxFrameTimes;
 end;
 
 procedure TImGuiPerfApp.ResetMinMaxFrameTimes;

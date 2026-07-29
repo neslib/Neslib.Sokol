@@ -1243,6 +1243,31 @@ type
     property Data: Pointer read FData;
   end;
 
+type 
+  _PImGuiInputTextCallbackData = ^_ImGuiInputTextCallbackData;
+
+type
+  TImGuiText = record
+  {$REGION 'Internal Declarations'}
+  private const
+    WORK_AREA = 10;
+  private
+    FBuffer: TArray<UTF8Char>;
+  private
+    procedure Validate;
+    procedure Update(const AData: _PImGuiInputTextCallbackData);
+  {$ENDREGION 'Internal Declarations'}
+  public
+    procedure Init(const AText: String);
+    function ToString: String; inline;
+    function ToUTF8String: UTF8String; inline;
+    function ToPUTF8Char: PUTF8Char; inline;
+
+    class operator Implicit(const AText: String): TImGuiText; inline; static;
+    class operator Implicit(const AText: TImGuiText): String; inline; static;
+  end;
+  PImGuiText = ^TImGuiText;
+
 type
   // Forward declarations
   TImDrawListSharedDataPtr = ^TImDrawListSharedData;
@@ -1396,7 +1421,7 @@ type
     TexData: PImTextureData; //      A texture, generally owned by a ImFontAtlas. Will convert to ImTextureID during render loop, after texture has been uploaded. 
     TexID: TImTextureID;     // _OR_ Low-level backend texture identifier, if already uploaded or created by user/app. Generally provided to e.g. ImGui::Image() calls. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // == (_TexData ? _TexData->TexID : _TexID) // Implemented below in the file.
@@ -1413,7 +1438,7 @@ type
     SpecsCount: Int32;                 // Sort spec count. Most often 1. May be > 1 when ImGuiTableFlags_SortMulti is enabled. May be == 0 when ImGuiTableFlags_SortTristate is enabled. 
     SpecsDirty: Boolean;               // Set to true when specs have changed since last time! Use this to sort again, then clear the flag. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -1425,7 +1450,7 @@ type
     SortOrder: Int16;                   // Index within parent ImGuiTableSortSpecs (always stored in order starting from 0, tables sorted on a single criteria will always have a 0 here) 
     SortDirection: TImGuiSortDirection; // ImGuiSortDirection_Ascending or ImGuiSortDirection_Descending 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -1511,7 +1536,7 @@ type
     MainScale: Single;                             // FIXME-WIP: Reference scale, as applied by ScaleAllSizes(). PLEASE DO NOT USE THIS FOR NOW. 
     NextFrameFontSizeBase: Single;                 // FIXME: Temporary hack until we finish remaining work. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Scale all spacing/padding/thickness values. Do not scale fonts. See comments in definition. Consider not calling this if your initial scale factor if <1.0.
@@ -1527,7 +1552,7 @@ type
     DownDurationPrev: Single; // Last frame duration the key has been down 
     AnalogValue: Single;      // 0.0f..1.0f for gamepad values 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -1674,7 +1699,7 @@ type
     InputQueueSurrogate: Char;                                          // For AddInputCharacterUTF16() 
     InputQueueCharacters: TImVector<Char>;                              // Queue of _characters_ input (obtained by platform backend). Fill using AddInputCharacter() helper. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Input Functions
@@ -1761,7 +1786,7 @@ type
     SelectionStart: Int32;           //                                      // Read-write   // [Completion,History,Always,CharFilter] == to SelectionEnd when no selection 
     SelectionEnd: Int32;             //                                      // Read-write   // [Completion,History,Always,CharFilter] 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     procedure DeleteChars(const APos, ABytesCount: Int32); inline;
@@ -1781,7 +1806,7 @@ type
     CurrentSize: TVector2; // Read-only.   Current window size. 
     DesiredSize: TVector2; // Read-write.  Desired size, based on user's mouse position. Write to this field to restrain resizing. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -1799,7 +1824,7 @@ type
     Preview: Boolean;                          // Set when AcceptDragDropPayload() was called and mouse has been hovering the target item (nb: handle overlapping drag targets) 
     Delivery: Boolean;                         // Set when AcceptDragDropPayload() was called and mouse button is released over the target item. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     procedure Clear; inline;
@@ -1814,7 +1839,7 @@ type
     B: PUTF8Char; 
     E: PUTF8Char; 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -1825,7 +1850,7 @@ type
     Filters: TImVector<TImGuiTextRange>; 
     CountGrep: Int32; 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Helper calling InputText+Build
@@ -1843,7 +1868,7 @@ type
   public
     Buf: TImVector<UTF8Char>; 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     function &Begin: PUTF8Char; inline;
@@ -1872,7 +1897,7 @@ type
           2: (ValP: Pointer);
         end; 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -1889,7 +1914,7 @@ type
     // [Internal]
     Data: TImVector<TImGuiStoragePair>; 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // - Get***() functions find pair, never add/allocate. Pairs are sorted so a query is O(log N)
@@ -1956,7 +1981,7 @@ type
     Ctx: PImGuiContext;            // [Internal] Parent UI context 
     TempData: Pointer;             // [Internal] Internal data 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     procedure &Begin(const AItemsCount: Int32; const AItemsHeight: Single = -1.0); inline;
@@ -1990,7 +2015,7 @@ type
     RangeFirstItem: TImGuiSelectionUserData; //                  /  ms:w, app:r   // Parameter for SetRange request (this is generally == RangeSrcItem when shift selecting from top to bottom). 
     RangeLastItem: TImGuiSelectionUserData;  //                  /  ms:w, app:r   // Parameter for SetRange request (this is generally == RangeSrcItem when shift selecting from bottom to top). Inclusive! 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2009,7 +2034,7 @@ type
     RangeSrcReset: Boolean;                      //        app:w     /  ms:r          // (If using deletion) Set before EndMultiSelect() to reset ResetSrcItem (e.g. if deleted selection). 
     ItemsCount: Int32;                           //  ms:w, app:r     /        app:r   // 'int items_count' parameter to BeginMultiSelect() is copied here for convenience, allowing simpler calls to your ApplyRequests handler. Not used internally. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2039,7 +2064,7 @@ type
     SelectionOrder: Int32;                                                         // [Internal] Increasing counter to store selection order 
     Storage: TImGuiStorage;                                                        // [Internal] Selection set. Think of this as similar to e.g. std::set<ImGuiID>. Prefer not accessing directly: iterate with GetNextSelectedItem(). 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Apply selection requests coming from BeginMultiSelect() and EndMultiSelect() functions. It uses 'items_count' passed to BeginMultiSelect()
@@ -2072,7 +2097,7 @@ type
     UserData: Pointer;                                                                      // User data for use by adapter function                                // e.g. selection.UserData = (void*)my_items; 
     AdapterSetItemSelected: procedure(self: Pointer; idx: Int32; selected: Boolean); cdecl; // e.g. AdapterSetItemSelected = [](ImGuiSelectionExternalStorage* self, int idx, bool selected) { ((MyItems**)self->UserData)[idx]->Selected = selected; } 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Apply selection requests by using AdapterSetItemSelected() calls
@@ -2096,7 +2121,7 @@ type
     UserCallbackDataSize: Int32;   // 4 // Size of callback user data when using storage, otherwise 0. 
     UserCallbackDataOffset: Int32; // 4 // [Internal] Offset of callback user data when using storage, otherwise -1. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Since 1.83: returns ImTextureID associated with this draw call. Warning: DO NOT assume this is always same as 'TextureId' (we will change this function for an upcoming feature)
@@ -2111,7 +2136,7 @@ type
     Uv: TVector2; 
     Col: UInt32; 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2122,7 +2147,7 @@ type
     TexRef: TImTextureRef; 
     VtxOffset: UInt32; 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2132,7 +2157,7 @@ type
     CmdBuffer: TImVector<TImDrawCmd>; 
     IdxBuffer: TImVector<UInt16>; 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2144,7 +2169,7 @@ type
     Count: Int32;                        // Number of active channels (1+) 
     Channels: TImVector<TImDrawChannel>; // Draw channels (not resized down so _Count might be < Channels.Size) 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Do not clear Channels[] so our allocations are reused next frame
@@ -2185,7 +2210,7 @@ type
     FringeScale: Single;                    // [Internal] anti-alias fringe is scaled by this value, this helps to keep things sharp while zooming at vertex buffer content 
     OwnerName: PUTF8Char;                   // Pointer to owner window's name for debugging 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Render-level scissoring. This is passed down to your render function but not used for CPU-side coarse clipping. Prefer using higher-level ImGui::PushClipRect() to affect logic (hit-testing and widget culling)
@@ -2434,7 +2459,7 @@ type
     OwnerViewport: PImGuiViewport;       // Viewport carrying the ImDrawData instance, might be of use to the renderer (generally not). 
     Textures: PImVectorImTextureDataPtr; // List of textures to update. Most of the times the list is shared by all ImDrawData, has only 1 texture and it doesn't need any update. This almost always points to ImGui::GetPlatformIO().Textures[]. May be overridden or set to NULL if you want to manually update textures. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     procedure Clear; inline;
@@ -2459,7 +2484,7 @@ type
     W: UInt16; // Size of rectangle to update (in pixels) 
     H: UInt16; // Size of rectangle to update (in pixels) 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2490,7 +2515,7 @@ type
     UseColors: Boolean;                 // w    r   // Tell whether our texture data is known to use colors (rather than just white + alpha). 
     WantDestroyNextFrame: Boolean;      // rw   -   // [Internal] Queued to set ImTextureStatus_WantDestroy next frame. May still be used in the current frame. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     procedure Create(const AFormat: TImTextureFormat; const AW, AH: Int32); inline;
@@ -2543,7 +2568,7 @@ type
     FontLoader: PImFontLoader;       // Custom font backend for this source (default source is the one stored in ImFontAtlas) 
     FontLoaderData: Pointer;         // Font loader opaque storage (per font config) 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2579,7 +2604,7 @@ type
     property SourceIdx: Cardinal read GetSourceIdx write SetSourceIdx; // Index of source in parent font
     property Codepoint: Cardinal read GetCodepoint write SetCodepoint; // 0x0000..0x10FFFF
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2589,7 +2614,7 @@ type
   public
     UsedChars: TImVector<UInt32>; // Store 1-bit per Unicode code point (0=unused, 1=used) 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     procedure Clear; inline;
@@ -2625,7 +2650,7 @@ type
     Uv0: TVector2; // UV coordinates (in current texture) 
     Uv1: TVector2; // UV coordinates (in current texture) 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end; 
 
@@ -2683,7 +2708,7 @@ type
     RefCount: Int32;                                                           // Number of contexts using this atlas 
     OwnerContext: PImGuiContext;                                               // Context which own the atlas will be in charge of updating and destroying it. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     function AddFont(const AFontCfg: PImFontConfig): PImFont; inline;
@@ -2802,7 +2827,7 @@ type
     property LoadNoFallback: Cardinal read GetLoadNoFallback write SetLoadNoFallback; // 0  //     // Disable loading fallback in lower-level calls.
     property LoadNoRenderOnLayout: Cardinal read GetLoadNoRenderOnLayout write SetLoadNoRenderOnLayout; // 0  //     // Enable a two-steps mode where CalcTextSize() calls will load AdvanceX *without* rendering/packing glyphs. Only advantageous if you know that the glyph is unlikely to actually be rendered, otherwise it is slower because we'd do one query on the first CalcTextSize and one query on the first Draw.
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     procedure ClearOutputData; inline;
@@ -2839,7 +2864,7 @@ type
     EllipsisAutoBake: Boolean;                                                             // 1     //     // Mark when the "..." glyph (== EllipsisChar) needs to be generated by combining multiple '.'. 
     RemapPairs: TImGuiStorage;                                                             // 16    //     // Remapping pairs when using AddRemapChar(), otherwise empty. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     function IsGlyphInFont(const AC: Char): Boolean; inline;
@@ -2901,7 +2926,7 @@ type
     PlatformHandle: Pointer;    // void* to hold higher-level, platform window handle (e.g. HWND, GLFWWindow*, SDL_Window*) 
     PlatformHandleRaw: Pointer; // void* to hold lower-level, platform-native window handle (under Win32 this is expected to be a HWND, unused for other platforms) 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Helpers
@@ -2941,7 +2966,7 @@ type
     // The ImGui_ImplXXXX_RenderDrawData() function of each backend generally access this via ImDrawData::Textures which points to this. The array is available here mostly because backends will want to destroy textures on shutdown.
     Textures: TImVector<TImTextureDataPtr>;                             // List of textures used by Dear ImGui (most often 1) + contents of external texture list is automatically appended into this. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
 
     // Clear all Platform_XXX fields. Typically called on Platform Backend shutdown.
@@ -2960,7 +2985,7 @@ type
     InputLineHeight: Single; // Line height (for IME). 
     ViewportId: TImGuiID;    // ID of platform window/viewport. 
   public
-    // Zero-initializes all fields
+    // Initialize with default values
     procedure Initialize; inline;
   end;
 
@@ -3012,9 +3037,6 @@ type
 
     // create Debug Log window. display a simplified log of important dear imgui events.
     class procedure ShowDebugLogWindow(const APOpen: PBoolean = nil); inline; static;
-
-    // Implied p_open = NULL
-    class procedure ShowIDStackToolWindow; overload; inline; static;
 
     // create Stack Tool window. hover items with mouse to query information about the source of their unique ID.
     class procedure ShowIDStackToolWindow(const APOpen: PBoolean = nil); overload; inline; static;
@@ -3240,9 +3262,6 @@ type
     // modify a style color. always use this if you modify the style after NewFrame().
     class procedure PushStyleColor(const AIdx: TImGuiCol; const ACol: UInt32); overload; inline; static;
     class procedure PushStyleColor(const AIdx: TImGuiCol; const ACol: TVector4); overload; inline; static;
-
-    // Implied count = 1
-    class procedure PopStyleColor; overload; inline; static;
     class procedure PopStyleColor(const ACount: Int32 = 1); overload; inline; static;
 
     // modify a style float variable. always use this if you modify the style after NewFrame()!
@@ -3256,9 +3275,6 @@ type
 
     // modify Y component of a style ImVec2 variable. "
     class procedure PushStyleVarY(const AIdx: TImGuiStyleVar; const AValY: Single); inline; static;
-
-    // Implied count = 1
-    class procedure PopStyleVar; overload; inline; static;
     class procedure PopStyleVar(const ACount: Int32 = 1); overload; inline; static;
 
     // modify specified shared item flag, e.g. PushItemFlag(ImGuiItemFlags_NoTabStop, true)
@@ -3285,17 +3301,11 @@ type
     // get UV coordinate for a white pixel, useful to draw custom shapes via the ImDrawList API
     class function GetFontTexUvWhitePixel: TVector2; inline; static;
 
-    // Implied alpha_mul = 1.0f
-    class function GetColorU32(const AIdx: TImGuiCol): UInt32; overload; inline; static;
-
     // retrieve given style color with style alpha applied and optional extra alpha multiplier, packed as a 32-bit value suitable for ImDrawList
     class function GetColorU32(const AIdx: TImGuiCol; const AAlphaMul: Single = 1.0): UInt32; overload; inline; static;
 
     // retrieve given color with style alpha applied, packed as a 32-bit value suitable for ImDrawList
     class function GetColorU32(const ACol: TVector4): UInt32; overload; inline; static;
-
-    // Implied alpha_mul = 1.0f
-    class function GetColorU32(const ACol: UInt32): UInt32; overload; inline; static;
 
     // retrieve given color with style alpha applied, packed as a 32-bit value suitable for ImDrawList
     class function GetColorU32(const ACol: UInt32; const AAlphaMul: Single = 1.0): UInt32; overload; inline; static;
@@ -3347,9 +3357,6 @@ type
     // separator, generally horizontal. inside a menu bar or in horizontal layout mode, this becomes a vertical separator.
     class procedure Separator; inline; static;
 
-    // Implied offset_from_start_x = 0.0f, spacing = -1.0f
-    class procedure SameLine; overload; inline; static;
-
     // call between widgets or groups to layout them horizontally. X position given in window coordinates.
     class procedure SameLine(const AOffsetFromStartX: Single = 0.0; const ASpacing: Single = -1.0); overload; inline; static;
 
@@ -3362,14 +3369,8 @@ type
     // add a dummy item of given size. unlike InvisibleButton(), Dummy() won't take the mouse click or be navigable into.
     class procedure Dummy(const ASize: TVector2); inline; static;
 
-    // Implied indent_w = 0.0f
-    class procedure Indent; overload; inline; static;
-
     // move content position toward the right, by indent_w, or style.IndentSpacing if indent_w <= 0
     class procedure Indent(const AIndentW: Single = 0.0); overload; inline; static;
-
-    // Implied indent_w = 0.0f
-    class procedure Unindent; overload; inline; static;
 
     // move content position back to the left, by indent_w, or style.IndentSpacing if indent_w <= 0
     class procedure Unindent(const AIndentW: Single = 0.0); overload; inline; static;
@@ -3426,10 +3427,6 @@ type
     class function GetID(const AStrIdBegin, AStrIdEnd: PUTF8Char): TImGuiID; overload; inline; static;
     class function GetID(const APtrId: Pointer): TImGuiID; overload; inline; static;
     class function GetID(const AIntId: Int32): TImGuiID; overload; inline; static;
-
-    // Widgets: Text
-    // Implied text_end = NULL
-    class procedure TextUnformatted(const AText: PUTF8Char); overload; inline; static;
 
     // raw text without formatting. Roughly equivalent to Text("%s", text) but: A) doesn't require null terminated string if 'text_end' is specified, B) it's faster, no memory copy is done, no buffer size limits, recommended for long chunks of text.
     class procedure TextUnformatted(const AText: PUTF8Char; const ATextEnd: PUTF8Char = nil); overload; inline; static;
@@ -3494,9 +3491,6 @@ type
     // hyperlink text button, return true when clicked
     class function TextLink(const ALabel: PUTF8Char): Boolean; inline; static;
 
-    // Implied url = NULL
-    class function TextLinkOpenURL(const ALabel: PUTF8Char): Boolean; overload; inline; static;
-
     // hyperlink text button, automatically open file/url when clicked
     class function TextLinkOpenURL(const ALabel: PUTF8Char; const AUrl: PUTF8Char = nil): Boolean; overload; inline; static;
 
@@ -3548,9 +3542,6 @@ type
       const AItemsCount: Int32): Boolean; overload; inline; static;
     class function Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; const AItems: PPUTF8Char; 
       const AItemsCount: Int32; const APopupMaxHeightInItems: Int32 = -1): Boolean; overload; inline; static;
-
-    // Implied popup_max_height_in_items = -1
-    class function Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; const AItemsSeparatedByZeros: PUTF8Char): Boolean; overload; inline; static;
 
     // Separate items with \0 within a string, end item-list with \0\0. e.g. "One\0Two\0Three\0"
     class function Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; const AItemsSeparatedByZeros: PUTF8Char; 
@@ -3652,17 +3643,9 @@ type
     class function DragIntRange2(const ALabel: PUTF8Char; const AVCurrentMin,
       AVCurrentMax: PInt32; const AVSpeed: Single = 1.0; const AVMin: Int32 = 0;
       const AVMax: Int32 = 0): Boolean; overload; inline; static;
-
-    // Implied v_speed = 1.0f, p_min = NULL, p_max = NULL, format = NULL, flags = 0
-    class function DragScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-      const APData: Pointer): Boolean; overload; inline; static;
     class function DragScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
       const APData: Pointer; const AVSpeed: Single = 1.0; const APMin: Pointer = nil; 
       const APMax: Pointer = nil; const AFormat: PUTF8Char = nil; const AFlags: TImGuiSliderFlags = []): Boolean; overload; inline; static;
-
-    // Implied v_speed = 1.0f, p_min = NULL, p_max = NULL, format = NULL, flags = 0
-    class function DragScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-      const APData: Pointer; const AComponents: Int32): Boolean; overload; inline; static;
     class function DragScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
       const APData: Pointer; const AComponents: Int32; const AVSpeed: Single = 1.0; 
       const APMin: Pointer = nil; const APMax: Pointer = nil; const AFormat: PUTF8Char = nil; 
@@ -3746,17 +3729,9 @@ type
       AVMax: Int32; const AFormat: PUTF8Char; const AFlags: TImGuiSliderFlags = []): Boolean; overload; inline; static;
     class function SliderInt4(const ALabel: PUTF8Char; const AV: PInt32;
       const AVMin: Int32 = 0): Boolean; overload; inline; static;
-
-    // Implied format = NULL, flags = 0
-    class function SliderScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-      const APData: Pointer; const APMin, APMax: Pointer): Boolean; overload; inline; static;
     class function SliderScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
       const APData: Pointer; const APMin, APMax: Pointer; const AFormat: PUTF8Char = nil; 
       const AFlags: TImGuiSliderFlags = []): Boolean; overload; inline; static;
-
-    // Implied format = NULL, flags = 0
-    class function SliderScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-      const APData: Pointer; const AComponents: Int32; const APMin, APMax: Pointer): Boolean; overload; inline; static;
     class function SliderScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
       const APData: Pointer; const AComponents: Int32; const APMin, APMax: Pointer; 
       const AFormat: PUTF8Char = nil; const AFlags: TImGuiSliderFlags = []): Boolean; overload; inline; static;
@@ -3776,37 +3751,29 @@ type
       const AVMin, AVMax: Int32; const AFormat: PUTF8Char; const AFlags: TImGuiSliderFlags = []): Boolean; overload; inline; static;
     class function VSliderInt(const ALabel: PUTF8Char; const ASize: TVector2;
       const AV: PInt32; const AVMin: Int32 = 0): Boolean; overload; inline; static;
-
-    // Implied format = NULL, flags = 0
-    class function VSliderScalar(const ALabel: PUTF8Char; const ASize: TVector2; 
-      const ADataType: TImGuiDataType; const APData: Pointer; const APMin, APMax: Pointer): Boolean; overload; inline; static;
     class function VSliderScalar(const ALabel: PUTF8Char; const ASize: TVector2; 
       const ADataType: TImGuiDataType; const APData: Pointer; const APMin, APMax: Pointer; 
       const AFormat: PUTF8Char = nil; const AFlags: TImGuiSliderFlags = []): Boolean; overload; inline; static;
-
-    // Widgets: Input with Keyboard
-    // - If you want to use InputText() with std::string or any custom dynamic string type, use the wrapper in misc/cpp/imgui_stdlib.h/.cpp!
-    // - Most of the ImGuiInputTextFlags flags are only useful for InputText() and not for InputFloatX, InputIntX, InputDouble etc.
-    // Implied callback = NULL, user_data = NULL
-    class function InputText(const ALabel: PUTF8Char; const ABuf: PUTF8Char; const ABufSize: NativeUInt; 
-      const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
     class function InputText(const ALabel: PUTF8Char; const ABuf: PUTF8Char; const ABufSize: NativeUInt; 
       const AFlags: TImGuiInputTextFlags = []; const ACallback: TImGuiInputTextCallback = nil; 
       const AUserData: Pointer = nil): Boolean; overload; inline; static;
+    class function InputText(const ALabel: PUTF8Char; const AText: TImGUiText;
+      const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
 
     // Implied size = ImVec2(0, 0), flags = 0, callback = NULL, user_data = NULL
     class function InputTextMultiline(const ALabel: PUTF8Char; const ABuf: PUTF8Char; 
       const ABufSize: NativeUInt): Boolean; overload; inline; static;
+    class function InputTextMultiline(const ALabel: PUTF8Char; const AText: TImGuiText): Boolean; overload; static; inline;
+    class function InputTextMultiline(const ALabel: PUTF8Char; const AText: TImGuiText;
+      const ASize: TVector2; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; static; inline;
     class function InputTextMultiline(const ALabel: PUTF8Char; const ABuf: PUTF8Char; 
       const ABufSize: NativeUInt; const ASize: TVector2; const AFlags: TImGuiInputTextFlags = []; 
       const ACallback: TImGuiInputTextCallback = nil; const AUserData: Pointer = nil): Boolean; overload; inline; static;
-
-    // Implied callback = NULL, user_data = NULL
-    class function InputTextWithHint(const ALabel, AHint: PUTF8Char; const ABuf: PUTF8Char; 
-      const ABufSize: NativeUInt; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
     class function InputTextWithHint(const ALabel, AHint: PUTF8Char; const ABuf: PUTF8Char; 
       const ABufSize: NativeUInt; const AFlags: TImGuiInputTextFlags = []; const ACallback: TImGuiInputTextCallback = nil; 
       const AUserData: Pointer = nil): Boolean; overload; inline; static;
+    class function InputTextWithHint(const ALabel, AHint: PUTF8Char; const AText: TImGUiText;
+      const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
 
     // Implied step = 0.0f, step_fast = 0.0f, format = "%.3f", flags = 0
     class function InputFloat(const ALabel: PUTF8Char; const AV: PSingle): Boolean; overload; inline; static;
@@ -3829,9 +3796,6 @@ type
     class function InputFloat4(const ALabel: PUTF8Char; const AV: PSingle): Boolean; overload; inline; static;
     class function InputFloat4(const ALabel: PUTF8Char; const AV: PSingle; const AFormat: PUTF8Char; 
       const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
-
-    // Implied step = 1, step_fast = 100, flags = 0
-    class function InputInt(const ALabel: PUTF8Char; const AV: PInt32): Boolean; overload; inline; static;
     class function InputInt(const ALabel: PUTF8Char; const AV: PInt32; const AStep: Int32 = 1; 
       const AStepFast: Int32 = 100; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
     class function InputInt2(const ALabel: PUTF8Char; const AV: PInt32; const AFlags: TImGuiInputTextFlags = []): Boolean; inline; static;
@@ -3844,17 +3808,9 @@ type
       const AStepFast: Double; const AFormat: PUTF8Char; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
     class function InputDouble(const ALabel: PUTF8Char; const AV: PDouble; const AStep: Double;
       const AStepFast: Double = 0.0): Boolean; overload; inline; static;
-
-    // Implied p_step = NULL, p_step_fast = NULL, format = NULL, flags = 0
-    class function InputScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-      const APData: Pointer): Boolean; overload; inline; static;
     class function InputScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
       const APData: Pointer; const APStep: Pointer = nil; const APStepFast: Pointer = nil; 
       const AFormat: PUTF8Char = nil; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
-
-    // Implied p_step = NULL, p_step_fast = NULL, format = NULL, flags = 0
-    class function InputScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-      const APData: Pointer; const AComponents: Int32): Boolean; overload; inline; static;
     class function InputScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
       const APData: Pointer; const AComponents: Int32; const APStep: Pointer = nil; 
       const APStepFast: Pointer = nil; const AFormat: PUTF8Char = nil; const AFlags: TImGuiInputTextFlags = []): Boolean; overload; inline; static;
@@ -3940,16 +3896,6 @@ type
     // "bool* p_selected" point to the selection state (read-write), as a convenient helper.
     class function Selectable(const ALabel: PUTF8Char; const APSelected: PBoolean; 
       const AFlags: TImGuiSelectableFlags; const ASize: TVector2): Boolean; overload; inline; static;
-
-    // Multi-selection system for Selectable(), Checkbox(), TreeNode() functions [BETA]
-    // - This enables standard multi-selection/range-selection idioms (Ctrl+Mouse/Keyboard, Shift+Mouse/Keyboard, etc.) in a way that also allow a clipper to be used.
-    // - ImGuiSelectionUserData is often used to store your item index within the current view (but may store something else).
-    // - Read comments near ImGuiMultiSelectIO for instructions/details and see 'Demo->Widgets->Selection State & Multi-Select' for demo.
-    // - TreeNode() is technically supported but... using this correctly is more complicated. You need some sort of linear/random access to your tree,
-    //   which is suited to advanced trees setups already implementing filters and clipper. We will work simplifying the current demo.
-    // - 'selection_size' and 'items_count' parameters are optional and used by a few features. If they are costly for you to compute, you may avoid them.
-    // Implied selection_size = -1, items_count = -1
-    class function BeginMultiSelect(const AFlags: TImGuiMultiSelectFlags): PImGuiMultiSelectIO; overload; inline; static;
     class function BeginMultiSelect(const AFlags: TImGuiMultiSelectFlags; const ASelectionSize: Int32 = -1; 
       const AItemsCount: Int32 = -1): PImGuiMultiSelectIO; overload; inline; static;
     class function EndMultiSelect: PImGuiMultiSelectIO; inline; static;
@@ -4044,17 +3990,11 @@ type
     // only call EndMainMenuBar() if BeginMainMenuBar() returns true!
     class procedure EndMainMenuBar; inline; static;
 
-    // Implied enabled = true
-    class function BeginMenu(const ALabel: PUTF8Char): Boolean; overload; inline; static;
-
     // create a sub-menu entry. only call EndMenu() if this returns true!
     class function BeginMenu(const ALabel: PUTF8Char; const AEnabled: Boolean = true): Boolean; overload; inline; static;
 
     // only call EndMenu() if BeginMenu() returns true!
     class procedure EndMenu; inline; static;
-
-    // Implied shortcut = NULL, selected = false, enabled = true
-    class function MenuItem(const ALabel: PUTF8Char): Boolean; overload; inline; static;
 
     // return true when activated.
     class function MenuItem(const ALabel: PUTF8Char; const AShortcut: PUTF8Char = nil; 
@@ -4126,29 +4066,11 @@ type
     // manually close the popup we have begin-ed into.
     class procedure CloseCurrentPopup; inline; static;
 
-    // Popups: Open+Begin popup combined functions helpers to create context menus.
-    //  - Helpers to do OpenPopup+BeginPopup where the Open action is triggered by e.g. hovering an item and right-clicking.
-    //  - IMPORTANT: Notice that BeginPopupContextXXX takes ImGuiPopupFlags just like OpenPopup() and unlike BeginPopup(). For full consistency, we may add ImGuiWindowFlags to the BeginPopupContextXXX functions in the future.
-    //  - IMPORTANT: If you ever used the left mouse button with BeginPopupContextXXX() helpers before 1.92.6:
-    //    - Before this version, OpenPopupOnItemClick(), BeginPopupContextItem(), BeginPopupContextWindow(), BeginPopupContextVoid() had 'a ImGuiPopupFlags popup_flags = 1' default value in their function signature.
-    //    - Before: Explicitly passing a literal 0 meant ImGuiPopupFlags_MouseButtonLeft. The default = 1 meant ImGuiPopupFlags_MouseButtonRight.
-    //    - After: The default = 0 means ImGuiPopupFlags_MouseButtonRight. Explicitly passing a literal 1 also means ImGuiPopupFlags_MouseButtonRight (if legacy behavior are enabled) or will assert (if legacy behavior are disabled).
-    //    - TL;DR: if you don't want to use right mouse button for popups, always specify it explicitly using a named ImGuiPopupFlags_MouseButtonXXXX value.
-    //    - Read "API BREAKING CHANGES" 2026/01/07 (1.92.6) entry in imgui.cpp or GitHub topic #9157 for all details.
-    // Implied str_id = NULL, popup_flags = 0
-    class function BeginPopupContextItem: Boolean; overload; inline; static;
-
     // open+begin popup when clicked on last item. Use str_id==NULL to associate the popup to previous item. If you want to use that on a non-interactive item such as Text() you need to pass in an explicit ID here. read comments in .cpp!
     class function BeginPopupContextItem(const AStrId: PUTF8Char = nil; const APopupFlags: TImGuiPopupFlags = []): Boolean; overload; inline; static;
 
-    // Implied str_id = NULL, popup_flags = 0
-    class function BeginPopupContextWindow: Boolean; overload; inline; static;
-
     // open+begin popup when clicked on current window.
     class function BeginPopupContextWindow(const AStrId: PUTF8Char = nil; const APopupFlags: TImGuiPopupFlags = []): Boolean; overload; inline; static;
-
-    // Implied str_id = NULL, popup_flags = 0
-    class function BeginPopupContextVoid: Boolean; overload; inline; static;
 
     // open+begin popup when clicked in void (where there are no windows).
     class function BeginPopupContextVoid(const AStrId: PUTF8Char = nil; const APopupFlags: TImGuiPopupFlags = []): Boolean; overload; inline; static;
@@ -4189,9 +4111,6 @@ type
     // only call EndTable() if BeginTable() returns true!
     class procedure EndTable; inline; static;
 
-    // Implied row_flags = 0, min_row_height = 0.0f
-    class procedure TableNextRow; overload; inline; static;
-
     // append into the first cell of a new row. 'min_row_height' include the minimum top and bottom padding aka CellPadding.y * 2.0f.
     class procedure TableNextRow(const ARowFlags: TImGuiTableRowFlags = []; const AMinRowHeight: Single = 0.0); overload; inline; static;
 
@@ -4200,17 +4119,6 @@ type
 
     // append into the specified column. Return true when column is visible.
     class function TableSetColumnIndex(const AColumnN: Int32): Boolean; inline; static;
-
-    // Tables: Headers & Columns declaration
-    // - Use TableSetupColumn() to specify label, resizing policy, default width/weight, id, various other flags etc.
-    // - Use TableHeadersRow() to create a header row and automatically submit a TableHeader() for each column.
-    //   Headers are required to perform: reordering, sorting, and opening the context menu.
-    //   The context menu can also be made available in columns body using ImGuiTableFlags_ContextMenuInBody.
-    // - You may manually submit headers using TableNextRow() + TableHeader() calls, but this is only useful in
-    //   some advanced use cases (e.g. adding custom widgets in header row).
-    // - Use TableSetupScrollFreeze() to lock columns/rows so they stay visible when scrolled. When freezing columns you would usually also use ImGuiTableColumnFlags_NoHide on them.
-    // Implied init_width_or_weight = 0.0f, user_id = 0
-    class procedure TableSetupColumn(const ALabel: PUTF8Char; const AFlags: TImGuiTableColumnFlags = []); overload; inline; static;
     class procedure TableSetupColumn(const ALabel: PUTF8Char; const AFlags: TImGuiTableColumnFlags = []; 
       const AInitWidthOrWeight: Single = 0.0; const AUserId: TImGuiID = TImGuiID(0)); overload; inline; static;
 
@@ -4259,11 +4167,6 @@ type
     // change the color of a cell, row, or column. See ImGuiTableBgTarget_ flags for details.
     class procedure TableSetBgColor(const ATarget: TImGuiTableBgTarget; const AColor: UInt32; 
       const AColumnN: Int32 = -1); inline; static;
-
-    // Legacy Columns API (prefer using Tables!)
-    // - You can also use SameLine(pos_x) to mimic simplified columns.
-    // Implied count = 1, id = NULL, borders = true
-    class procedure Columns; overload; inline; static;
     class procedure Columns(const ACount: Int32 = 1; const AId: PUTF8Char = nil; 
       const ABorders: Boolean = true); overload; inline; static;
 
@@ -4371,9 +4274,6 @@ type
     // make last item the default focused item of a newly appearing window.
     class procedure SetItemDefaultFocus; inline; static;
 
-    // Implied offset = 0
-    class procedure SetKeyboardFocusHere; overload; inline; static;
-
     // focus keyboard on the next widget. Use positive 'offset' to access sub components of a multiple component widget. Use -1 to access previous widget.
     class procedure SetKeyboardFocusHere(const AOffset: Int32 = 0); overload; inline; static;
 
@@ -4396,9 +4296,6 @@ type
 
     // is the last item focused for keyboard/gamepad navigation?
     class function IsItemFocused: Boolean; inline; static;
-
-    // Implied mouse_button = 0
-    class function IsItemClicked: Boolean; overload; inline; static;
 
     // is the last item hovered and mouse clicked on? (**)  == IsMouseClicked(mouse_button) && IsItemHovered()Important. (**) this is NOT equivalent to the behavior of e.g. Button(). Read comments in function definition.
     class function IsItemClicked(const AMouseButton: TImGuiMouseButton = TImGuiMouseButton(0)): Boolean; overload; inline; static;
@@ -4481,10 +4378,6 @@ type
     // replace current window storage with our own (if you want to manipulate it yourself, typically clear subsection of it)
     class procedure SetStateStorage(const AStorage: PImGuiStorage); inline; static;
     class function GetStateStorage: PImGuiStorage; inline; static;
-
-    // Text Utilities
-    // Implied text_end = NULL, hide_text_after_double_hash = false, wrap_width = -1.0f
-    class function CalcTextSize(const AText: PUTF8Char): TVector2; overload; inline; static;
     class function CalcTextSize(const AText: PUTF8Char; const ATextEnd: PUTF8Char = nil; 
       const AHideTextAfterDoubleHash: Boolean = false; const AWrapWidth: Single = -1.0): TVector2; overload; inline; static;
 
@@ -4502,9 +4395,6 @@ type
     // - (legacy: before v1.87 (2022-02), we used ImGuiKey < 512 values to carry native/user indices as defined by each backends. This was obsoleted in 1.87 (2022-02) and completely removed in 1.91.5 (2024-11). See https://github.com/ocornut/imgui/issues/4921)
     // is key being held.
     class function IsKeyDown(const AKey: TImGuiKey): Boolean; inline; static;
-
-    // Implied repeat = true
-    class function IsKeyPressed(const AKey: TImGuiKey): Boolean; overload; inline; static;
 
     // was key pressed (went from !Down to Down)? Repeat rate uses io.KeyRepeatDelay / KeyRepeatRate.
     class function IsKeyPressed(const AKey: TImGuiKey; const ARepeat: Boolean = true): Boolean; overload; inline; static;
@@ -4565,9 +4455,6 @@ type
     // is mouse button held?
     class function IsMouseDown(const AButton: TImGuiMouseButton): Boolean; inline; static;
 
-    // Implied repeat = false
-    class function IsMouseClicked(const AButton: TImGuiMouseButton): Boolean; overload; inline; static;
-
     // did mouse button clicked? (went from !Down to Down). Same as GetMouseClickedCount() == 1.
     class function IsMouseClicked(const AButton: TImGuiMouseButton; const ARepeat: Boolean = false): Boolean; overload; inline; static;
 
@@ -4582,9 +4469,6 @@ type
 
     // return the number of successive mouse-clicks at the time where a click happen (otherwise 0).
     class function GetMouseClickedCount(const AButton: TImGuiMouseButton): Int32; inline; static;
-
-    // Implied clip = true
-    class function IsMouseHoveringRect(const ARMin, ARMax: TVector2): Boolean; overload; inline; static;
 
     // is mouse hovering given bounding rect (in screen space). clipped by current clipping settings, but disregarding of other consideration of focus/window ordering/popup-block.
     class function IsMouseHoveringRect(const ARMin, ARMax: TVector2; const AClip: Boolean = true): Boolean; overload; inline; static;
@@ -4607,9 +4491,6 @@ type
     // return the delta from the initial clicking position while the mouse button is pressed or was just released. This is locked and return 0.0f until the mouse moves past a distance threshold at least once (uses io.MouseDraggingThreshold if lock_threshold < 0.0f)
     class function GetMouseDragDelta(const AButton: TImGuiMouseButton = TImGuiMouseButton(0); 
       const ALockThreshold: Single = -1.0): TVector2; inline; static;
-
-    // Implied button = 0
-    class procedure ResetMouseDragDelta; overload; inline; static;
 
     //
     class procedure ResetMouseDragDelta(const AButton: TImGuiMouseButton = TImGuiMouseButton(0)); overload; inline; static;
@@ -4686,10 +4567,32 @@ type
     class function Format(const AFmt: String; const AArgs: array of const): PUTF8Char; static;
   end;
 
+function __ImGuiInputTextCallback(AData: _PImGuiInputTextCallbackData): Integer; cdecl;
+
 implementation
 
 uses
   System.SysUtils;
+
+type
+  TImDefaults = record // static
+  public
+    class procedure Apply<T: record>(var ARec: T); static;
+  end;
+
+class procedure TImDefaults.Apply<T>(var ARec: T);
+var 
+  FC: TImFontConfig absolute ARec;
+begin
+  if (TypeInfo(T) = TypeInfo(TImFontConfig)) then
+  begin
+    FC.FontDataOwnedByAtlas := True;
+    FC.ExtraSizeScale := 1;
+    FC.GlyphMaxAdvanceX := Single.MaxValue;
+    FC.RasterizerMultiply := 1;
+    FC.RasterizerDensity := 1;
+  end;
+end;
 
 { TImVector<T> }
 
@@ -4867,12 +4770,73 @@ begin
   Result := PUTF8Char(FUtf8Buf);
 end;
 
+{ TImGuiText }
+
+function __ImGuiInputTextCallback(AData: _PImGuiInputTextCallbackData): Integer; cdecl;
+begin
+  if Assigned(AData) and Assigned(AData._UserData) then
+    PImGuiText(AData._UserData).Update(AData);
+    
+  Result := 0;
+end;
+
+class operator TImGuiText.Implicit(const AText: TImGuiText): String;
+begin
+  Result := AText.ToString;
+end;
+
+procedure TImGuiText.Init(const AText: String);
+begin
+  var S := UTF8String(AText);
+  var Len := Length(S);
+  SetLength(FBuffer, Len + WORK_AREA);
+  if (Len > 0) then
+    Move(S[Low(UTF8String)], FBuffer[0], Len);
+  FBuffer[Len] := #0;
+end;
+
+function TImGuiText.ToPUTF8Char: PUTF8Char;
+begin
+  Result := PUTF8Char(FBuffer);
+end;
+
+function TImGuiText.ToString: String;
+begin
+  Result := String(UTF8String(PUTF8Char(FBuffer)));
+end;
+
+function TImGuiText.ToUTF8String: UTF8String;
+begin
+  Result := UTF8String(FBuffer);
+end;
+
+procedure TImGuiText.Update(const AData: _PImGuiInputTextCallbackData);
+begin
+  if (TImGuiInputTextFlags(AData._EventFlag) = [TImGuiInputTextFlag.CallbackResize])
+    and ((AData._BufTextLen + 2) > AData._BufSize) then
+  begin
+    SetLength(FBuffer, GrowCollection(Length(FBuffer), AData._BufTextLen + 1));
+    AData._Buf := Pointer(FBuffer);
+  end;
+end;
+
+procedure TImGuiText.Validate;
+begin
+  if (FBuffer = nil) then
+    SetLength(FBuffer, WORK_AREA);
+end;
+
+class operator TImGuiText.Implicit(const AText: String): TImGuiText;
+begin
+  Result.Init(AText);
+end;
 
 { TImTextureRef }
 
 procedure TImTextureRef.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImTextureRef.GetTexID: TImTextureID;
@@ -4885,6 +4849,7 @@ end;
 procedure TImGuiTableSortSpecs.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImGuiTableColumnSortSpecs }
@@ -4892,6 +4857,7 @@ end;
 procedure TImGuiTableColumnSortSpecs.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImGuiStyle }
@@ -4899,6 +4865,7 @@ end;
 procedure TImGuiStyle.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiStyle.ScaleAllSizes(const AScaleFactor: Single);
@@ -4911,6 +4878,7 @@ end;
 procedure TImGuiKeyData.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImGuiIO }
@@ -4918,6 +4886,7 @@ end;
 procedure TImGuiIO.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiIO.AddKeyEvent(const AKey: TImGuiKey; const ADown: Boolean);
@@ -5008,6 +4977,7 @@ end;
 procedure TImGuiInputTextCallbackData.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiInputTextCallbackData.DeleteChars(const APos, ABytesCount: Int32);
@@ -5046,6 +5016,7 @@ end;
 procedure TImGuiSizeCallbackData.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImGuiPayload }
@@ -5053,6 +5024,7 @@ end;
 procedure TImGuiPayload.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiPayload.Clear;
@@ -5080,6 +5052,7 @@ end;
 procedure TImGuiTextRange.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImGuiTextFilter }
@@ -5087,6 +5060,7 @@ end;
 procedure TImGuiTextFilter.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImGuiTextFilter.Draw(const ALabel: PUTF8Char; const AWidth: Single): Boolean;
@@ -5124,6 +5098,7 @@ end;
 procedure TImGuiTextBuffer.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImGuiTextBuffer.&Begin: PUTF8Char;
@@ -5181,6 +5156,7 @@ end;
 procedure TImGuiStoragePair.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImGuiStorage }
@@ -5188,6 +5164,7 @@ end;
 procedure TImGuiStorage.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiStorage.Clear;
@@ -5270,6 +5247,7 @@ end;
 procedure TImGuiListClipper.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiListClipper.&Begin(const AItemsCount: Int32; const AItemsHeight: Single);
@@ -5307,6 +5285,7 @@ end;
 procedure TImGuiSelectionRequest.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImGuiMultiSelectIO }
@@ -5314,6 +5293,7 @@ end;
 procedure TImGuiMultiSelectIO.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImGuiSelectionBasicStorage }
@@ -5321,6 +5301,7 @@ end;
 procedure TImGuiSelectionBasicStorage.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiSelectionBasicStorage.ApplyRequests(const AMsIo: PImGuiMultiSelectIO);
@@ -5364,6 +5345,7 @@ end;
 procedure TImGuiSelectionExternalStorage.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiSelectionExternalStorage.ApplyRequests(const AMsIo: PImGuiMultiSelectIO);
@@ -5376,6 +5358,7 @@ end;
 procedure TImDrawCmd.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImDrawCmd.GetTexID: TImTextureID;
@@ -5388,6 +5371,7 @@ end;
 procedure TImDrawVert.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImDrawCmdHeader }
@@ -5395,6 +5379,7 @@ end;
 procedure TImDrawCmdHeader.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImDrawChannel }
@@ -5402,6 +5387,7 @@ end;
 procedure TImDrawChannel.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImDrawListSplitter }
@@ -5409,6 +5395,7 @@ end;
 procedure TImDrawListSplitter.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImDrawListSplitter.Clear;
@@ -5441,6 +5428,7 @@ end;
 procedure TImDrawList.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImDrawList.PushClipRect(const AClipRectMin, AClipRectMax: TVector2; const AIntersectWithCurrentClipRect: Boolean);
@@ -5946,6 +5934,7 @@ end;
 procedure TImDrawData.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImDrawData.Clear;
@@ -5973,6 +5962,7 @@ end;
 procedure TImTextureRect.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImTextureData }
@@ -5980,6 +5970,7 @@ end;
 procedure TImTextureData.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImTextureData.Create(const AFormat: TImTextureFormat; const AW, AH: Int32);
@@ -6037,6 +6028,7 @@ end;
 procedure TImFontConfig.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImFontGlyph }
@@ -6044,6 +6036,7 @@ end;
 procedure TImFontGlyph.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImFontGlyph.GetColored: Cardinal;
@@ -6091,6 +6084,7 @@ end;
 procedure TImFontGlyphRangesBuilder.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImFontGlyphRangesBuilder.Clear;
@@ -6133,6 +6127,7 @@ end;
 procedure TImFontAtlasRect.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { TImFontAtlas }
@@ -6140,6 +6135,7 @@ end;
 procedure TImFontAtlas.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImFontAtlas.AddFont(const AFontCfg: PImFontConfig): PImFont;
@@ -6247,6 +6243,7 @@ end;
 procedure TImFontBaked.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImFontBaked.GetMetricsTotalSurface: Cardinal;
@@ -6319,6 +6316,7 @@ end;
 procedure TImFont.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImFont.IsGlyphInFont(const AC: Char): Boolean;
@@ -6402,6 +6400,7 @@ end;
 procedure TImGuiViewport.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 function TImGuiViewport.GetCenter: TVector2;
@@ -6419,6 +6418,7 @@ end;
 procedure TImGuiPlatformIO.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 procedure TImGuiPlatformIO.ClearPlatformHandlers;
@@ -6436,6 +6436,7 @@ end;
 procedure TImGuiPlatformImeData.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
 end;
 
 { ImGui }
@@ -6508,11 +6509,6 @@ end;
 class procedure ImGui.ShowDebugLogWindow(const APOpen: PBoolean);
 begin
   _igShowDebugLogWindow(APOpen);
-end;
-
-class procedure ImGui.ShowIDStackToolWindow;
-begin
-  _igShowIDStackToolWindow();
 end;
 
 class procedure ImGui.ShowIDStackToolWindow(const APOpen: PBoolean);
@@ -6822,11 +6818,6 @@ begin
   _igPushStyleColorImVec4(_ImGuiCol(AIdx), _ImVec4(ACol));
 end;
 
-class procedure ImGui.PopStyleColor;
-begin
-  _igPopStyleColor();
-end;
-
 class procedure ImGui.PopStyleColor(const ACount: Int32);
 begin
   _igPopStyleColorEx(ACount);
@@ -6850,11 +6841,6 @@ end;
 class procedure ImGui.PushStyleVarY(const AIdx: TImGuiStyleVar; const AValY: Single);
 begin
   _igPushStyleVarY(_ImGuiStyleVar(AIdx), AValY);
-end;
-
-class procedure ImGui.PopStyleVar;
-begin
-  _igPopStyleVar();
 end;
 
 class procedure ImGui.PopStyleVar(const ACount: Int32);
@@ -6907,11 +6893,6 @@ begin
   Result := TVector2(_igGetFontTexUvWhitePixel());
 end;
 
-class function ImGui.GetColorU32(const AIdx: TImGuiCol): UInt32;
-begin
-  Result := UInt32(_igGetColorU32(_ImGuiCol(AIdx)));
-end;
-
 class function ImGui.GetColorU32(const AIdx: TImGuiCol; const AAlphaMul: Single): UInt32;
 begin
   Result := UInt32(_igGetColorU32Ex(_ImGuiCol(AIdx), AAlphaMul));
@@ -6920,11 +6901,6 @@ end;
 class function ImGui.GetColorU32(const ACol: TVector4): UInt32;
 begin
   Result := UInt32(_igGetColorU32ImVec4(_ImVec4(ACol)));
-end;
-
-class function ImGui.GetColorU32(const ACol: UInt32): UInt32;
-begin
-  Result := UInt32(_igGetColorU32ImU32(_ImU32(ACol)));
 end;
 
 class function ImGui.GetColorU32(const ACol: UInt32; const AAlphaMul: Single): UInt32;
@@ -6992,11 +6968,6 @@ begin
   _igSeparator();
 end;
 
-class procedure ImGui.SameLine;
-begin
-  _igSameLine();
-end;
-
 class procedure ImGui.SameLine(const AOffsetFromStartX: Single; const ASpacing: Single);
 begin
   _igSameLineEx(AOffsetFromStartX, ASpacing);
@@ -7017,19 +6988,9 @@ begin
   _igDummy(_ImVec2(ASize));
 end;
 
-class procedure ImGui.Indent;
-begin
-  _igIndent();
-end;
-
 class procedure ImGui.Indent(const AIndentW: Single);
 begin
   _igIndentEx(AIndentW);
-end;
-
-class procedure ImGui.Unindent;
-begin
-  _igUnindent();
 end;
 
 class procedure ImGui.Unindent(const AIndentW: Single);
@@ -7115,11 +7076,6 @@ end;
 class function ImGui.GetID(const AIntId: Int32): TImGuiID;
 begin
   Result := TImGuiID(_igGetIDInt(AIntId));
-end;
-
-class procedure ImGui.TextUnformatted(const AText: PUTF8Char);
-begin
-  _igTextUnformatted(AText);
 end;
 
 class procedure ImGui.TextUnformatted(const AText: PUTF8Char; const ATextEnd: PUTF8Char);
@@ -7236,11 +7192,6 @@ begin
   Result := _igTextLink(ALabel);
 end;
 
-class function ImGui.TextLinkOpenURL(const ALabel: PUTF8Char): Boolean;
-begin
-  Result := _igTextLinkOpenURL(ALabel);
-end;
-
 class function ImGui.TextLinkOpenURL(const ALabel: PUTF8Char; const AUrl: PUTF8Char): Boolean;
 begin
   Result := _igTextLinkOpenURLEx(ALabel, AUrl);
@@ -7335,12 +7286,6 @@ class function ImGui.Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32;
   const AItems: PPUTF8Char; const AItemsCount: Int32; const APopupMaxHeightInItems: Int32): Boolean;
 begin
   Result := _igComboCharEx(ALabel, ACurrentItem, AItems, AItemsCount, APopupMaxHeightInItems);
-end;
-
-class function ImGui.Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; 
-  const AItemsSeparatedByZeros: PUTF8Char): Boolean;
-begin
-  Result := _igCombo(ALabel, ACurrentItem, AItemsSeparatedByZeros);
 end;
 
 class function ImGui.Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; 
@@ -7527,22 +7472,10 @@ begin
 end;
 
 class function ImGui.DragScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-  const APData: Pointer): Boolean;
-begin
-  Result := _igDragScalar(ALabel, _ImGuiDataType(ADataType), APData);
-end;
-
-class function ImGui.DragScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
   const APData: Pointer; const AVSpeed: Single; const APMin: Pointer; const APMax: Pointer; 
   const AFormat: PUTF8Char; const AFlags: TImGuiSliderFlags): Boolean;
 begin
   Result := _igDragScalarEx(ALabel, _ImGuiDataType(ADataType), APData, AVSpeed, APMin, APMax, AFormat, Cardinal(AFlags));
-end;
-
-class function ImGui.DragScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-  const APData: Pointer; const AComponents: Int32): Boolean;
-begin
-  Result := _igDragScalarN(ALabel, _ImGuiDataType(ADataType), APData, AComponents);
 end;
 
 class function ImGui.DragScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
@@ -7706,22 +7639,10 @@ begin
 end;
 
 class function ImGui.SliderScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-  const APData: Pointer; const APMin, APMax: Pointer): Boolean;
-begin
-  Result := _igSliderScalar(ALabel, _ImGuiDataType(ADataType), APData, APMin, APMax);
-end;
-
-class function ImGui.SliderScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
   const APData: Pointer; const APMin, APMax: Pointer; const AFormat: PUTF8Char; 
   const AFlags: TImGuiSliderFlags): Boolean;
 begin
   Result := _igSliderScalarEx(ALabel, _ImGuiDataType(ADataType), APData, APMin, APMax, AFormat, Cardinal(AFlags));
-end;
-
-class function ImGui.SliderScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-  const APData: Pointer; const AComponents: Int32; const APMin, APMax: Pointer): Boolean;
-begin
-  Result := _igSliderScalarN(ALabel, _ImGuiDataType(ADataType), APData, AComponents, APMin, APMax);
 end;
 
 class function ImGui.SliderScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
@@ -7766,22 +7687,10 @@ begin
 end;
 
 class function ImGui.VSliderScalar(const ALabel: PUTF8Char; const ASize: TVector2; 
-  const ADataType: TImGuiDataType; const APData: Pointer; const APMin, APMax: Pointer): Boolean;
-begin
-  Result := _igVSliderScalar(ALabel, _ImVec2(ASize), _ImGuiDataType(ADataType), APData, APMin, APMax);
-end;
-
-class function ImGui.VSliderScalar(const ALabel: PUTF8Char; const ASize: TVector2; 
   const ADataType: TImGuiDataType; const APData: Pointer; const APMin, APMax: Pointer; 
   const AFormat: PUTF8Char; const AFlags: TImGuiSliderFlags): Boolean;
 begin
   Result := _igVSliderScalarEx(ALabel, _ImVec2(ASize), _ImGuiDataType(ADataType), APData, APMin, APMax, AFormat, Cardinal(AFlags));
-end;
-
-class function ImGui.InputText(const ALabel: PUTF8Char; const ABuf: PUTF8Char; const ABufSize: NativeUInt; 
-  const AFlags: TImGuiInputTextFlags): Boolean;
-begin
-  Result := _igInputText(ALabel, ABuf, ABufSize, Cardinal(AFlags));
 end;
 
 class function ImGui.InputText(const ALabel: PUTF8Char; const ABuf: PUTF8Char; const ABufSize: NativeUInt; 
@@ -7791,10 +7700,29 @@ begin
   Result := _igInputTextEx(ALabel, ABuf, ABufSize, Cardinal(AFlags), _ImGuiInputTextCallback(ACallback), AUserData);
 end;
 
+class function ImGui.InputText(const ALabel: PUTF8Char; const AText: TImGUiText; const AFlags: TImGuiInputTextFlags = []): Boolean;
+begin
+  var Flags := AFlags + [TImGuiInputTextFlag.CallbackResize];
+  AText.Validate;
+  Result := _igInputTextEx(ALabel, Pointer(AText.FBuffer), Length(AText.FBuffer), Cardinal(Flags), @__ImGuiInputTextCallback, @AText);
+end;
+
 class function ImGui.InputTextMultiline(const ALabel: PUTF8Char; const ABuf: PUTF8Char; 
   const ABufSize: NativeUInt): Boolean;
 begin
   Result := _igInputTextMultiline(ALabel, ABuf, ABufSize);
+end;
+
+class function ImGui.InputTextMultiline(const ALabel: PUTF8Char; const AText: TImGuiText): Boolean;
+begin
+  Result := InputTextMultiline(ALabel, AText, TVector2.Zero);
+end;
+
+class function ImGui.InputTextMultiline(const ALabel: PUTF8Char; const AText: TImGuiText; const ASize: TVector2; const AFlags: TImGuiInputTextFlags = []): Boolean;
+begin
+  var Flags := AFlags + [TImGuiInputTextFlag.CallbackResize];
+  AText.Validate;
+  Result := _igInputTextMultilineEx(ALabel, Pointer(AText.FBuffer), Length(AText.FBuffer), _ImVec2(ASize), Cardinal(Flags), @__ImGuiInputTextCallback, @AText);
 end;
 
 class function ImGui.InputTextMultiline(const ALabel: PUTF8Char; const ABuf: PUTF8Char; 
@@ -7805,16 +7733,17 @@ begin
 end;
 
 class function ImGui.InputTextWithHint(const ALabel, AHint: PUTF8Char; const ABuf: PUTF8Char; 
-  const ABufSize: NativeUInt; const AFlags: TImGuiInputTextFlags): Boolean;
-begin
-  Result := _igInputTextWithHint(ALabel, AHint, ABuf, ABufSize, Cardinal(AFlags));
-end;
-
-class function ImGui.InputTextWithHint(const ALabel, AHint: PUTF8Char; const ABuf: PUTF8Char; 
   const ABufSize: NativeUInt; const AFlags: TImGuiInputTextFlags; const ACallback: TImGuiInputTextCallback; 
   const AUserData: Pointer): Boolean;
 begin
   Result := _igInputTextWithHintEx(ALabel, AHint, ABuf, ABufSize, Cardinal(AFlags), _ImGuiInputTextCallback(ACallback), AUserData);
+end;
+
+class function ImGui.InputTextWithHint(const ALabel, AHint: PUTF8Char; const AText: TImGUiText; const AFlags: TImGuiInputTextFlags = []): Boolean;
+begin
+  var Flags := AFlags + [TImGuiInputTextFlag.CallbackResize];
+  AText.Validate;
+  Result := _igInputTextWithHintEx(ALabel, AHint, Pointer(AText.FBuffer), Length(AText.FBuffer), Cardinal(Flags), @__ImGuiInputTextCallback, @AText);
 end;
 
 class function ImGui.InputFloat(const ALabel: PUTF8Char; const AV: PSingle): Boolean;
@@ -7866,11 +7795,6 @@ begin
   Result := _igInputFloat4Ex(ALabel, AV, AFormat, Cardinal(AFlags));
 end;
 
-class function ImGui.InputInt(const ALabel: PUTF8Char; const AV: PInt32): Boolean;
-begin
-  Result := _igInputInt(ALabel, AV);
-end;
-
 class function ImGui.InputInt(const ALabel: PUTF8Char; const AV: PInt32; const AStep: Int32; 
   const AStepFast: Int32; const AFlags: TImGuiInputTextFlags): Boolean;
 begin
@@ -7909,22 +7833,10 @@ begin
 end;
 
 class function ImGui.InputScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-  const APData: Pointer): Boolean;
-begin
-  Result := _igInputScalar(ALabel, _ImGuiDataType(ADataType), APData);
-end;
-
-class function ImGui.InputScalar(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
   const APData: Pointer; const APStep: Pointer; const APStepFast: Pointer; const AFormat: PUTF8Char; 
   const AFlags: TImGuiInputTextFlags): Boolean;
 begin
   Result := _igInputScalarEx(ALabel, _ImGuiDataType(ADataType), APData, APStep, APStepFast, AFormat, Cardinal(AFlags));
-end;
-
-class function ImGui.InputScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
-  const APData: Pointer; const AComponents: Int32): Boolean;
-begin
-  Result := _igInputScalarN(ALabel, _ImGuiDataType(ADataType), APData, AComponents);
 end;
 
 class function ImGui.InputScalarN(const ALabel: PUTF8Char; const ADataType: TImGuiDataType; 
@@ -8079,11 +7991,6 @@ begin
   Result := _igSelectableBoolPtrEx(ALabel, APSelected, Cardinal(AFlags), _ImVec2(ASize));
 end;
 
-class function ImGui.BeginMultiSelect(const AFlags: TImGuiMultiSelectFlags): PImGuiMultiSelectIO;
-begin
-  Result := _igBeginMultiSelect(Cardinal(AFlags));
-end;
-
 class function ImGui.BeginMultiSelect(const AFlags: TImGuiMultiSelectFlags; const ASelectionSize: Int32; 
   const AItemsCount: Int32): PImGuiMultiSelectIO;
 begin
@@ -8233,11 +8140,6 @@ begin
   _igEndMainMenuBar();
 end;
 
-class function ImGui.BeginMenu(const ALabel: PUTF8Char): Boolean;
-begin
-  Result := _igBeginMenu(ALabel);
-end;
-
 class function ImGui.BeginMenu(const ALabel: PUTF8Char; const AEnabled: Boolean): Boolean;
 begin
   Result := _igBeginMenuEx(ALabel, AEnabled);
@@ -8246,11 +8148,6 @@ end;
 class procedure ImGui.EndMenu;
 begin
   _igEndMenu();
-end;
-
-class function ImGui.MenuItem(const ALabel: PUTF8Char): Boolean;
-begin
-  Result := _igMenuItem(ALabel);
 end;
 
 class function ImGui.MenuItem(const ALabel: PUTF8Char; const AShortcut: PUTF8Char; 
@@ -8326,29 +8223,14 @@ begin
   _igCloseCurrentPopup();
 end;
 
-class function ImGui.BeginPopupContextItem: Boolean;
-begin
-  Result := _igBeginPopupContextItem();
-end;
-
 class function ImGui.BeginPopupContextItem(const AStrId: PUTF8Char; const APopupFlags: TImGuiPopupFlags): Boolean;
 begin
   Result := _igBeginPopupContextItemEx(AStrId, Cardinal(APopupFlags));
 end;
 
-class function ImGui.BeginPopupContextWindow: Boolean;
-begin
-  Result := _igBeginPopupContextWindow();
-end;
-
 class function ImGui.BeginPopupContextWindow(const AStrId: PUTF8Char; const APopupFlags: TImGuiPopupFlags): Boolean;
 begin
   Result := _igBeginPopupContextWindowEx(AStrId, Cardinal(APopupFlags));
-end;
-
-class function ImGui.BeginPopupContextVoid: Boolean;
-begin
-  Result := _igBeginPopupContextVoid();
 end;
 
 class function ImGui.BeginPopupContextVoid(const AStrId: PUTF8Char; const APopupFlags: TImGuiPopupFlags): Boolean;
@@ -8378,11 +8260,6 @@ begin
   _igEndTable();
 end;
 
-class procedure ImGui.TableNextRow;
-begin
-  _igTableNextRow();
-end;
-
 class procedure ImGui.TableNextRow(const ARowFlags: TImGuiTableRowFlags; const AMinRowHeight: Single);
 begin
   _igTableNextRowEx(Cardinal(ARowFlags), AMinRowHeight);
@@ -8396,11 +8273,6 @@ end;
 class function ImGui.TableSetColumnIndex(const AColumnN: Int32): Boolean;
 begin
   Result := _igTableSetColumnIndex(AColumnN);
-end;
-
-class procedure ImGui.TableSetupColumn(const ALabel: PUTF8Char; const AFlags: TImGuiTableColumnFlags);
-begin
-  _igTableSetupColumn(ALabel, Cardinal(AFlags));
 end;
 
 class procedure ImGui.TableSetupColumn(const ALabel: PUTF8Char; const AFlags: TImGuiTableColumnFlags; 
@@ -8473,11 +8345,6 @@ class procedure ImGui.TableSetBgColor(const ATarget: TImGuiTableBgTarget; const 
   const AColumnN: Int32);
 begin
   _igTableSetBgColor(_ImGuiTableBgTarget(ATarget), _ImU32(AColor), AColumnN);
-end;
-
-class procedure ImGui.Columns;
-begin
-  _igColumns();
 end;
 
 class procedure ImGui.Columns(const ACount: Int32; const AId: PUTF8Char; const ABorders: Boolean);
@@ -8642,11 +8509,6 @@ begin
   _igSetItemDefaultFocus();
 end;
 
-class procedure ImGui.SetKeyboardFocusHere;
-begin
-  _igSetKeyboardFocusHere();
-end;
-
 class procedure ImGui.SetKeyboardFocusHere(const AOffset: Int32);
 begin
   _igSetKeyboardFocusHereEx(AOffset);
@@ -8675,11 +8537,6 @@ end;
 class function ImGui.IsItemFocused: Boolean;
 begin
   Result := _igIsItemFocused();
-end;
-
-class function ImGui.IsItemClicked: Boolean;
-begin
-  Result := _igIsItemClicked();
 end;
 
 class function ImGui.IsItemClicked(const AMouseButton: TImGuiMouseButton): Boolean;
@@ -8812,11 +8669,6 @@ begin
   Result := _igGetStateStorage();
 end;
 
-class function ImGui.CalcTextSize(const AText: PUTF8Char): TVector2;
-begin
-  Result := TVector2(_igCalcTextSize(AText));
-end;
-
 class function ImGui.CalcTextSize(const AText: PUTF8Char; const ATextEnd: PUTF8Char; 
   const AHideTextAfterDoubleHash: Boolean; const AWrapWidth: Single): TVector2;
 begin
@@ -8848,11 +8700,6 @@ end;
 class function ImGui.IsKeyDown(const AKey: TImGuiKey): Boolean;
 begin
   Result := _igIsKeyDown(_ImGuiKey(AKey));
-end;
-
-class function ImGui.IsKeyPressed(const AKey: TImGuiKey): Boolean;
-begin
-  Result := _igIsKeyPressed(_ImGuiKey(AKey));
 end;
 
 class function ImGui.IsKeyPressed(const AKey: TImGuiKey; const ARepeat: Boolean): Boolean;
@@ -8906,11 +8753,6 @@ begin
   Result := _igIsMouseDown(_ImGuiMouseButton(AButton));
 end;
 
-class function ImGui.IsMouseClicked(const AButton: TImGuiMouseButton): Boolean;
-begin
-  Result := _igIsMouseClicked(_ImGuiMouseButton(AButton));
-end;
-
 class function ImGui.IsMouseClicked(const AButton: TImGuiMouseButton; const ARepeat: Boolean): Boolean;
 begin
   Result := _igIsMouseClickedEx(_ImGuiMouseButton(AButton), ARepeat);
@@ -8935,11 +8777,6 @@ end;
 class function ImGui.GetMouseClickedCount(const AButton: TImGuiMouseButton): Int32;
 begin
   Result := _igGetMouseClickedCount(_ImGuiMouseButton(AButton));
-end;
-
-class function ImGui.IsMouseHoveringRect(const ARMin, ARMax: TVector2): Boolean;
-begin
-  Result := _igIsMouseHoveringRect(_ImVec2(ARMin), _ImVec2(ARMax));
 end;
 
 class function ImGui.IsMouseHoveringRect(const ARMin, ARMax: TVector2; const AClip: Boolean): Boolean;
@@ -8975,11 +8812,6 @@ end;
 class function ImGui.GetMouseDragDelta(const AButton: TImGuiMouseButton; const ALockThreshold: Single): TVector2;
 begin
   Result := TVector2(_igGetMouseDragDelta(_ImGuiMouseButton(AButton), ALockThreshold));
-end;
-
-class procedure ImGui.ResetMouseDragDelta;
-begin
-  _igResetMouseDragDelta();
 end;
 
 class procedure ImGui.ResetMouseDragDelta(const AButton: TImGuiMouseButton);

@@ -26,19 +26,18 @@ uses
 
 { TClearApp }
 
-procedure TClearApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TClearApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
   AConfig.Width := 400;
   AConfig.Height := 300;
   AConfig.WindowTitle := 'Clear';
+end;
+
+procedure TClearApp.Init;
+begin
+  inherited;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0);
 end;
 
 procedure TClearApp.Frame;
@@ -59,10 +58,11 @@ begin
   TGfx.Commit;
 end;
 
-procedure TClearApp.Init;
+procedure TClearApp.Cleanup;
 begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0);
 end;
 
 end.

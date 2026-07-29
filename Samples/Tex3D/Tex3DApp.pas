@@ -61,13 +61,6 @@ const
 
 { TTex3DApp }
 
-procedure TTex3DApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TTex3DApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -75,43 +68,6 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := '3D Texture Rendering';
-end;
-
-procedure TTex3DApp.Frame;
-begin
-  { Compute vertex-shader params (mvp and texcoord-scale) }
-  var T: Single := FrameDuration * 60;
-  FRX := FRX + (1 * T);
-  FRY := FRY + (2 * T);
-  FT := FT + 0.03 * T;
-
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), FramebufferWidth / FramebufferHeight, 0.01, 10.0);
-  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  var VSParams: TVSParams;
-  VSParams.MVP := ViewProj * Model;
-  VSParams.Scale := (FastSin(FT) + 1) * 0.5;
-
-  { Render the scene }
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FPip);
-  TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
-  TGfx.Draw(0, 36, 1);
-
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TTex3DApp.Init;
@@ -175,6 +131,50 @@ begin
   SamplerDesc.MagFilter := TFilter.Linear;
   SamplerDesc.TraceLabel := 'Sampler';
   FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
+end;
+
+procedure TTex3DApp.Frame;
+begin
+  { Compute vertex-shader params (mvp and texcoord-scale) }
+  var T: Single := FrameDuration * 60;
+  FRX := FRX + (1 * T);
+  FRY := FRY + (2 * T);
+  FT := FT + 0.03 * T;
+
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), FramebufferWidth / FramebufferHeight, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  var VSParams: TVSParams;
+  VSParams.MVP := ViewProj * Model;
+  VSParams.Scale := (FastSin(FT) + 1) * 0.5;
+
+  { Render the scene }
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPip);
+  TGfx.ApplyBindings(FBind);
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.Draw(0, 36, 1);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TTex3DApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
 end;
 
 function TTex3DApp.XorShift32: UInt32;

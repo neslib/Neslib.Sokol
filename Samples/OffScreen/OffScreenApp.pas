@@ -61,28 +61,6 @@ uses
 
 { TOffScreenApp }
 
-procedure TOffScreenApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
-class function TOffScreenApp.ComputeMvp(const ARX, ARY, AAspect,
-  AEyeDist: Single): TMatrix4;
-var
-  Proj, View, Rxm, Rym: TMatrix4;
-begin
-  Proj.InitPerspectiveFovRH(Radians(45), AAspect, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 0, AEyeDist), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  Rxm.InitRotationX(Radians(ARX));
-  Rym.InitRotationY(Radians(ARY));
-  var Model := Rym * Rxm;
-  Result := ViewProj * Model;
-end;
-
 procedure TOffScreenApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -90,46 +68,6 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := DISPLAY_SAMPLE_COUNT;
   AConfig.WindowTitle := 'Offscreen Rendering';
-end;
-
-procedure TOffScreenApp.Frame;
-begin
-  var T: Single := FrameDuration * 60;
-  FRX := FRX + (1.0 * T);
-  FRY := FRY + (2.0 * T);
-
-  { The offscreen pass, rendering an rotating, untextured donut into a render
-    target image }
-  var VSParams: TVSParams;
-  VSParams.Mvp := ComputeMvp(FRX, FRY, 1, 2.5);
-
-  TGfx.BeginPass(FOffScreen.Pass);
-  TGfx.ApplyPipeline(FOffScreen.Pip);
-  TGfx.ApplyBindings(FOffScreen.Bind);
-  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
-  TGfx.Draw(FDonut.BaseElement, FDonut.NumElements);
-  TGfx.EndPass;
-
-  { And the display-pass, rendering a rotating textured sphere which uses the
-    previously rendered offscreen render-target as texture }
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-  VSParams.Mvp := ComputeMvp(-FRX * 0.25, FRY * 0.25, H / W, 2);
-
-  var Pass := TPass.Create;
-  Pass.Action^ := FDisplay.PassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  Pass.TraceLabel := 'SwapchainPass';
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FDisplay.Pip);
-  TGfx.ApplyBindings(FDisplay.Bind);
-  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
-  TGfx.Draw(FSphere.BaseElement, FSphere.NumElements);
-  DebugFrame;
-  TGfx.EndPass;
-
-  TGfx.Commit;
 end;
 
 procedure TOffScreenApp.Init;
@@ -260,6 +198,68 @@ begin
   ViewDesc.Texture.Image := FColorImage;
   ViewDesc.TraceLabel := 'TextureView';
   FDisplay.Bind.Views[VIEW_TEX] := TView.Create(ViewDesc);
+end;
+
+procedure TOffScreenApp.Frame;
+begin
+  var T: Single := FrameDuration * 60;
+  FRX := FRX + (1.0 * T);
+  FRY := FRY + (2.0 * T);
+
+  { The offscreen pass, rendering an rotating, untextured donut into a render
+    target image }
+  var VSParams: TVSParams;
+  VSParams.Mvp := ComputeMvp(FRX, FRY, 1, 2.5);
+
+  TGfx.BeginPass(FOffScreen.Pass);
+  TGfx.ApplyPipeline(FOffScreen.Pip);
+  TGfx.ApplyBindings(FOffScreen.Bind);
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.Draw(FDonut.BaseElement, FDonut.NumElements);
+  TGfx.EndPass;
+
+  { And the display-pass, rendering a rotating textured sphere which uses the
+    previously rendered offscreen render-target as texture }
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  VSParams.Mvp := ComputeMvp(-FRX * 0.25, FRY * 0.25, H / W, 2);
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FDisplay.PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  Pass.TraceLabel := 'SwapchainPass';
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FDisplay.Pip);
+  TGfx.ApplyBindings(FDisplay.Bind);
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.Draw(FSphere.BaseElement, FSphere.NumElements);
+  DebugFrame;
+  TGfx.EndPass;
+
+  TGfx.Commit;
+end;
+
+procedure TOffScreenApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
+end;
+
+class function TOffScreenApp.ComputeMvp(const ARX, ARY, AAspect,
+  AEyeDist: Single): TMatrix4;
+var
+  Proj, View, Rxm, Rym: TMatrix4;
+begin
+  Proj.InitPerspectiveFovRH(Radians(45), AAspect, 0.01, 10.0, True);
+  View.InitLookAtRH(Vector3(0, 0, AEyeDist), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  Rxm.InitRotationX(Radians(ARX));
+  Rym.InitRotationY(Radians(ARY));
+  var Model := Rym * Rxm;
+  Result := ViewProj * Model;
 end;
 
 end.

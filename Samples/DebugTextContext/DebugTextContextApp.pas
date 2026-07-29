@@ -121,26 +121,6 @@ const
 
 { TDebugTextContextApp }
 
-procedure TDebugTextContextApp.Cleanup;
-begin
-  TDbgText.Shutdown;
-  inherited;
-end;
-
-function TDebugTextContextApp.ComputeVSParams(const AW, AH: Integer): TVSParams;
-var
-  Proj, View, Rxm, Rym: TMatrix4;
-begin
-  Proj.InitPerspectiveFovRH(Radians(60), AH / AW, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  Rxm.InitRotationX(Radians(FRX));
-  Rym.InitRotationY(Radians(FRY));
-  var Model := Rym * Rxm;
-  Result.Mvp := ViewProj * Model;
-end;
-
 procedure TDebugTextContextApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -149,6 +129,55 @@ begin
   AConfig.SampleCount := DISPLAY_SAMPLE_COUNT;
   AConfig.HighDpi := False;
   AConfig.WindowTitle := 'DebugTextContext';
+end;
+
+procedure TDebugTextContextApp.Init;
+begin
+  inherited;
+  { Setup Neslib.Sokol.DebugText using all builtin fonts }
+  var DbgTextDesc := TDbgTextDesc.Create;
+  DbgTextDesc.Fonts[0] := TDbgTextFont.KC853;
+  DbgTextDesc.Fonts[1] := TDbgTextFont.KC854;
+  DbgTextDesc.Fonts[2] := TDbgTextFont.Z1013;
+  DbgTextDesc.Fonts[3] := TDbgTextFont.CPC;
+  DbgTextDesc.Fonts[4] := TDbgTextFont.C64;
+  DbgTextDesc.Fonts[5] := TDbgTextFont.Oric;
+  TDbgText.Setup(DbgTextDesc);
+
+  { Ccreate resources to render a textured cube (vertex buffer, index buffer
+    shader and pipeline state object) }
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(VERTICES);
+  BufferDesc.TraceLabel := 'CubeVertices';
+  FVBuf := TBuffer.Create(BufferDesc);
+
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
+  BufferDesc.Data := TRange.Create(INDICES);
+  BufferDesc.TraceLabel := 'CubeIndices';
+  FIBuf := TBuffer.Create(BufferDesc);
+
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Layout.Attrs[ATTR_DEBUGTEXT_CONTEXT_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_DEBUGTEXT_CONTEXT_TEXCOORD0].Format := TVertexFormat.Short2N;
+  PipDesc.Shader := TShader.Create(DebugtextContextShaderDesc);
+  PipDesc.IndexType := TIndexType.UInt16;
+  PipDesc.CullMode := TCullMode.Back;
+  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+  PipDesc.TraceLabel := 'CubePipeline';
+
+  FPip := TPipeline.Create(PipDesc);
+
+  { Create resources for each offscreen-rendered cube face }
+  for var I := 0 to NUM_FACES - 1 do
+    FPasses[I].Init(BG_COLORS[I]);
+
+  { Create a sampler for sampling offscreen render targets as texture }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  FSampler := TSampler.Create(SamplerDesc);
 end;
 
 procedure TDebugTextContextApp.Frame;
@@ -219,53 +248,24 @@ begin
   TGfx.Commit;
 end;
 
-procedure TDebugTextContextApp.Init;
+procedure TDebugTextContextApp.Cleanup;
 begin
+  TDbgText.Shutdown;
   inherited;
-  { Setup Neslib.Sokol.DebugText using all builtin fonts }
-  var DbgTextDesc := TDbgTextDesc.Create;
-  DbgTextDesc.Fonts[0] := TDbgTextFont.KC853;
-  DbgTextDesc.Fonts[1] := TDbgTextFont.KC854;
-  DbgTextDesc.Fonts[2] := TDbgTextFont.Z1013;
-  DbgTextDesc.Fonts[3] := TDbgTextFont.CPC;
-  DbgTextDesc.Fonts[4] := TDbgTextFont.C64;
-  DbgTextDesc.Fonts[5] := TDbgTextFont.Oric;
-  TDbgText.Setup(DbgTextDesc);
+end;
 
-  { Ccreate resources to render a textured cube (vertex buffer, index buffer
-    shader and pipeline state object) }
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'CubeVertices';
-  FVBuf := TBuffer.Create(BufferDesc);
+function TDebugTextContextApp.ComputeVSParams(const AW, AH: Integer): TVSParams;
+var
+  Proj, View, Rxm, Rym: TMatrix4;
+begin
+  Proj.InitPerspectiveFovRH(Radians(60), AH / AW, 0.01, 10.0, True);
+  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
 
-  BufferDesc.Init;
-  BufferDesc.Usage.IndexBuffer := True;
-  BufferDesc.Data := TRange.Create(INDICES);
-  BufferDesc.TraceLabel := 'CubeIndices';
-  FIBuf := TBuffer.Create(BufferDesc);
-
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_DEBUGTEXT_CONTEXT_POS].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_DEBUGTEXT_CONTEXT_TEXCOORD0].Format := TVertexFormat.Short2N;
-  PipDesc.Shader := TShader.Create(DebugtextContextShaderDesc);
-  PipDesc.IndexType := TIndexType.UInt16;
-  PipDesc.CullMode := TCullMode.Back;
-  PipDesc.Depth.WriteEnabled := True;
-  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-  PipDesc.TraceLabel := 'CubePipeline';
-
-  FPip := TPipeline.Create(PipDesc);
-
-  { Create resources for each offscreen-rendered cube face }
-  for var I := 0 to NUM_FACES - 1 do
-    FPasses[I].Init(BG_COLORS[I]);
-
-  { Create a sampler for sampling offscreen render targets as texture }
-  var SamplerDesc := TSamplerDesc.Create;
-  SamplerDesc.MinFilter := TFilter.Nearest;
-  SamplerDesc.MagFilter := TFilter.Nearest;
-  FSampler := TSampler.Create(SamplerDesc);
+  Rxm.InitRotationX(Radians(FRX));
+  Rym.InitRotationY(Radians(FRY));
+  var Model := Rym * Rxm;
+  Result.Mvp := ViewProj * Model;
 end;
 
 { TDebugTextContextApp.TFacePass }

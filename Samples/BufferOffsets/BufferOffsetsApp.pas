@@ -57,19 +57,38 @@ const
 
 { TBufferOffsetsApp }
 
-procedure TBufferOffsetsApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TBufferOffsetsApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
   AConfig.Width := 800;
   AConfig.Height := 600;
   AConfig.WindowTitle := 'Buffer Offsets';
+end;
+
+procedure TBufferOffsetsApp.Init;
+begin
+  inherited;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.5, 0.5, 1.0, 1.0);
+
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(VERTICES);
+  BufferDesc.TraceLabel := 'VertexBuffer';
+  FVBuf := TBuffer.Create(BufferDesc);
+
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
+  BufferDesc.Data := TRange.Create(INDICES);
+  BufferDesc.TraceLabel := 'IndexBuffer';
+  FIBuf := TBuffer.Create(BufferDesc);
+
+  FShader := TShader.Create(BufferOffsetsShaderDesc);
+
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Shader := FShader;
+  PipDesc.IndexType := TIndexType.UInt16;
+  PipDesc.Layout.Attrs[ATTR_BUFFEROFFSETS_POSITION].Format := TVertexFormat.Float2;
+  PipDesc.Layout.Attrs[ATTR_BUFFEROFFSETS_COLOR0].Format := TVertexFormat.Float3;
+  FPip := TPipeline.Create(PipDesc);
 end;
 
 procedure TBufferOffsetsApp.Frame;
@@ -100,30 +119,11 @@ begin
   TGfx.Commit;
 end;
 
-procedure TBufferOffsetsApp.Init;
+procedure TBufferOffsetsApp.Cleanup;
 begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
   inherited;
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.5, 0.5, 1.0, 1.0);
-
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'VertexBuffer';
-  FVBuf := TBuffer.Create(BufferDesc);
-
-  BufferDesc.Init;
-  BufferDesc.Usage.IndexBuffer := True;
-  BufferDesc.Data := TRange.Create(INDICES);
-  BufferDesc.TraceLabel := 'IndexBuffer';
-  FIBuf := TBuffer.Create(BufferDesc);
-
-  FShader := TShader.Create(BufferOffsetsShaderDesc);
-
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.Shader := FShader;
-  PipDesc.IndexType := TIndexType.UInt16;
-  PipDesc.Layout.Attrs[ATTR_BUFFEROFFSETS_POSITION].Format := TVertexFormat.Float2;
-  PipDesc.Layout.Attrs[ATTR_BUFFEROFFSETS_COLOR0].Format := TVertexFormat.Float3;
-  FPip := TPipeline.Create(PipDesc);
 end;
 
 end.

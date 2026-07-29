@@ -31,12 +31,6 @@ uses
 
 { TDebugTextApp }
 
-procedure TDebugTextApp.Cleanup;
-begin
-  inherited;
-  TDbgText.Shutdown;
-end;
-
 procedure TDebugTextApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -45,6 +39,23 @@ begin
   AConfig.HighDpi := False;
   AConfig.DepthFormat := TAppPixelFormat.None;
   AConfig.WindowTitle := 'DebugText';
+end;
+
+procedure TDebugTextApp.Init;
+begin
+  inherited;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.125, 0.25, 0);
+
+  var Desc := TDbgTextDesc.Create;
+  Desc.Fonts[0] := TDbgTextFont.KC853;
+  Desc.Fonts[1] := TDbgTextFont.KC854;
+  Desc.Fonts[2] := TDbgTextFont.Z1013;
+  Desc.Fonts[3] := TDbgTextFont.CPC;
+  Desc.Fonts[4] := TDbgTextFont.C64;
+  Desc.Fonts[5] := TDbgTextFont.Oric;
+  Desc.UseDelphiMemoryManager := True;
+  Desc.Logger := Desc.DefaultLogger;
+  TDbgText.Setup(Desc);
 end;
 
 procedure TDebugTextApp.Frame;
@@ -73,21 +84,10 @@ begin
   TGfx.Commit;
 end;
 
-procedure TDebugTextApp.Init;
+procedure TDebugTextApp.Cleanup;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.125, 0.25, 0);
-
-  var Desc := TDbgTextDesc.Create;
-  Desc.Fonts[0] := TDbgTextFont.KC853;
-  Desc.Fonts[1] := TDbgTextFont.KC854;
-  Desc.Fonts[2] := TDbgTextFont.Z1013;
-  Desc.Fonts[3] := TDbgTextFont.CPC;
-  Desc.Fonts[4] := TDbgTextFont.C64;
-  Desc.Fonts[5] := TDbgTextFont.Oric;
-  Desc.UseDelphiMemoryManager := True;
-  Desc.Logger := Desc.DefaultLogger;
-  TDbgText.Setup(Desc);
+  TDbgText.Shutdown;
 end;
 
 procedure TDebugTextApp.PrintFont(const AFontIndex: Integer;

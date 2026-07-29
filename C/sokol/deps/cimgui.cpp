@@ -461,22 +461,22 @@ CIMGUI_API void cimgui::igEndChild(void)
     ::ImGui::EndChild();
 }
 
-CIMGUI_API bool           cimgui::igIsWindowAppearing(void)
+CIMGUI_API bool        cimgui::igIsWindowAppearing(void)
 {
     return ::ImGui::IsWindowAppearing();
 }
 
-CIMGUI_API bool           cimgui::igIsWindowCollapsed(void)
+CIMGUI_API bool        cimgui::igIsWindowCollapsed(void)
 {
     return ::ImGui::IsWindowCollapsed();
 }
 
-CIMGUI_API bool           cimgui::igIsWindowFocused(ImGuiFocusedFlags flags)
+CIMGUI_API bool        cimgui::igIsWindowFocused(ImGuiFocusedFlags flags)
 {
     return ::ImGui::IsWindowFocused(flags);
 }
 
-CIMGUI_API bool           cimgui::igIsWindowHovered(ImGuiHoveredFlags flags)
+CIMGUI_API bool        cimgui::igIsWindowHovered(ImGuiHoveredFlags flags)
 {
     return ::ImGui::IsWindowHovered(flags);
 }
@@ -484,11 +484,6 @@ CIMGUI_API bool           cimgui::igIsWindowHovered(ImGuiHoveredFlags flags)
 CIMGUI_API cimgui::ImDrawList* cimgui::igGetWindowDrawList(void)
 {
     return reinterpret_cast<::cimgui::ImDrawList*>(::ImGui::GetWindowDrawList());
-}
-
-CIMGUI_API float          cimgui::igGetWindowDpiScale(void)
-{
-    return ::ImGui::GetWindowDpiScale();
 }
 
 CIMGUI_API cimgui::ImVec2 cimgui::igGetWindowPos(void)
@@ -501,19 +496,14 @@ CIMGUI_API cimgui::ImVec2 cimgui::igGetWindowSize(void)
     return ConvertFromCPP_ImVec2(::ImGui::GetWindowSize());
 }
 
-CIMGUI_API float          cimgui::igGetWindowWidth(void)
+CIMGUI_API float       cimgui::igGetWindowWidth(void)
 {
     return ::ImGui::GetWindowWidth();
 }
 
-CIMGUI_API float          cimgui::igGetWindowHeight(void)
+CIMGUI_API float       cimgui::igGetWindowHeight(void)
 {
     return ::ImGui::GetWindowHeight();
-}
-
-CIMGUI_API cimgui::ImGuiViewport* cimgui::igGetWindowViewport(void)
-{
-    return reinterpret_cast<::cimgui::ImGuiViewport*>(::ImGui::GetWindowViewport());
 }
 
 CIMGUI_API void cimgui::igSetNextWindowPos(cimgui::ImVec2 pos, ImGuiCond cond)
@@ -559,11 +549,6 @@ CIMGUI_API void cimgui::igSetNextWindowScroll(cimgui::ImVec2 scroll)
 CIMGUI_API void cimgui::igSetNextWindowBgAlpha(float alpha)
 {
     ::ImGui::SetNextWindowBgAlpha(alpha);
-}
-
-CIMGUI_API void cimgui::igSetNextWindowViewport(ImGuiID viewport_id)
-{
-    ::ImGui::SetNextWindowViewport(viewport_id);
 }
 
 CIMGUI_API void cimgui::igSetWindowPos(cimgui::ImVec2 pos, ImGuiCond cond)
@@ -2211,46 +2196,6 @@ CIMGUI_API void cimgui::igSetTabItemClosed(const char* tab_or_docked_window_labe
     ::ImGui::SetTabItemClosed(tab_or_docked_window_label);
 }
 
-CIMGUI_API ImGuiID cimgui::igDockSpace(ImGuiID dockspace_id)
-{
-    return ::ImGui::DockSpace(dockspace_id);
-}
-
-CIMGUI_API ImGuiID cimgui::igDockSpaceEx(ImGuiID dockspace_id, cimgui::ImVec2 size, ImGuiDockNodeFlags flags, const cimgui::ImGuiWindowClass* window_class)
-{
-    return ::ImGui::DockSpace(dockspace_id, ConvertToCPP_ImVec2(size), flags, reinterpret_cast<const ::ImGuiWindowClass*>(window_class));
-}
-
-CIMGUI_API ImGuiID cimgui::igDockSpaceOverViewport(void)
-{
-    return ::ImGui::DockSpaceOverViewport();
-}
-
-CIMGUI_API ImGuiID cimgui::igDockSpaceOverViewportEx(ImGuiID dockspace_id, const cimgui::ImGuiViewport* viewport, ImGuiDockNodeFlags flags, const cimgui::ImGuiWindowClass* window_class)
-{
-    return ::ImGui::DockSpaceOverViewport(dockspace_id, reinterpret_cast<const ::ImGuiViewport*>(viewport), flags, reinterpret_cast<const ::ImGuiWindowClass*>(window_class));
-}
-
-CIMGUI_API void    cimgui::igSetNextWindowDockID(ImGuiID dock_id, ImGuiCond cond)
-{
-    ::ImGui::SetNextWindowDockID(dock_id, cond);
-}
-
-CIMGUI_API void    cimgui::igSetNextWindowClass(const cimgui::ImGuiWindowClass* window_class)
-{
-    ::ImGui::SetNextWindowClass(reinterpret_cast<const ::ImGuiWindowClass*>(window_class));
-}
-
-CIMGUI_API ImGuiID cimgui::igGetWindowDockID(void)
-{
-    return ::ImGui::GetWindowDockID();
-}
-
-CIMGUI_API bool    cimgui::igIsWindowDocked(void)
-{
-    return ::ImGui::IsWindowDocked();
-}
-
 CIMGUI_API void cimgui::igLogToTTY(int auto_open_depth)
 {
     ::ImGui::LogToTTY(auto_open_depth);
@@ -2474,19 +2419,9 @@ CIMGUI_API cimgui::ImDrawList* cimgui::igGetBackgroundDrawList(void)
     return reinterpret_cast<::cimgui::ImDrawList*>(::ImGui::GetBackgroundDrawList());
 }
 
-CIMGUI_API cimgui::ImDrawList* cimgui::igGetBackgroundDrawListEx(cimgui::ImGuiViewport* viewport)
-{
-    return reinterpret_cast<::cimgui::ImDrawList*>(::ImGui::GetBackgroundDrawList(reinterpret_cast<::ImGuiViewport*>(viewport)));
-}
-
 CIMGUI_API cimgui::ImDrawList* cimgui::igGetForegroundDrawList(void)
 {
     return reinterpret_cast<::cimgui::ImDrawList*>(::ImGui::GetForegroundDrawList());
-}
-
-CIMGUI_API cimgui::ImDrawList* cimgui::igGetForegroundDrawListEx(cimgui::ImGuiViewport* viewport)
-{
-    return reinterpret_cast<::cimgui::ImDrawList*>(::ImGui::GetForegroundDrawList(reinterpret_cast<::ImGuiViewport*>(viewport)));
 }
 
 CIMGUI_API bool                  cimgui::igIsRectVisibleBySize(cimgui::ImVec2 size)
@@ -2801,36 +2736,6 @@ CIMGUI_API void  cimgui::igMemFree(void* ptr)
     ::ImGui::MemFree(ptr);
 }
 
-CIMGUI_API void           cimgui::igUpdatePlatformWindows(void)
-{
-    ::ImGui::UpdatePlatformWindows();
-}
-
-CIMGUI_API void           cimgui::igRenderPlatformWindowsDefault(void)
-{
-    ::ImGui::RenderPlatformWindowsDefault();
-}
-
-CIMGUI_API void           cimgui::igRenderPlatformWindowsDefaultEx(void* platform_render_arg, void* renderer_render_arg)
-{
-    ::ImGui::RenderPlatformWindowsDefault(platform_render_arg, renderer_render_arg);
-}
-
-CIMGUI_API void           cimgui::igDestroyPlatformWindows(void)
-{
-    ::ImGui::DestroyPlatformWindows();
-}
-
-CIMGUI_API cimgui::ImGuiViewport* cimgui::igFindViewportByID(ImGuiID viewport_id)
-{
-    return reinterpret_cast<::cimgui::ImGuiViewport*>(::ImGui::FindViewportByID(viewport_id));
-}
-
-CIMGUI_API cimgui::ImGuiViewport* cimgui::igFindViewportByPlatformHandle(void* platform_handle)
-{
-    return reinterpret_cast<::cimgui::ImGuiViewport*>(::ImGui::FindViewportByPlatformHandle(platform_handle));
-}
-
 CIMGUI_API void cimgui::ImGuiStyle_ScaleAllSizes(cimgui::ImGuiStyle* self, float scale_factor)
 {
     reinterpret_cast<::ImGuiStyle*>(self)->ScaleAllSizes(scale_factor);
@@ -2864,11 +2769,6 @@ CIMGUI_API void cimgui::ImGuiIO_AddMouseWheelEvent(cimgui::ImGuiIO* self, float 
 CIMGUI_API void cimgui::ImGuiIO_AddMouseSourceEvent(cimgui::ImGuiIO* self, cimgui::ImGuiMouseSource source)
 {
     reinterpret_cast<::ImGuiIO*>(self)->AddMouseSourceEvent(static_cast<::ImGuiMouseSource>(source));
-}
-
-CIMGUI_API void cimgui::ImGuiIO_AddMouseViewportEvent(cimgui::ImGuiIO* self, ImGuiID id)
-{
-    reinterpret_cast<::ImGuiIO*>(self)->AddMouseViewportEvent(id);
 }
 
 CIMGUI_API void cimgui::ImGuiIO_AddFocusEvent(cimgui::ImGuiIO* self, bool focused)
@@ -4137,11 +4037,6 @@ CIMGUI_API cimgui::ImVec2 cimgui::ImGuiViewport_GetCenter(const cimgui::ImGuiVie
 CIMGUI_API cimgui::ImVec2 cimgui::ImGuiViewport_GetWorkCenter(const cimgui::ImGuiViewport* self)
 {
     return ConvertFromCPP_ImVec2(reinterpret_cast<const ::ImGuiViewport*>(self)->GetWorkCenter());
-}
-
-CIMGUI_API const char* cimgui::ImGuiViewport_GetDebugName(const cimgui::ImGuiViewport* self)
-{
-    return reinterpret_cast<const ::ImGuiViewport*>(self)->GetDebugName();
 }
 
 CIMGUI_API void cimgui::ImGuiPlatformIO_ClearPlatformHandlers(cimgui::ImGuiPlatformIO* self)

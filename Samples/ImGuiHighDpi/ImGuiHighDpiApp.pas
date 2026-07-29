@@ -37,16 +37,11 @@ implementation
 uses
   Neslib.FastMath,
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.ImGui,
   ImGuiFont;
 
 { TImGuiHighDpiApp }
-
-procedure TImGuiHighDpiApp.Cleanup;
-begin
-  inherited;
-  FFontAtlas.Free;
-end;
 
 procedure TImGuiHighDpiApp.Configure(var AConfig: TAppConfig);
 begin
@@ -56,8 +51,47 @@ begin
   AConfig.WindowTitle := 'Dear ImGui HighDpi';
   AConfig.FullScreen := True;
   AConfig.HighDpi := True;
-  AConfig.iOSKeyboardResizesCanvas := False;
+  AConfig.DepthFormat := TAppPixelFormat.None;
+  AConfig.iOS.KeyboardResizesCanvas := False;
   AConfig.EnableClipboard := True;
+end;
+
+procedure TImGuiHighDpiApp.Init;
+begin
+  inherited;
+  FShowTestWindow := True;
+
+  { Configure Dear ImGui with our own embedded font }
+  var IO := ImGui.GetIO;
+  var FontCfg: TImFontConfig;
+  FontCfg.Initialize;
+  FontCfg.FontDataOwnedByAtlas := False;
+  IO.Fonts.AddFontFromMemoryTTF(@DUMP_FONT, SizeOf(DUMP_FONT), 18, @FontCfg);
+
+  { Initial clear color }
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.3, 0.7, 0, 1);
+end;
+
+procedure TImGuiHighDpiApp.Frame;
+begin
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TImGuiHighDpiApp.Cleanup;
+begin
+  inherited;
+  FFontAtlas.Free;
+end;
+
+class function TImGuiHighDpiApp.HasImGui: Boolean;
+begin
+  Result := True;
 end;
 
 procedure TImGuiHighDpiApp.ConfigureSokolImGui(var ADesc: TSokolImGuiDesc);
@@ -73,8 +107,8 @@ begin
     Tip: if we don't call ImGui.Begin/ImGui.End, the widgets appears in a window
     automatically called "Debug" }
   ImGui.Text('Hello, world!');
-  ImGui.SliderFloat('float', FFloatVal, 0, 1, '%.3f');
-  ImGui.ColorEdit3('clear color', FPassAction.Colors[0].Value);
+  ImGui.SliderFloat('float', @FFloatVal, 0, 1, '%.3f');
+  ImGui.ColorEdit3('clear color', @FPassAction.Colors[0].ClearValue);
   ImGui.Text(ImGui.Format('width: %d, height: %d, DPI scale: %.1f',
     [FramebufferWidth, FramebufferHeight, DpiScale]));
 
@@ -144,58 +178,6 @@ begin
     ImGui.OpenPopup('Really Quit?');
     FShowQuitDialog := False;
   end;
-end;
-
-procedure TImGuiHighDpiApp.Frame;
-begin
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TImGuiHighDpiApp.HasImGui: Boolean;
-begin
-  Result := True;
-end;
-
-procedure TImGuiHighDpiApp.Init;
-begin
-  inherited;
-  FShowTestWindow := True;
-
-  { Configure Dear ImGui with our own embedded font }
-  var IO := ImGui.GetIO;
-  var FontCfg := TImFontConfig.Create;
-  try
-    FontCfg.FontDataOwnedByAtlas := False;
-    FontCfg.OversampleH := 2;
-    FontCfg.OversampleV := 2;
-    FontCfg.RasterizerMultiply := 1.5;
-    IO.Fonts.AddFontFromMemoryTTF(@DUMP_FONT, SizeOf(DUMP_FONT), 16, FontCfg);
-  finally
-    FontCfg.Free;
-  end;
-
-  { Create font texture for the custom font }
-  var FontPixels: PByte;
-  var FontWidth, FontHeight: Integer;
-  IO.Fonts.GetTexDataAsRGBA32(FontPixels, FontWidth, FontHeight);
-
-  var ImgDesc := TImageDesc.Create;
-  ImgDesc.Width := FontWidth;
-  ImgDesc.Height := FontHeight;
-  ImgDesc.PixelFormat := TPixelFormat.Rgba8;
-  ImgDesc.WrapU := TWrap.ClampToEdge;
-  ImgDesc.WrapV := TWrap.ClampToEdge;
-  ImgDesc.MinFilter := TFilter.Linear;
-  ImgDesc.MagFilter := TFilter.Linear;
-  ImgDesc.Data.SubImages[0] := TRange.Create(FontPixels, FontWidth * FontHeight * 4);
-  FFontAtlas := TImage.Create(ImgDesc);
-  IO.Fonts.TexID := TImTextureID(FFontAtlas.Id);
-
-  FPassAction.Colors[0].Init(TAction.Clear, 0.3, 0.7, 0, 1);
-  Include(ImGui.GetIO.ConfigFlags, TImGuiConfigFlag.DockingEnable);
 end;
 
 procedure TImGuiHighDpiApp.QuitRequested(var ACanQuit: Boolean);

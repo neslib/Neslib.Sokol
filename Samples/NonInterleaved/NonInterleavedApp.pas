@@ -69,29 +69,6 @@ const
 
 { TNonInterleavedApp }
 
-procedure TNonInterleavedApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
-function TNonInterleavedApp.ComputeVSParams: TVSParams;
-begin
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
-  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  Result.MVP := ViewProj * Model;
-end;
-
 procedure TNonInterleavedApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -99,29 +76,6 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'Non-interleaved';
-end;
-
-procedure TNonInterleavedApp.Frame;
-begin
-  var T: Single := FrameDuration * 60;
-  FRX := FRX + (1 * T);
-  FRY := FRY + (2 * T);
-
-  var VSParams := ComputeVSParams;
-
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FPip);
-  TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
-  TGfx.Draw(0, 36, 1);
-
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TNonInterleavedApp.Init;
@@ -167,6 +121,52 @@ begin
 
   { Byte offset of color components in buffer }
   FBind.VertexBufferOffsets[1] := 24 * 3 * SizeOf(Single);
+end;
+
+procedure TNonInterleavedApp.Frame;
+begin
+  var T: Single := FrameDuration * 60;
+  FRX := FRX + (1 * T);
+  FRY := FRY + (2 * T);
+
+  var VSParams := ComputeVSParams;
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPip);
+  TGfx.ApplyBindings(FBind);
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.Draw(0, 36, 1);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TNonInterleavedApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
+end;
+
+function TNonInterleavedApp.ComputeVSParams: TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
 end;
 
 end.

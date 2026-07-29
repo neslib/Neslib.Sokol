@@ -82,37 +82,6 @@ const
 
 { TArrayTexApp }
 
-procedure TArrayTexApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
-function TArrayTexApp.ComputeVSParams(const AOffset: Single): TVSParams;
-begin
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
-  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-
-  { Model-view-projection matrix for vertex shader }
-  Result.MVP := ViewProj * Model;
-
-  { UV offsets }
-  Result.Offset0 := Vector2(-AOffset,  AOffset);
-  Result.Offset1 := Vector2( AOffset, -AOffset);
-  Result.Offset2 := Vector2(       0,        0);
-end;
-
 procedure TArrayTexApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -120,30 +89,6 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'Array Texture';
-end;
-
-procedure TArrayTexApp.Frame;
-begin
-  var T: Single := FrameDuration * 60;
-  var Offset: Single := FrameCount * 0.0001;
-  FRX := FRX + 1 * T;
-  FRY := FRY + 2 * T;
-  var VSParams := ComputeVSParams(Offset);
-
-  { Render the frame }
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FPip);
-  TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
-  TGfx.Draw(0, 36, 1);
-
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TArrayTexApp.Init;
@@ -217,6 +162,61 @@ begin
   PipDesc.TraceLabel := 'CubePipeline';
 
   FPip := TPipeline.Create(PipDesc);
+end;
+
+procedure TArrayTexApp.Frame;
+begin
+  var T: Single := FrameDuration * 60;
+  var Offset: Single := FrameCount * 0.0001;
+  FRX := FRX + 1 * T;
+  FRY := FRY + 2 * T;
+  var VSParams := ComputeVSParams(Offset);
+
+  { Render the frame }
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPip);
+  TGfx.ApplyBindings(FBind);
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.Draw(0, 36, 1);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TArrayTexApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
+end;
+
+function TArrayTexApp.ComputeVSParams(const AOffset: Single): TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+
+  { Model-view-projection matrix for vertex shader }
+  Result.MVP := ViewProj * Model;
+
+  { UV offsets }
+  Result.Offset0 := Vector2(-AOffset,  AOffset);
+  Result.Offset1 := Vector2( AOffset, -AOffset);
+  Result.Offset2 := Vector2(       0,        0);
 end;
 
 end.

@@ -186,12 +186,6 @@ const
 
 { TDebugTextUserFontApp }
 
-procedure TDebugTextUserFontApp.Cleanup;
-begin
-  inherited;
-  TDbgText.Shutdown;
-end;
-
 procedure TDebugTextUserFontApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -200,6 +194,23 @@ begin
   AConfig.HighDpi := False;
   AConfig.DepthFormat := TAppPixelFormat.None;
   AConfig.WindowTitle := 'DebugTextUserFont';
+end;
+
+procedure TDebugTextUserFontApp.Init;
+begin
+  inherited;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.125, 0.25, 0);
+
+  { Setup Neslib.Sokol.DebugText with the user font as the only font.
+    Note that the user font only provides pixel data for the characters #$20 to
+    #$9F inclusive. }
+  var Desc := TDbgTextDesc.Create;
+  Desc.Fonts[USER_FONT].Data := TRange.Create(USER_FONT_DATA);
+  Desc.Fonts[USER_FONT].FirstChar := #$20;
+  Desc.Fonts[USER_FONT].LastChar := #$9F;
+  Desc.UseDelphiMemoryManager := True;
+  Desc.Logger := Desc.DefaultLogger;
+  TDbgText.Setup(Desc);
 end;
 
 procedure TDebugTextUserFontApp.Frame;
@@ -238,21 +249,10 @@ begin
   TGfx.Commit;
 end;
 
-procedure TDebugTextUserFontApp.Init;
+procedure TDebugTextUserFontApp.Cleanup;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.125, 0.25, 0);
-
-  { Setup Neslib.Sokol.DebugText with the user font as the only font.
-    Note that the user font only provides pixel data for the characters #$20 to
-    #$9F inclusive. }
-  var Desc := TDbgTextDesc.Create;
-  Desc.Fonts[USER_FONT].Data := TRange.Create(USER_FONT_DATA);
-  Desc.Fonts[USER_FONT].FirstChar := #$20;
-  Desc.Fonts[USER_FONT].LastChar := #$9F;
-  Desc.UseDelphiMemoryManager := True;
-  Desc.Logger := Desc.DefaultLogger;
-  TDbgText.Setup(Desc);
+  TDbgText.Shutdown;
 end;
 
 end.

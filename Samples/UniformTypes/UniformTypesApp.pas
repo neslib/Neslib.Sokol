@@ -51,7 +51,8 @@ type
 implementation
 
 uses
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 const
   VERTICES: array [0..7] of Single = (
@@ -67,15 +68,6 @@ const
 
 { TUniformTypesApp }
 
-procedure TUniformTypesApp.Cleanup;
-begin
-  FPip.Free;
-  FShader.Free;
-  FBind.IndexBuffer.Free;
-  FBind.VertexBuffers[0].Free;
-  inherited;
-end;
-
 procedure TUniformTypesApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -83,7 +75,50 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := 4;
   AConfig.HighDpi := False;
+  AConfig.DepthFormat := TAppPixelFormat.None;
   AConfig.WindowTitle := 'Cube';
+end;
+
+procedure TUniformTypesApp.Init;
+begin
+  inherited;
+  var DbgTextDesc := TDbgTextDesc.Create;
+  DbgTextDesc.ContextPoolSize := 1;
+  DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
+  DbgTextDesc.UseDelphiMemoryManager := True;
+  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
+  TDbgText.Setup(DbgTextDesc);
+
+  { Setup vertex shader uniform block }
+  FVSParams.Scale.Init(1, 1);
+  FVSParams.I1 := 0;
+  FVSParams.I2.Init(1, 2);
+  FVSParams.I3.Init(3, 4, 5);
+  FVSParams.I4.Init(6, 7, 8, 9);
+  for var I := 0 to NUM_COLORS - 1 do
+    FVSParams.Pal[I].Init(PALETTE[I].R, PALETTE[I].G, PALETTE[I].B, 1);
+
+  { A quad vertex buffer, index buffer and pipeline object }
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(VERTICES);
+  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
+  BufferDesc.Data := TRange.Create(INDICES);
+  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
+
+  FShader := TShader.Create(UniformtypesShaderDesc);
+
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Layout.Attrs[ATTR_UNIFORMTYPES_POSITION].Format := TVertexFormat.Float2;
+  PipDesc.Shader := FShader;
+  PipDesc.IndexType := TIndexType.UInt16;
+
+  FPip := TPipeline.Create(PipDesc);
+
+  { Default pass action to clear background to black }
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
 end;
 
 procedure TUniformTypesApp.Frame;
@@ -110,7 +145,11 @@ begin
     TDbgText.NewLine;
   end;
 
-  TGfx.BeginDefaultPass(FPassAction, W, H);
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(FPip);
   TGfx.ApplyBindings(FBind);
   var X0: Single := -1 + (28 * GlyphW);
@@ -121,8 +160,7 @@ begin
   begin
     FVSParams.Sel := I;
     FVSParams.Offset.Init(X0, Y0);
-    TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS,
-      TRange.Create(FVSParams));
+    TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(FVSParams));
     TGfx.Draw(0, 6, 1);
     Y0 := Y0 - (4 * GlyphH);
   end;
@@ -133,44 +171,10 @@ begin
   TGfx.Commit;
 end;
 
-procedure TUniformTypesApp.Init;
+procedure TUniformTypesApp.Cleanup;
 begin
+  TDbgText.Shutdown;
   inherited;
-  var DbgTextDesc := TDbgTextDesc.Create;
-  DbgTextDesc.ContextPoolSize := 1;
-  DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
-  TDbgText.Setup(DbgTextDesc);
-
-  { Setup vertex shader uniform block }
-  FVSParams.Scale.Init(1, 1);
-  FVSParams.I1 := 0;
-  FVSParams.I2.Init(1, 2);
-  FVSParams.I3.Init(3, 4, 5);
-  FVSParams.I4.Init(6, 7, 8, 9);
-  for var I := 0 to NUM_COLORS - 1 do
-    FVSParams.Pal[I].Init(PALETTE[I].R, PALETTE[I].G, PALETTE[I].B, 1);
-
-  { A quad vertex buffer, index buffer and pipeline object }
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
-
-  BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
-  BufferDesc.Data := TRange.Create(INDICES);
-  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
-
-  FShader := TShader.Create(UniformtypesShaderDesc);
-
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float2;
-  PipDesc.Shader := FShader;
-  PipDesc.IndexType := TIndexType.UInt16;
-
-  FPip := TPipeline.Create(PipDesc);
-
-  { Default pass action to clear background to black }
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0, 0, 1);
 end;
 
 end.

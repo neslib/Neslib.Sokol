@@ -39,12 +39,6 @@ uses
 
 { TSglApp }
 
-procedure TSglApp.Cleanup;
-begin
-  sglShutdown;
-  inherited;
-end;
-
 procedure TSglApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -52,6 +46,111 @@ begin
   AConfig.Height := 512;
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'Neslib.Sokol.GL';
+end;
+
+procedure TSglApp.Init;
+var
+  Pixels: array [0..7, 0..7] of UInt32;
+begin
+  inherited;
+  { Setup Neslib.Sokol.GL }
+  var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
+
+  { Checkerboard texture }
+  for var Y := 0 to 7 do
+    for var X := 0 to 7 do
+    begin
+      if (((Y xor X) and 1) <> 0) then
+        Pixels[Y,X] := $FFFFFFFF
+      else
+        Pixels[Y,X] := $FF000000;
+    end;
+
+  var ImageDesc := TImageDesc.Create;
+  ImageDesc.Width := 8;
+  ImageDesc.Height := 8;
+  ImageDesc.Data.MipLevels[0] := TRange.Create(Pixels);
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := TImage.Create(ImageDesc);
+  FTexView := TView.Create(ViewDesc);
+
+  { ... and a sampler }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  FSampler := TSampler.Create(SamplerDesc);
+
+  { Create a pipeline object for 3d rendering, with less-equal depth-test and
+    cull-face enabled. Note that we don't provide a shader, vertex-layout, pixel
+    formats and sample count here, these are all filled in by Neslib.Sokol.GL }
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.CullMode := TCullMode.Back;
+  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+  FPip3D := TGLPipeline.Create(PipDesc);
+
+  { Default pass action }
+  FPassAction.Init;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
+end;
+
+procedure TSglApp.Frame;
+begin
+  { Frame time multiplier (normalized for 60fps) }
+  var T: Single := FrameDuration * 60;
+
+  { Compute viewport rectangles so that the views are horizontally
+    centered and keep a 1:1 aspect ratio }
+  var DW := FramebufferWidth;
+  var DH := FramebufferHeight;
+  var WW := DH shr 1; // Not a bug
+  var HH := DH shr 1;
+  var X0 := (DW shr 1) - HH;
+  var X1 := DW shr 1;
+  var Y0 := 0;
+  var Y1 := DH shr 1;
+
+  { All Neslib.Sokol.GL functions except sglDraw can be called anywhere in
+    the frame. }
+  sglViewport(X0, Y0, WW, HH, True);
+  DrawTriangle;
+
+  sglViewport(X1, Y0, WW, HH, True);
+  DrawQuad(T);
+
+  sglViewport(X0, Y1, WW, HH, True);
+  DrawCubes(T);
+
+  sglViewport(X1, Y1, WW, HH, True);
+  DrawTexCube(T);
+
+  sglViewport(0, 0, DW, DH, True);
+
+  { Render the Sokol.Gfx default pass. All Neslib.Sokol.GL commands that
+    happened so far are rendered inside sglDraw, and this is the only
+    Neslib.Sokol.GL function that must be called inside a begin/end pass pair.
+    sglDraw also 'rewinds' Neslib.Sokol.GL for the next frame. }
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  sglDraw;
+
+  DebugFrame;
+
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TSglApp.Cleanup;
+begin
+  sglShutdown;
+  inherited;
 end;
 
 procedure TSglApp.Cube;
@@ -191,105 +290,6 @@ begin
   sglV2f_C3b(-0.5, -0.5,   0,   0, 255);
   sglV2f_C3b( 0.5, -0.5,   0, 255,   0);
   sglEnd;
-end;
-
-procedure TSglApp.Frame;
-begin
-  { Frame time multiplier (normalized for 60fps) }
-  var T: Single := FrameDuration * 60;
-
-  { Compute viewport rectangles so that the views are horizontally
-    centered and keep a 1:1 aspect ratio }
-  var DW := FramebufferWidth;
-  var DH := FramebufferHeight;
-  var WW := DH shr 1; // Not a bug
-  var HH := DH shr 1;
-  var X0 := (DW shr 1) - HH;
-  var X1 := DW shr 1;
-  var Y0 := 0;
-  var Y1 := DH shr 1;
-
-  { All Neslib.Sokol.GL functions except sglDraw can be called anywhere in
-    the frame. }
-  sglViewport(X0, Y0, WW, HH, True);
-  DrawTriangle;
-
-  sglViewport(X1, Y0, WW, HH, True);
-  DrawQuad(T);
-
-  sglViewport(X0, Y1, WW, HH, True);
-  DrawCubes(T);
-
-  sglViewport(X1, Y1, WW, HH, True);
-  DrawTexCube(T);
-
-  sglViewport(0, 0, DW, DH, True);
-
-  { Render the Sokol.Gfx default pass. All Neslib.Sokol.GL commands that
-    happened so far are rendered inside sglDraw, and this is the only
-    Neslib.Sokol.GL function that must be called inside a begin/end pass pair.
-    sglDraw also 'rewinds' Neslib.Sokol.GL for the next frame. }
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  sglDraw;
-
-  DebugFrame;
-
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-procedure TSglApp.Init;
-var
-  Pixels: array [0..7, 0..7] of UInt32;
-begin
-  inherited;
-  { Setup Neslib.Sokol.GL }
-  var GLDesc := TGLDesc.Create;
-  GLDesc.UseDelphiMemoryManager := True;
-  GLDesc.Logger := GLDesc.DefaultLogger;
-  sglSetup(GLDesc);
-
-  { Checkerboard texture }
-  for var Y := 0 to 7 do
-    for var X := 0 to 7 do
-    begin
-      if (((Y xor X) and 1) <> 0) then
-        Pixels[Y,X] := $FFFFFFFF
-      else
-        Pixels[Y,X] := $FF000000;
-    end;
-
-  var ImageDesc := TImageDesc.Create;
-  ImageDesc.Width := 8;
-  ImageDesc.Height := 8;
-  ImageDesc.Data.MipLevels[0] := TRange.Create(Pixels);
-
-  var ViewDesc := TViewDesc.Create;
-  ViewDesc.Texture.Image := TImage.Create(ImageDesc);
-  FTexView := TView.Create(ViewDesc);
-
-  { ... and a sampler }
-  var SamplerDesc := TSamplerDesc.Create;
-  SamplerDesc.MinFilter := TFilter.Nearest;
-  SamplerDesc.MagFilter := TFilter.Nearest;
-  FSampler := TSampler.Create(SamplerDesc);
-
-  { Create a pipeline object for 3d rendering, with less-equal depth-test and
-    cull-face enabled. Note that we don't provide a shader, vertex-layout, pixel
-    formats and sample count here, these are all filled in by Neslib.Sokol.GL }
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.CullMode := TCullMode.Back;
-  PipDesc.Depth.WriteEnabled := True;
-  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-  FPip3D := TGLPipeline.Create(PipDesc);
-
-  { Default pass action }
-  FPassAction.Init;
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
 end;
 
 end.

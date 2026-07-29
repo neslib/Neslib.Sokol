@@ -51,13 +51,6 @@ const
 
 { TBlendApp }
 
-procedure TBlendApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TBlendApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -72,62 +65,6 @@ procedure TBlendApp.ConfigureGfx(var ADesc: TGfxDesc);
 begin
   inherited;
   ADesc.PipelinePoolSize := NUM_BLEND_FACTORS * NUM_BLEND_FACTORS + 16;
-end;
-
-procedure TBlendApp.Frame;
-begin
-  { view-projection matrix }
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-  var Proj, View, RM, Translate, Model: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(90), W / H, 0.01, 100.0);
-  View.InitLookAtRH(Vector3(0, 0, 20), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  { Start rendering }
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  { Draw a background quad }
-  TGfx.ApplyPipeline(FBGPip);
-  TGfx.ApplyBindings(FBind);
-  TGfx.ApplyUniforms(UB_BG_FS_PARAMS, TRange.Create(FBGFSParams));
-  TGfx.Draw(0, 4);
-
-  { Draw the blended quads }
-  var R0: Single := FR;
-  for var Src := 0 to NUM_BLEND_FACTORS - 1 do
-  begin
-    for var Dst := 0 to NUM_BLEND_FACTORS - 1 do
-    begin
-      if (FPips[Src, Dst].Id <> INVALID_ID) then
-      begin
-        { Compute new model-view-proj matrix }
-        RM.InitRotationY(Radians(R0));
-        var X: Single := (Dst - (NUM_BLEND_FACTORS div 2)) * 3.0;
-        var Y: Single := (Src - (NUM_BLEND_FACTORS div 2)) * 2.2;
-        Translate.InitTranslation(X, Y, 0);
-        Model := Translate * RM;
-        FQuadVSParams.MVP := ViewProj * Model;
-
-        TGfx.ApplyPipeline(FPips[Src, Dst]);
-        TGfx.ApplyBindings(FBind);
-        TGfx.ApplyUniforms(UB_QUAD_VS_PARAMS, TRange.Create(FQuadVSParams));
-        TGfx.Draw(0, 4);
-      end;
-      R0 := R0 + 0.6;
-    end;
-  end;
-
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-
-  var T: Single := FrameDuration * 60;
-  FR := FR + (0.6 * T);
-  FBGFSParams.Tick := FBGFSParams.Tick + T;
 end;
 
 procedure TBlendApp.Init;
@@ -196,6 +133,69 @@ begin
       Assert(FPips[Src, Dst].Id <> INVALID_ID);
     end;
   end;
+end;
+
+procedure TBlendApp.Frame;
+begin
+  { view-projection matrix }
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View, RM, Translate, Model: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(90), W / H, 0.01, 100.0);
+  View.InitLookAtRH(Vector3(0, 0, 20), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  { Start rendering }
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  { Draw a background quad }
+  TGfx.ApplyPipeline(FBGPip);
+  TGfx.ApplyBindings(FBind);
+  TGfx.ApplyUniforms(UB_BG_FS_PARAMS, TRange.Create(FBGFSParams));
+  TGfx.Draw(0, 4);
+
+  { Draw the blended quads }
+  var R0: Single := FR;
+  for var Src := 0 to NUM_BLEND_FACTORS - 1 do
+  begin
+    for var Dst := 0 to NUM_BLEND_FACTORS - 1 do
+    begin
+      if (FPips[Src, Dst].Id <> INVALID_ID) then
+      begin
+        { Compute new model-view-proj matrix }
+        RM.InitRotationY(Radians(R0));
+        var X: Single := (Dst - (NUM_BLEND_FACTORS div 2)) * 3.0;
+        var Y: Single := (Src - (NUM_BLEND_FACTORS div 2)) * 2.2;
+        Translate.InitTranslation(X, Y, 0);
+        Model := Translate * RM;
+        FQuadVSParams.MVP := ViewProj * Model;
+
+        TGfx.ApplyPipeline(FPips[Src, Dst]);
+        TGfx.ApplyBindings(FBind);
+        TGfx.ApplyUniforms(UB_QUAD_VS_PARAMS, TRange.Create(FQuadVSParams));
+        TGfx.Draw(0, 4);
+      end;
+      R0 := R0 + 0.6;
+    end;
+  end;
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+
+  var T: Single := FrameDuration * 60;
+  FR := FR + (0.6 * T);
+  FBGFSParams.Tick := FBGFSParams.Tick + T;
+end;
+
+procedure TBlendApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
 end;
 
 end.

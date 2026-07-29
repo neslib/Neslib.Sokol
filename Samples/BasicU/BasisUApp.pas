@@ -74,14 +74,6 @@ end;
 
 { TBasisUApp }
 
-procedure TBasisUApp.Cleanup;
-begin
-  TDbgText.Shutdown;
-  TBasisU.Shutdown;
-  sglShutdown;
-  inherited;
-end;
-
 procedure TBasisUApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -91,25 +83,49 @@ begin
   AConfig.WindowTitle := 'BasisU';
 end;
 
-procedure TBasisUApp.DrawQuad(const AParams: TQuadParams);
+procedure TBasisUApp.Init;
 begin
-  sglTexture(AParams.View, FSampler);
-  if (AParams.Pipeline.Id <> 0) then
-    sglLoadPipeline(AParams.Pipeline)
-  else
-    sglLoadDefaultPipeline;
+  inherited;
+  FPassaction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.25, 1, 1);
 
-  sglPushMatrix;
-  sglTranslate(AParams.Pos.X, AParams.Pos.Y, 0);
-  sglScale(AParams.Scale.X, AParams.Scale.Y, 0);
-  sglRotate(AParams.Rotation, 0, 0, 1);
-  sglBeginQuads;
-  sglV2F_T2F(-1, -1, 0, 0);
-  sglV2F_T2F( 1, -1, 1, 0);
-  sglV2F_T2F( 1,  1, 1, 1);
-  sglV2F_T2F(-1,  1, 0, 1);
-  sglEnd;
-  sglPopMatrix;
+  { Setup debug text }
+  var DbgTextDesc := TDbgTextDesc.Create;
+  DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
+  DbgTextDesc.UseDelphiMemoryManager := True;
+  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
+  TDbgText.Setup(DbgTextDesc);
+
+  { Setup Sokol GL }
+  var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
+
+  { Setup Basis Universal via our own minimal wrapper code }
+  TBasisU.Setup;
+
+  { Create Sokol Gfx textures from the embedded Basis Universal textures }
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := TBasisU.CreateImage(TRange.Create(EMBED_TESTCARD_BASIS));
+  FOpaqueView := TView.Create(ViewDesc);
+  ViewDesc.Texture.Image := TBasisU.CreateImage(TRange.Create(EMBED_TESTCARD_RGBA_BASIS));
+  FAlphaView := TView.Create(ViewDesc);
+
+  { Create a sampler object }
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  SamplerDesc.MipmapFilter := TFilter.Linear;
+  SamplerDesc.MaxAnisotropy := 8;
+  FSampler := TSampler.Create(SamplerDesc);
+
+  { A Sokol GL pipeline object for alpha-blended rendering }
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Colors[0].WriteMask := TColorMask.Rgb;
+  PipDesc.Colors[0].Blend.Enabled := True;
+  PipDesc.Colors[0].Blend.SrcFactorRgb := TBlendFactor.SrcAlpha;
+  PipDesc.Colors[0].Blend.DstFactorRgb := TBlendFactor.OneMinusSrcAlpha;
+  FAlphaPip := TGLPipeline.Create(PipDesc);
 end;
 
 procedure TBasisUApp.Frame;
@@ -159,49 +175,33 @@ begin
   TGfx.Commit;
 end;
 
-procedure TBasisUApp.Init;
+procedure TBasisUApp.Cleanup;
 begin
+  TDbgText.Shutdown;
+  TBasisU.Shutdown;
+  sglShutdown;
   inherited;
-  FPassaction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.25, 1, 1);
+end;
 
-  { Setup debug text }
-  var DbgTextDesc := TDbgTextDesc.Create;
-  DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
-  DbgTextDesc.UseDelphiMemoryManager := True;
-  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
-  TDbgText.Setup(DbgTextDesc);
+procedure TBasisUApp.DrawQuad(const AParams: TQuadParams);
+begin
+  sglTexture(AParams.View, FSampler);
+  if (AParams.Pipeline.Id <> 0) then
+    sglLoadPipeline(AParams.Pipeline)
+  else
+    sglLoadDefaultPipeline;
 
-  { Setup Sokol GL }
-  var GLDesc := TGLDesc.Create;
-  GLDesc.UseDelphiMemoryManager := True;
-  GLDesc.Logger := GLDesc.DefaultLogger;
-  sglSetup(GLDesc);
-
-  { Setup Basis Universal via our own minimal wrapper code }
-  TBasisU.Setup;
-
-  { Create Sokol Gfx textures from the embedded Basis Universal textures }
-  var ViewDesc := TViewDesc.Create;
-  ViewDesc.Texture.Image := TBasisU.CreateImage(TRange.Create(EMBED_TESTCARD_BASIS));
-  FOpaqueView := TView.Create(ViewDesc);
-  ViewDesc.Texture.Image := TBasisU.CreateImage(TRange.Create(EMBED_TESTCARD_RGBA_BASIS));
-  FAlphaView := TView.Create(ViewDesc);
-
-  { Create a sampler object }
-  var SamplerDesc := TSamplerDesc.Create;
-  SamplerDesc.MinFilter := TFilter.Linear;
-  SamplerDesc.MagFilter := TFilter.Linear;
-  SamplerDesc.MipmapFilter := TFilter.Linear;
-  SamplerDesc.MaxAnisotropy := 8;
-  FSampler := TSampler.Create(SamplerDesc);
-
-  { A Sokol GL pipeline object for alpha-blended rendering }
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.Colors[0].WriteMask := TColorMask.Rgb;
-  PipDesc.Colors[0].Blend.Enabled := True;
-  PipDesc.Colors[0].Blend.SrcFactorRgb := TBlendFactor.SrcAlpha;
-  PipDesc.Colors[0].Blend.DstFactorRgb := TBlendFactor.OneMinusSrcAlpha;
-  FAlphaPip := TGLPipeline.Create(PipDesc);
+  sglPushMatrix;
+  sglTranslate(AParams.Pos.X, AParams.Pos.Y, 0);
+  sglScale(AParams.Scale.X, AParams.Scale.Y, 0);
+  sglRotate(AParams.Rotation, 0, 0, 1);
+  sglBeginQuads;
+  sglV2F_T2F(-1, -1, 0, 0);
+  sglV2F_T2F( 1, -1, 1, 0);
+  sglV2F_T2F( 1,  1, 1, 1);
+  sglV2F_T2F(-1,  1, 0, 1);
+  sglEnd;
+  sglPopMatrix;
 end;
 
 end.

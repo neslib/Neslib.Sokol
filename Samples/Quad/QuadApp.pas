@@ -45,36 +45,12 @@ const
 
 { TQuadApp }
 
-procedure TQuadApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TQuadApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
   AConfig.WindowTitle := 'Quad';
   AConfig.Width := 800;
   AConfig.Height := 600;
-end;
-
-procedure TQuadApp.Frame;
-begin
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FPip);
-  TGfx.ApplyBindings(FBind);
-
-  TGfx.Draw(0, 6, 1);
-  DebugFrame;
-
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TQuadApp.Init;
@@ -103,6 +79,30 @@ begin
   FPip := TPipeline.Create(PipDesc);
 
   FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
+end;
+
+procedure TQuadApp.Frame;
+begin
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPip);
+  TGfx.ApplyBindings(FBind);
+
+  TGfx.Draw(0, 6, 1);
+  DebugFrame;
+
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TQuadApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
 end;
 
 end.

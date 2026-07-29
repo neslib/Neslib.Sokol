@@ -33,18 +33,22 @@ uses
 
 { TAudioApp }
 
-procedure TAudioApp.Cleanup;
-begin
-  inherited;
-  TAudio.Shutdown;
-end;
-
 procedure TAudioApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
   AConfig.Width := 400;
   AConfig.Height := 300;
   AConfig.WindowTitle := 'Audio';
+end;
+
+procedure TAudioApp.Init;
+begin
+  inherited;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0.5, 0);
+
+  var AudioDesc := TAudioDesc.Create;
+  AudioDesc.UseDelphiMemoryManager := True;
+  TAudio.Setup(AudioDesc);
 end;
 
 procedure TAudioApp.Frame;
@@ -78,14 +82,10 @@ begin
   TGfx.Commit;
 end;
 
-procedure TAudioApp.Init;
+procedure TAudioApp.Cleanup;
 begin
   inherited;
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 1, 0.5, 0);
-
-  var AudioDesc := TAudioDesc.Create;
-  AudioDesc.UseDelphiMemoryManager := True;
-  TAudio.Setup(AudioDesc);
+  TAudio.Shutdown;
 end;
 
 end.

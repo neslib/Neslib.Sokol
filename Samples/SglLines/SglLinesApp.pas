@@ -41,12 +41,6 @@ uses
 
 { TSglLinesApp }
 
-procedure TSglLinesApp.Cleanup;
-begin
-  sglShutdown;
-  inherited;
-end;
-
 procedure TSglLinesApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -56,37 +50,25 @@ begin
   AConfig.WindowTitle := 'Neslib.Sokol.GL Lines';
 end;
 
-procedure TSglLinesApp.FloatyThingy(const AFrameCount: Integer);
-const
-  NUM_SEGS = 32;
-  DX       = 0.25;
-  DY       = 0.25;
-  X0       = -(NUM_SEGS * DX * 0.5);
-  X1       = -X0;
-  Y0       = -(NUM_SEGS * DY * 0.5);
-  Y1       = -Y0;
+procedure TSglLinesApp.Init;
 begin
-  var Start := AFrameCount mod (NUM_SEGS * 2);
-  if (Start < NUM_SEGS) then
-    Start := 0
-  else
-    Dec(Start, NUM_SEGS);
+  inherited;
+  { Setup Neslib.Sokol.GL }
+  var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
 
-  var Stop := AFrameCount mod (NUM_SEGS * 2);
-  if (Stop > NUM_SEGS) then
-    Stop := NUM_SEGS;
+  { A pipeline object with less-equal depth-testing }
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+  FDepthTestPip := TGLPipeline.Create(PipDesc);
 
-  sglBeginLines;
-  for var I := Start to Stop - 1 do
-  begin
-    var X: Single := I * DX;
-    var Y: Single := I * DY;
-    sglV2f(X0 + X, Y0); sglV2f(X1, Y0 + Y);
-    sglV2f(X1 - X, Y1); sglV2f(X0, Y1 - Y);
-    sglV2f(X0 + X, Y1); sglV2f(X1, Y1 - Y);
-    sglV2f(X1 - X, Y0); sglV2f(X0, Y0 + Y);
-  end;
-  sglEnd;
+  { A default pass action }
+  FPassAction.Init;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
+  FX := $12345678;
 end;
 
 procedure TSglLinesApp.Frame;
@@ -144,6 +126,61 @@ begin
   TGfx.Commit;
 end;
 
+procedure TSglLinesApp.Cleanup;
+begin
+  sglShutdown;
+  inherited;
+end;
+
+function TSglLinesApp.Rnd: Single;
+begin
+  Result := (((XorShift32 and $FFFF) / $10000) * 2) - 1;
+end;
+
+function TSglLinesApp.XorShift32: Cardinal;
+begin
+  Result := FX;
+
+  Result := Result xor (Result shl 13);
+  Result := Result xor (Result shr 17);
+  Result := Result xor (Result shl 5);
+
+  FX := Result;
+end;
+
+procedure TSglLinesApp.FloatyThingy(const AFrameCount: Integer);
+const
+  NUM_SEGS = 32;
+  DX       = 0.25;
+  DY       = 0.25;
+  X0       = -(NUM_SEGS * DX * 0.5);
+  X1       = -X0;
+  Y0       = -(NUM_SEGS * DY * 0.5);
+  Y1       = -Y0;
+begin
+  var Start := AFrameCount mod (NUM_SEGS * 2);
+  if (Start < NUM_SEGS) then
+    Start := 0
+  else
+    Dec(Start, NUM_SEGS);
+
+  var Stop := AFrameCount mod (NUM_SEGS * 2);
+  if (Stop > NUM_SEGS) then
+    Stop := NUM_SEGS;
+
+  sglBeginLines;
+  for var I := Start to Stop - 1 do
+  begin
+    var X: Single := I * DX;
+    var Y: Single := I * DY;
+    sglV2f(X0 + X, Y0); sglV2f(X1, Y0 + Y);
+    sglV2f(X1 - X, Y1); sglV2f(X0, Y1 - Y);
+    sglV2f(X0 + X, Y1); sglV2f(X1, Y1 - Y);
+    sglV2f(X1 - X, Y0); sglV2f(X0, Y0 + Y);
+  end;
+  sglEnd;
+end;
+
 procedure TSglLinesApp.Grid(const AY: Single; const AFrameCount: Integer);
 const
   NUM = 64;
@@ -198,43 +235,6 @@ begin
     I := (I + 1) and RING_MASK;
   end;
   sglEnd;
-end;
-
-procedure TSglLinesApp.Init;
-begin
-  inherited;
-  { Setup Neslib.Sokol.GL }
-  var GLDesc := TGLDesc.Create;
-  GLDesc.UseDelphiMemoryManager := True;
-  GLDesc.Logger := GLDesc.DefaultLogger;
-  sglSetup(GLDesc);
-
-  { A pipeline object with less-equal depth-testing }
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.Depth.WriteEnabled := True;
-  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-  FDepthTestPip := TGLPipeline.Create(PipDesc);
-
-  { A default pass action }
-  FPassAction.Init;
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
-  FX := $12345678;
-end;
-
-function TSglLinesApp.Rnd: Single;
-begin
-  Result := (((XorShift32 and $FFFF) / $10000) * 2) - 1;
-end;
-
-function TSglLinesApp.XorShift32: Cardinal;
-begin
-  Result := FX;
-
-  Result := Result xor (Result shl 13);
-  Result := Result xor (Result shr 17);
-  Result := Result xor (Result shl 5);
-
-  FX := Result;
 end;
 
 end.

@@ -356,21 +356,197 @@ end;
 
 { TglTFApp }
 
-class function TglTFApp.AttrTypeToVSInputSlot(
-  const AAttrType: TglTFAttributeType): Integer;
+procedure TglTFApp.Configure(var AConfig: TAppConfig);
 begin
-  case AAttrType of
-    TglTFAttributeType.Position:
-      Result := ATTR_GLTF_METALLIC_POSITION;
+  inherited;
+  AConfig.Width := 800;
+  AConfig.Height := 600;
+  AConfig.SampleCount := 4;
+  AConfig.HighDpi := False;
+  AConfig.WindowTitle := 'glTF Viewer';
+end;
 
-    TglTFAttributeType.Normal:
-      Result := ATTR_GLTF_METALLIC_NORMAL;
+procedure TglTFApp.Init;
+begin
+  inherited;
+  { Initialize camera helper }
+  var CamDesc := TCameraDesc.Create;
+  CamDesc.Latitude := -10;
+  CamDesc.Longitude := 45;
+  Camdesc.Distance := 2.5;
+  FCamera := TCamera.Create(CamDesc);
 
-    TglTFAttributeType.TexCoord:
-      Result := ATTR_GLTF_METALLIC_TEXCOORD;
-  else
-    Result := SCENE_INVALID_INDEX;
+  { Initialize Basis Universal }
+  TBasisU.Setup;
+
+  { Setup Debug Text }
+  var DbgTextDesc := TDbgTextDesc.Create;
+  DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
+  DbgTextDesc.UseDelphiMemoryManager := True;
+  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
+  TDbgText.Setup(DbgTextDesc);
+
+  { Setup Neslib.Sokol.Fetch with 1 channel and 4 lanes per channel.
+    We'll use one channel for mesh data and the other for textures. }
+  var FetchDesc := TFetchDesc.Create;
+  FetchDesc.MaxRequests := 64;
+  FetchDesc.NumChannels := FETCH_NUM_CHANNELS;
+  FetchDesc.NumLanes := FETCH_NUM_LANES;
+  FetchDesc.BaseDirectory := 'Data/glTF';
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
+  TFetch.Setup(FetchDesc);
+
+  { Normal background color, and a "load failed" background color }
+  FPassActions.Init;
+
+  { Create shaders }
+  FShaders.Init;
+
+  { Setup the point light }
+  FPointLight.LightPos.Init(10, 10, 10);
+  FPointLight.LightRange := 200;
+  FPointLight.LightColor.Init(1, 1.5, 2);
+  FPointLight.LightIntensity := 700;
+
+  { Start loading the base gltf file... }
+  var Request := TFetchRequest.Create(FILENAME, FetchCallback);
+  Request.Send;
+
+  { Create placeholder textures and sampler }
+  FPlaceholders.Init;
+end;
+
+procedure TglTFApp.Frame;
+begin
+  { Pump the Neslib.Sokol.Fetch message queue }
+  TFetch.DoWork;
+
+  var FBWidth := FramebufferWidth;
+  var FBHeight := FramebufferHeight;
+
+  { Print help text }
+  TDbgText.Canvas(FBWidth * 0.5, FBHeight * 0.5);
+  TDbgText.Color($FFFFFFFF);
+  TDbgText.Origin(1, 2);
+  {$IF Defined(IOS) or Defined(ANDROID)}
+  TDbgText.WriteAnsiLn('Drag:  rotate');
+  TDbgText.WriteAnsiLn('Pinch: zoom');
+  {$ELSE}
+  TDbgText.WriteAnsiLn('LMB + drag:  rotate');
+  TDbgText.WriteAnsiLn('mouse wheel: zoom');
+  {$ENDIF}
+
+  UpdateScene;
+  FCamera.Update(FBWidth, FBHeight);
+
+  { Render the scene }
+  if (FFailed) then
+  begin
+    var Pass := TPass.Create;
+    Pass.Action^ := FPassActions.Failed;
+    Pass.Swapchain.FromAppSwapchain;
+    TGfx.BeginPass(Pass);
+
+    DebugFrame;
+    TGfx.EndPass;
+    TGfx.Commit;
+    Exit;
   end;
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassActions.OK;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+  for var NodeIndex := 0 to FScene.NumNodes - 1 do
+  begin
+    var Node := PNode(@FScene.Nodes[NodeIndex]);
+    var VSParams := VSParamsForNode(NodeIndex);
+    var Mesh := PMesh(@FScene.Meshes[Node.Mesh]);
+
+    for var I := 0 to Mesh.NumPrimitives - 1 do
+    begin
+      var Prim := PPrimitive(@FScene.Primitives[I + Mesh.FirstPrimitive]);
+      var Mat := PMaterial(@FScene.Materials[Prim.Material]);
+      TGfx.ApplyPipeline(FScene.Pipelines[Prim.Pipeline]);
+      var Bind := TBindings.Create;
+
+      for var VBSlot := 0 to Prim.VertexBuffers.Count - 1 do
+        Bind.VertexBuffers[VBSlot] := FScene.Buffers[Prim.VertexBuffers.Buffer[VBSlot]];
+
+      if (Prim.IndexBuffer <> SCENE_INVALID_INDEX) then
+        Bind.IndexBuffer := FScene.Buffers[Prim.IndexBuffer];
+
+      TGfx.ApplyUniforms(UB_GLTF_VS_PARAMS, TRange.Create(VSParams));
+      TGfx.ApplyUniforms(UB_GLTF_LIGHT_PARAMS, TRange.Create(FPointLight));
+
+      if (Mat.IsMetallic) then
+      begin
+        var BaseColorTex := FScene.Images[Mat.Metallic.Images.BaseColor].TexView;
+        var MetallicRoughnessTex := FScene.Images[Mat.Metallic.Images.MetallicRoughness].TexView;
+        var NormalTex := FScene.Images[Mat.Metallic.Images.Normal].TexView;
+        var OcclusionTex := FScene.Images[Mat.Metallic.Images.Occlusion].TexView;
+        var EmissiveTex := FScene.Images[Mat.Metallic.Images.Emissive].TexView;
+
+        var BaseColorSmp := FScene.Images[Mat.Metallic.Images.BaseColor].Sampler;
+        var MetallicRoughnessSmp := FScene.Images[Mat.Metallic.Images.MetallicRoughness].Sampler;
+        var NormalSmp := FScene.Images[Mat.Metallic.Images.Normal].Sampler;
+        var OcclusionSmp := FScene.Images[Mat.Metallic.Images.Occlusion].Sampler;
+        var EmissiveSmp := FScene.Images[Mat.Metallic.Images.Emissive].Sampler;
+
+        if (BaseColorTex.Id = 0) then
+        begin
+          BaseColorTex := FPlaceholders.White;
+          BaseColorSmp := FPlaceholders.Sampler;
+        end;
+
+        if (MetallicRoughnessTex.Id = 0) then
+        begin
+          MetallicRoughnessTex := FPlaceholders.White;
+          MetallicRoughnessSmp := FPlaceholders.Sampler;
+        end;
+
+        if (NormalTex.Id = 0) then
+        begin
+          NormalTex := FPlaceholders.Normal;
+          NormalSmp := FPlaceholders.Sampler;
+        end;
+
+        if (OcclusionTex.Id = 0) then
+        begin
+          OcclusionTex := FPlaceholders.White;
+          OcclusionSmp := FPlaceholders.Sampler;
+        end;
+
+        if (EmissiveTex.Id = 0) then
+        begin
+          EmissiveTex := FPlaceholders.Black;
+          EmissiveSmp := FPlaceholders.Sampler;
+        end;
+
+        Bind.Views[VIEW_GLTF_BASE_COLOR_TEX] := BaseColorTex;
+        Bind.Views[VIEW_GLTF_METALLIC_ROUGHNESS_TEX] := MetallicRoughnessTex;
+        Bind.Views[VIEW_GLTF_NORMAL_TEX] := NormalTex;
+        Bind.Views[VIEW_GLTF_OCCLUSION_TEX] := OcclusionTex;
+        Bind.Views[VIEW_GLTF_EMISSIVE_TEX] := EmissiveTex;
+
+        Bind.Samplers[SMP_GLTF_BASE_COLOR_SMP] := BaseColorSmp;
+        Bind.Samplers[SMP_GLTF_METALLIC_ROUGHNESS_SMP] := MetallicRoughnessSmp;
+        Bind.Samplers[SMP_GLTF_NORMAL_SMP] := NormalSmp;
+        Bind.Samplers[SMP_GLTF_OCCLUSION_SMP] := OcclusionSmp;
+        Bind.Samplers[SMP_GLTF_EMISSIVE_SMP] := EmissiveSmp;
+
+        TGfx.ApplyUniforms(UB_GLTF_METALLIC_PARAMS,
+          TRange.Create(Mat.Metallic.FragmentShaderParams));
+      end;
+
+      TGfx.ApplyBindings(Bind);
+      TGfx.Draw(Prim.BaseElement, Prim.NumElements, 1);
+    end;
+  end;
+  TDbgText.Draw;
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
 end;
 
 procedure TglTFApp.Cleanup;
@@ -380,16 +556,6 @@ begin
   TFetch.Shutdown;
   TDbgText.Shutdown;
   TBasisU.Shutdown;
-end;
-
-procedure TglTFApp.Configure(var AConfig: TAppConfig);
-begin
-  inherited;
-  AConfig.Width := 800;
-  AConfig.Height := 600;
-  AConfig.SampleCount := 4;
-  AConfig.HighDpi := False;
-  AConfig.WindowTitle := 'glTF Viewer';
 end;
 
 procedure TglTFApp.CreateGfxBuffersForGlTFBuffer(
@@ -606,137 +772,21 @@ begin
   end;
 end;
 
-procedure TglTFApp.Frame;
+class function TglTFApp.AttrTypeToVSInputSlot(
+  const AAttrType: TglTFAttributeType): Integer;
 begin
-  { Pump the Neslib.Sokol.Fetch message queue }
-  TFetch.DoWork;
+  case AAttrType of
+    TglTFAttributeType.Position:
+      Result := ATTR_GLTF_METALLIC_POSITION;
 
-  var FBWidth := FramebufferWidth;
-  var FBHeight := FramebufferHeight;
+    TglTFAttributeType.Normal:
+      Result := ATTR_GLTF_METALLIC_NORMAL;
 
-  { Print help text }
-  TDbgText.Canvas(FBWidth * 0.5, FBHeight * 0.5);
-  TDbgText.Color($FFFFFFFF);
-  TDbgText.Origin(1, 2);
-  {$IF Defined(IOS) or Defined(ANDROID)}
-  TDbgText.WriteAnsiLn('Drag:  rotate');
-  TDbgText.WriteAnsiLn('Pinch: zoom');
-  {$ELSE}
-  TDbgText.WriteAnsiLn('LMB + drag:  rotate');
-  TDbgText.WriteAnsiLn('mouse wheel: zoom');
-  {$ENDIF}
-
-  UpdateScene;
-  FCamera.Update(FBWidth, FBHeight);
-
-  { Render the scene }
-  if (FFailed) then
-  begin
-    var Pass := TPass.Create;
-    Pass.Action^ := FPassActions.Failed;
-    Pass.Swapchain.FromAppSwapchain;
-    TGfx.BeginPass(Pass);
-
-    DebugFrame;
-    TGfx.EndPass;
-    TGfx.Commit;
-    Exit;
+    TglTFAttributeType.TexCoord:
+      Result := ATTR_GLTF_METALLIC_TEXCOORD;
+  else
+    Result := SCENE_INVALID_INDEX;
   end;
-
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassActions.OK;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-  for var NodeIndex := 0 to FScene.NumNodes - 1 do
-  begin
-    var Node := PNode(@FScene.Nodes[NodeIndex]);
-    var VSParams := VSParamsForNode(NodeIndex);
-    var Mesh := PMesh(@FScene.Meshes[Node.Mesh]);
-
-    for var I := 0 to Mesh.NumPrimitives - 1 do
-    begin
-      var Prim := PPrimitive(@FScene.Primitives[I + Mesh.FirstPrimitive]);
-      var Mat := PMaterial(@FScene.Materials[Prim.Material]);
-      TGfx.ApplyPipeline(FScene.Pipelines[Prim.Pipeline]);
-      var Bind := TBindings.Create;
-
-      for var VBSlot := 0 to Prim.VertexBuffers.Count - 1 do
-        Bind.VertexBuffers[VBSlot] := FScene.Buffers[Prim.VertexBuffers.Buffer[VBSlot]];
-
-      if (Prim.IndexBuffer <> SCENE_INVALID_INDEX) then
-        Bind.IndexBuffer := FScene.Buffers[Prim.IndexBuffer];
-
-      TGfx.ApplyUniforms(UB_GLTF_VS_PARAMS, TRange.Create(VSParams));
-      TGfx.ApplyUniforms(UB_GLTF_LIGHT_PARAMS, TRange.Create(FPointLight));
-
-      if (Mat.IsMetallic) then
-      begin
-        var BaseColorTex := FScene.Images[Mat.Metallic.Images.BaseColor].TexView;
-        var MetallicRoughnessTex := FScene.Images[Mat.Metallic.Images.MetallicRoughness].TexView;
-        var NormalTex := FScene.Images[Mat.Metallic.Images.Normal].TexView;
-        var OcclusionTex := FScene.Images[Mat.Metallic.Images.Occlusion].TexView;
-        var EmissiveTex := FScene.Images[Mat.Metallic.Images.Emissive].TexView;
-
-        var BaseColorSmp := FScene.Images[Mat.Metallic.Images.BaseColor].Sampler;
-        var MetallicRoughnessSmp := FScene.Images[Mat.Metallic.Images.MetallicRoughness].Sampler;
-        var NormalSmp := FScene.Images[Mat.Metallic.Images.Normal].Sampler;
-        var OcclusionSmp := FScene.Images[Mat.Metallic.Images.Occlusion].Sampler;
-        var EmissiveSmp := FScene.Images[Mat.Metallic.Images.Emissive].Sampler;
-
-        if (BaseColorTex.Id = 0) then
-        begin
-          BaseColorTex := FPlaceholders.White;
-          BaseColorSmp := FPlaceholders.Sampler;
-        end;
-
-        if (MetallicRoughnessTex.Id = 0) then
-        begin
-          MetallicRoughnessTex := FPlaceholders.White;
-          MetallicRoughnessSmp := FPlaceholders.Sampler;
-        end;
-
-        if (NormalTex.Id = 0) then
-        begin
-          NormalTex := FPlaceholders.Normal;
-          NormalSmp := FPlaceholders.Sampler;
-        end;
-
-        if (OcclusionTex.Id = 0) then
-        begin
-          OcclusionTex := FPlaceholders.White;
-          OcclusionSmp := FPlaceholders.Sampler;
-        end;
-
-        if (EmissiveTex.Id = 0) then
-        begin
-          EmissiveTex := FPlaceholders.Black;
-          EmissiveSmp := FPlaceholders.Sampler;
-        end;
-
-        Bind.Views[VIEW_GLTF_BASE_COLOR_TEX] := BaseColorTex;
-        Bind.Views[VIEW_GLTF_METALLIC_ROUGHNESS_TEX] := MetallicRoughnessTex;
-        Bind.Views[VIEW_GLTF_NORMAL_TEX] := NormalTex;
-        Bind.Views[VIEW_GLTF_OCCLUSION_TEX] := OcclusionTex;
-        Bind.Views[VIEW_GLTF_EMISSIVE_TEX] := EmissiveTex;
-
-        Bind.Samplers[SMP_GLTF_BASE_COLOR_SMP] := BaseColorSmp;
-        Bind.Samplers[SMP_GLTF_METALLIC_ROUGHNESS_SMP] := MetallicRoughnessSmp;
-        Bind.Samplers[SMP_GLTF_NORMAL_SMP] := NormalSmp;
-        Bind.Samplers[SMP_GLTF_OCCLUSION_SMP] := OcclusionSmp;
-        Bind.Samplers[SMP_GLTF_EMISSIVE_SMP] := EmissiveSmp;
-
-        TGfx.ApplyUniforms(UB_GLTF_METALLIC_PARAMS,
-          TRange.Create(Mat.Metallic.FragmentShaderParams));
-      end;
-
-      TGfx.ApplyBindings(Bind);
-      TGfx.Draw(Prim.BaseElement, Prim.NumElements, 1);
-    end;
-  end;
-  TDbgText.Draw;
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TglTFApp.glTFParse(const AFileData: TFetchRange);
@@ -949,56 +999,6 @@ begin
       Node.Transform := AData.BuildTransform(glTFNode);
     end;
   end;
-end;
-
-procedure TglTFApp.Init;
-begin
-  inherited;
-  { Initialize camera helper }
-  var CamDesc := TCameraDesc.Create;
-  CamDesc.Latitude := -10;
-  CamDesc.Longitude := 45;
-  Camdesc.Distance := 2.5;
-  FCamera := TCamera.Create(CamDesc);
-
-  { Initialize Basis Universal }
-  TBasisU.Setup;
-
-  { Setup Debug Text }
-  var DbgTextDesc := TDbgTextDesc.Create;
-  DbgTextDesc.Fonts[0] := TDbgTextFont.Oric;
-  DbgTextDesc.UseDelphiMemoryManager := True;
-  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
-  TDbgText.Setup(DbgTextDesc);
-
-  { Setup Neslib.Sokol.Fetch with 1 channel and 4 lanes per channel.
-    We'll use one channel for mesh data and the other for textures. }
-  var FetchDesc := TFetchDesc.Create;
-  FetchDesc.MaxRequests := 64;
-  FetchDesc.NumChannels := FETCH_NUM_CHANNELS;
-  FetchDesc.NumLanes := FETCH_NUM_LANES;
-  FetchDesc.BaseDirectory := 'Data/glTF';
-  FetchDesc.Logger := FetchDesc.DefaultLogger;
-  TFetch.Setup(FetchDesc);
-
-  { Normal background color, and a "load failed" background color }
-  FPassActions.Init;
-
-  { Create shaders }
-  FShaders.Init;
-
-  { Setup the point light }
-  FPointLight.LightPos.Init(10, 10, 10);
-  FPointLight.LightRange := 200;
-  FPointLight.LightColor.Init(1, 1.5, 2);
-  FPointLight.LightIntensity := 700;
-
-  { Start loading the base gltf file... }
-  var Request := TFetchRequest.Create(FILENAME, FetchCallback);
-  Request.Send;
-
-  { Create placeholder textures and sampler }
-  FPlaceholders.Init;
 end;
 
 procedure TglTFApp.UpdateScene;

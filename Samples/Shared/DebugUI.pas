@@ -4,7 +4,6 @@ interface
 
 uses
   Neslib.Sokol.App;
-//  Neslib.Sokol.Gfx.ImGui;
 
 type
   TDebugUI = class
@@ -92,7 +91,10 @@ end;
 function TDebugUI.EventHandler(const AEvent: TEvent): Boolean;
 begin
   TAppImGui.TrackEvent(AEvent);
-  Result := SokolImGui.HandleEvent(@AEvent);
+  SokolImGui.HandleEvent(@AEvent);
+
+  { Always pass on event }
+  Result := False;
 end;
 
 end.

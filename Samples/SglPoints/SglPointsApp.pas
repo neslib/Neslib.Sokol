@@ -54,25 +54,6 @@ const
 
 { TSglPointsApp }
 
-procedure TSglPointsApp.Cleanup;
-begin
-  sglShutdown;
-  inherited;
-end;
-
-class function TSglPointsApp.ComputeColor(const AT: Single): TRgb;
-begin
-  { AT is expected to be 0.0 <= AT <= 1.0 }
-  var I0 := Trunc(AT * 16) and 15;
-  var I1 := (I0 + 1) and 15;
-  var L: Single := Frac(AT * 16);
-  var C0 := PALETTE[I0];
-  var C1 := PALETTE[I1];
-  Result.R := (C0.R * (1 - L)) + (C1.R * L);
-  Result.G := (C0.G * (1 - L)) + (C1.G * L);
-  Result.B := (C0.B * (1 - L)) + (C1.B * L);
-end;
-
 procedure TSglPointsApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -81,6 +62,16 @@ begin
   AConfig.SampleCount := 4;
   AConfig.HighDpi := False;
   AConfig.WindowTitle := 'Neslib.Sokol.GL Points';
+end;
+
+procedure TSglPointsApp.Init;
+begin
+  inherited;
+  { Setup Neslib.Sokol.GL }
+  var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
 end;
 
 procedure TSglPointsApp.Frame;
@@ -121,14 +112,23 @@ begin
   TGfx.Commit;
 end;
 
-procedure TSglPointsApp.Init;
+procedure TSglPointsApp.Cleanup;
 begin
+  sglShutdown;
   inherited;
-  { Setup Neslib.Sokol.GL }
-  var GLDesc := TGLDesc.Create;
-  GLDesc.UseDelphiMemoryManager := True;
-  GLDesc.Logger := GLDesc.DefaultLogger;
-  sglSetup(GLDesc);
+end;
+
+class function TSglPointsApp.ComputeColor(const AT: Single): TRgb;
+begin
+  { AT is expected to be 0.0 <= AT <= 1.0 }
+  var I0 := Trunc(AT * 16) and 15;
+  var I1 := (I0 + 1) and 15;
+  var L: Single := Frac(AT * 16);
+  var C0 := PALETTE[I0];
+  var C1 := PALETTE[I1];
+  Result.R := (C0.R * (1 - L)) + (C1.R * L);
+  Result.G := (C0.G * (1 - L)) + (C1.G * L);
+  Result.B := (C0.B * (1 - L)) + (C1.B * L);
 end;
 
 end.

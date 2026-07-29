@@ -17,7 +17,7 @@ To update Neslib.Sokol:
     **Note**: we don't use the "sokol_nuklear.h" file since it conflicts with "sokol_fontstash.h" and since we already include the ImGui library. 
     **Note**: we don't use "sokol_fetch.h" since we use a pure Delphi implementation of this.
 4. Update the "libs\\basisu" subdirectory with the contents from the "libs" directory of the samples repo.
-5. Update the "deps" subdirectory with the contents from the "libs\\fontstash" and ".fibs\\imports\\dcimgui\\src-docking" directories of the samples repo.
+5. Update the "deps" subdirectory with the contents from the "libs\\fontstash" and ".fibs\\imports\\dcimgui\\src" directories of the samples repo.
 6. Update the "spine" subdirectory with the contents from the "libs\\spine-c\\include\\spine" directory of the samples repo.
 7. Update the "spine\\src" subdirectory with the contents from the "libs\\spine-c\\src\\spine" directory of the samples repo.
 8. If there are new or renamed APIs in sokol\deps\fontstash.h or sokol\libs\basisu\sokol_basisu.h, then update the "sokol.def" accordingly.
@@ -49,10 +49,12 @@ This requires Visual Studio (the Community edition suffices).
 
 The original C Sokol samples use the Vecmath library for matrix calculations. Neslib.Sokol uses [FastMath](https://github.com/neslib/FastMath) instead. The following table lists some conversions from Vecmath to FastMath:
 
-| Vecmath                                           | FastMath                                               |
-| ------------------------------------------------- | ------------------------------------------------------ |
-| `mat44_perspective_fov_rh(POV, W / H, Near, Far)` | `TMatrix4.InitPerspectiveFovRH(POV, W / H, Near, Far)` |
-| `mat44_look_at_rh(...)`                           | `TMatrix4.InitLookAtRH(...)`                           |
-| `vm_mul(A, B)`                                    | `B * A` (reversed!)                                    |
-| `mat44_rotation_*(Angle)`                         | `TMatrix4.InitRotation*(Angle)`                        |
+| Vecmath                                           | FastMath                                                     |
+| ------------------------------------------------- | ------------------------------------------------------------ |
+| `mat44_perspective_fov_rh(POV, W / H, Near, Far)` | `TMatrix4.InitPerspectiveFovRH(POV, W / H, Near, Far)`       |
+| `mat44_look_at_rh(...)`                           | `TMatrix4.InitLookAtRH(...)`                                 |
+| `mat44_ortho_off_center_rh(L, R, B, T, ZN, ZF)`   | `TMatrix4.InitOrthoOffCenterRH(L, T, R, B, ZN, ZF)` (move 4th to 2nd) |
+| `vm_mul(A, B)`                                    | `B * A` (reversed!)                                          |
+| `mat44_rotation_*(Angle)`                         | `TMatrix4.InitRotation*(Angle)`                              |
+| `vec4_transform(Vec, Mat)`                        | `Mat * Vec`                                                  |
 

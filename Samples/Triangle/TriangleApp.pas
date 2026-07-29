@@ -40,36 +40,12 @@ const
 
 { TTriangleApp }
 
-procedure TTriangleApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TTriangleApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
   AConfig.WindowTitle := 'Triangle';
   AConfig.Width := 640;
   AConfig.Height := 480;
-end;
-
-procedure TTriangleApp.Frame;
-begin
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FPip);
-  TGfx.ApplyBindings(FBind);
-
-  TGfx.Draw(0, 3, 1);
-  DebugFrame;
-
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TTriangleApp.Init;
@@ -97,6 +73,30 @@ begin
 
   { A pass action to clear framebuffer to black }
   FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0, 0, 1);
+end;
+
+procedure TTriangleApp.Frame;
+begin
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPip);
+  TGfx.ApplyBindings(FBind);
+
+  TGfx.Draw(0, 3, 1);
+  DebugFrame;
+
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TTriangleApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
 end;
 
 end.

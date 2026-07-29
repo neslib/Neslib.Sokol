@@ -129,20 +129,6 @@ const
 
 { TMrtPixelFormatsApp }
 
-procedure TMrtPixelFormatsApp.Cleanup;
-begin
-  inherited;
-end;
-
-function TMrtPixelFormatsApp.ComputeOffscreenParams: TOffscreenParams;
-begin
-  var RXM, RZM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RZM.InitRotationZ(Radians(FRY));
-  var Model := RXM * RZM;
-  Result.Mvp := FOffscreen.ViewProj * Model;
-end;
-
 procedure TMrtPixelFormatsApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -151,19 +137,21 @@ begin
   AConfig.WindowTitle := 'MRT Pixelformats';
 end;
 
-procedure TMrtPixelFormatsApp.DrawFallback;
+procedure TMrtPixelFormatsApp.Init;
 begin
-  var PassAction: TPassAction;
-  PassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0, 1);
+  inherited;
+  { Check if requires features are supported }
+  FFeaturesOK := DEPTH_PIXEL_FORMAT.Render
+             and NORMAL_PIXEL_FORMAT.Render
+             and COLOR_PIXEL_FORMAT.Render;
+  if (not FFeaturesOK) then
+    Exit;
 
-  var Pass := TPass.Create;
-  Pass.Action^ := PassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
+  { Setup resources for offscreen rendering }
+  FOffscreen.Init;
 
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
+  { Setup resources for rendering to the display }
+  FDisplay.Init;
 end;
 
 procedure TMrtPixelFormatsApp.Frame;
@@ -240,21 +228,33 @@ begin
   TGfx.Commit;
 end;
 
-procedure TMrtPixelFormatsApp.Init;
+procedure TMrtPixelFormatsApp.Cleanup;
 begin
   inherited;
-  { Check if requires features are supported }
-  FFeaturesOK := DEPTH_PIXEL_FORMAT.Render
-             and NORMAL_PIXEL_FORMAT.Render
-             and COLOR_PIXEL_FORMAT.Render;
-  if (not FFeaturesOK) then
-    Exit;
+end;
 
-  { Setup resources for offscreen rendering }
-  FOffscreen.Init;
+function TMrtPixelFormatsApp.ComputeOffscreenParams: TOffscreenParams;
+begin
+  var RXM, RZM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RZM.InitRotationZ(Radians(FRY));
+  var Model := RXM * RZM;
+  Result.Mvp := FOffscreen.ViewProj * Model;
+end;
 
-  { Setup resources for rendering to the display }
-  FDisplay.Init;
+procedure TMrtPixelFormatsApp.DrawFallback;
+begin
+  var PassAction: TPassAction;
+  PassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0, 1);
+
+  var Pass := TPass.Create;
+  Pass.Action^ := PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
 end;
 
 { TImageAndViews }

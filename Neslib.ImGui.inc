@@ -945,10 +945,10 @@ function _igIsWindowHovered(_flags: _ImGuiHoveredFlags): Boolean; cdecl;
 function _igGetWindowDrawList(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'igGetWindowDrawList';
 
-function _igGetWindowPos(): _ImVec2; cdecl;
+function _igGetWindowPos(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetWindowPos';
 
-function _igGetWindowSize(): _ImVec2; cdecl;
+function _igGetWindowSize(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetWindowSize';
 
 function _igGetWindowWidth(): Single; cdecl;
@@ -1107,7 +1107,7 @@ procedure _igPushTextWrapPos(_wrap_local_pos_x: Single); cdecl;
 procedure _igPopTextWrapPos(); cdecl;
   external _LIB_SOKOL name _PU + 'igPopTextWrapPos';
 
-function _igGetFontTexUvWhitePixel(): _ImVec2; cdecl;
+function _igGetFontTexUvWhitePixel(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetFontTexUvWhitePixel';
 
 function _igGetColorU32(_idx: _ImGuiCol): _ImU32; cdecl;
@@ -1128,16 +1128,16 @@ function _igGetColorU32ImU32Ex(_col: _ImU32; _alpha_mul: Single): _ImU32; cdecl;
 function _igGetStyleColorVec4(_idx: _ImGuiCol): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'igGetStyleColorVec4';
 
-function _igGetCursorScreenPos(): _ImVec2; cdecl;
+function _igGetCursorScreenPos(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetCursorScreenPos';
 
 procedure _igSetCursorScreenPos(_pos: _ImVec2); cdecl;
   external _LIB_SOKOL name _PU + 'igSetCursorScreenPos';
 
-function _igGetContentRegionAvail(): _ImVec2; cdecl;
+function _igGetContentRegionAvail(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetContentRegionAvail';
 
-function _igGetCursorPos(): _ImVec2; cdecl;
+function _igGetCursorPos(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetCursorPos';
 
 function _igGetCursorPosX(): Single; cdecl;
@@ -1155,7 +1155,7 @@ procedure _igSetCursorPosX(_local_x: Single); cdecl;
 procedure _igSetCursorPosY(_local_y: Single); cdecl;
   external _LIB_SOKOL name _PU + 'igSetCursorPosY';
 
-function _igGetCursorStartPos(): _ImVec2; cdecl;
+function _igGetCursorStartPos(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetCursorStartPos';
 
 procedure _igSeparator(); cdecl;
@@ -1311,19 +1311,19 @@ function _igTextLinkOpenURLEx(_label: Pointer; _url: Pointer): Boolean; cdecl;
 procedure _igImage(_tex_ref: _ImTextureRef; _image_size: _ImVec2); cdecl;
   external _LIB_SOKOL name _PU + 'igImage';
 
-procedure _igImageEx(_tex_ref: _ImTextureRef; _image_size: _ImVec2; _uv0: _ImVec2; _uv1: _ImVec2); cdecl;
+procedure _igImageEx(_tex_ref: _ImTextureRef; _image_size, _uv0, _uv1: _ImVec2); cdecl;
   external _LIB_SOKOL name _PU + 'igImageEx';
 
 procedure _igImageWithBg(_tex_ref: _ImTextureRef; _image_size: _ImVec2); cdecl;
   external _LIB_SOKOL name _PU + 'igImageWithBg';
 
-procedure _igImageWithBgEx(_tex_ref: _ImTextureRef; _image_size: _ImVec2; _uv0: _ImVec2; _uv1: _ImVec2; _bg_col: _ImVec4; _tint_col: _ImVec4); cdecl;
+procedure _igImageWithBgEx(_tex_ref: _ImTextureRef; _image_size, _uv0, _uv1: _ImVec2; _bg_col, _tint_col: _ImVec4); cdecl;
   external _LIB_SOKOL name _PU + 'igImageWithBgEx';
 
 function _igImageButton(_str_id: Pointer; _tex_ref: _ImTextureRef; _image_size: _ImVec2): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'igImageButton';
 
-function _igImageButtonEx(_str_id: Pointer; _tex_ref: _ImTextureRef; _image_size: _ImVec2; _uv0: _ImVec2; _uv1: _ImVec2; _bg_col: _ImVec4; _tint_col: _ImVec4): Boolean; cdecl;
+function _igImageButtonEx(_str_id: Pointer; _tex_ref: _ImTextureRef; _image_size, _uv0, _uv1: _ImVec2; _bg_col, _tint_col: _ImVec4): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'igImageButtonEx';
 
 function _igBeginCombo(_label, _preview_value: Pointer; _flags: _ImGuiComboFlags): Boolean; cdecl;
@@ -2022,13 +2022,13 @@ function _igIsAnyItemFocused(): Boolean; cdecl;
 function _igGetItemID(): _ImGuiID; cdecl;
   external _LIB_SOKOL name _PU + 'igGetItemID';
 
-function _igGetItemRectMin(): _ImVec2; cdecl;
+function _igGetItemRectMin(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetItemRectMin';
 
-function _igGetItemRectMax(): _ImVec2; cdecl;
+function _igGetItemRectMax(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetItemRectMax';
 
-function _igGetItemRectSize(): _ImVec2; cdecl;
+function _igGetItemRectSize(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetItemRectSize';
 
 function _igGetItemFlags(): _ImGuiItemFlags; cdecl;
@@ -2067,10 +2067,10 @@ procedure _igSetStateStorage(_storage: Pointer); cdecl;
 function _igGetStateStorage(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'igGetStateStorage';
 
-function _igCalcTextSize(_text: Pointer): _ImVec2; cdecl;
+function _igCalcTextSize(_text: Pointer): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igCalcTextSize';
 
-function _igCalcTextSizeEx(_text: Pointer; _text_end: Pointer; _hide_text_after_double_hash: Boolean; _wrap_width: Single): _ImVec2; cdecl;
+function _igCalcTextSizeEx(_text: Pointer; _text_end: Pointer; _hide_text_after_double_hash: Boolean; _wrap_width: Single): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igCalcTextSizeEx';
 
 function _igColorConvertU32ToFloat4(_in: _ImU32): _ImVec4; cdecl;
@@ -2151,16 +2151,16 @@ function _igIsMousePosValid(_mouse_pos: Pointer): Boolean; cdecl;
 function _igIsAnyMouseDown(): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'igIsAnyMouseDown';
 
-function _igGetMousePos(): _ImVec2; cdecl;
+function _igGetMousePos(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetMousePos';
 
-function _igGetMousePosOnOpeningCurrentPopup(): _ImVec2; cdecl;
+function _igGetMousePosOnOpeningCurrentPopup(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetMousePosOnOpeningCurrentPopup';
 
 function _igIsMouseDragging(_button: _ImGuiMouseButton; _lock_threshold: Single): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'igIsMouseDragging';
 
-function _igGetMouseDragDelta(_button: _ImGuiMouseButton; _lock_threshold: Single): _ImVec2; cdecl;
+function _igGetMouseDragDelta(_button: _ImGuiMouseButton; _lock_threshold: Single): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetMouseDragDelta';
 
 procedure _igResetMouseDragDelta(); cdecl;
@@ -2481,10 +2481,10 @@ procedure _ImDrawList_PushTexture(_self: Pointer; _tex_ref: _ImTextureRef); cdec
 procedure _ImDrawList_PopTexture(_self: Pointer); cdecl;
   external _LIB_SOKOL name _PU + 'ImDrawList_PopTexture';
 
-function _ImDrawList_GetClipRectMin(_self: Pointer): _ImVec2; cdecl;
+function _ImDrawList_GetClipRectMin(_self: Pointer): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'ImDrawList_GetClipRectMin';
 
-function _ImDrawList_GetClipRectMax(_self: Pointer): _ImVec2; cdecl;
+function _ImDrawList_GetClipRectMax(_self: Pointer): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'ImDrawList_GetClipRectMax';
 
 procedure _ImDrawList_AddLine(_self: Pointer; _p1, _p2: _ImVec2; _col: _ImU32); cdecl;
@@ -2598,13 +2598,13 @@ procedure _ImDrawList_AddConcavePolyFilled(_self: Pointer; _points: Pointer; _nu
 procedure _ImDrawList_AddImage(_self: Pointer; _tex_ref: _ImTextureRef; _p_min, _p_max: _ImVec2); cdecl;
   external _LIB_SOKOL name _PU + 'ImDrawList_AddImage';
 
-procedure _ImDrawList_AddImageEx(_self: Pointer; _tex_ref: _ImTextureRef; _p_min, _p_max: _ImVec2; _uv_min: _ImVec2; _uv_max: _ImVec2; _col: _ImU32); cdecl;
+procedure _ImDrawList_AddImageEx(_self: Pointer; _tex_ref: _ImTextureRef; _p_min, _p_max, _uv_min, _uv_max: _ImVec2; _col: _ImU32); cdecl;
   external _LIB_SOKOL name _PU + 'ImDrawList_AddImageEx';
 
 procedure _ImDrawList_AddImageQuad(_self: Pointer; _tex_ref: _ImTextureRef; _p1, _p2, _p3, _p4: _ImVec2); cdecl;
   external _LIB_SOKOL name _PU + 'ImDrawList_AddImageQuad';
 
-procedure _ImDrawList_AddImageQuadEx(_self: Pointer; _tex_ref: _ImTextureRef; _p1, _p2, _p3, _p4: _ImVec2; _uv1: _ImVec2; _uv2: _ImVec2; _uv3: _ImVec2; _uv4: _ImVec2; _col: _ImU32); cdecl;
+procedure _ImDrawList_AddImageQuadEx(_self: Pointer; _tex_ref: _ImTextureRef; _p1, _p2, _p3, _p4, _uv1, _uv2, _uv3, _uv4: _ImVec2; _col: _ImU32); cdecl;
   external _LIB_SOKOL name _PU + 'ImDrawList_AddImageQuadEx';
 
 procedure _ImDrawList_AddImageRounded(_self: Pointer; _tex_ref: _ImTextureRef; _p_min, _p_max, _uv_min, _uv_max: _ImVec2; _col: _ImU32; _rounding: Single; _flags: _ImDrawFlags); cdecl;
@@ -2880,10 +2880,10 @@ function _ImFont_GetFontBaked(_self: Pointer; _font_size: Single): Pointer; cdec
 function _ImFont_GetFontBakedEx(_self: Pointer; _font_size: Single; _density: Single): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'ImFont_GetFontBakedEx';
 
-function _ImFont_CalcTextSizeA(_self: Pointer; _size, _max_width, _wrap_width: Single; _text_begin: Pointer): _ImVec2; cdecl;
+function _ImFont_CalcTextSizeA(_self: Pointer; _size, _max_width, _wrap_width: Single; _text_begin: Pointer): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'ImFont_CalcTextSizeA';
 
-function _ImFont_CalcTextSizeAEx(_self: Pointer; _size, _max_width, _wrap_width: Single; _text_begin: Pointer; _text_end: Pointer; _out_remaining: Pointer): _ImVec2; cdecl;
+function _ImFont_CalcTextSizeAEx(_self: Pointer; _size, _max_width, _wrap_width: Single; _text_begin: Pointer; _text_end: Pointer; _out_remaining: Pointer): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'ImFont_CalcTextSizeAEx';
 
 function _ImFont_CalcWordWrapPosition(_self: Pointer; _size: Single; _text, _text_end: Pointer; _wrap_width: Single): Pointer; cdecl;
@@ -2907,10 +2907,10 @@ procedure _ImFont_AddRemapChar(_self: Pointer; _from_codepoint, _to_codepoint: _
 function _ImFont_IsGlyphRangeUnused(_self: Pointer; _c_begin, _c_last: UInt32): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'ImFont_IsGlyphRangeUnused';
 
-function _ImGuiViewport_GetCenter(_self: Pointer): _ImVec2; cdecl;
+function _ImGuiViewport_GetCenter(_self: Pointer): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'ImGuiViewport_GetCenter';
 
-function _ImGuiViewport_GetWorkCenter(_self: Pointer): _ImVec2; cdecl;
+function _ImGuiViewport_GetWorkCenter(_self: Pointer): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'ImGuiViewport_GetWorkCenter';
 
 procedure _ImGuiPlatformIO_ClearPlatformHandlers(_self: Pointer); cdecl;

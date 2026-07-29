@@ -119,6 +119,7 @@ type
     FHasDefaultValue: Boolean;
     FHasUnsupportedDefaultValue: Boolean;
   protected
+    procedure LoadChildren(const AParent: TJsonValue); override;
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure ConvertDefaultValueToDelphi;
     procedure WriteSource(const AWriter: TSourceWriter);
@@ -231,7 +232,8 @@ type
     procedure LoadChildren(const AParent: TJsonValue); override;
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure LoadStorageClasses(const AValue: TJsonValue);
-    procedure WriteCApi(const AWriter: TSourceWriter);
+    procedure WriteCApi(const AWriter: TSourceWriter;
+      const AForReturnType: Boolean = False);
     procedure WriteSource(const AWriter: TSourceWriter;
       const AForArgument: Boolean = False);
     procedure WriteFunction(const AWriter: TSourceWriter);
@@ -287,7 +289,8 @@ type
   protected
     procedure LoadChildren(const AParent: TJsonValue); override;
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
-    procedure WriteCApi(const AWriter: TSourceWriter);
+    procedure WriteCApi(const AWriter: TSourceWriter;
+      const AForReturnType: Boolean = False);
     procedure WriteSource(const AWriter: TSourceWriter;
       const AForArgument: Boolean = False);
   public
@@ -588,6 +591,7 @@ type
     FOriginalClass: String;
     FReturnType: TDataType;
     FArguments: TArguments;
+    FNonDefaultArgCount: Integer;
     FIsDefaultArgumentHelper: Boolean;
     FIsManualHelper: Boolean;
     FIsImStrHelper: Boolean;
@@ -595,7 +599,9 @@ type
     FIsUnformattedHelper: Boolean;
     FIsStatic: Boolean;
     FIsOverload: Boolean;
+    FIsAmbiguousOverload: Boolean;
     function GetHasReturnType: Boolean; inline;
+    function GetNonDefaultArgCount: Integer;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure Loaded; override;
@@ -646,6 +652,9 @@ type
 
     { Was this function originally static? }
     property IsStatic: Boolean read FIsStatic;
+
+    { Number of non-default arguments }
+    property NonDefaultArgCount: Integer read GetNonDefaultArgCount;
   end;
 
 type
@@ -1050,6 +1059,12 @@ begin
     FIsInstancePointer := AValue.ToBoolean
   else
     inherited;
+end;
+
+procedure TArgument.LoadChildren(const AParent: TJsonValue);
+begin
+  inherited;
+  ConvertDefaultValueToDelphi;
 end;
 
 procedure TArgument.WriteSource(const AWriter: TSourceWriter);
@@ -1470,7 +1485,8 @@ begin
     FInnerType.WriteSource(AWriter);
 end;
 
-procedure TTypeDescription.WriteCApi(const AWriter: TSourceWriter);
+procedure TTypeDescription.WriteCApi(const AWriter: TSourceWriter;
+  const AForReturnType: Boolean);
 begin
   case FKind of
     TDataTypeKind.Builtin:
@@ -1479,8 +1495,15 @@ begin
     TDataTypeKind.User:
       begin
         Assert(FName <> '');
-        AWriter.Write('_');
-        AWriter.Write(FName);
+        { Delphi does not support returning 8-byte structs from C API's.
+          Return these as UInt64 instead and typecase them later. }
+        if (AForReturnType) and (FName = 'ImVec2') then
+          AWriter.Write('UInt64')
+        else
+        begin
+          AWriter.Write('_');
+          AWriter.Write(FName);
+        end;
       end;
 
     TDataTypeKind.Pointer:
@@ -1664,9 +1687,10 @@ begin
     GCustomTypes.TryGetValue(FDeclaration, FDelphiTypeName);
 end;
 
-procedure TDataType.WriteCApi(const AWriter: TSourceWriter);
+procedure TDataType.WriteCApi(const AWriter: TSourceWriter;
+  const AForReturnType: Boolean);
 begin
-  FDescription.WriteCApi(AWriter);
+  FDescription.WriteCApi(AWriter, AForReturnType);
 end;
 
 procedure TDataType.WriteSource(const AWriter: TSourceWriter;
@@ -2469,6 +2493,7 @@ begin
     AWriter.WriteLn('begin');
     AWriter.Indent;
     AWriter.WriteLn('FillChar(Self, SizeOf(Self), 0);');
+    AWriter.WriteLn('TImDefaults.Apply(Self);');
     AWriter.Outdent;
     AWriter.WriteLn('end;');
   end;
@@ -2575,7 +2600,7 @@ begin
 
     if (FName <> '') then
     begin
-      AWriter.WriteLn('// Zero-initializes all fields');
+      AWriter.WriteLn('// Initialize with default values');
       AWriter.WriteLn('procedure Initialize; inline;');
     end;
 
@@ -2720,6 +2745,7 @@ begin
   inherited;
   FReturnType := TDataType.Create(Self);
   FArguments := TArguments.Create(Self);
+  FNonDefaultArgCount := -1;
 end;
 
 destructor TFunction.Destroy;
@@ -2732,6 +2758,20 @@ end;
 function TFunction.GetHasReturnType: Boolean;
 begin
   Result := (not FReturnType.IsVoid);
+end;
+
+function TFunction.GetNonDefaultArgCount: Integer;
+begin
+  if (FNonDefaultArgCount < 0) then
+  begin
+    FNonDefaultArgCount := 0;
+    for var Arg in FArguments do
+    begin
+      if (not Arg.FHasDefaultValue) then
+        Inc(FNonDefaultArgCount);
+    end;
+  end;
+  Result := FNonDefaultArgCount;
 end;
 
 function TFunction.Ignore: Boolean;
@@ -2806,7 +2846,7 @@ begin
   if (HasReturnType) then
   begin
     AWriter.Write(': ');
-    FReturnType.WriteCApi(AWriter);
+    FReturnType.WriteCApi(AWriter, True);
   end;
 
   AWriter.Write('; ');
@@ -2900,10 +2940,7 @@ begin
         cannot have a default value either. }
       var HasUnsupportedDefaultValue := False;
       for var I := 0 to ArgCount - 1 do
-      begin
-        FArguments[ArgOffset + I].ConvertDefaultValueToDelphi;
         HasUnsupportedDefaultValue := HasUnsupportedDefaultValue or FArguments[ArgOffset + I].FHasUnsupportedDefaultValue;
-      end;
 
       if (HasUnsupportedDefaultValue) and (CustomOverloads = nil) then
       begin
@@ -3114,6 +3151,8 @@ begin
 
   if (ACheckOverloads) then
   begin
+    var HasAmbiguousOverloads := False;
+
     { Check for overloaded functions }
     var SortedFunctions := Functions.ToArray;
     TArray.Sort<TFunction>(SortedFunctions, TComparer<TFunction>.Construct(
@@ -3121,12 +3160,76 @@ begin
       begin
         Result := CompareText(ALeft.FOriginalFullyQualifiedName, ARight.FOriginalFullyQualifiedName);
       end));
+
     for var I := 0 to Length(SortedFunctions) - 2 do
     begin
       if (SortedFunctions[I].FOriginalFullyQualifiedName = SortedFunctions[I + 1].FOriginalFullyQualifiedName) then
       begin
         SortedFunctions[I].FIsOverload := True;
         SortedFunctions[I + 1].FIsOverload := True;
+      end;
+    end;
+
+    { Check if any of the overloaded functions is an ambigous overload. This is
+      the case if two functions have the same number and types of parameters
+      after taking default parameters into account. }
+    for var I := 0 to Length(SortedFunctions) - 2 do
+    begin
+      var Func1 := SortedFunctions[I];
+      if (Func1.FIsAmbiguousOverload) then
+        Continue;
+
+      for var J := I + 1 to Length(SortedFunctions) - 1 do
+      begin
+        var Func2 := SortedFunctions[J];
+        if (Func2.FOriginalFullyQualifiedName <> Func1.FOriginalFullyQualifiedName) then
+          { No longer same name }
+          Break;
+
+        if (Func2.FIsAmbiguousOverload) then
+          Continue;
+
+        Assert(Func1.FIsOverload);
+        Assert(Func2.FIsOverload);
+
+        if (Func2.NonDefaultArgCount <> Func1.NonDefaultArgCount) then
+          Continue;
+
+        var TypesCompatible := True;
+        for var K := 0 to Func1.NonDefaultArgCount - 1 do
+        begin
+          if (not Func1.Arguments[K].IsTypeCompatibleWith(Func2.Arguments[K])) then
+          begin
+            TypesCompatible := False;
+            Break;
+          end;
+        end;
+        if (not TypesCompatible) then
+          Continue;
+
+        { This is an ambiguos overload. Keep the function with the most
+          parameters, since those parameters have default values that can be
+          omitted to be equivalent to the other function.
+          Drop that other function. }
+        if (Func1.Arguments.Count > Func2.Arguments.Count) then
+          Func2.FIsAmbiguousOverload := True
+        else
+        begin
+          Assert(Func2.Arguments.Count > Func1.Arguments.Count);
+          Func1.FIsAmbiguousOverload := True;
+        end;
+
+        HasAmbiguousOverloads := True;
+      end;
+    end;
+
+    if (HasAmbiguousOverloads) then
+    begin
+      { Remove ambiguous overloads from list }
+      for var I := Functions.Count - 1 downto 0 do
+      begin
+        if (Functions[I].FIsAmbiguousOverload) then
+          Functions.Delete(I);
       end;
     end;
   end;

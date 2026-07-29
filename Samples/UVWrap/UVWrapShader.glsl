@@ -3,7 +3,7 @@
 //  Shader code for uvwrap-sapp sample.
 //------------------------------------------------------------------------------
 @vs vs
-uniform vs_params {
+layout(binding=0) uniform vs_params {
     vec2 offset;
     vec2 scale;
 };
@@ -18,13 +18,14 @@ void main() {
 @end
 
 @fs fs
-uniform sampler2D tex;
+layout(binding=0) uniform texture2D tex;
+layout(binding=0) uniform sampler smp;
 
 in vec2 uv;
 out vec4 frag_color;
 
 void main() {
-    frag_color = texture(tex, uv);
+    frag_color = texture(sampler2D(tex, smp), uv);
 }
 @end
 

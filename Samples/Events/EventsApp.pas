@@ -41,7 +41,8 @@ uses
   System.SysUtils,
   Neslib.ImGui,
   Neslib.FastMath,
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue;
 
 function EventKindToString(const AKind: TEventKind): String;
 begin
@@ -217,22 +218,87 @@ end;
 
 { TEventsApp }
 
+procedure TEventsApp.Configure(var AConfig: TAppConfig);
+begin
+  inherited;
+  AConfig.Width := 832;
+  AConfig.Height := 600;
+  AConfig.DepthFormat := TAppPixelFormat.None;
+  AConfig.WindowTitle := 'Events';
+  AConfig.EnableClipboard := True;
+  AConfig.EnableDragDrop := True;
+  AConfig.MaxDroppedFiles := MAX_DROPPED_FILES;
+end;
+
+procedure TEventsApp.Init;
+begin
+  inherited;
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.5, 0.7);
+
+  { We want our event handler to be called first, so we can log events }
+  var CurrentEventHandlers := GetEventHandlers;
+  for var Handler in CurrentEventHandlers do
+    RemoveEventHandler(Handler);
+
+  AddEventHandler(EventHandler);
+
+  for var Handler in CurrentEventHandlers do
+    AddEventHandler(Handler);
+end;
+
+procedure TEventsApp.Frame;
+begin
+  WindowTitle := Format('Events (FrameCount=%d, Duration=%.3fms)',
+    [FrameCount, FrameDuration * 1000]);
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
 procedure TEventsApp.Cleanup;
 begin
   inherited;
   RemoveEventHandler(EventHandler);
 end;
 
-procedure TEventsApp.Configure(var AConfig: TAppConfig);
+class function TEventsApp.HasImGui: Boolean;
+begin
+  Result := True;
+end;
+
+function TEventsApp.EventHandler(const AEvent: TEvent): Boolean;
+begin
+  FEvents[AEvent.Kind] := AEvent;
+
+  { Handle show/hide mouse cursor and mouse locking }
+  case AEvent.Kind of
+    TEventKind.KeyDown:
+      if (not AEvent.KeyRepeat) then
+      begin
+        case AEvent.KeyCode of
+          TKeyCode.Space:
+            MouseCursorVisible := not MouseCursorVisible;
+
+          TKeyCode.M:
+            MouseLocked := not MouseLocked;
+        end;
+      end;
+  end;
+
+  Result := False; { Pass on event }
+end;
+
+procedure TEventsApp.FilesDropped(const AX, AY: Single;
+  const AFilePaths: TArray<String>);
 begin
   inherited;
-  AConfig.Width := 832;
-  AConfig.Height := 600;
-  AConfig.AndroidForceGles2 := True;
-  AConfig.WindowTitle := 'Events';
-  AConfig.EnableClipboard := True;
-  AConfig.EnableDragDrop := True;
-  AConfig.MaxDroppedFiles := MAX_DROPPED_FILES;
+  FDroppedFiles := AFilePaths;
 end;
 
 procedure TEventsApp.DrawEventInfoPanel(const AKind: TEventKind; const AWidth,
@@ -242,15 +308,10 @@ begin
   var FrameAge: Single := FrameCount - Event.FrameCount;
   var FlashIntensity: Single := EnsureRange((20 - FrameAge) / 20, 0.25, 1);
 
-  var V: _ImVec4;
-  V.x := 1;
-  V.y := 0;
-  V.z := 0;
-  V.w := 1;
-  ImGui.PushStyleColor(TImGuiCol.Border, TColor.Create(FlashIntensity, 0.25, 0.25, 1));
+  ImGui.PushStyleColor(TImGuiCol.Border, Vector4(FlashIntensity, 0.25, 0.25, 1));
   ImGui.PushID(Ord(AKind));
 
-  ImGui.BeginChild('event_panel', Vector2(AWidth, AHeight), True);
+  ImGui.BeginChild('event_panel', Vector2(AWidth, AHeight), [TImGuiChildFlag.Borders]);
   ImGui.Text(ImGui.Format('kind:         %s', [EventKindToString(AKind)]));
   ImGui.Text(ImGui.Format('frame:        %d', [Event.FrameCount]));
   ImGui.Text('modifiers:   ');
@@ -384,6 +445,7 @@ begin
     begin
       DrawEventInfoPanel(Kind, PanelWidth, PanelHeight);
       PosX := PosX + PanelWidthWithPadding;
+      var Z :=  ImGui.GetContentRegionAvail;
       if ((PosX + PanelWidthWithPadding) < ImGui.GetContentRegionAvail.X) then
         ImGui.SameLine
       else
@@ -391,75 +453,6 @@ begin
     end;
   end;
   ImGui.End;
-end;
-
-function TEventsApp.EventHandler(const AEvent: TEvent): Boolean;
-begin
-  FEvents[AEvent.Kind] := AEvent;
-
-  { Handle show/hide mouse cursor and mouse locking }
-  case AEvent.Kind of
-    TEventKind.KeyDown:
-      if (not AEvent.KeyRepeat) then
-      begin
-        case AEvent.KeyCode of
-          TKeyCode.Space:
-            MouseCursorVisible := False;
-
-          TKeyCode.M:
-            MouseLocked := True;
-        end;
-      end;
-
-    TEventKind.KeyUp:
-      case AEvent.KeyCode of
-        TKeyCode.Space:
-          MouseCursorVisible := True;
-
-        TKeyCode.M:
-          MouseLocked := False;
-      end;
-  end;
-  Result := False; { Pass on event }
-end;
-
-procedure TEventsApp.FilesDropped(const AX, AY: Single;
-  const AFilePaths: TArray<String>);
-begin
-  inherited;
-  FDroppedFiles := AFilePaths;
-end;
-
-procedure TEventsApp.Frame;
-begin
-  WindowTitle := Format('Events (FrameCount=%d, Duration=%.3fms)',
-    [FrameCount, FrameDuration * 1000]);
-
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TEventsApp.HasImGui: Boolean;
-begin
-  Result := True;
-end;
-
-procedure TEventsApp.Init;
-begin
-  inherited;
-  FPassAction.Colors[0].Init(TAction.Clear, 0, 0.5, 0.7);
-
-  { We want our event handler to be called first, so we can log events }
-  var CurrentEventHandlers := GetEventHandlers;
-  for var Handler in CurrentEventHandlers do
-    RemoveEventHandler(Handler);
-
-  AddEventHandler(EventHandler);
-
-  for var Handler in CurrentEventHandlers do
-    AddEventHandler(Handler);
 end;
 
 end.

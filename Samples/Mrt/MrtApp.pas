@@ -118,13 +118,6 @@ const
 
 { TMrtApp }
 
-procedure TMrtApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TMrtApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -133,67 +126,6 @@ begin
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'MRT Rendering';
   AConfig.HighDpi := False;
-end;
-
-procedure TMrtApp.Frame;
-begin
-  { View-projection matrix }
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-  var Proj, View, RXM, RYM: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
-  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  { Shader parameters }
-  var T: Single := FrameDuration * 60;
-
-  FRX := FRX + (1 * T);
-  FRY := FRY + (2 * T);
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-
-  var OffscreenParams: TOffscreenParams;
-  OffscreenParams.MVP := ViewProj * Model;
-
-  var FsqParams: TFsqParams;
-  FsqParams.Offset := Vector2(
-    FastSin(FRX * 0.01) * 0.1,
-    FastSin(FRY * 0.01) * 0.1);
-
-  { Render cube into MRT offscreen render targets }
-  TGfx.BeginPass(FOffscreen.Pass);
-  TGfx.ApplyPipeline(FOffscreen.Pip);
-  TGfx.ApplyBindings(FOffscreen.Bind);
-  TGfx.ApplyUniforms(UB_OFFSCREEN_PARAMS, TRange.Create(OffscreenParams));
-  TGfx.Draw(0, 36);
-  TGfx.EndPass;
-
-  { Render fullscreen quad with the 'composed image', plus 3 small debug-view
-    quads }
-  var Pass := TPass.Create;
-  Pass.Action^ := FDisplay.PassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-  TGfx.ApplyPipeline(FDisplay.Pip);
-  TGfx.ApplyBindings(FDisplay.Bind);
-  TGfx.ApplyUniforms(UB_FSQ_PARAMS, TRange.Create(FsqParams));
-  TGfx.Draw(0, 4);
-
-  TGfx.ApplyPipeline(FDbg.Pip);
-  for var I := 0 to NUM_MRTS - 1 do
-  begin
-    TGfx.ApplyViewport(I * 100, 0, 100, 100, False);
-    FDbg.Bind.Views[VIEW_TEX] := FDisplay.Bind.Views[VIEW_TEX0 + I];
-    TGfx.ApplyBindings(FDbg.Bind);
-    TGfx.Draw(0, 4);
-  end;
-
-  TGfx.ApplyViewport(0, 0, FramebufferWidth, FramebufferHeight, False);
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TMrtApp.Init;
@@ -302,6 +234,81 @@ begin
   { Texture views will be filled right before rendering }
 end;
 
+procedure TMrtApp.Frame;
+begin
+  { View-projection matrix }
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View, RXM, RYM: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  { Shader parameters }
+  var T: Single := FrameDuration * 60;
+
+  FRX := FRX + (1 * T);
+  FRY := FRY + (2 * T);
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+
+  var OffscreenParams: TOffscreenParams;
+  OffscreenParams.MVP := ViewProj * Model;
+
+  var FsqParams: TFsqParams;
+  FsqParams.Offset := Vector2(
+    FastSin(FRX * 0.01) * 0.1,
+    FastSin(FRY * 0.01) * 0.1);
+
+  { Render cube into MRT offscreen render targets }
+  TGfx.BeginPass(FOffscreen.Pass);
+  TGfx.ApplyPipeline(FOffscreen.Pip);
+  TGfx.ApplyBindings(FOffscreen.Bind);
+  TGfx.ApplyUniforms(UB_OFFSCREEN_PARAMS, TRange.Create(OffscreenParams));
+  TGfx.Draw(0, 36);
+  TGfx.EndPass;
+
+  { Render fullscreen quad with the 'composed image', plus 3 small debug-view
+    quads }
+  var Pass := TPass.Create;
+  Pass.Action^ := FDisplay.PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+  TGfx.ApplyPipeline(FDisplay.Pip);
+  TGfx.ApplyBindings(FDisplay.Bind);
+  TGfx.ApplyUniforms(UB_FSQ_PARAMS, TRange.Create(FsqParams));
+  TGfx.Draw(0, 4);
+
+  TGfx.ApplyPipeline(FDbg.Pip);
+  for var I := 0 to NUM_MRTS - 1 do
+  begin
+    TGfx.ApplyViewport(I * 100, 0, 100, 100, False);
+    FDbg.Bind.Views[VIEW_TEX] := FDisplay.Bind.Views[VIEW_TEX0 + I];
+    TGfx.ApplyBindings(FDbg.Bind);
+    TGfx.Draw(0, 4);
+  end;
+
+  TGfx.ApplyViewport(0, 0, FramebufferWidth, FramebufferHeight, False);
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TMrtApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
+end;
+
+procedure TMrtApp.Resized(const AWindowWidth, AWindowHeight, AFramebufferWidth,
+  AFramebufferHeight: Integer);
+begin
+  inherited;
+  ReinitAttachments(AFramebufferWidth, AFramebufferHeight);
+end;
+
 procedure TMrtApp.ReinitAttachments(const AWidth, AHeight: Integer);
 { Called initially and when window size changes. Will re-initialize the
   offscreen render target images to a new size and then re-initialize the
@@ -380,13 +387,6 @@ begin
   ViewDesc.DepthStencilAttachment.Image := FImages.Depth;
   ViewDesc.TraceLabel := 'DepthAttachment';
   FOffscreen.Pass.Attachments.DepthStencil := TView.Create(ViewDesc);
-end;
-
-procedure TMrtApp.Resized(const AWindowWidth, AWindowHeight, AFramebufferWidth,
-  AFramebufferHeight: Integer);
-begin
-  inherited;
-  ReinitAttachments(AFramebufferWidth, AFramebufferHeight);
 end;
 
 end.

@@ -113,13 +113,6 @@ const
 
 { TCubeMapRTApp }
 
-procedure TCubeMapRTApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TCubeMapRTApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -127,121 +120,6 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := DISPLAY_SAMPLE_COUNT;
   AConfig.WindowTitle := 'Cube Render Target';
-end;
-
-procedure TCubeMapRTApp.DrawCubes(const APip: TPipeline;
-  const AEyePos: TVector3; const AViewProj: TMatrix4);
-begin
-  TGfx.ApplyPipeline(APip);
-
-  var Bind := TBindings.Create;
-  Bind.VertexBuffers[0] := FCube.VBuf;
-  Bind.IndexBuffer := FCube.IBuf;
-  TGfx.ApplyBindings(Bind);
-
-  for var I := 0 to NUM_SHAPES - 1 do
-  begin
-    var Shape := PShape(@FShapes[I]);
-    var Uniforms: TShapeUniforms;
-    Uniforms.MVP := AViewProj * Shape.Model;
-    Uniforms.Model := Shape.Model;
-    Uniforms.ShapeColor := Shape.Color;
-    Uniforms.LightDir := FLightDir;
-    Uniforms.EyePos.Init(AEyePos, 1);
-
-    TGfx.ApplyUniforms(UB_SHAPE_UNIFORMS, TRange.Create(Uniforms));
-    TGfx.Draw(0, FCube.NumElements);
-  end;
-end;
-
-procedure TCubeMapRTApp.Frame;
-begin
-  { Compute a frame time multiplier }
-  var T: Single := FrameDuration;
-
-  { Update the little cubes that are reflected in the big cube }
-  var Scale, Rot, Trans: TMatrix4;
-  for var I := 0 to NUM_SHAPES - 1 do
-  begin
-    FShapes[I].Angle := FShapes[I].Angle + (FShapes[I].AngularVelocity * T);
-    Scale.InitScaling(0.25);
-    Rot.InitRotation(FShapes[I].Axis, Radians(FShapes[I].Angle));
-    Trans.InitTranslation(0, 0, FShapes[I].Radius);
-    FShapes[I].Model := Rot * (Trans * Scale);
-  end;
-
-  var CenterAndUp: PCenterAndUp;
-  if (TGfx.Backend in [TBackend.D3D11, TBackend.MetalIOS, TBackend.MetalMacOS]) then
-    CenterAndUp := @CENTER_AND_UP_D3D11_METAL
-  else
-    CenterAndUp := @CENTER_AND_UP_GL;
-
-  var View: TMatrix4;
-  for var Face := 0 to NUM_FACES - 1 do
-  begin
-    var Pass := TPass.Create;
-    Pass.Action^ := FOffscreenPassAction;
-    Pass.Attachments.Colors[0] := FOffscreenColorViews[Face];
-    Pass.Attachments.DepthStencil := FOffscreenDepthView;
-    TGfx.BeginPass(Pass);
-
-    View.InitLookAtRH(TVector3.Zero, CenterAndUp[Face, 0], CenterAndUp[Face, 1]);
-    var ViewProj := FOffscreenProj * View;
-    DrawCubes(FOffscreenShapesPip, TVector3.Zero, ViewProj);
-
-    TGfx.EndPass;
-  end;
-
-  { Render the default pass }
-  var W := FramebufferWidth;
-  var H := FramebufferHeight;
-  var Pass := TPass.Create;
-  Pass.Action^ := FDisplayPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  var EyePos: TVector3;
-  var Proj: TMatrix4;
-  EyePos.Init(0, 0, 20);
-  Proj.InitPerspectiveFovRH(Radians(45), W / H, 0.01, 100.0);
-  View.InitLookAtRH(EyePos, Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  { Render the orbiting cubes }
-  DrawCubes(FDisplayShapesPip, EyePos, ViewProj);
-
-  { Render a big cube in the middle with environment mapping }
-  FRX := FRX + (0.1 * 60 * T);
-  FRY := FRY + (0.2 * 60 * T);
-
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  Scale.InitScaling(2);
-  var Model := (RXM * RYM) * Scale;
-
-  TGfx.ApplyPipeline(FDisplayCubePip);
-
-  var Bind := TBindings.Create;
-  Bind.VertexBuffers[0] := FCube.VBuf;
-  Bind.IndexBuffer := FCube.IBuf;
-  Bind.Views[VIEW_TEX] := FCubeMapTexView;
-  Bind.Samplers[SMP_SMP] := FSampler;
-  TGfx.ApplyBindings(Bind);
-
-  var Uniforms: TShapeUniforms;
-  Uniforms.MVP := ViewProj * Model;
-  Uniforms.Model := Model;
-  Uniforms.ShapeColor.Init(1, 1, 1, 1);
-  Uniforms.LightDir := FLightDir;
-  Uniforms.EyePos := Vector4(EyePos, 1);
-  TGfx.ApplyUniforms(UB_SHAPE_UNIFORMS, TRange.Create(Uniforms));
-
-  TGfx.Draw(0, FCube.NumElements);
-
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TCubeMapRTApp.Init;
@@ -353,6 +231,127 @@ begin
     FShapes[I].AngularVelocity := (Random() * 35) + 15;
     if (Random(2) = 0) then
       FShapes[I].AngularVelocity := -FShapes[I].AngularVelocity;
+  end;
+end;
+procedure TCubeMapRTApp.Frame;
+begin
+  { Compute a frame time multiplier }
+  var T: Single := FrameDuration;
+
+  { Update the little cubes that are reflected in the big cube }
+  var Scale, Rot, Trans: TMatrix4;
+  for var I := 0 to NUM_SHAPES - 1 do
+  begin
+    FShapes[I].Angle := FShapes[I].Angle + (FShapes[I].AngularVelocity * T);
+    Scale.InitScaling(0.25);
+    Rot.InitRotation(FShapes[I].Axis, Radians(FShapes[I].Angle));
+    Trans.InitTranslation(0, 0, FShapes[I].Radius);
+    FShapes[I].Model := Rot * (Trans * Scale);
+  end;
+
+  var CenterAndUp: PCenterAndUp;
+  if (TGfx.Backend in [TBackend.D3D11, TBackend.MetalIOS, TBackend.MetalMacOS]) then
+    CenterAndUp := @CENTER_AND_UP_D3D11_METAL
+  else
+    CenterAndUp := @CENTER_AND_UP_GL;
+
+  var View: TMatrix4;
+  for var Face := 0 to NUM_FACES - 1 do
+  begin
+    var Pass := TPass.Create;
+    Pass.Action^ := FOffscreenPassAction;
+    Pass.Attachments.Colors[0] := FOffscreenColorViews[Face];
+    Pass.Attachments.DepthStencil := FOffscreenDepthView;
+    TGfx.BeginPass(Pass);
+
+    View.InitLookAtRH(TVector3.Zero, CenterAndUp[Face, 0], CenterAndUp[Face, 1]);
+    var ViewProj := FOffscreenProj * View;
+    DrawCubes(FOffscreenShapesPip, TVector3.Zero, ViewProj);
+
+    TGfx.EndPass;
+  end;
+
+  { Render the default pass }
+  var W := FramebufferWidth;
+  var H := FramebufferHeight;
+  var Pass := TPass.Create;
+  Pass.Action^ := FDisplayPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  var EyePos: TVector3;
+  var Proj: TMatrix4;
+  EyePos.Init(0, 0, 20);
+  Proj.InitPerspectiveFovRH(Radians(45), W / H, 0.01, 100.0);
+  View.InitLookAtRH(EyePos, Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  { Render the orbiting cubes }
+  DrawCubes(FDisplayShapesPip, EyePos, ViewProj);
+
+  { Render a big cube in the middle with environment mapping }
+  FRX := FRX + (0.1 * 60 * T);
+  FRY := FRY + (0.2 * 60 * T);
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  Scale.InitScaling(2);
+  var Model := (RXM * RYM) * Scale;
+
+  TGfx.ApplyPipeline(FDisplayCubePip);
+
+  var Bind := TBindings.Create;
+  Bind.VertexBuffers[0] := FCube.VBuf;
+  Bind.IndexBuffer := FCube.IBuf;
+  Bind.Views[VIEW_TEX] := FCubeMapTexView;
+  Bind.Samplers[SMP_SMP] := FSampler;
+  TGfx.ApplyBindings(Bind);
+
+  var Uniforms: TShapeUniforms;
+  Uniforms.MVP := ViewProj * Model;
+  Uniforms.Model := Model;
+  Uniforms.ShapeColor.Init(1, 1, 1, 1);
+  Uniforms.LightDir := FLightDir;
+  Uniforms.EyePos := Vector4(EyePos, 1);
+  TGfx.ApplyUniforms(UB_SHAPE_UNIFORMS, TRange.Create(Uniforms));
+
+  TGfx.Draw(0, FCube.NumElements);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TCubeMapRTApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
+end;
+
+procedure TCubeMapRTApp.DrawCubes(const APip: TPipeline;
+  const AEyePos: TVector3; const AViewProj: TMatrix4);
+begin
+  TGfx.ApplyPipeline(APip);
+
+  var Bind := TBindings.Create;
+  Bind.VertexBuffers[0] := FCube.VBuf;
+  Bind.IndexBuffer := FCube.IBuf;
+  TGfx.ApplyBindings(Bind);
+
+  for var I := 0 to NUM_SHAPES - 1 do
+  begin
+    var Shape := PShape(@FShapes[I]);
+    var Uniforms: TShapeUniforms;
+    Uniforms.MVP := AViewProj * Shape.Model;
+    Uniforms.Model := Shape.Model;
+    Uniforms.ShapeColor := Shape.Color;
+    Uniforms.LightDir := FLightDir;
+    Uniforms.EyePos.Init(AEyePos, 1);
+
+    TGfx.ApplyUniforms(UB_SHAPE_UNIFORMS, TRange.Create(Uniforms));
+    TGfx.Draw(0, FCube.NumElements);
   end;
 end;
 

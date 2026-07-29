@@ -78,13 +78,6 @@ const
 
 { TMipmapApp }
 
-procedure TMipmapApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
 procedure TMipmapApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -93,48 +86,6 @@ begin
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'Mipmaps';
   AConfig.HighDpi := False;
-end;
-
-procedure TMipmapApp.Frame;
-begin
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-  var Proj, View, RM, Translate, Model: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(90), W / H, 0.01, 10.0);
-  View.InitLookAtRH(Vector3(0, 0, 3.5), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  FR := FR + (0.1 * 60 * FrameDuration);
-  RM.InitRotationX(Radians(FR));
-
-  var Bind := TBindings.Create;
-  Bind.VertexBuffers[0] := FVBuf;
-  Bind.Views[VIEW_TEX] := FTexView;
-
-  var Pass := TPass.Create;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FPip);
-
-  for var I := 0 to 11 do
-  begin
-    var X: Single := ((I and 3) - 1.5) *  2.0;
-    var Y: Single := ((I shr 2) - 1.0) * -2.0;
-    Translate.InitTranslation(X, Y, 0);
-    Model := Translate * RM;
-    var VSParams: TVSParams;
-    VSParams.MVP := ViewProj * Model;
-
-    Bind.Samplers[SMP_SMP] := FSmp[I];
-    TGfx.ApplyBindings(Bind);
-    TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
-    TGfx.Draw(0, 4);
-  end;
-
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
 end;
 
 procedure TMipmapApp.Init;
@@ -229,6 +180,55 @@ begin
   PipDesc.PrimitiveType := TPrimitiveType.TriangleStrip;
 
   FPip := TPipeline.Create(PipDesc);
+end;
+
+procedure TMipmapApp.Frame;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View, RM, Translate, Model: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(90), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 0, 3.5), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  FR := FR + (0.1 * 60 * FrameDuration);
+  RM.InitRotationX(Radians(FR));
+
+  var Bind := TBindings.Create;
+  Bind.VertexBuffers[0] := FVBuf;
+  Bind.Views[VIEW_TEX] := FTexView;
+
+  var Pass := TPass.Create;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPip);
+
+  for var I := 0 to 11 do
+  begin
+    var X: Single := ((I and 3) - 1.5) *  2.0;
+    var Y: Single := ((I shr 2) - 1.0) * -2.0;
+    Translate.InitTranslation(X, Y, 0);
+    Model := Translate * RM;
+    var VSParams: TVSParams;
+    VSParams.MVP := ViewProj * Model;
+
+    Bind.Samplers[SMP_SMP] := FSmp[I];
+    TGfx.ApplyBindings(Bind);
+    TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+    TGfx.Draw(0, 4);
+  end;
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TMipmapApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
 end;
 
 end.

@@ -66,7 +66,10 @@ end;
 
 function TSettingsUI.EventHandler(const AEvent: TEvent): Boolean;
 begin
-  Result := SokolImGui.HandleEvent(@AEvent);
+  SokolImGui.HandleEvent(@AEvent);
+
+  { Always pass on event }
+  Result := False;
 end;
 
 end.

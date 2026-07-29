@@ -60,12 +60,6 @@ uses
 
 { TSglContextApp }
 
-procedure TSglContextApp.Cleanup;
-begin
-  sglShutdown;
-  inherited;
-end;
-
 procedure TSglContextApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -75,44 +69,20 @@ begin
   AConfig.WindowTitle := 'Neslib.Sokol.GL Contexts';
 end;
 
-class procedure TSglContextApp.DrawCube;
+procedure TSglContextApp.Init;
 begin
-  sglBeginQuads;
-  sglV3F_T2F(-1,  1, -1, 0, 1);
-  sglV3F_T2F( 1,  1, -1, 1, 1);
-  sglV3F_T2F( 1, -1, -1, 1, 0);
-  sglV3F_T2F(-1, -1, -1, 0, 0);
-  sglV3F_T2F(-1, -1,  1, 0, 1);
-  sglV3F_T2F( 1, -1,  1, 1, 1);
-  sglV3F_T2F( 1,  1,  1, 1, 0);
-  sglV3F_T2F(-1,  1,  1, 0, 0);
-  sglV3F_T2F(-1, -1,  1, 0, 1);
-  sglV3F_T2F(-1,  1,  1, 1, 1);
-  sglV3F_T2F(-1,  1, -1, 1, 0);
-  sglV3F_T2F(-1, -1, -1, 0, 0);
-  sglV3F_T2F( 1, -1,  1, 0, 1);
-  sglV3F_T2F( 1, -1, -1, 1, 1);
-  sglV3F_T2F( 1,  1, -1, 1, 0);
-  sglV3F_T2F( 1,  1,  1, 0, 0);
-  sglV3F_T2F( 1, -1, -1, 0, 1);
-  sglV3F_T2F( 1, -1,  1, 1, 1);
-  sglV3F_T2F(-1, -1,  1, 1, 0);
-  sglV3F_T2F(-1, -1, -1, 0, 0);
-  sglV3F_T2F(-1,  1, -1, 0, 1);
-  sglV3F_T2F(-1,  1,  1, 1, 1);
-  sglV3F_T2F( 1,  1,  1, 1, 0);
-  sglV3F_T2F( 1,  1, -1, 0, 0);
-  sglEnd;
-end;
+  inherited;
+  { Setup Neslib.Sokol.GL with the default context compatible with the default
+    render pass }
+  var GLDesc := TGLDesc.Create;
+  GLDesc.MaxVertices := 64;
+  GLDesc.MaxCommands := 16;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
 
-class procedure TSglContextApp.DrawQuad;
-begin
-  sglBeginQuads;
-  sglV2F_C3B( 0, -1, 255,   0,   0);
-  sglV2F_C3B( 1,  0,   0,   0, 255);
-  sglV2F_C3B( 0,  1,   0, 255, 255);
-  sglV2F_C3B(-1,  0,   0, 255,   0);
-  sglEnd;
+  FDisplay.Init;
+  FOffscreen.Init;
 end;
 
 procedure TSglContextApp.Frame;
@@ -155,20 +125,50 @@ begin
   TGfx.Commit;
 end;
 
-procedure TSglContextApp.Init;
+procedure TSglContextApp.Cleanup;
 begin
+  sglShutdown;
   inherited;
-  { Setup Neslib.Sokol.GL with the default context compatible with the default
-    render pass }
-  var GLDesc := TGLDesc.Create;
-  GLDesc.MaxVertices := 64;
-  GLDesc.MaxCommands := 16;
-  GLDesc.UseDelphiMemoryManager := True;
-  GLDesc.Logger := GLDesc.DefaultLogger;
-  sglSetup(GLDesc);
+end;
 
-  FDisplay.Init;
-  FOffscreen.Init;
+class procedure TSglContextApp.DrawCube;
+begin
+  sglBeginQuads;
+  sglV3F_T2F(-1,  1, -1, 0, 1);
+  sglV3F_T2F( 1,  1, -1, 1, 1);
+  sglV3F_T2F( 1, -1, -1, 1, 0);
+  sglV3F_T2F(-1, -1, -1, 0, 0);
+  sglV3F_T2F(-1, -1,  1, 0, 1);
+  sglV3F_T2F( 1, -1,  1, 1, 1);
+  sglV3F_T2F( 1,  1,  1, 1, 0);
+  sglV3F_T2F(-1,  1,  1, 0, 0);
+  sglV3F_T2F(-1, -1,  1, 0, 1);
+  sglV3F_T2F(-1,  1,  1, 1, 1);
+  sglV3F_T2F(-1,  1, -1, 1, 0);
+  sglV3F_T2F(-1, -1, -1, 0, 0);
+  sglV3F_T2F( 1, -1,  1, 0, 1);
+  sglV3F_T2F( 1, -1, -1, 1, 1);
+  sglV3F_T2F( 1,  1, -1, 1, 0);
+  sglV3F_T2F( 1,  1,  1, 0, 0);
+  sglV3F_T2F( 1, -1, -1, 0, 1);
+  sglV3F_T2F( 1, -1,  1, 1, 1);
+  sglV3F_T2F(-1, -1,  1, 1, 0);
+  sglV3F_T2F(-1, -1, -1, 0, 0);
+  sglV3F_T2F(-1,  1, -1, 0, 1);
+  sglV3F_T2F(-1,  1,  1, 1, 1);
+  sglV3F_T2F( 1,  1,  1, 1, 0);
+  sglV3F_T2F( 1,  1, -1, 0, 0);
+  sglEnd;
+end;
+
+class procedure TSglContextApp.DrawQuad;
+begin
+  sglBeginQuads;
+  sglV2F_C3B( 0, -1, 255,   0,   0);
+  sglV2F_C3B( 1,  0,   0,   0, 255);
+  sglV2F_C3B( 0,  1,   0, 255, 255);
+  sglV2F_C3B(-1,  0,   0, 255,   0);
+  sglEnd;
 end;
 
 { TOffscreen }

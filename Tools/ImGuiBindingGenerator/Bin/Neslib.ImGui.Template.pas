@@ -61,6 +61,31 @@ type
     property Data: Pointer read FData;
   end;
 
+type 
+  _PImGuiInputTextCallbackData = ^_ImGuiInputTextCallbackData;
+
+type
+  TImGuiText = record
+  {$REGION 'Internal Declarations'}
+  private const
+    WORK_AREA = 10;
+  private
+    FBuffer: TArray<UTF8Char>;
+  private
+    procedure Validate;
+    procedure Update(const AData: _PImGuiInputTextCallbackData);
+  {$ENDREGION 'Internal Declarations'}
+  public
+    procedure Init(const AText: String);
+    function ToString: String; inline;
+    function ToUTF8String: UTF8String; inline;
+    function ToPUTF8Char: PUTF8Char; inline;
+
+    class operator Implicit(const AText: String): TImGuiText; inline; static;
+    class operator Implicit(const AText: TImGuiText): String; inline; static;
+  end;
+  PImGuiText = ^TImGuiText;
+
 type
   // Forward declarations
   <%ForwardStructDeclarations%>
@@ -92,10 +117,32 @@ type
     class function Format(const AFmt: String; const AArgs: array of const): PUTF8Char; static;
   end;
 
+function __ImGuiInputTextCallback(AData: _PImGuiInputTextCallbackData): Integer; cdecl;
+
 implementation
 
 uses
   System.SysUtils;
+
+type
+  TImDefaults = record // static
+  public
+    class procedure Apply<T: record>(var ARec: T); static;
+  end;
+
+class procedure TImDefaults.Apply<T>(var ARec: T);
+var 
+  FC: TImFontConfig absolute ARec;
+begin
+  if (TypeInfo(T) = TypeInfo(TImFontConfig)) then
+  begin
+    FC.FontDataOwnedByAtlas := True;
+    FC.ExtraSizeScale := 1;
+    FC.GlyphMaxAdvanceX := Single.MaxValue;
+    FC.RasterizerMultiply := 1;
+    FC.RasterizerDensity := 1;
+  end;
+end;
 
 { TImVector<T> }
 
@@ -273,6 +320,66 @@ begin
   Result := PUTF8Char(FUtf8Buf);
 end;
 
+{ TImGuiText }
+
+function __ImGuiInputTextCallback(AData: _PImGuiInputTextCallbackData): Integer; cdecl;
+begin
+  if Assigned(AData) and Assigned(AData._UserData) then
+    PImGuiText(AData._UserData).Update(AData);
+    
+  Result := 0;
+end;
+
+class operator TImGuiText.Implicit(const AText: TImGuiText): String;
+begin
+  Result := AText.ToString;
+end;
+
+procedure TImGuiText.Init(const AText: String);
+begin
+  var S := UTF8String(AText);
+  var Len := Length(S);
+  SetLength(FBuffer, Len + WORK_AREA);
+  if (Len > 0) then
+    Move(S[Low(UTF8String)], FBuffer[0], Len);
+  FBuffer[Len] := #0;
+end;
+
+function TImGuiText.ToPUTF8Char: PUTF8Char;
+begin
+  Result := PUTF8Char(FBuffer);
+end;
+
+function TImGuiText.ToString: String;
+begin
+  Result := String(UTF8String(PUTF8Char(FBuffer)));
+end;
+
+function TImGuiText.ToUTF8String: UTF8String;
+begin
+  Result := UTF8String(FBuffer);
+end;
+
+procedure TImGuiText.Update(const AData: _PImGuiInputTextCallbackData);
+begin
+  if (TImGuiInputTextFlags(AData._EventFlag) = [TImGuiInputTextFlag.CallbackResize])
+    and ((AData._BufTextLen + 2) > AData._BufSize) then
+  begin
+    SetLength(FBuffer, GrowCollection(Length(FBuffer), AData._BufTextLen + 1));
+    AData._Buf := Pointer(FBuffer);
+  end;
+end;
+
+procedure TImGuiText.Validate;
+begin
+  if (FBuffer = nil) then
+    SetLength(FBuffer, WORK_AREA);
+end;
+
+class operator TImGuiText.Implicit(const AText: String): TImGuiText;
+begin
+  Result.Init(AText);
+end;
 <%StructImplementations%>
 <%ImGuiImplementation%>
 

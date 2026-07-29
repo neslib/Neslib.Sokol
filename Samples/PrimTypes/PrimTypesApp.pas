@@ -88,28 +88,6 @@ uses
 
 { TPrimTypesApp }
 
-procedure TPrimTypesApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
-function TPrimTypesApp.ComputeVSParams(const ADispW, ADispH: Single): TVSParams;
-begin
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), ADispW / ADispH, 0.01, 10.0);
-  View.InitLookAtRH(Vector3(0, 0, 1.25), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  Result.MVP := ViewProj * Model;
-  Result.PointSize := FPointSize;
-end;
-
 procedure TPrimTypesApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -117,72 +95,6 @@ begin
   AConfig.Height := 600;
   AConfig.SampleCount := 4;
   AConfig.WindowTitle := 'Primitive Types';
-end;
-
-procedure TPrimTypesApp.DrawImGui;
-begin
-  inherited;
-  { Use ImGui to allow user to change settings.
-    This is only used on desktop platforms.
-    On mobile platforms, we change the primitive type on a touch event
-    (see TouchesBegan). }
-  ImGui.SetNextWindowSize(Vector2(300, 0));
-  if (ImGui.&Begin('Settings', nil, [TImGuiWindowFlag.NoResize])) then
-  begin
-    ImGui.SliderFloat('Point Size', @FPointSize, 1, 50);
-
-    if (ImGui.RadioButton('Point List', FCurPrimType = TPrimitiveType.Points)) then
-      FCurPrimType := TPrimitiveType.Points;
-
-    if (ImGui.RadioButton('Line List', FCurPrimType = TPrimitiveType.Lines)) then
-      FCurPrimType := TPrimitiveType.Lines;
-
-    if (ImGui.RadioButton('Line Strip', FCurPrimType = TPrimitiveType.LineStrip)) then
-      FCurPrimType := TPrimitiveType.LineStrip;
-
-    if (ImGui.RadioButton('Triangle List', FCurPrimType = TPrimitiveType.Triangles)) then
-      FCurPrimType := TPrimitiveType.Triangles;
-
-    if (ImGui.RadioButton('Triangle Strip', FCurPrimType = TPrimitiveType.TriangleStrip)) then
-      FCurPrimType := TPrimitiveType.TriangleStrip;
-  end;
-  ImGui.&End;
-end;
-
-procedure TPrimTypesApp.Frame;
-begin
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-  var T: Single := FrameDuration * 60;
-
-  FRX := FRX + (0.3 * T);
-  FRY := FRY + (0.2 * T);
-
-  var VSParams := ComputeVSParams(W, H);
-
-  var Pass := TPass.Create;
-  Pass.Action^ := FPassAction;
-  Pass.Swapchain.FromAppSwapchain;
-  TGfx.BeginPass(Pass);
-
-  TGfx.ApplyPipeline(FPrim[FCurPrimType].Pip);
-
-  var Bind := TBindings.Create;
-  Bind.VertexBuffers[0] := FVBuf;
-  Bind.IndexBuffer := FPrim[FCurPrimType].IBuf;
-  TGfx.ApplyBindings(Bind);
-
-  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
-  TGfx.Draw(0, FPrim[FCurPrimType].NumElements);
-
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TPrimTypesApp.HasImGui: Boolean;
-begin
-  Result := True;
 end;
 
 procedure TPrimTypesApp.Init;
@@ -239,6 +151,94 @@ begin
 
   { Pass action for clearing the framebuffer }
   FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.2, 0.4, 1);
+end;
+
+procedure TPrimTypesApp.Frame;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var T: Single := FrameDuration * 60;
+
+  FRX := FRX + (0.3 * T);
+  FRY := FRY + (0.2 * T);
+
+  var VSParams := ComputeVSParams(W, H);
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  TGfx.ApplyPipeline(FPrim[FCurPrimType].Pip);
+
+  var Bind := TBindings.Create;
+  Bind.VertexBuffers[0] := FVBuf;
+  Bind.IndexBuffer := FPrim[FCurPrimType].IBuf;
+  TGfx.ApplyBindings(Bind);
+
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.Draw(0, FPrim[FCurPrimType].NumElements);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TPrimTypesApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
+end;
+
+function TPrimTypesApp.ComputeVSParams(const ADispW, ADispH: Single): TVSParams;
+begin
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), ADispW / ADispH, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 0, 1.25), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
+  Result.PointSize := FPointSize;
+end;
+
+procedure TPrimTypesApp.DrawImGui;
+begin
+  inherited;
+  { Use ImGui to allow user to change settings.
+    This is only used on desktop platforms.
+    On mobile platforms, we change the primitive type on a touch event
+    (see TouchesBegan). }
+  ImGui.SetNextWindowSize(Vector2(300, 0));
+  if (ImGui.&Begin('Settings', nil, [TImGuiWindowFlag.NoResize])) then
+  begin
+    ImGui.SliderFloat('Point Size', @FPointSize, 1, 50);
+
+    if (ImGui.RadioButton('Point List', FCurPrimType = TPrimitiveType.Points)) then
+      FCurPrimType := TPrimitiveType.Points;
+
+    if (ImGui.RadioButton('Line List', FCurPrimType = TPrimitiveType.Lines)) then
+      FCurPrimType := TPrimitiveType.Lines;
+
+    if (ImGui.RadioButton('Line Strip', FCurPrimType = TPrimitiveType.LineStrip)) then
+      FCurPrimType := TPrimitiveType.LineStrip;
+
+    if (ImGui.RadioButton('Triangle List', FCurPrimType = TPrimitiveType.Triangles)) then
+      FCurPrimType := TPrimitiveType.Triangles;
+
+    if (ImGui.RadioButton('Triangle Strip', FCurPrimType = TPrimitiveType.TriangleStrip)) then
+      FCurPrimType := TPrimitiveType.TriangleStrip;
+  end;
+  ImGui.&End;
+end;
+
+class function TPrimTypesApp.HasImGui: Boolean;
+begin
+  Result := True;
 end;
 
 procedure TPrimTypesApp.TouchesBegan(const ATouches: TTouches);

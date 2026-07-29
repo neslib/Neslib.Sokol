@@ -56,14 +56,6 @@ end;
 
 { TFontStashApp }
 
-procedure TFontStashApp.Cleanup;
-begin
-  TFetch.Shutdown;
-  TSokolFontStash.Free(FFontStash);
-  sglShutdown;
-  inherited;
-end;
-
 procedure TFontStashApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -73,28 +65,47 @@ begin
   AConfig.WindowTitle := 'FontStash';
 end;
 
-procedure TFontStashApp.FontBoldLoaded(const AResponse: TFetchResponse);
+procedure TFontStashApp.Init;
 begin
-  if (AResponse.Fetched) then
-    FFontBold := FFontStash.AddFont('sans-bold', AResponse.Data.Ptr, AResponse.Data.Size);
-end;
+  inherited;
+  FDpiScale := DpiScale;
+  var GLDesc := TGLDesc.Create;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
 
-procedure TFontStashApp.FontItalicLoaded(const AResponse: TFetchResponse);
-begin
-  if (AResponse.Fetched) then
-    FFontItalic := FFontStash.AddFont('sans-italic', AResponse.Data.Ptr, AResponse.Data.Size);
-end;
+  { Make sure the fontstash atlas width/height is pow-2 }
+  var AtlasDim := RoundPow2(512 * FDpiScale);
 
-procedure TFontStashApp.FontJapaneseLoaded(const AResponse: TFetchResponse);
-begin
-  if (AResponse.Fetched) then
-    FFontJapanese := FFontStash.AddFont('sans-japanese', AResponse.Data.Ptr, AResponse.Data.Size);
-end;
+  FFontStash := TSokolFontStash.Create(AtlasDim, AtlasDim, True);
+  FFontNormal := FONT_STASH_INVALID;
+  FFontItalic := FONT_STASH_INVALID;
+  FFontBold := FONT_STASH_INVALID;
+  FFontJapanese := FONT_STASH_INVALID;
 
-procedure TFontStashApp.FontNormalLoaded(const AResponse: TFetchResponse);
-begin
-  if (AResponse.Fetched) then
-    FFontNormal := FFontStash.AddFont('sans', AResponse.Data.Ptr, AResponse.Data.Size);
+  { Use Neslib.Sokol.Fetch for loading the TTF font files }
+  var FetchDesc := TFetchDesc.Create;
+  FetchDesc.NumChannels := 1;
+  FetchDesc.NumLanes := 4;
+  FetchDesc.BaseDirectory := 'Data/Fonts';
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
+  TFetch.Setup(FetchDesc);
+
+  var Request := TFetchRequest.Create('DroidSerif-Regular.ttf', FontNormalLoaded,
+    TFetchRange.Create(FFontNormalData));
+  Request.Send;
+
+  Request := TFetchRequest.Create('DroidSerif-Italic.ttf', FontItalicLoaded,
+    TFetchRange.Create(FFontItalicData));
+  Request.Send;
+
+  Request := TFetchRequest.Create('DroidSerif-Bold.ttf', FontBoldLoaded,
+    TFetchRange.Create(FFontBoldData));
+  Request.Send;
+
+  Request := TFetchRequest.Create('DroidSansJapanese.ttf', FontJapaneseLoaded,
+    TFetchRange.Create(FFontJapaneseData));
+  Request.Send;
 end;
 
 procedure TFontStashApp.Frame;
@@ -277,47 +288,36 @@ begin
   TGfx.Commit;
 end;
 
-procedure TFontStashApp.Init;
+procedure TFontStashApp.Cleanup;
 begin
+  TFetch.Shutdown;
+  TSokolFontStash.Free(FFontStash);
+  sglShutdown;
   inherited;
-  FDpiScale := DpiScale;
-  var GLDesc := TGLDesc.Create;
-  GLDesc.UseDelphiMemoryManager := True;
-  GLDesc.Logger := GLDesc.DefaultLogger;
-  sglSetup(GLDesc);
+end;
 
-  { Make sure the fontstash atlas width/height is pow-2 }
-  var AtlasDim := RoundPow2(512 * FDpiScale);
+procedure TFontStashApp.FontBoldLoaded(const AResponse: TFetchResponse);
+begin
+  if (AResponse.Fetched) then
+    FFontBold := FFontStash.AddFont('sans-bold', AResponse.Data.Ptr, AResponse.Data.Size);
+end;
 
-  FFontStash := TSokolFontStash.Create(AtlasDim, AtlasDim, True);
-  FFontNormal := FONT_STASH_INVALID;
-  FFontItalic := FONT_STASH_INVALID;
-  FFontBold := FONT_STASH_INVALID;
-  FFontJapanese := FONT_STASH_INVALID;
+procedure TFontStashApp.FontItalicLoaded(const AResponse: TFetchResponse);
+begin
+  if (AResponse.Fetched) then
+    FFontItalic := FFontStash.AddFont('sans-italic', AResponse.Data.Ptr, AResponse.Data.Size);
+end;
 
-  { Use Neslib.Sokol.Fetch for loading the TTF font files }
-  var FetchDesc := TFetchDesc.Create;
-  FetchDesc.NumChannels := 1;
-  FetchDesc.NumLanes := 4;
-  FetchDesc.BaseDirectory := 'Data/Fonts';
-  FetchDesc.Logger := FetchDesc.DefaultLogger;
-  TFetch.Setup(FetchDesc);
+procedure TFontStashApp.FontJapaneseLoaded(const AResponse: TFetchResponse);
+begin
+  if (AResponse.Fetched) then
+    FFontJapanese := FFontStash.AddFont('sans-japanese', AResponse.Data.Ptr, AResponse.Data.Size);
+end;
 
-  var Request := TFetchRequest.Create('DroidSerif-Regular.ttf', FontNormalLoaded,
-    TFetchRange.Create(FFontNormalData));
-  Request.Send;
-
-  Request := TFetchRequest.Create('DroidSerif-Italic.ttf', FontItalicLoaded,
-    TFetchRange.Create(FFontItalicData));
-  Request.Send;
-
-  Request := TFetchRequest.Create('DroidSerif-Bold.ttf', FontBoldLoaded,
-    TFetchRange.Create(FFontBoldData));
-  Request.Send;
-
-  Request := TFetchRequest.Create('DroidSansJapanese.ttf', FontJapaneseLoaded,
-    TFetchRange.Create(FFontJapaneseData));
-  Request.Send;
+procedure TFontStashApp.FontNormalLoaded(const AResponse: TFetchResponse);
+begin
+  if (AResponse.Fetched) then
+    FFontNormal := FFontStash.AddFont('sans', AResponse.Data.Ptr, AResponse.Data.Size);
 end;
 
 class procedure TFontStashApp.Line(const ASX, ASY, AEX, AEY: Single);

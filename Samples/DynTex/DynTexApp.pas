@@ -88,29 +88,6 @@ const
 
 { TDynTexApp }
 
-procedure TDynTexApp.Cleanup;
-begin
-  { Not needed in this example since TGfx.Shutdown cleans up and frees all
-    GFX resources }
-  inherited;
-end;
-
-function TDynTexApp.ComputeVSParams: TVSParams;
-begin
-  var W: Single := FramebufferWidth;
-  var H: Single := FramebufferHeight;
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
-  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
-
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  Result.MVP := ViewProj * Model;
-end;
-
 procedure TDynTexApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -120,6 +97,58 @@ begin
   AConfig.WindowTitle := 'Dynamic Texture';
 end;
 
+procedure TDynTexApp.Init;
+begin
+  inherited;
+  var ImageDesc := TImageDesc.Create;
+  ImageDesc.Width := IMAGE_WIDTH;
+  ImageDesc.Height := IMAGE_HEIGHT;
+  ImageDesc.PixelFormat := TPixelFormat.Rgba8;
+  ImageDesc.Usage.StreamUpdate := True;
+  ImageDesc.TraceLabel := 'DynamicTexture';
+  FImage := TImage.Create(ImageDesc);
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := FImage;
+  ViewDesc.TraceLabel := 'DynamicTextureView';
+  FBind.Views[VIEW_TEX] := TView.Create(ViewDesc);
+
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  SamplerDesc.TraceLabel := 'Sampler';
+  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
+
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(VERTICES);
+  BufferDesc.TraceLabel := 'CubeVertices';
+  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
+  BufferDesc.Data := TRange.Create(INDICES);
+  BufferDesc.TraceLabel := 'CubeIndices';
+  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
+
+  FShader := TShader.Create(DynTexShaderDesc);
+
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Layout.Attrs[ATTR_DYNTEX_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_DYNTEX_COLOR0].Format := TVertexFormat.Float4;
+  PipDesc.Layout.Attrs[ATTR_DYNTEX_TEXCOORD0].Format := TVertexFormat.Float2;
+  PipDesc.Shader := FShader;
+  PipDesc.IndexType := TIndexType.UInt16;
+  PipDesc.CullMode := TCullMode.Back;
+  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.TraceLabel := 'CubePipeline';
+
+  FPip := TPipeline.Create(PipDesc);
+
+  GameOfLifeInit;
+end;
 procedure TDynTexApp.Frame;
 begin
   var T: Single := FrameDuration * 60;
@@ -149,6 +178,29 @@ begin
   DebugFrame;
   TGfx.EndPass;
   TGfx.Commit;
+end;
+
+procedure TDynTexApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
+end;
+
+function TDynTexApp.ComputeVSParams: TVSParams;
+begin
+  var W: Single := FramebufferWidth;
+  var H: Single := FramebufferHeight;
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), W / H, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  Result.MVP := ViewProj * Model;
 end;
 
 procedure TDynTexApp.GameOfLifeInit;
@@ -207,59 +259,6 @@ begin
     GameOfLifeInit;
     FUpdateCount := 0;
   end;
-end;
-
-procedure TDynTexApp.Init;
-begin
-  inherited;
-  var ImageDesc := TImageDesc.Create;
-  ImageDesc.Width := IMAGE_WIDTH;
-  ImageDesc.Height := IMAGE_HEIGHT;
-  ImageDesc.PixelFormat := TPixelFormat.Rgba8;
-  ImageDesc.Usage.StreamUpdate := True;
-  ImageDesc.TraceLabel := 'DynamicTexture';
-  FImage := TImage.Create(ImageDesc);
-
-  var ViewDesc := TViewDesc.Create;
-  ViewDesc.Texture.Image := FImage;
-  ViewDesc.TraceLabel := 'DynamicTextureView';
-  FBind.Views[VIEW_TEX] := TView.Create(ViewDesc);
-
-  var SamplerDesc := TSamplerDesc.Create;
-  SamplerDesc.MinFilter := TFilter.Linear;
-  SamplerDesc.MagFilter := TFilter.Linear;
-  SamplerDesc.WrapU := TWrap.ClampToEdge;
-  SamplerDesc.WrapV := TWrap.ClampToEdge;
-  SamplerDesc.TraceLabel := 'Sampler';
-  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
-
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'CubeVertices';
-  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
-
-  BufferDesc.Init;
-  BufferDesc.Usage.IndexBuffer := True;
-  BufferDesc.Data := TRange.Create(INDICES);
-  BufferDesc.TraceLabel := 'CubeIndices';
-  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
-
-  FShader := TShader.Create(DynTexShaderDesc);
-
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_DYNTEX_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_DYNTEX_COLOR0].Format := TVertexFormat.Float4;
-  PipDesc.Layout.Attrs[ATTR_DYNTEX_TEXCOORD0].Format := TVertexFormat.Float2;
-  PipDesc.Shader := FShader;
-  PipDesc.IndexType := TIndexType.UInt16;
-  PipDesc.CullMode := TCullMode.Back;
-  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-  PipDesc.Depth.WriteEnabled := True;
-  PipDesc.TraceLabel := 'CubePipeline';
-
-  FPip := TPipeline.Create(PipDesc);
-
-  GameOfLifeInit;
 end;
 
 end.

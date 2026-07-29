@@ -141,15 +141,6 @@ const
 
 { TPLMpegApp }
 
-procedure TPLMpegApp.Cleanup;
-begin
-  FMpeg.Free;
-  FMpegBuffer.Free;
-  TFetch.Shutdown;
-  TAudio.Shutdown;
-  inherited;
-end;
-
 procedure TPLMpegApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -159,36 +150,67 @@ begin
   AConfig.WindowTitle := 'Mpeg Demo';
 end;
 
-procedure TPLMpegApp.FetchCallback(const AResponse: TFetchResponse);
+procedure TPLMpegApp.Init;
 begin
-  if (AResponse.Fetched) then
-  begin
-    { Current download buffer has been filled with data.
-      Fut the download buffer into the FFullBuffers queue. }
-    FFullBuffers.Enqueue(FCurDownloadBuffer);
-    if (FFullBuffers.IsFull) or (FFreeBuffers.IsEmpty) then
-      { All buffers in use. Need to wait for the video decoding to catch up }
-      AResponse.Handle.Pause
-    else
-    begin
-      { ...otherwise start streaming into the next free buffer }
-      FCurDownloadBuffer := FFreeBuffers.Dequeue;
-      AResponse.Handle.UnbindBuffer;
-      AResponse.Handle.BindBuffer(TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
-    end;
-  end
-  else if (AResponse.Paused) then
-  begin
-    { This handles a paused download, and continues it once the video decoding
-      has caught up }
-    if (not FFreeBuffers.IsEmpty) then
-    begin
-      FCurDownloadBuffer := FFreeBuffers.Dequeue;
-      AResponse.Handle.UnbindBuffer;
-      AResponse.Handle.BindBuffer(TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
-      AResponse.Handle.Continue;
-    end;
-  end;
+  inherited;
+  { Setup circular queues of "free" and "full" buffers }
+  for var I := 0 to NUM_BUFFERS - 1 do
+    FFreeBuffers.Enqueue(I);
+
+  FCurDownloadBuffer := FFreeBuffers.Dequeue;
+  FCurReadBuffer := -1;
+
+  { Setup Sokol Fetch and start fetching the file. Once the first two buffers
+    have been filled with data, setup TMpeg (this happens down in the frame
+    callback) }
+  var FetchDesc := TFetchDesc.Create;
+  FetchDesc.MaxRequests := 1;
+  FetchDesc.NumChannels := 1;
+  FetchDesc.NumLanes := 1;
+  FetchDesc.BaseDirectory := 'Data';
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
+  TFetch.Setup(FetchDesc);
+
+  var Request := TFetchRequest.Create('bjork-all-is-full-of-love.mpg',
+    FetchCallback, TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
+  Request.ChunkSize := CHUNK_SIZE;
+  Request.Send;
+
+  { Initialize Sokol Gfx }
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(VERTICES);
+  BufferDesc.TraceLabel := 'Vertices';
+  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
+  BufferDesc.Data := TRange.Create(INDICES);
+  BufferDesc.TraceLabel := 'Indices';
+  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
+
+  var PipDesc := TPipelineDesc.Create;
+  PipDesc.Layout.Attrs[ATTR_PLMPEG_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_PLMPEG_NORMAL].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_PLMPEG_TEXCOORD].Format := TVertexFormat.Float2;
+  PipDesc.Shader := TShader.Create(PlmpegShaderDesc);
+  PipDesc.IndexType := TIndexType.UInt16;
+  PipDesc.CullMode := TCullMode.None;
+  PipDesc.Depth.WriteEnabled := True;
+  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+  PipDesc.TraceLabel := 'Pipeline';
+  FPip := TPipeline.Create(PipDesc);
+
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  SamplerDesc.TraceLabel := 'Sampler';
+  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
+
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.569, 0.918, 1);
+
+  { Note: texture creation is deferred until first frame is decoded }
 end;
 
 procedure TPLMpegApp.Frame;
@@ -266,67 +288,45 @@ begin
   TGfx.Commit;
 end;
 
-procedure TPLMpegApp.Init;
+procedure TPLMpegApp.Cleanup;
 begin
+  FMpeg.Free;
+  FMpegBuffer.Free;
+  TFetch.Shutdown;
+  TAudio.Shutdown;
   inherited;
-  { Setup circular queues of "free" and "full" buffers }
-  for var I := 0 to NUM_BUFFERS - 1 do
-    FFreeBuffers.Enqueue(I);
+end;
 
-  FCurDownloadBuffer := FFreeBuffers.Dequeue;
-  FCurReadBuffer := -1;
-
-  { Setup Sokol Fetch and start fetching the file. Once the first two buffers
-    have been filled with data, setup TMpeg (this happens down in the frame
-    callback) }
-  var FetchDesc := TFetchDesc.Create;
-  FetchDesc.MaxRequests := 1;
-  FetchDesc.NumChannels := 1;
-  FetchDesc.NumLanes := 1;
-  FetchDesc.BaseDirectory := 'Data';
-  FetchDesc.Logger := FetchDesc.DefaultLogger;
-  TFetch.Setup(FetchDesc);
-
-  var Request := TFetchRequest.Create('bjork-all-is-full-of-love.mpg',
-    FetchCallback, TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
-  Request.ChunkSize := CHUNK_SIZE;
-  Request.Send;
-
-  { Initialize Sokol Gfx }
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  BufferDesc.TraceLabel := 'Vertices';
-  FBind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
-
-  BufferDesc.Init;
-  BufferDesc.Usage.IndexBuffer := True;
-  BufferDesc.Data := TRange.Create(INDICES);
-  BufferDesc.TraceLabel := 'Indices';
-  FBind.IndexBuffer := TBuffer.Create(BufferDesc);
-
-  var PipDesc := TPipelineDesc.Create;
-  PipDesc.Layout.Attrs[ATTR_PLMPEG_POS].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_PLMPEG_NORMAL].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_PLMPEG_TEXCOORD].Format := TVertexFormat.Float2;
-  PipDesc.Shader := TShader.Create(PlmpegShaderDesc);
-  PipDesc.IndexType := TIndexType.UInt16;
-  PipDesc.CullMode := TCullMode.None;
-  PipDesc.Depth.WriteEnabled := True;
-  PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-  PipDesc.TraceLabel := 'Pipeline';
-  FPip := TPipeline.Create(PipDesc);
-
-  var SamplerDesc := TSamplerDesc.Create;
-  SamplerDesc.MinFilter := TFilter.Linear;
-  SamplerDesc.MagFilter := TFilter.Linear;
-  SamplerDesc.WrapU := TWrap.ClampToEdge;
-  SamplerDesc.WrapV := TWrap.ClampToEdge;
-  SamplerDesc.TraceLabel := 'Sampler';
-  FBind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
-
-  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.569, 0.918, 1);
-
-  { Note: texture creation is deferred until first frame is decoded }
+procedure TPLMpegApp.FetchCallback(const AResponse: TFetchResponse);
+begin
+  if (AResponse.Fetched) then
+  begin
+    { Current download buffer has been filled with data.
+      Fut the download buffer into the FFullBuffers queue. }
+    FFullBuffers.Enqueue(FCurDownloadBuffer);
+    if (FFullBuffers.IsFull) or (FFreeBuffers.IsEmpty) then
+      { All buffers in use. Need to wait for the video decoding to catch up }
+      AResponse.Handle.Pause
+    else
+    begin
+      { ...otherwise start streaming into the next free buffer }
+      FCurDownloadBuffer := FFreeBuffers.Dequeue;
+      AResponse.Handle.UnbindBuffer;
+      AResponse.Handle.BindBuffer(TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
+    end;
+  end
+  else if (AResponse.Paused) then
+  begin
+    { This handles a paused download, and continues it once the video decoding
+      has caught up }
+    if (not FFreeBuffers.IsEmpty) then
+    begin
+      FCurDownloadBuffer := FFreeBuffers.Dequeue;
+      AResponse.Handle.UnbindBuffer;
+      AResponse.Handle.BindBuffer(TFetchRange.Create(FBuffer[FCurDownloadBuffer]));
+      AResponse.Handle.Continue;
+    end;
+  end;
 end;
 
 procedure TPLMpegApp.MpegAudioDecode(const AMpeg: TMpeg;

@@ -33,23 +33,50 @@ implementation
 uses
   System.UITypes,
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.FastMath;
 
 { TImGuiApp }
+
+procedure TImGuiApp.Configure(var AConfig: TAppConfig);
+begin
+  inherited;
+  AConfig.Width := 1280;
+  AConfig.Height := 768;
+  AConfig.WindowTitle := 'ImGui';
+  AConfig.DepthFormat := TAppPixelFormat.None;
+  AConfig.iOS.KeyboardResizesCanvas := False;
+  AConfig.EnableClipboard := True;
+end;
+
+procedure TImGuiApp.Init;
+begin
+  inherited;
+  FShowTestWindow := True;
+  FTextVal := 'The Quick Brown Fox';
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.5, 0.7, 1);
+end;
+
+procedure TImGuiApp.Frame;
+begin
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
 
 procedure TImGuiApp.Cleanup;
 begin
   inherited;
 end;
 
-procedure TImGuiApp.Configure(var AConfig: TAppConfig);
+class function TImGuiApp.HasImGui: Boolean;
 begin
-  inherited;
-  AConfig.Width := 1024;
-  AConfig.Height := 768;
-  AConfig.WindowTitle := 'ImGui';
-  AConfig.iOSKeyboardResizesCanvas := False;
-  AConfig.EnableClipboard := True;
+  Result := True;
 end;
 
 procedure TImGuiApp.DrawImGui;
@@ -60,8 +87,8 @@ begin
   ImGui.Text('Hello, world!');
 
   ImGui.InputText('text', FTextVal);
-  ImGui.SliderFloat('float', FFloatVal, 0, 1, '%.3f');
-  ImGui.ColorEdit3('clear color', FPassAction.Colors[0].Value);
+  ImGui.SliderFloat('float', @FFloatVal, 0, 1, '%.3f');
+  ImGui.ColorEdit3('clear color', @FPassAction.Colors[0].ClearValue);
 
   if (ImGui.Button('Test Window')) then
     FShowTestWindow := not FShowTestWindow;
@@ -71,6 +98,20 @@ begin
 
   ImGui.Text(ImGui.Format('Application average %.3f ms/frame (%.1f FPS)',
     [1000 / ImGui.GetIO.Framerate, ImGui.GetIO.Framerate]));
+
+  ImGui.Text(ImGui.Format('W: %d, H: %d, DpiScale: %.1f', [FramebufferWidth,
+    FramebufferHeight, DpiScale]));
+
+  var Caption: PUTF8Char;
+  if (FullScreen) then
+    Caption := 'Switch to windowed'
+  else
+    Caption := 'Switch to fullscreen';
+  if (ImGui.Button(Caption)) then
+    ToggleFullscreen;
+
+  ImGui.Text(ImGui.Format('FrameDuration: %.6f', [FrameDuration]));
+  ImGui.Text(ImGui.Format('FrameDurationUnfiltered: %.6f', [FrameDurationUnfiltered]));
 
   { 2. Show another simple window, this time using an explicit Begin/End pair }
   if (FShowAnotherWindow) then                    begin
@@ -86,28 +127,6 @@ begin
     ImGui.SetNextWindowPos(Vector2(460, 20), TImGuiCond.FirstUseEver);
     ImGui.ShowDemoWindow;
   end;
-end;
-
-procedure TImGuiApp.Frame;
-begin
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TImGuiApp.HasImGui: Boolean;
-begin
-  Result := True;
-end;
-
-procedure TImGuiApp.Init;
-begin
-  inherited;
-  FShowTestWindow := True;
-  FTextVal := 'The Quick Brown Fox';
-  FPassAction.Colors[0].Init(TAction.Clear, 0.7, 0.5, 0, 1);
-  Include(ImGui.GetIO.ConfigFlags, TImGuiConfigFlag.DockingEnable);
 end;
 
 end.
