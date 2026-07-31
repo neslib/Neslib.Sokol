@@ -31,12 +31,11 @@ type
     RX: Single;
     RY: Single;
     PassAction: TPassAction;
+    Img: TImage;
     Pip: TPipeline;
-    Shader: TShader;
     Bind: TBindings;
   public
     procedure Init;
-    procedure Free;
     procedure Frame(const AWidth, AHeight: Integer);
   end;
 
@@ -86,6 +85,7 @@ implementation
 
 uses
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.ModPlug.Api,
   Neslib.Stb.Image;
 
@@ -156,20 +156,6 @@ end;
 
 { TRestartApp }
 
-procedure TRestartApp.Cleanup;
-begin
-  FMod.Free;
-  TAudio.Shutdown;
-  TDbgText.Shutdown;
-  sglShutdown;
-  TFetch.Shutdown;
-  FScene.Free;
-  FillChar(FScene, SizeOf(FScene), 0);
-  FillChar(FMod, SizeOf(FMod), 0);
-  FillChar(FIO, SizeOf(FIO), 0);
-  inherited;
-end;
-
 procedure TRestartApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -180,19 +166,46 @@ begin
   AConfig.WindowTitle := 'Restart Sokol Libs';
 end;
 
-procedure TRestartApp.ConfigureGfx(var ADesc: TGfxDesc);
+procedure TRestartApp.Init;
 begin
   inherited;
-  { Tweak setup params to reduce memory usage }
-  ADesc.BufferPoolSize := 8;
-  {$IFNDEF USE_DBG_UI}
-  ADesc.ImagePoolSize := 4;
-  ADesc.ShaderPoolSize := 4;
-  ADesc.PipelinePoolSize := 8;
-  {$ENDIF}
-  ADesc.PassPoolSize := 1;
-  ADesc.ContextPoolSize := 1;
-  ADesc.SamplerCacheSize := 4;
+  { Setup Sokol libraries. Tweak setup params to reduce memory usage }
+  var FetchDesc := TFetchDesc.Create;
+  FetchDesc.MaxRequests := 2;
+  FetchDesc.NumChannels := 2;
+  FetchDesc.NumLanes := 1;
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
+  FetchDesc.BaseDirectory := 'Data';
+  TFetch.Setup(FetchDesc);
+
+  var GLDesc := TGLDesc.Create;
+  GLDesc.PipelinePoolSize := 1;
+  GLDesc.MaxVertices := 16;
+  GLDesc.MaxCommands := 16;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
+
+  var DbgTextDesc := TDbgTextDesc.Create;
+  DbgTextDesc.ContextPoolSize := 1;
+  DbgTextDesc.Fonts[0] := TDbgTextFont.CPC;
+  DbgTextDesc.Context.CharBufSize := 128;
+  DbgTextDesc.UseDelphiMemoryManager := True;
+  DbgTextDesc.Logger := DbgTextDesc.DefaultLogger;
+  TDbgText.Setup(DbgTextDesc);
+
+  var AudioDesc := TAudioDesc.Create;
+  AudioDesc.NumChannels := MOD_NUM_CHANNELS;
+  AudioDesc.UseDelphiMemoryManager := True;
+  AudioDesc.Logger := AudioDesc.DefaultLogger;
+  TAudio.Setup(AudioDesc);
+
+  { Setup rendering resources }
+  FScene.Init;
+  FMod.Init;
+
+  { Start loading files }
+  FIO.Init;
 end;
 
 procedure TRestartApp.Frame;
@@ -241,39 +254,27 @@ begin
   TGfx.Commit;
 end;
 
-procedure TRestartApp.Init;
+procedure TRestartApp.Cleanup;
+begin
+  FMod.Free;
+  TAudio.Shutdown;
+  TDbgText.Shutdown;
+  sglShutdown;
+  TFetch.Shutdown;
+  inherited;
+end;
+
+procedure TRestartApp.ConfigureGfx(var ADesc: TGfxDesc);
 begin
   inherited;
-  { Setup Sokol libraries. Tweak setup params to reduce memory usage }
-  var FetchDesc := TFetchDesc.Create;
-  FetchDesc.MaxRequests := 2;
-  FetchDesc.NumChannels := 2;
-  FetchDesc.NumLanes := 1;
-  FetchDesc.BaseDirectory := 'Data';
-  TFetch.Setup(FetchDesc);
-
-  var GLDesc := TGLDesc.Create;
-  GLDesc.PipelinePoolSize := 1;
-  GLDesc.MaxVertices := 16;
-  GLDesc.MaxCommands := 16;
-  sglSetup(GLDesc);
-
-  var DbgTextDesc := TDbgTextDesc.Create;
-  DbgTextDesc.ContextPoolSize := 1;
-  DbgTextDesc.Fonts[0] := TDbgTextFont.CPC;
-  DbgTextDesc.Context.CharBufSize := 128;
-  TDbgText.Setup(DbgTextDesc);
-
-  var AudioDesc := TAudioDesc.Create;
-  AudioDesc.NumChannels := MOD_NUM_CHANNELS;
-  TAudio.Setup(AudioDesc);
-
-  { Setup rendering resources }
-  FScene.Init;
-  FMod.Init;
-
-  { Start loading files }
-  FIO.Init;
+  { Tweak setup params to reduce memory usage }
+  ADesc.BufferPoolSize := 8;
+  {$IFNDEF USE_DBG_UI}
+  ADesc.ImagePoolSize := 4;
+  ADesc.ShaderPoolSize := 4;
+  ADesc.PipelinePoolSize := 8;
+  ADesc.ViewPoolSize := 16;
+  {$ENDIF}
 end;
 
 procedure TRestartApp.KeyDown(const AKey: TKeyCode;
@@ -310,8 +311,8 @@ begin
 
   { Compute model-view-projection matrix for the 3D scene }
   var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), AHeight / AWidth, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  Proj.InitPerspectiveFovRH(Radians(60), AWidth / AHeight, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
   var VSParams: TVSParams;
@@ -324,29 +325,25 @@ begin
   var Model := RXM * RYM;
   VSParams.Mvp := ViewProj * Model;
 
-  TGfx.BeginDefaultPass(PassAction, AWidth, AHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   TGfx.ApplyPipeline(Pip);
   TGfx.ApplyBindings(Bind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, 36);
 
   { NOTE: TGdx.EndPass is called later when other parts have been rendered. }
 end;
 
-procedure TScene.Free;
-begin
-  Bind.FragmentShaderImages[SLOT_TEX].Free;
-  Bind.VertexBuffers[0].Free;
-  Bind.IndexBuffer.Free;
-  Shader.Free;
-  Pip.Free;
-end;
-
 procedure TScene.Init;
 begin
-  var Image: TImage;
-  Image.Allocate;
-  Bind.FragmentShaderImages[SLOT_TEX] := Image;
+  Img.Allocate;
+  var View: TView;
+  View.Allocate;
+  Bind.Views[VIEW_TEX] := View;
 
   var BufferDesc := TBufferDesc.Create;
   BufferDesc.Data := TRange.Create(CUBE_VERTICES);
@@ -354,17 +351,20 @@ begin
   Bind.VertexBuffers[0] := TBuffer.Create(BufferDesc);
 
   BufferDesc := TBufferDesc.Create;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
+  BufferDesc.Usage.IndexBuffer := True;
   BufferDesc.Data := TRange.Create(CUBE_INDICES);
   BufferDesc.TraceLabel := 'cube-indices';
   Bind.IndexBuffer := TBuffer.Create(BufferDesc);
 
-  Shader := TShader.Create(RestartShaderDesc);
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  Bind.Samplers[SMP_SMP] := TSampler.Create(SamplerDesc);
 
   var PipDesc := TPipelineDesc.Create;
-  PipDesc.Shader := Shader;
-  PipDesc.Layout.Attrs[ATTR_VS_POS].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_TEXCOORD0].Format := TVertexFormat.Short2N;
+  PipDesc.Shader := TShader.Create(RestartShaderDesc);
+  PipDesc.Layout.Attrs[ATTR_RESTART_POS].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_RESTART_TEXCOORD0].Format := TVertexFormat.Short2N;
   PipDesc.IndexType := TIndexType.UInt16;
   PipDesc.CullMode := TCullMode.Back;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
@@ -376,7 +376,7 @@ begin
   var R: Single := ((XorShift32 and $3F) shl 2) / 255;
   var G: Single := ((XorShift32 and $3F) shl 2) / 255;
   var B: Single := ((XorShift32 and $3F) shl 2) / 255;
-  PassAction.Colors[0].Init(TAction.Clear, R, G, B);
+  PassAction.Colors[0].Init(TLoadAction.Clear, R, G, B);
 end;
 
 { TMod }
@@ -446,19 +446,21 @@ begin
   begin
     var StbImage := TStbImage.Create;
     try
-      if (StbImage.Load(AResponse.BufferPtr, AResponse.FetchedSize, 4)) then
+      if (StbImage.Load(AResponse.Data.Ptr, AResponse.Data.Size, 4)) then
       begin
-        var Image := App.FScene.Bind.FragmentShaderImages[SLOT_TEX];
+        var Image := App.FScene.Img;
         var ImageDesc := TImageDesc.Create;
         ImageDesc.Width := StbImage.Width;
         ImageDesc.Height := StbImage.Height;
         ImageDesc.PixelFormat := TPixelFormat.Rgba8;
-        ImageDesc.MinFilter := TFilter.Linear;
-        ImageDesc.MagFilter := TFilter.Linear;
-        ImageDesc.Data.SubImages[0] := TRange.Create(StbImage.Data,
+        ImageDesc.Data.MipLevels[0] := TRange.Create(StbImage.Data,
           StbImage.Width * StbImage.Height * 4);
-        Image.Init(ImageDesc);
-        App.FScene.Bind.FragmentShaderImages[SLOT_TEX] := Image;
+        Image.Setup(ImageDesc);
+
+        var ViewDesc := TViewDesc.Create;
+        ViewDesc.Texture.Image := Image;
+        var View := App.FScene.Bind.Views[VIEW_TEX];
+        View.Setup(ViewDesc);
       end;
 
     finally
@@ -468,7 +470,7 @@ begin
   else if (AResponse.Failed) then
   begin
     { If loading the file failed, set clear color to red }
-    App.FScene.PassAction.Colors[0].Init(TAction.Clear, 1, 0, 0);
+    App.FScene.PassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0);
   end;
 end;
 
@@ -478,12 +480,12 @@ begin
   if (AResponse.Fetched) then
   begin
     App.FMod.ModFile := TModPlugFile.Create;
-    App.FMod.ModFile.Load(AResponse.BufferPtr, AResponse.FetchedSize);
+    App.FMod.ModFile.Load(AResponse.Data.Ptr, AResponse.Data.Size);
   end
   else if (AResponse.Failed) then
   begin
     { If loading the file failed, set clear color to red }
-    App.FScene.PassAction.Colors[0].Init(TAction.Clear, 1, 0, 0);
+    App.FScene.PassAction.Colors[0].Init(TLoadAction.Clear, 1, 0, 0);
   end;
 end;
 
@@ -491,11 +493,11 @@ procedure TIO.Init;
 begin
   { Start loading files }
   var Request := TFetchRequest.Create('baboon.png', FetchImageCallback,
-    @ImgBuffer, SizeOf(ImgBuffer));
+    TFetchRange.Create(ImgBuffer));
   Request.Send;
 
   Request := TFetchRequest.Create('comsi.s3m', FetchModCallback,
-    @ModBuffer, SizeOf(ModBuffer));
+    TFetchRange.Create(ModBuffer));
   Request.Send;
 end;
 

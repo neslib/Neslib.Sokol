@@ -95,10 +95,17 @@ type
   TImVectorImWchar = TImVector<Char>;
   PImVectorImWchar = ^TImVectorImWchar;
 
-<%StructInterfaces%>
-
   TImGuiStringGetter = function(AUserData: Pointer; AIndex: Integer): PUTF8Char; cdecl;
   TImGuiValueGetter = function(AUserData: Pointer; AIndex: Integer): Single; cdecl;
+  TImDrawCallback = procedure(const AParentList: PImDrawList; const ACommand: PImDrawCmd); cdecl;
+  TImGuiSizeCallback = procedure(AData: PImGuiSizeCallbackData); cdecl;
+  TImGuiInputTextCallback = function(AData: _PImGuiInputTextCallbackData): Integer; cdecl;
+  TImGuiMemAllocFunc = function(ASize: NativeInt; AUserData: Pointer): Pointer; cdecl;
+  PImGuiMemAllocFunc = ^TImGuiMemAllocFunc;
+  TImGuiMemFreeFunc = procedure(APtr, AUserData: Pointer); cdecl;
+  PImGuiMemFreeFunc = ^TImGuiMemFreeFunc;
+
+<%StructInterfaces%>
 
 <%ImGuiInterface%>
 

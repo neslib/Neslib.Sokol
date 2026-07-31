@@ -11,6 +11,17 @@ uses
   PixelFormatsShader;
 
 type
+  TImageAndViews = record
+  public
+    Image: TImage;
+    TexView: TView;
+    AttView: TView;
+  public
+    procedure Init(const AImgDesc: TImageDesc; const AHasTexView: Boolean;
+      const AAttViewType: TViewType);
+  end;
+
+type
   TFormat = record
   private class var
     FPixels: array [0..(8 * 8 * 16) - 1] of Byte;
@@ -25,48 +36,43 @@ type
     Valid: Boolean;
     PixelFormat: TPixelFormat;
     DefImageId: Cardinal;
-    Sample: TImage;
-    Filter: TImage;
-    Render: TImage;
-    Blend: TImage;
-    Msaa: TImage;
+    Unfiltered: TImageAndViews;
+    Filtered: TImageAndViews;
+    Render: TImageAndViews;
+    Blend: TImageAndViews;
+    MsaaRender: TImageAndViews;
+    MsaaResolve: TImageAndViews;
     CubeRenderPip: TPipeline;
     CubeBlendPip: TPipeline;
     CubeMsaaPip: TPipeline;
     BGRenderPip: TPipeline;
     BGMsaaPip: TPipeline;
-    RenderPass: TPass;
-    BlendPass: TPass;
-    MsaaPass: TPass;
   public
-    procedure Init(const APixFmt: TPixelFormat; const ADefImage,
-      ARenderDepthImage, AMsaaDepthImage: TImage; var ACubeRenderPipDesc,
+    procedure Init(const APixFmt: TPixelFormat; const ADefImage: TImageAndViews;
+      ADepthAttView, AMsaaDepthAttView: TView; var ACubeRenderPipDesc,
       ABGRenderPipDesc, ACubeBlendPipDesc, ACubeMsaaPipDesc,
       ABGMsaaPipDesc: TPipelineDesc);
-    procedure Free;
 
-    procedure Draw(const ABGBindings, ACubeBindings: TBindings;
+    procedure Draw(const ADepthAttView, AMsaaDepthAttView: TView;
+      const ABGBindings, ACubeBindings: TBindings;
       const ABGFsParams: TBGFsParams; const ACubeVsParams: TCubeVsParams);
-    procedure DrawImGui;
+
+    procedure DrawImGui(const ASampler: TSampler);
   end;
 
 type
   TPixelFormatsApp = class(TSampleApp)
   private
     FFormat: array [TPixelFormat.R8..TPixelFormat.Depth] of TFormat;
+    FDepthAttView: TView;
+    FMsaaDepthAttView: TView;
+    FSmpLinear: TSampler;
     FCubeBindings: TBindings;
     FBGBindings: TBindings;
     FCubeVsParams: TCubeVsParams;
     FBGFsParams: TBGFsParams;
-    FCubeShader: TShader;
-    FBGShader: TShader;
-    FRenderDepthImg: TImage;
-    FMsaaDepthImg: TImage;
-    FInvalidImg: TImage;
     FRX: Single;
     FRY: Single;
-  private
-    class function SetupInvalidTexture: TImage; static;
   protected
     class function HasImGui: Boolean; override;
   protected
@@ -83,7 +89,25 @@ implementation
 uses
   System.UITypes,
   Neslib.ImGui,
-  Neslib.Sokol.Api;
+  Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
+  Neslib.Sokol.ImGui;
+
+{ A 'disabled' texture pattern with a cross }
+const
+  X = $FF0000FF;
+  o = $FFCCCCCC;
+
+const
+  DISABLED_TEXTURE_PIXELS: array [0..(8 * 8) - 1] of UInt32 = (
+    X, o, o, o, o, o, o, X,
+    o, X, o, o, o, o, X, o,
+    o, o, X, o, o, X, o, o,
+    o, o, o, X, X, o, o, o,
+    o, o, o, X, X, o, o, o,
+    o, o, X, o, o, X, o, o,
+    o, X, o, o, o, o, X, o,
+    X, o, o, o, o, o, o, X);
 
 const
   { Cube vertex buffer }
@@ -132,22 +156,6 @@ const
   QUAD_VERTICES: array [0..7] of Single = (
     -1.0, -1.0, +1.0, -1.0, -1.0, +1.0, +1.0, +1.0);
 
-procedure TPixelFormatsApp.Cleanup;
-begin
-  FRenderDepthImg.Free;
-  FMsaaDepthImg.Free;
-  FInvalidImg.Free;
-  FCubeShader.Free;
-  FBGShader.Free;
-  FCubeBindings.VertexBuffers[0].Free;
-  FCubeBindings.IndexBuffer.Free;
-  FBGBindings.VertexBuffers[0].Free;
-
-  for var PixFmt := TPixelFormat.R8 to TPixelFormat.Depth do
-    FFormat[PixFmt].Free;
-  inherited;
-end;
-
 procedure TPixelFormatsApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -157,16 +165,152 @@ begin
   AConfig.WindowTitle := 'Pixelformat Test';
 end;
 
+procedure TPixelFormatsApp.Init;
+begin
+  inherited;
+  { Create all the textures, samplers and render targets }
+  var ImgDesc := TImageDesc.Create;
+  ImgDesc.Usage.DepthStencilAttachment := True;
+  ImgDesc.Width := 64;
+  ImgDesc.Height := 64;
+  ImgDesc.PixelFormat := TPixelFormat.Depth;
+  ImgDesc.SampleCount := 1;
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.DepthStencilAttachment.Image := TImage.Create(ImgDesc);
+  FDepthAttView := TView.Create(ViewDesc);
+
+  ImgDesc.SampleCount := 4;
+  ViewDesc.DepthStencilAttachment.Image := TImage.Create(ImgDesc);
+  FMsaaDepthAttView := TView.Create(ViewDesc);
+
+  var InvalidImage: TImageAndViews;
+  ImgDesc.Init;
+  ImgDesc.Width := 8;
+  ImgDesc.Height := 8;
+  ImgDesc.Data.MipLevels[0] := TRange.Create(DISABLED_TEXTURE_PIXELS);
+  InvalidImage.Init(ImgDesc, True, TViewType.Invalid);
+
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Linear;
+  SamplerDesc.MagFilter := TFilter.Linear;
+  FSmpLinear := TSampler.Create(SamplerDesc);
+
+  var CubeRenderPipDesc := TPipelineDesc.Create;
+  CubeRenderPipDesc.Layout.Attrs[ATTR_CUBE_POS].Format := TVertexFormat.Float3;
+  CubeRenderPipDesc.Layout.Attrs[ATTR_CUBE_COLOR0].Format := TVertexFormat.Float4;
+  CubeRenderPipDesc.Shader := TShader.Create(CubeShaderDesc);
+  CubeRenderPipDesc.IndexType := TIndexType.UInt16;
+  CubeRenderPipDesc.CullMode := TCullMode.Back;
+  CubeRenderPipDesc.SampleCount := 1;
+  CubeRenderPipDesc.Depth.WriteEnabled := True;
+  CubeRenderPipDesc.Depth.PixelFormat := TPixelFormat.Depth;
+  CubeRenderPipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+
+  var BGRenderPipDesc := TPipelineDesc.Create;
+  BGRenderPipDesc.Layout.Attrs[ATTR_BG_POSITION].Format := TVertexFormat.Float2;
+  BGRenderPipDesc.Shader := TShader.Create(BgShaderDesc);
+  BGRenderPipDesc.PrimitiveType := TPrimitiveType.TriangleStrip;
+  BGRenderPipDesc.SampleCount := 1;
+  BGRenderPipDesc.Depth.PixelFormat := TPixelFormat.Depth;
+
+  var CubeBlendPipDesc := CubeRenderPipDesc;
+  CubeBlendPipDesc.Colors[0].Blend.Enabled := True;
+  CubeBlendPipDesc.Colors[0].Blend.SrcFactorRgb := TBlendFactor.One;
+  CubeBlendPipDesc.Colors[0].Blend.DstFactorRgb := TBlendFactor.One;
+
+  var CubeMsaaPipDesc := CubeRenderPipDesc;
+  CubeMsaaPipDesc.SampleCount := 4;
+
+  var BGMsaaPipDesc := BGRenderPipDesc;
+  BGMsaaPipDesc.SampleCount := 4;
+
+  for var PixFmt := TPixelFormat.R8 to TPixelFormat.Depth do
+  begin
+    FFormat[PixFmt].Init(PixFmt, InvalidImage, FDepthAttView, FMsaaDepthAttView,
+      CubeRenderPipDesc, BGRenderPipDesc, CubeBlendPipDesc, CubeMsaaPipDesc,
+      BGMsaaPipDesc);
+  end;
+
+  { Cube vertex and index buffer }
+  var BufferDesc := TBufferDesc.Create;
+  BufferDesc.Data := TRange.Create(VERTICES);
+  FCubeBindings.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+
+  BufferDesc.Init;
+  BufferDesc.Usage.IndexBuffer := True;
+  BufferDesc.Data := TRange.Create(INDICES);
+  FCubeBindings.IndexBuffer := TBuffer.Create(BufferDesc);
+
+  { Background quad vertices }
+  BufferDesc.Init;
+  BufferDesc.Data := TRange.Create(QUAD_VERTICES);
+  FBGBindings.VertexBuffers[0] := TBuffer.Create(BufferDesc);
+end;
+
+procedure TPixelFormatsApp.Frame;
+begin
+  { Compute model-view-projection matrix for vertex shader }
+  var T: Single := FrameDuration * 60;
+
+  { Compute the model-view-proj matrix for rendering to render targets }
+  var Proj, View: TMatrix4;
+  Proj.InitPerspectiveFovRH(Radians(60), 1, 0.01, 10.0);
+  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  var ViewProj := Proj * View;
+
+  FRX := FRX + (1 * T);
+  FRY := FRY + (2 * T);
+  var RXM, RYM: TMatrix4;
+  RXM.InitRotationX(Radians(FRX));
+  RYM.InitRotationY(Radians(FRY));
+  var Model := RXM * RYM;
+  FCubeVsParams.Mvp := ViewProj * Model;
+  FBGFsParams.Tick := FBGFsParams.Tick + T;
+
+  { Render into all the offscreen render targets }
+  for var PixFmt := TPixelFormat.R8 to TPixelFormat.Depth do
+  begin
+    FFormat[PixFmt].Draw(FDepthAttView, FMsaaDepthAttView, FBGBindings,
+      FCubeBindings, FBGFsParams, FCubeVsParams);
+  end;
+
+  var PassAction := TPassAction.Create;
+  PassAction.Colors[0].Init(TLoadAction.Clear, 0, 0.5, 0.7, 1);
+
+  var Pass := TPass.Create;
+  Pass.Action^ := PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TPixelFormatsApp.Cleanup;
+begin
+  { Not needed in this example since TGfx.Shutdown cleans up and frees all
+    GFX resources }
+  inherited;
+end;
+
+class function TPixelFormatsApp.HasImGui: Boolean;
+begin
+  Result := True;
+end;
+
 procedure TPixelFormatsApp.ConfigureGfx(var ADesc: TGfxDesc);
 begin
   inherited;
   ADesc.PipelinePoolSize := 256;
-  ADesc.PassPoolSize := 128;
+  ADesc.ImagePoolSize := 256;
+  ADesc.ViewPoolSize := 512;
 end;
 
 procedure TPixelFormatsApp.DrawImGui;
 begin
-  ImGui.SetNextWindowSize(Vector2(500, 480), TImGuiCond.Once);
+  ImGui.SetNextWindowSize(Vector2(640, 480), TImGuiCond.Once);
   if (ImGui.Begin('Pixel Formats (without UINT and SINT formats)')) then
   begin
     ImGui.Text('format');
@@ -185,167 +329,68 @@ begin
 
     ImGui.BeginChild('#scrollregion');
     for var PixFmt := TPixelFormat.R8 to TPixelFormat.Depth do
-      FFormat[PixFmt].DrawImGui;
+      FFormat[PixFmt].DrawImGui(FSmpLinear);
     ImGui.EndChild;
   end;
   ImGui.End;
 end;
 
-procedure TPixelFormatsApp.Frame;
+{ TImageAndViews }
+
+procedure TImageAndViews.Init(const AImgDesc: TImageDesc;
+  const AHasTexView: Boolean; const AAttViewType: TViewType);
 begin
-  { Compute model-view-projection matrix for vertex shader }
-  var W := FramebufferWidth;
-  var H := FramebufferHeight;
-  var T: Single := FrameDuration * 60;
+  Image := TImage.Create(AImgDesc);
 
-  { Compute the model-view-proj matrix for rendering to render targets }
-  var Proj, View: TMatrix4;
-  Proj.InitPerspectiveFovRH(Radians(60), 1, 0.01, 10.0, True);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
-  var ViewProj := Proj * View;
+  var ViewDesc: TViewDesc;
 
-  FRX := FRX + (1 * T);
-  FRY := FRY + (2 * T);
-  var RXM, RYM: TMatrix4;
-  RXM.InitRotationX(Radians(FRX));
-  RYM.InitRotationY(Radians(FRY));
-  var Model := RXM * RYM;
-  FCubeVsParams.Mvp := ViewProj * Model;
-  FBGFsParams.Tick := FBGFsParams.Tick + T;
-
-  { Render into all the offscreen render targets }
-  for var PixFmt := TPixelFormat.R8 to TPixelFormat.Depth do
-    FFormat[PixFmt].Draw(FBGBindings, FCubeBindings, FBGFsParams, FCubeVsParams);
-
-  var PassAction := TPassAction.Create;
-  PassAction.Colors[0].Init(TAction.Clear, 0, 0.5, 0.7, 1);
-
-  TGfx.BeginDefaultPass(PassAction, W, H);
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TPixelFormatsApp.HasImGui: Boolean;
-begin
-  Result := True;
-end;
-
-procedure TPixelFormatsApp.Init;
-begin
-  inherited;
-  { Create all the textures and render targets }
-  var ImgDesc := TImageDesc.Create;
-  ImgDesc.RenderTarget := True;
-  ImgDesc.Width := 64;
-  ImgDesc.Height := 64;
-  ImgDesc.PixelFormat := TPixelFormat.Depth;
-  FRenderDepthImg := TImage.Create(ImgDesc);
-
-  ImgDesc.SampleCount := 4;
-  FMsaaDepthImg := TImage.Create(ImgDesc);
-
-  FInvalidImg := SetupInvalidTexture;
-
-  FCubeShader := TShader.Create(CubeShaderDesc);
-  var CubeRenderPipDesc := TPipelineDesc.Create;
-  CubeRenderPipDesc.Layout.Attrs[ATTR_VS_CUBE_POS].Format := TVertexFormat.Float3;
-  CubeRenderPipDesc.Layout.Attrs[ATTR_VS_CUBE_COLOR0].Format := TVertexFormat.Float4;
-  CubeRenderPipDesc.Shader := FCubeShader;
-  CubeRenderPipDesc.IndexType := TIndexType.UInt16;
-  CubeRenderPipDesc.CullMode := TCullMode.Back;
-  CubeRenderPipDesc.Depth.WriteEnabled := True;
-  CubeRenderPipDesc.Depth.PixelFormat := TPixelFormat.Depth;
-  CubeRenderPipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
-
-  FBGShader := TShader.Create(BgShaderDesc);
-  var BGRenderPipDesc := TPipelineDesc.Create;
-  BGRenderPipDesc.Layout.Attrs[ATTR_VS_BG_POSITION].Format := TVertexFormat.Float2;
-  BGRenderPipDesc.Shader := FBGShader;
-  BGRenderPipDesc.PrimitiveType := TPrimitiveType.TriangleStrip;
-  BGRenderPipDesc.Depth.PixelFormat := TPixelFormat.Depth;
-
-  var CubeBlendPipDesc := CubeRenderPipDesc;
-  CubeBlendPipDesc.Colors[0].Blend.Enabled := True;
-  CubeBlendPipDesc.Colors[0].Blend.SrcFactorRgb := TBlendFactor.One;
-  CubeBlendPipDesc.Colors[0].Blend.DstFactorRgb := TBlendFactor.One;
-
-  var CubeMsaaPipDesc := CubeRenderPipDesc;
-  CubeMsaaPipDesc.SampleCount := 4;
-
-  var BGMsaaPipDesc := BGRenderPipDesc;
-  BGMsaaPipDesc.SampleCount := 4;
-
-  for var PixFmt := TPixelFormat.R8 to TPixelFormat.Depth do
+  if (AHasTexView) then
   begin
-    FFormat[PixFmt].Init(PixFmt, FInvalidImg, FRenderDepthImg, FMsaaDepthImg,
-      CubeRenderPipDesc, BGRenderPipDesc, CubeBlendPipDesc, CubeMsaaPipDesc,
-      BGMsaaPipDesc);
+    ViewDesc.Init;
+    ViewDesc.Texture.Image := Image;
+    TexView := TView.Create(ViewDesc);
   end;
 
-  { Cube vertex and index buffer }
-  var BufferDesc := TBufferDesc.Create;
-  BufferDesc.Data := TRange.Create(VERTICES);
-  FCubeBindings.VertexBuffers[0] := TBuffer.Create(BufferDesc);
-
-  BufferDesc.Init;
-  BufferDesc.BufferType := TBufferType.IndexBuffer;
-  BufferDesc.Data := TRange.Create(INDICES);
-  FCubeBindings.IndexBuffer := TBuffer.Create(BufferDesc);
-
-  { Background quad vertices }
-  BufferDesc.Init;
-  BufferDesc.Data := TRange.Create(QUAD_VERTICES);
-  FBGBindings.VertexBuffers[0] := TBuffer.Create(BufferDesc);
-end;
-
-class function TPixelFormatsApp.SetupInvalidTexture: TImage;
-{ Create a texture for "feature disabled" }
-const
-  X = $FF0000FF;
-  o = $FFCCCCCC;
-const
-  DISABLED_TEXTURE_PIXELS: array [0..(8 * 8) - 1] of UInt32 = (
-    X, o, o, o, o, o, o, X,
-    o, X, o, o, o, o, X, o,
-    o, o, X, o, o, X, o, o,
-    o, o, o, X, X, o, o, o,
-    o, o, o, X, X, o, o, o,
-    o, o, X, o, o, X, o, o,
-    o, X, o, o, o, o, X, o,
-    X, o, o, o, o, o, o, X);
-begin
-  var ImgDesc := TImageDesc.Create;
-  ImgDesc.Width := 8;
-  ImgDesc.Height := 8;
-  ImgDesc.Data.SubImages[0] := TRange.Create(DISABLED_TEXTURE_PIXELS);
-  Result := TImage.Create(ImgDesc);
+  if (AAttViewType = TViewType.ColorAttachment) then
+  begin
+    ViewDesc.Init;
+    ViewDesc.ColorAttachment.Image := Image;
+    AttView := TView.Create(ViewDesc);
+  end
+  else if (AAttViewType = TViewType.ResolveAttachment) then
+  begin
+    ViewDesc.Init;
+    ViewDesc.ResolveAttachment.Image := Image;
+    AttView := TView.Create(ViewDesc);
+  end;
 end;
 
 { TFormat }
 
-procedure TFormat.Draw(const ABGBindings, ACubeBindings: TBindings;
-  const ABGFsParams: TBGFsParams; const ACubeVsParams: TCubeVsParams);
+procedure TFormat.Draw(const ADepthAttView, AMsaaDepthAttView: TView;
+  const ABGBindings, ACubeBindings: TBindings; const ABGFsParams: TBGFsParams;
+  const ACubeVsParams: TCubeVsParams);
 begin
   if (not Valid) then
     Exit;
 
-  var PassAction := TPassAction.Create;
+  var Pass: TPass;
 
   if (PixelFormat.Render) then
   begin
-    TGfx.BeginPass(RenderPass, PassAction);
+    Pass.Init;
+    Pass.Attachments.Colors[0] := Render.AttView;
+    Pass.Attachments.DepthStencil := ADepthAttView;
+    TGfx.BeginPass(Pass);
 
     TGfx.ApplyPipeline(BGRenderPip);
     TGfx.ApplyBindings(ABGBindings);
-    TGfx.ApplyUniforms(TShaderStage.FragmentShader, SLOT_BG_FS_PARAMS,
-      TRange.Create(ABGFsParams));
+    TGfx.ApplyUniforms(UB_BG_FS_PARAMS, TRange.Create(ABGFsParams));
     TGfx.Draw(0, 4);
 
     TGfx.ApplyPipeline(CubeRenderPip);
     TGfx.ApplyBindings(ACubeBindings);
-    TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_CUBE_VS_PARAMS,
-      TRange.Create(ACubeVsParams));
+    TGfx.ApplyUniforms(UB_CUBE_VS_PARAMS, TRange.Create(ACubeVsParams));
     TGfx.Draw(0, 36);
 
     TGfx.EndPass;
@@ -353,18 +398,19 @@ begin
 
   if (PixelFormat.Blend) then
   begin
-    TGfx.BeginPass(BlendPass, PassAction);
+    Pass.Init;
+    Pass.Attachments.Colors[0] := Blend.AttView;
+    Pass.Attachments.DepthStencil := ADepthAttView;
+    TGfx.BeginPass(Pass);
 
     TGfx.ApplyPipeline(BGRenderPip);
     TGfx.ApplyBindings(ABGBindings);
-    TGfx.ApplyUniforms(TShaderStage.FragmentShader, SLOT_BG_FS_PARAMS,
-      TRange.Create(ABGFsParams));
+    TGfx.ApplyUniforms(UB_BG_FS_PARAMS, TRange.Create(ABGFsParams));
     TGfx.Draw(0, 4);
 
     TGfx.ApplyPipeline(CubeBlendPip);
     TGfx.ApplyBindings(ACubeBindings);
-    TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_CUBE_VS_PARAMS,
-      TRange.Create(ACubeVsParams));
+    TGfx.ApplyUniforms(UB_CUBE_VS_PARAMS, TRange.Create(ACubeVsParams));
     TGfx.Draw(0, 36);
 
     TGfx.EndPass;
@@ -372,25 +418,28 @@ begin
 
   if (PixelFormat.Msaa) then
   begin
-    TGfx.BeginPass(MsaaPass, PassAction);
+    Pass.Init;
+    Pass.Attachments.Colors[0] := MsaaRender.AttView;
+    Pass.Attachments.Resolves[0] := MsaaResolve.AttView;
+    Pass.Attachments.DepthStencil := AMsaaDepthAttView;
+    Pass.Action.Colors[0].StoreAction := TStoreAction.DontCare;
+    TGfx.BeginPass(Pass);
 
     TGfx.ApplyPipeline(BGMsaaPip);
     TGfx.ApplyBindings(ABGBindings);
-    TGfx.ApplyUniforms(TShaderStage.FragmentShader, SLOT_BG_FS_PARAMS,
-      TRange.Create(ABGFsParams));
+    TGfx.ApplyUniforms(UB_BG_FS_PARAMS, TRange.Create(ABGFsParams));
     TGfx.Draw(0, 4);
 
     TGfx.ApplyPipeline(CubeMsaaPip);
     TGfx.ApplyBindings(ACubeBindings);
-    TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_CUBE_VS_PARAMS,
-      TRange.Create(ACubeVsParams));
+    TGfx.ApplyUniforms(UB_CUBE_VS_PARAMS, TRange.Create(ACubeVsParams));
     TGfx.Draw(0, 36);
 
     TGfx.EndPass;
   end;
 end;
 
-procedure TFormat.DrawImGui;
+procedure TFormat.DrawImGui(const ASampler: TSampler);
 const
   PIXEL_FORMAT_STRINGS: array [TPixelFormat.R8..TPixelFormat.Depth] of PUTF8Char = (
     'R8',
@@ -415,12 +464,15 @@ const
     'Rg16SI',
     'Rg16F',
     'Rgba8',
+    'sRgb8A8',
     'Rgba8SN',
     'Rgba8UI',
     'Rgba8SI',
     'Bgra8',
+    'sBgr8A8',
     'Rgb10A2',
     'Rg11B10F',
+    'Rgb9E5',
     'Rg32UI',
     'Rg32SI',
     'Rg32F',
@@ -433,56 +485,39 @@ const
     'Rgba32SI',
     'Rgba32F',
     'Depth');
-const
-  WHITE: TAlphaColorF = (R: 1; G: 1; B: 1; A: 1);
 begin
   if (not Valid) then
     Exit;
 
-  if (ImGui.BeginChild(PIXEL_FORMAT_STRINGS[PixelFormat], Vector2(0, 80), False,
+  if (ImGui.BeginChild(PIXEL_FORMAT_STRINGS[PixelFormat], Vector2(0, 80), [],
     [TImGuiWindowFlag.NoMouseInputs, TImGuiWindowFlag.NoScrollbar])) then
   begin
+    var TexRef: TImTextureRef;
+    TexRef.TexData := nil;
+
     ImGui.Text(PIXEL_FORMAT_STRINGS[PixelFormat]);
-    ImGui.SameLine(106, 0);
-    ImGui.Image(TImTextureID(Sample.Id), Vector2(64), White, White);
-    ImGui.SameLine(0, 0);
-    ImGui.Image(TImTextureID(Filter.Id), Vector2(64), White, White);
-    ImGui.SameLine(0, 0);
-    ImGui.Image(TImTextureID(Render.Id), Vector2(64), White, White);
-    ImGui.SameLine(0, 0);
-    ImGui.Image(TImTextureID(Blend.Id), Vector2(64), White, White);
-    ImGui.SameLine(0, 0);
-    ImGui.Image(TImTextureID(Msaa.Id), Vector2(64), White, White);
+
+    ImGui.SameLine(256, 0);
+    TexRef.TexID := SokolImGui.ImTextureId(Unfiltered.TexView);
+    ImGui.Image(TexRef, Vector2(64));
+
+    ImGui.SameLine;
+    TexRef.TexID := SokolImGui.ImTextureId(Filtered.TexView, ASampler);
+    ImGui.Image(TexRef, Vector2(64));
+
+    ImGui.SameLine;
+    TexRef.TexID := SokolImGui.ImTextureId(Render.TexView);
+    ImGui.Image(TexRef, Vector2(64));
+
+    ImGui.SameLine;
+    TexRef.TexID := SokolImGui.ImTextureId(Blend.TexView);
+    ImGui.Image(TexRef, Vector2(64));
+
+    ImGui.SameLine;
+    TexRef.TexID := SokolImGui.ImTextureId(MsaaResolve.TexView);
+    ImGui.Image(TexRef, Vector2(64));
   end;
   ImGui.EndChild;
-end;
-
-procedure TFormat.Free;
-begin
-  if (Sample.Id <> DefImageId) then
-    Sample.Free;
-
-  if (Filter.Id <> DefImageId) then
-    Filter.Free;
-
-  if (Render.Id <> DefImageId) then
-    Render.Free;
-
-  if (Blend.Id <> DefImageId) then
-    Blend.Free;
-
-  if (Msaa.Id <> DefImageId) then
-    Msaa.Free;
-
-  CubeRenderPip.Free;
-  BGRenderPip.Free;
-  CubeBlendPip.Free;
-  CubeMsaaPip.Free;
-  BGMsaaPip.Free;
-
-  RenderPass.Free;
-  BlendPass.Free;
-  MsaaPass.Free;
 end;
 
 class function TFormat.GenPixels(const AFmt: TPixelFormat): TRange;
@@ -503,7 +538,9 @@ begin
     TPixelFormat.Rg16SN  : Result := GenPixels32($7FFF7FFF);
     TPixelFormat.Rg16F   : Result := GenPixels32($3C003C00);
     TPixelFormat.Rgba8   : Result := GenPixels32($FFFFFFFF);
+    TPixelFormat.sRgb8A8 : Result := GenPixels32($FFFFFFFF);
     TPixelFormat.Rgba8SN : Result := GenPixels32($7F7F7F7F);
+    TPixelFormat.sBgr8A8 : Result := GenPixels32($FFFFFFFF);
     TPixelFormat.Bgra8   : Result := GenPixels32($FFFFFFFF);
     TPixelFormat.Rgb10A2 : Result := GenPixels32(Cardinal($3 shl 30) or ($3FF shl 20) or ($3FF shl 10) or $3FF);
     TPixelFormat.Rg11B10F: Result := GenPixels32(Cardinal($1E0 shl 22) or ($3C0 shl 11) or $3C0);
@@ -600,20 +637,20 @@ begin
   Result := TRange.Create(@FPixels, 8 * 8 * 1);
 end;
 
-procedure TFormat.Init(const APixFmt: TPixelFormat; const ADefImage,
-  ARenderDepthImage, AMsaaDepthImage: TImage; var ACubeRenderPipDesc,
-  ABGRenderPipDesc, ACubeBlendPipDesc, ACubeMsaaPipDesc,
+procedure TFormat.Init(const APixFmt: TPixelFormat;
+  const ADefImage: TImageAndViews; ADepthAttView, AMsaaDepthAttView: TView;
+  var ACubeRenderPipDesc, ABGRenderPipDesc, ACubeBlendPipDesc, ACubeMsaaPipDesc,
   ABGMsaaPipDesc: TPipelineDesc);
 begin
   PixelFormat := APixFmt;
   Valid := False;
 
-  DefImageId := ADefImage.Id;
-  Sample := ADefImage;
-  Filter := ADefImage;
+  //DefImageId := ADefImage.Id;
+  Unfiltered := ADefImage;
+  Filtered := ADefImage;
   Render := ADefImage;
   Blend := ADefImage;
-  Msaa := ADefImage;
+  MsaaResolve := ADefImage;
 
   var ImgData := GenPixels(APixFmt);
   if (ImgData.Data <> nil) then
@@ -621,94 +658,78 @@ begin
     Valid := True;
 
     var ImgDesc: TImageDesc;
-    var PassDesc: TPassDesc;
 
-    { Create unfiltered texture }
-    if APixFmt.Sample then
+    { Create unfiltered and filtered texture and associated views }
+    if (APixFmt.Sample) then
     begin
-      ImgDesc := TImageDesc.Create;
+      ImgDesc.Init;
       ImgDesc.Width := 8;
       ImgDesc.Height := 8;
       ImgDesc.PixelFormat := APixFmt;
-      ImgDesc.Data.SubImages[0] := ImgData;
-      Sample := TImage.Create(ImgDesc);
+      ImgDesc.Data.MipLevels[0] := ImgData;
+      Unfiltered.Init(ImgDesc, True, TViewType.Invalid);
+
+      if (APixFmt.Filter) then
+        Filtered := Unfiltered;
     end;
 
-    { Create filtered texture }
-    if APixFmt.Filter then
+    { Create non-MSAA render target, pipeline state and pass-attachments }
+    if (APixFmt.Render) then
     begin
-      ImgDesc := TImageDesc.Create;
-      ImgDesc.Width := 8;
-      ImgDesc.Height := 8;
-      ImgDesc.PixelFormat := APixFmt;
-      ImgDesc.MinFilter := TFilter.Linear;
-      ImgDesc.MagFilter := TFilter.Linear;
-      ImgDesc.Data.SubImages[0] := ImgData;
-      Filter := TImage.Create(ImgDesc);
-    end;
-
-    { Create non-MSAA render target, pipeline state and pass }
-    if APixFmt.Render then
-    begin
-      ImgDesc := TImageDesc.Create;
-      ImgDesc.RenderTarget := True;
+      ImgDesc.Init;
+      ImgDesc.Usage.ColorAttachment := True;
       ImgDesc.Width := 64;
       ImgDesc.Height := 64;
       ImgDesc.PixelFormat := APixFmt;
-      Render := TImage.Create(ImgDesc);
+      ImgDesc.SampleCount := 1;
+      Render.Init(ImgDesc, True, TViewType.ColorAttachment);
 
       ACubeRenderPipDesc.Colors[0].PixelFormat := APixFmt;
       CubeRenderPip := TPipeline.Create(ACubeRenderPipDesc);
 
       ABGRenderPipDesc.Colors[0].PixelFormat := APixFmt;
       BGRenderPip := TPipeline.Create(ABGRenderPipDesc);
-
-      PassDesc := TPassDesc.Create;
-      PassDesc.ColorAttachments[0].Image := Render;
-      PassDesc.DepthStencilAttachment.Image := ARenderDepthImage;
-      RenderPass := TPass.Create(PassDesc);
     end;
 
-    { Create non-MSAA blend render target, pipeline states and pass }
-    if APixFmt.Blend then
+    { Create non-MSAA blend render target, pipeline states and pass-attachments }
+    if (APixFmt.Blend) then
     begin
-      ImgDesc := TImageDesc.Create;
-      ImgDesc.RenderTarget := True;
+      ImgDesc.Init;
+      ImgDesc.Usage.ColorAttachment := True;
       ImgDesc.Width := 64;
       ImgDesc.Height := 64;
       ImgDesc.PixelFormat := APixFmt;
-      Blend := TImage.Create(ImgDesc);
+      ImgDesc.SampleCount := 1;
+      Blend.Init(ImgDesc, True, TViewType.ColorAttachment);
 
       ACubeBlendPipDesc.Colors[0].PixelFormat := APixFmt;
       CubeBlendPip := TPipeline.Create(ACubeBlendPipDesc);
-
-      PassDesc := TPassDesc.Create;
-      PassDesc.ColorAttachments[0].Image := Blend;
-      PassDesc.DepthStencilAttachment.Image := ARenderDepthImage;
-      BlendPass := TPass.Create(PassDesc);
     end;
 
     { Create MSAA render target and matching pipeline state }
-    if APixFmt.Msaa then
+    if (APixFmt.Msaa) then
     begin
-      ImgDesc := TImageDesc.Create;
-      ImgDesc.RenderTarget := True;
+      ImgDesc.Init;
+      ImgDesc.Usage.ColorAttachment := True;
       ImgDesc.Width := 64;
       ImgDesc.Height := 64;
       ImgDesc.PixelFormat := APixFmt;
       ImgDesc.SampleCount := 4;
-      Msaa := TImage.Create(ImgDesc);
+      MsaaRender.Init(ImgDesc, False, TViewType.ColorAttachment);
+
+      ImgDesc.Init;
+      ImgDesc.Usage.ResolveAttachment := True;
+      ImgDesc.Width := 64;
+      ImgDesc.Height := 64;
+      ImgDesc.PixelFormat := APixFmt;
+      ImgDesc.SampleCount := 1;
+      MsaaResolve.Init(ImgDesc, True, TViewType.ResolveAttachment);
 
       ACubeMsaaPipDesc.Colors[0].PixelFormat := APixFmt;
       CubeMsaaPip := TPipeline.Create(ACubeMsaaPipDesc);
 
       ABGMsaaPipDesc.Colors[0].PixelFormat := APixFmt;
       BGMsaaPip := TPipeline.Create(ABGMsaaPipDesc);
-
-      PassDesc := TPassDesc.Create;
-      PassDesc.ColorAttachments[0].Image := Msaa;
-      PassDesc.DepthStencilAttachment.Image := AMsaaDepthImage;
-      MsaaPass := TPass.Create(PassDesc);
     end;
   end;
 end;

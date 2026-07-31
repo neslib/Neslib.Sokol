@@ -44,8 +44,8 @@ type
     FScene1: TScene1;
     FScene2: TScene2;
   private
-    class procedure DrawScene1(AParentList: PImDrawList;
-      ACmd: PImDrawCmd); cdecl; static;
+    class procedure DrawScene1(const AParentList: PImDrawList;
+      const ACmd: PImDrawCmd); cdecl; static;
     class procedure DrawScene2(const AParentList: PImDrawList;
       const ACmd: PImDrawCmd); cdecl; static;
   protected
@@ -126,7 +126,7 @@ begin
 
     ImGui.SameLine(0, 10);
 
-    if (ImGui.BeginChild('sokol-gl', Vector2(360, 360), True)) then
+    if (ImGui.BeginChild('sokol-gl', Vector2(360, 360), [TImGuiChildFlag.Borders])) then
     begin
       var DrawList := ImGui.GetWindowDrawList;
       DrawList.AddCallback(DrawScene2, Self);
@@ -200,10 +200,10 @@ begin
   { First set the viewport rectangle to render in, same as the ImGui draw
     command's clip rect }
   var DpiScale := TApplication.Instance.DpiScale;
-  var CX := Trunc(ACmd.ClipRect.Left * DpiScale);
-  var CY := Trunc(ACmd.ClipRect.Top * DpiScale);
-  var CW := Trunc(ACmd.ClipRect.Width * DpiScale);
-  var CH := Trunc(ACmd.ClipRect.Height * DpiScale);
+  var CX := Trunc(ACmd.ClipRect.X * DpiScale);
+  var CY := Trunc(ACmd.ClipRect.Y * DpiScale);
+  var CW := Trunc((ACmd.ClipRect.Z - ACmd.ClipRect.X) * DpiScale);
+  var CH := Trunc((ACmd.ClipRect.W - ACmd.ClipRect.Y) * DpiScale);
   TGfx.ApplyScissorRect(CX, CY, CW, CH, True);
   TGfx.ApplyViewport(CX, CY, Trunc(360 * DpiScale), Trunc(360 * DpiScale), True);
 
@@ -212,7 +212,7 @@ begin
   var VSParams: TVSParams;
   var Proj, View: TMatrix4;
   Proj.InitPerspectiveFovRH(Radians(60), 1, 0.01, 10);
-  View.InitLookAtRH(Vector3(0, 1.5, 6), Vector3(0, 0, 0), Vector3(0, 1, 0));
+  View.InitLookAtRH(Vector3(0, 1.5, 4), Vector3(0, 0, 0), Vector3(0, 1, 0));
   var ViewProj := Proj * View;
 
   RX := RX + (1 * T);
@@ -232,7 +232,7 @@ begin
     standard Image widget). This allows to perform render }
   TGfx.ApplyPipeline(Pip);
   TGfx.ApplyBindings(Bind);
-  TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
+  TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
   TGfx.Draw(0, 36);
 end;
 
@@ -269,10 +269,10 @@ procedure TScene2.Draw(const ACmd: PImDrawCmd);
 begin
   var T: Single := TApplication.Instance.FrameDuration * 60;
   var DpiScale := TApplication.Instance.DpiScale;
-  var CX := Trunc(ACmd.ClipRect.Left * DpiScale);
-  var CY := Trunc(ACmd.ClipRect.Top * DpiScale);
-  var CW := Trunc(ACmd.ClipRect.Width * DpiScale);
-  var CH := Trunc(ACmd.ClipRect.Height * DpiScale);
+  var CX := Trunc(ACmd.ClipRect.X * DpiScale);
+  var CY := Trunc(ACmd.ClipRect.Y * DpiScale);
+  var CW := Trunc((ACmd.ClipRect.Z - ACmd.ClipRect.X) * DpiScale);
+  var CH := Trunc((ACmd.ClipRect.W - ACmd.ClipRect.Y) * DpiScale);
   TGfx.ApplyScissorRect(CX, CY, CW, CH, True);
   TGfx.ApplyViewport(CX, CY, Trunc(360 * DpiScale), Trunc(360 * DpiScale), True);
 

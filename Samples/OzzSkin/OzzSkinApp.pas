@@ -26,7 +26,7 @@ const
   { The upper limit for joint palette size is 256 (because the mesh joint
     indices are stored in packed byte-size vertex formats), but the example mesh
     only needs less than 64 }
-  MAX_PALETTE_JOINTS = 64;
+  MAX_JOINTS = 64;
 
 const
   { This defines the size of the instance-buffer and height of the
@@ -36,11 +36,7 @@ const
 type
   { A skinned-mesh vertex. We don't need the texcoords and tangents in our
     example renderer so we just drop them. Normals, joint indices and joint
-    weights are packed into BYTE4N and UBYTE4N
-
-    NOTE: joint indices are packed as UBYTE4N and not UBYTE4 because of D3D11
-    compatibility (see "A note on portable packed vertex formats" in
-    Neslib.Sokol.Gfx.md) }
+    weights are packed into BYTE4N, UBYTE4 and UBYTE4N. }
   TVertex = record
   public
     Position: array [0..2] of Single;
@@ -59,7 +55,6 @@ type
     XXXX: array [0..3] of Single;
     YYYY: array [0..3] of Single;
     ZZZZ: array [0..3] of Single;
-    JointUV: array [0..1] of Single;
   end;
   PInstance = ^TInstance;
 
@@ -89,6 +84,7 @@ type
     JointTextureShown: Boolean;
     JointTextureScale: Integer;
   end;
+
 type
   TOzzSkinApp = class(TSampleApp)
   private
@@ -102,9 +98,10 @@ type
     FModelMatrices: TAlignedArray<TMatrix4>;
     FCache: TOzzSamplingCache;
     FPassAction: TPassAction;
-    FShader: TShader;
     FPip: TPipeline;
     FJointTexture: TImage;
+    FJointTextureView: TView;
+    FSampler: TSampler;
     FBind: TBindings;
     FNumInstances: Integer;      // current number of character instances
     FNumTriangleIndices: Integer;
@@ -128,7 +125,7 @@ type
     FInstanceData: array [0..MAX_INSTANCES - 1] of TInstance;
 
     { Joint-matrix upload buffer, each joint consists of transposed 4x3 matrix }
-    FJointUploadBuffer: array [0..MAX_INSTANCES - 1, 0..MAX_PALETTE_JOINTS - 1, 0..2, 0..3] of Single;
+    FJointUploadBuffer: array [0..MAX_INSTANCES - 1, 0..MAX_JOINTS - 1, 0..2, 0..3] of Single;
   private
     procedure InitInstanceData;
     procedure SkeletonDataLoaded(const AResponse: TFetchResponse);
@@ -150,6 +147,8 @@ implementation
 uses
   System.Classes,
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
+  Neslib.Sokol.ImGui,
   Neslib.OzzAnim.Api,
   Neslib.ImGui,
   OzzSkinShader;
@@ -179,53 +178,6 @@ end;
 
 { TOzzSkinApp }
 
-procedure TOzzSkinApp.AnimationDataLoaded(const AResponse: TFetchResponse);
-begin
-  if (AResponse.Fetched) then
-  begin
-    var Archive: TOzzIArchive := nil;
-    var Stream := TOzzMemoryStream.Create;
-    try
-      Stream.Write(AResponse.BufferPtr^, AResponse.FetchedSize);
-      Stream.Seek(0, soBeginning);
-
-      Archive := TOzzIArchive.Create(Stream);
-      if (Archive.TestTag<TOzzAnimation>) then
-      begin
-        Archive.Load(FAnimation);
-        FLoaded.Animation := True;
-      end
-      else
-        FLoaded.Failed := True;
-    finally
-      Archive.Free;
-      Stream.Free;
-    end;
-  end
-  else if (AResponse.Failed) then
-    FLoaded.Failed := True;
-end;
-
-procedure TOzzSkinApp.Cleanup;
-begin
-  inherited;
-  FLocalMatrices.Free;
-  FModelMatrices.Free;
-  FBind.IndexBuffer.Free;
-  FBind.VertexBuffers[0].Free;
-  FBind.VertexBuffers[1].Free;
-  FJointTexture.Free;
-  FPip.Free;
-  FShader.Free;
-  FCamera.Free;
-  TFetch.Shutdown;
-  FCache.Free;
-  FAnimation.Free;
-  FSkeleton.Free;
-  FSamplingJob.Free;
-  FLocalToModelJob.Free;
-end;
-
 procedure TOzzSkinApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
@@ -234,124 +186,6 @@ begin
   AConfig.SampleCount := 4;
   AConfig.HighDpi := False;
   AConfig.WindowTitle := 'Ozz-Skin';
-end;
-
-procedure TOzzSkinApp.DrawImGui;
-begin
-  ImGui.SetNextWindowPos(Vector2(20, 30), TImGuiCond.Once);
-  ImGui.SetNextWindowSize(Vector2(220, 150), TImGuiCond.Once);
-  ImGui.SetNextWindowBgAlpha(0.35);
-  if (ImGui.Begin('Controls', nil, TImGuiWindowFlags.NoDecoration + [TImGuiWindowFlag.AlwaysAutoResize])) then
-  begin
-    if (FLoaded.Failed) then
-      ImGui.Text('Failed loading character data!')
-    else
-    begin
-      if (ImGui.SliderInt('Num Instances', FNumInstances, 1, MAX_INSTANCES)) then
-      begin
-        var DistStep: Single := (FCamera.MaxDist - FCamera.MinDist) / MAX_INSTANCES;
-        FCamera.Distance := FCamera.MinDist + (DistStep * FNumInstances);
-      end;
-
-      ImGui.Checkbox('Enable Mesh Drawing', @FDrawEnabled);
-      ImGui.Text(ImGui.Format('Frame Time: %.3fms', [FTime.FrameTimeMs]));
-      ImGui.Text(ImGui.Format('Anim Eval Time: %.3fms', [TTime.ToMilliSeconds(FTime.AnimEvalTime)]));
-      ImGui.Text(ImGui.Format('Num Triangles: %d', [(FNumTriangleIndices div 3) * FNumInstances]));
-      ImGui.Text(ImGui.Format('Num Animated Joints: %d', [FNumSkeletonJoints * FNumInstances]));
-      ImGui.Text(ImGui.Format('Num Skinning Joints: %d', [FNumSkinJoints * FNumInstances]));
-
-      ImGui.Separator;
-
-      ImGui.Text('Camera Controls:');
-      ImGui.Text('  LMB + Drag:  Look');
-      ImGui.Text('  Mouse wheel: Zoom');
-
-      ImGui.SliderFloat('Distance', FCamera.Distance, FCamera.MinDist, FCamera.MaxDist, '%.1f');
-      ImGui.SliderFloat('Latitude', FCamera.Latitude, FCamera.MinLat, FCamera.MaxLat, '%.1f');
-      ImGui.SliderFloat('Longitude', FCamera.Longitude, 0, 360, '%.1f');
-
-      ImGui.Separator;
-
-      ImGui.Text('Time Controls:');
-      ImGui.Checkbox('Paused', @FTime.Paused);
-      ImGui.SliderFloat('Factor', FTime.Factor, 0, 10, '%.1f');
-
-      ImGui.Separator;
-
-      if (ImGui.Button('Toggle Joint Texture')) then
-        FUI.JointTextureShown := not FUI.JointTextureShown;
-    end;
-  end;
-
-  if (FUI.JointTextureShown) then
-  begin
-    ImGui.SetNextWindowPos(Vector2(20, 300), TImGuiCond.Once);
-    ImGui.SetNextWindowSize(Vector2(600, 300), TImGuiCond.Once);
-    if (ImGui.Begin('Joint Texture', @FUI.JointTextureShown)) then
-    begin
-      ImGui.InputInt('##scale', FUI.JointTextureScale);
-
-      ImGui.SameLine;
-      if (ImGui.Button('1x')) then
-        FUI.JointTextureScale := 1;
-
-      ImGui.SameLine;
-      if (ImGui.Button('2x')) then
-        FUI.JointTextureScale := 2;
-
-      ImGui.SameLine;
-      if (ImGui.Button('4x')) then
-        FUI.JointTextureScale := 4;
-
-      ImGui.BeginChild('##frame', True, [TImGuiWindowFlag.HorizontalScrollbar]);
-      ImGui.Image(Pointer(FJointTexture.Id),
-        Vector2(FJointTextureWidth * FUI.JointTextureScale, FJointTextureHeight * FUI.JointTextureScale),
-        TVector2.Zero, TVector2.One);
-      ImGui.EndChild;
-    end;
-    ImGui.End;
-  end;
-  ImGui.End;
-end;
-
-procedure TOzzSkinApp.Frame;
-begin
-  TFetch.DoWork;
-
-  var FBWidth := FramebufferWidth;
-  var FBHeight := FramebufferHeight;
-  FTime.FrameTimeSec := FrameDuration;
-  FTime.FrameTimeMs := FTime.FrameTimeSec * 1000;
-  FCamera.Update(FBWidth, FBHeight);
-
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
-
-  if (FLoaded.Animation and FLoaded.Skeleton and FLoaded.Mesh) then
-  begin
-    if (not FTime.Paused) then
-      FTime.AbsTimeSec := FTime.AbsTimeSec + (FTime.FrameTimeSec * FTime.Factor);
-
-    UpdateJointTexture;
-
-    var VSParams: TVSParams;
-    VSParams.ViewProj := FCamera.ViewProj;
-    VSParams.JointPixelWidth := 1 / FJointTextureWidth;
-
-    TGfx.ApplyPipeline(FPip);
-    TGfx.ApplyBindings(FBind);
-    TGfx.ApplyUniforms(TShaderStage.VertexShader, SLOT_VS_PARAMS, TRange.Create(VSParams));
-
-    if (FDrawEnabled) then
-      TGfx.Draw(0, FNumTriangleIndices, FNumInstances);
-  end;
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TOzzSkinApp.HasImGui: Boolean;
-begin
-  Result := True;
 end;
 
 procedure TOzzSkinApp.Init;
@@ -380,11 +214,12 @@ begin
   FetchDesc.MaxRequests := 3;
   FetchDesc.NumChannels := 1;
   FetchDesc.NumLanes := 3;
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
   FetchDesc.BaseDirectory := 'Data/ozz';
   TFetch.Setup(FetchDesc);
 
   { Initialize pass action for default-pass }
-  FPassAction.Colors[0].Init(TAction.Clear, 0.0, 0.0, 0.0);
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.0, 0.0, 0.0);
 
   { Initialize camera controller }
   var CamDesc := TCameraDesc.Create;
@@ -404,14 +239,13 @@ begin
   PipDesc.Layout.Buffers[0].Stride := SizeOf(TVertex);
   PipDesc.Layout.Buffers[1].Stride := SizeOf(TInstance);
   PipDesc.Layout.Buffers[1].StepFunc := TVertexStep.PerInstance;
-  PipDesc.Layout.Attrs[ATTR_VS_POSITION].Format := TVertexFormat.Float3;
-  PipDesc.Layout.Attrs[ATTR_VS_NORMAL].Format := TVertexFormat.Byte4N;
-  PipDesc.Layout.Attrs[ATTR_VS_JINDICES].Format := TVertexFormat.UByte4N;
-  PipDesc.Layout.Attrs[ATTR_VS_JWEIGHTS].Format := TVertexFormat.UByte4N;
-  PipDesc.Layout.Attrs[ATTR_VS_INST_XXXX].Init(1, 0, TVertexFormat.Float4);
-  PipDesc.Layout.Attrs[ATTR_VS_INST_YYYY].Init(1, 0, TVertexFormat.Float4);
-  PipDesc.Layout.Attrs[ATTR_VS_INST_ZZZZ].Init(1, 0, TVertexFormat.Float4);
-  PipDesc.Layout.Attrs[ATTR_VS_INST_JOINT_UV].Init(1, 0, TVertexFormat.Float2);
+  PipDesc.Layout.Attrs[ATTR_SKINNED_POSITION].Format := TVertexFormat.Float3;
+  PipDesc.Layout.Attrs[ATTR_SKINNED_NORMAL].Format := TVertexFormat.Byte4N;
+  PipDesc.Layout.Attrs[ATTR_SKINNED_JINDICES].Format := TVertexFormat.UByte4;
+  PipDesc.Layout.Attrs[ATTR_SKINNED_JWEIGHTS].Format := TVertexFormat.UByte4N;
+  PipDesc.Layout.Attrs[ATTR_SKINNED_INST_XXXX].Init(1, 0, TVertexFormat.Float4);
+  PipDesc.Layout.Attrs[ATTR_SKINNED_INST_YYYY].Init(1, 0, TVertexFormat.Float4);
+  PipDesc.Layout.Attrs[ATTR_SKINNED_INST_ZZZZ].Init(1, 0, TVertexFormat.Float4);
   PipDesc.IndexType := TIndexType.UInt16;
 
   { ozz mesh data appears to have counter-clock-wise face winding }
@@ -419,10 +253,11 @@ begin
   PipDesc.CullMode := TCullMode.Back;
   PipDesc.Depth.WriteEnabled := True;
   PipDesc.Depth.Compare := TCompareFunc.LessOrEqual;
+  PipDesc.TraceLabel := 'Pipeline';
   FPip := TPipeline.Create(PipDesc);
 
-  { Create a dynamic joint-palette texture }
-  FJointTextureWidth := MAX_PALETTE_JOINTS * 3;
+  { Create a dynamic joint-palette image, texture view and sampler }
+  FJointTextureWidth := MAX_JOINTS * 3;
   FJointTextureHeight := MAX_INSTANCES;
   FJointTexturePitch := FJointTextureWidth * 4;
 
@@ -431,13 +266,24 @@ begin
   ImgDesc.Height := FJointTextureHeight;
   ImgDesc.NumMipmaps := 1;
   ImgDesc.PixelFormat := TPixelFormat.Rgba32F;
-  ImgDesc.Usage := TUsage.Stream;
-  ImgDesc.MinFilter := TFilter.Nearest;
-  ImgDesc.MagFilter := TFilter.Nearest;
-  ImgDesc.WrapU := TWrap.ClampToEdge;
-  ImgDesc.WrapV := TWrap.ClampToEdge;
+  ImgDesc.Usage.StreamUpdate := True;
+  ImgDesc.TraceLabel := 'JointTexture';
   FJointTexture := TImage.Create(ImgDesc);
-  FBind.VertexShaderImages[SLOT_JOINT_TEX] := FJointTexture;
+
+  var ViewDesc := TViewDesc.Create;
+  ViewDesc.Texture.Image := FJointTexture;
+  ViewDesc.TraceLabel := 'JointTextureView';
+  FJointTextureView := TView.Create(ViewDesc);
+  FBind.Views[VIEW_JOINT_TEX] := TView.Create(ViewDesc);
+
+  var SamplerDesc := TSamplerDesc.Create;
+  SamplerDesc.MinFilter := TFilter.Nearest;
+  SamplerDesc.MagFilter := TFilter.Nearest;
+  SamplerDesc.WrapU := TWrap.ClampToEdge;
+  SamplerDesc.WrapV := TWrap.ClampToEdge;
+  SamplerDesc.TraceLabel := 'JointTextureSampler';
+  FSampler := TSampler.Create(SamplerDesc);
+  FBind.Samplers[SMP_SMP] := FSampler;
 
   { Create a static instance-data buffer. In this demo, character instances
     don't move around and also are not clipped against the view volume,
@@ -445,22 +291,193 @@ begin
   InitInstanceData;
 
   var BufDesc := TBufferDesc.Create;
-  BufDesc.BufferType := TBufferType.VertexBuffer;
+  BufDesc.Usage.VertexBuffer := True;
   BufDesc.Data := TRange.Create(FInstanceData);
+  BufDesc.TraceLabel := 'InstanceData';
   FBind.VertexBuffers[1] := TBuffer.Create(BufDesc);
 
   { Start loading data }
   var Req := TFetchRequest.Create('ozz_skin_skeleton.ozz', SkeletonDataLoaded,
-    @FSkeletonData, SizeOf(FSkeletonData));
+    TFetchRange.Create(FSkeletonData));
   Req.Send;
 
   Req := TFetchRequest.Create('ozz_skin_animation.ozz', AnimationDataLoaded,
-    @FAnimationData, SizeOf(FAnimationData));
+    TFetchRange.Create(FAnimationData));
   Req.Send;
 
   Req := TFetchRequest.Create('ozz_skin_mesh.ozz', MeshDataLoaded,
-    @FMeshData, SizeOf(FMeshData));
+    TFetchRange.Create(FMeshData));
   Req.Send;
+end;
+
+procedure TOzzSkinApp.Frame;
+begin
+  TFetch.DoWork;
+
+  var FBWidth := FramebufferWidth;
+  var FBHeight := FramebufferHeight;
+  FTime.FrameTimeSec := FrameDuration;
+  FTime.FrameTimeMs := FTime.FrameTimeSec * 1000;
+
+  if (not FTime.Paused) then
+    FTime.AbsTimeSec := FTime.AbsTimeSec + (FTime.FrameTimeSec * FTime.Factor);
+  
+  FCamera.Update(FBWidth, FBHeight);
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
+  if (FLoaded.Animation and FLoaded.Skeleton and FLoaded.Mesh) then
+  begin
+    if (not FTime.Paused) then
+      FTime.AbsTimeSec := FTime.AbsTimeSec + (FTime.FrameTimeSec * FTime.Factor);
+
+    UpdateJointTexture;
+
+    var VSParams: TVSParams;
+    VSParams.ViewProj := FCamera.ViewProj;
+
+    TGfx.ApplyPipeline(FPip);
+    TGfx.ApplyBindings(FBind);
+    TGfx.ApplyUniforms(UB_VS_PARAMS, TRange.Create(VSParams));
+
+    if (FDrawEnabled) then
+      TGfx.Draw(0, FNumTriangleIndices, FNumInstances);
+  end;
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TOzzSkinApp.Cleanup;
+begin
+  inherited;
+  FLocalMatrices.Free;
+  FModelMatrices.Free;
+  FJointTexture.Free;
+  FCamera.Free;
+  TFetch.Shutdown;
+  FCache.Free;
+  FAnimation.Free;
+  FSkeleton.Free;
+  FSamplingJob.Free;
+  FLocalToModelJob.Free;
+end;
+
+class function TOzzSkinApp.HasImGui: Boolean;
+begin
+  Result := True;
+end;
+
+procedure TOzzSkinApp.AnimationDataLoaded(const AResponse: TFetchResponse);
+begin
+  if (AResponse.Fetched) then
+  begin
+    var Archive: TOzzIArchive := nil;
+    var Stream := TOzzMemoryStream.Create;
+    try
+      Stream.Write(AResponse.Data.Ptr^, AResponse.Data.Size);
+      Stream.Seek(0, soBeginning);
+
+      Archive := TOzzIArchive.Create(Stream);
+      if (Archive.TestTag<TOzzAnimation>) then
+      begin
+        Archive.Load(FAnimation);
+        FLoaded.Animation := True;
+      end
+      else
+        FLoaded.Failed := True;
+    finally
+      Archive.Free;
+      Stream.Free;
+    end;
+  end
+  else if (AResponse.Failed) then
+    FLoaded.Failed := True;
+end;
+
+procedure TOzzSkinApp.DrawImGui;
+begin
+  ImGui.SetNextWindowPos(Vector2(20, 30), TImGuiCond.Once);
+  ImGui.SetNextWindowSize(Vector2(220, 150), TImGuiCond.Once);
+  ImGui.SetNextWindowBgAlpha(0.35);
+  if (ImGui.Begin('Controls', nil, TImGuiWindowFlags.NoDecoration + [TImGuiWindowFlag.AlwaysAutoResize])) then
+  begin
+    if (FLoaded.Failed) then
+      ImGui.Text('Failed loading character data!')
+    else
+    begin
+      if (ImGui.SliderInt('Num Instances', @FNumInstances, 1, MAX_INSTANCES)) then
+      begin
+        var DistStep: Single := (FCamera.MaxDist - FCamera.MinDist) / MAX_INSTANCES;
+        FCamera.Distance := FCamera.MinDist + (DistStep * FNumInstances);
+      end;
+
+      ImGui.Checkbox('Enable Mesh Drawing', @FDrawEnabled);
+      ImGui.Text(ImGui.Format('Frame Time: %.3fms', [FTime.FrameTimeMs]));
+      ImGui.Text(ImGui.Format('Anim Eval Time: %.3fms', [TTime.ToMilliSeconds(FTime.AnimEvalTime)]));
+      ImGui.Text(ImGui.Format('Num Triangles: %d', [(FNumTriangleIndices div 3) * FNumInstances]));
+      ImGui.Text(ImGui.Format('Num Animated Joints: %d', [FNumSkeletonJoints * FNumInstances]));
+      ImGui.Text(ImGui.Format('Num Skinning Joints: %d', [FNumSkinJoints * FNumInstances]));
+
+      ImGui.Separator;
+
+      ImGui.Text('Camera Controls:');
+      ImGui.Text('  LMB + Drag:  Look');
+      ImGui.Text('  Mouse wheel: Zoom');
+
+      ImGui.SliderFloat('Distance', @FCamera.Distance, FCamera.MinDist, FCamera.MaxDist, '%.1f');
+      ImGui.SliderFloat('Latitude', @FCamera.Latitude, FCamera.MinLat, FCamera.MaxLat, '%.1f');
+      ImGui.SliderFloat('Longitude', @FCamera.Longitude, 0, 360, '%.1f');
+
+      ImGui.Separator;
+
+      ImGui.Text('Time Controls:');
+      ImGui.Checkbox('Paused', @FTime.Paused);
+      ImGui.SliderFloat('Factor', @FTime.Factor, 0, 10, '%.1f');
+
+      ImGui.Separator;
+
+      if (ImGui.Button('Toggle Joint Texture')) then
+        FUI.JointTextureShown := not FUI.JointTextureShown;
+    end;
+  end;
+
+  if (FUI.JointTextureShown) then
+  begin
+    ImGui.SetNextWindowPos(Vector2(20, 300), TImGuiCond.Once);
+    ImGui.SetNextWindowSize(Vector2(600, 300), TImGuiCond.Once);
+    if (ImGui.Begin('Joint Texture', @FUI.JointTextureShown)) then
+    begin
+      ImGui.InputInt('##scale', @FUI.JointTextureScale);
+
+      ImGui.SameLine;
+      if (ImGui.Button('1x')) then
+        FUI.JointTextureScale := 1;
+
+      ImGui.SameLine;
+      if (ImGui.Button('2x')) then
+        FUI.JointTextureScale := 2;
+
+      ImGui.SameLine;
+      if (ImGui.Button('4x')) then
+        FUI.JointTextureScale := 4;
+
+      ImGui.BeginChild('##frame', [TImGuiChildFlag.Borders], [TImGuiWindowFlag.HorizontalScrollbar]);
+
+      var TexRef: TImTextureRef;
+      TexRef.TexData := nil;
+      TexRef.TexID := SokolImGui.ImTextureId(FJointTextureView);
+      ImGui.Image(TexRef,
+        Vector2(FJointTextureWidth * FUI.JointTextureScale, FJointTextureHeight * FUI.JointTextureScale),
+        TVector2.Zero, TVector2.One);
+      ImGui.EndChild;
+    end;
+    ImGui.End;
+  end;
+  ImGui.End;
 end;
 
 procedure TOzzSkinApp.InitInstanceData;
@@ -524,17 +541,6 @@ begin
     X := X + DX;
     Y := Y + DY;
   end;
-
-  { The skin_info vertex component contains information about where to find the
-    joint palette for this character instance in the joint texture }
-  var HalfPixelX: Single := 0.5 / FJointTextureWidth;
-  var HalfPixelY: Single := 0.5 / FJointTextureHeight;
-  for var I := 0 to MAX_INSTANCES - 1 do
-  begin
-    var Inst := PInstance(@FInstanceData[I]);
-    Inst.JointUV[0] := HalfPixelX;
-    Inst.JointUV[1] := HalfPixelY + (I / FJointTextureHeight);
-  end;
 end;
 
 procedure TOzzSkinApp.MeshDataLoaded(const AResponse: TFetchResponse);
@@ -545,7 +551,7 @@ begin
     var Archive: TOzzIArchive := nil;
     var Stream := TOzzMemoryStream.Create;
     try
-      Stream.Write(AResponse.BufferPtr^, AResponse.FetchedSize);
+      Stream.Write(AResponse.Data.Ptr^, AResponse.Data.Size);
       Stream.Seek(0, soBeginning);
 
       Archive := TOzzIArchive.Create(Stream);
@@ -610,13 +616,15 @@ begin
 
       { Create vertex- and index-buffer }
       var VBufDesc := TBufferDesc.Create;
-      VBufDesc.BufferType := TBufferType.VertexBuffer;
+      VBufDesc.Usage.VertexBuffer := True;
       VBufDesc.Data := TRange.Create(Pointer(Vertices), NumVertices * SizeOf(TVertex));
+      VBufDesc.TraceLabel := 'Vertices';
       FBind.VertexBuffers[0] := TBuffer.Create(VBufDesc);
 
       var IBufDesc := TBufferDesc.Create;
-      IBufDesc.BufferType := TBufferType.IndexBuffer;
+      IBufDesc.Usage.IndexBuffer := True;
       IBufDesc.Data := TRange.Create(Mesh.TriangleIndices, FNumTriangleIndices * SizeOf(Word));
+      IBufDesc.TraceLabel := 'Indices';
       FBind.IndexBuffer := TBuffer.Create(IBufDesc);
     finally
       Mesh.Free;
@@ -635,7 +643,7 @@ begin
     var Archive: TOzzIArchive := nil;
     var Stream := TOzzMemoryStream.Create;
     try
-      Stream.Write(AResponse.BufferPtr^, AResponse.FetchedSize);
+      Stream.Write(AResponse.Data.Ptr^, AResponse.Data.Size);
       Stream.Seek(0, soBeginning);
 
       Archive := TOzzIArchive.Create(Stream);
@@ -704,7 +712,7 @@ begin
   FTime.AnimEvalTime := TTime.Since(StartTime);
 
   var ImgData := TImageData.Create;
-  ImgData.SubImages[0] := TRange.Create(FJointUploadBuffer);
+  ImgData.MipLevels[0] := TRange.Create(FJointUploadBuffer);
   FJointTexture.Update(ImgData);
 end;
 

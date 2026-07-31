@@ -1655,9 +1655,8 @@ uses
   {$ENDIF}
   {$IFDEF SOKOL_MEM_TRACK}
   Neslib.Sokol.MemTrack,
-  {$ELSE}
-  Neslib.Sokol.Utils,
   {$ENDIF}
+  Neslib.Sokol.Utils,
   System.Math;
 
 {$IF Defined(IOS)}
@@ -2281,8 +2280,8 @@ begin
   end;
 
   {$IFDEF SOKOL_MEM_TRACK}
-  GDesc.allocator.alloc := _MemTrackAlloc;
-  GDesc.allocator.free := _MemTrackFree;
+  GDesc.allocator.alloc_fn := _MemTrackAlloc;
+  GDesc.allocator.free_fn := _MemTrackFree;
   {$ELSE}
   if (FConfig.UseDelphiMemoryManager) then
   begin

@@ -317,10 +317,9 @@ implementation
 
 uses
   {$IFDEF SOKOL_MEM_TRACK}
-  Neslib.Sokol.MemTrack;
-  {$ELSE}
-  Neslib.Sokol.Utils;
+  Neslib.Sokol.MemTrack,
   {$ENDIF}
+  Neslib.Sokol.Utils;
 
 { _TDbgTextLogItemHelper }
 

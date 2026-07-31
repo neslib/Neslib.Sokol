@@ -91,10 +91,11 @@ end;
 function TDebugUI.EventHandler(const AEvent: TEvent): Boolean;
 begin
   TAppImGui.TrackEvent(AEvent);
-  SokolImGui.HandleEvent(@AEvent);
-
-  { Always pass on event }
-  Result := False;
+  if (AEvent.Kind >= TEventKind.Resized) and (AEvent.Kind <> TEventKind.ClipboardPasted) then
+    { These events should not be handled by the Debug UI }
+    Result := False
+  else
+    Result := SokolImGui.HandleEvent(@AEvent);
 end;
 
 end.

@@ -436,6 +436,7 @@ type
   private
     FDataType: TDataType;
     function GetIsBuiltinType: Boolean; inline;
+    function GetIsFunctionPointer: Boolean; inline;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure WriteSource(const AWriter: TSourceWriter);
@@ -455,6 +456,9 @@ type
 
     { Whether this is a Delphi builtin type }
     property IsBuiltinType: Boolean read GetIsBuiltinType;
+
+    { Whether this is a function pointer }
+    property IsFunctionPointer: Boolean read GetIsFunctionPointer;
   end;
 
 type
@@ -2118,6 +2122,12 @@ begin
   Result := (FDataType.Description.Kind = TDataTypeKind.Builtin);
 end;
 
+function TTypedef.GetIsFunctionPointer: Boolean;
+begin
+  Result := (FDataType.FDetails <> nil)
+    and (FDataType.FDetails.FFlavor = TTypeFlavor.FunctionPointer);
+end;
+
 procedure TTypedef.LoadChild(const AName: String; const AValue: TJsonValue);
 begin
   if (AName = 'type') then
@@ -2137,7 +2147,7 @@ end;
 
 procedure TTypedef.WriteSource(const AWriter: TSourceWriter);
 begin
-  if (IsBuiltinType) then
+  if (IsBuiltinType) or (IsFunctionPointer) then
     Exit;
 
   WriteCommentBefore(AWriter);

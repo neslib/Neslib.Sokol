@@ -79,10 +79,123 @@ implementation
 uses
   System.Classes,
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.OzzAnim.Api,
   Neslib.ImGui;
 
 { TOzzAnimApp }
+
+procedure TOzzAnimApp.Configure(var AConfig: TAppConfig);
+begin
+  inherited;
+  AConfig.Width := 800;
+  AConfig.Height := 600;
+  AConfig.SampleCount := 4;
+  AConfig.HighDpi := False;
+  AConfig.WindowTitle := 'Ozz-Anim';
+end;
+
+procedure TOzzAnimApp.Init;
+begin
+  inherited;
+  FSkeleton := TOzzSkeleton.Create;
+  FAnimation := TOzzAnimation.Create;
+  FCache := TOzzSamplingCache.Create;
+  FSamplingJob := TOzzSamplingJob.Create;
+  FLocalToModelJob := TOzzLocalToModelJob.Create;
+  FTime.Factor := 1;
+
+  FSamplingJob.Animation := FAnimation;
+  FSamplingJob.Cache := FCache;
+
+  FLocalToModelJob.Skeleton := FSkeleton;
+
+  { Setup Sokol Fetch }
+  var FetchDesc := TFetchDesc.Create;
+  FetchDesc.MaxRequests := 2;
+  FetchDesc.NumChannels := 1;
+  FetchDesc.NumLanes := 2;
+  FetchDesc.Logger := FetchDesc.DefaultLogger;
+  FetchDesc.BaseDirectory := 'Data/ozz';
+  TFetch.Setup(FetchDesc);
+
+  { Setup Sokol GL }
+  var GLDesc := TGLDesc.Create;
+  GLDesc.SampleCount := SampleCount;
+  GLDesc.UseDelphiMemoryManager := True;
+  GLDesc.Logger := GLDesc.DefaultLogger;
+  sglSetup(GLDesc);
+
+  { Initialize pass action for default-pass }
+  FPassAction.Colors[0].Init(TLoadAction.Clear, 0.0, 0.1, 0.2);
+
+  { Initialize camera helper }
+  var CamDesc := TCameraDesc.Create;
+  CamDesc.MinDist := 1;
+  CamDesc.MaxDist := 10;
+  CamDesc.Center.Y := 1;
+  CamDesc.Distance := 3;
+  CamDesc.Latitude := 10;
+  CamDesc.Longitude := 20;
+  FCamera := TCamera.Create(CamDesc);
+
+  { Start loading the skeleton and animation files }
+  var Req := TFetchRequest.Create('ozz_anim_skeleton.ozz', SkeletonDataLoaded,
+    TFetchRange.Create(FSkeletonData));
+  Req.Send;
+
+  Req := TFetchRequest.Create('ozz_anim_animation.ozz', AnimationDataLoaded,
+    TFetchRange.Create(FAnimationData));
+  Req.Send;
+end;
+
+procedure TOzzAnimApp.Frame;
+begin
+  TFetch.DoWork;
+
+  var FBWidth := FramebufferWidth;
+  var FBHeight := FramebufferHeight;
+  FTime.Frame := FrameDuration;
+  FCamera.Update(FBWidth, FBHeight);
+
+  if (FLoaded.Animation and FLoaded.Skeleton) then
+  begin
+    if (not FTime.Paused) then
+      FTime.Absolut := FTime.Absolut + (FTime.Frame * FTime.Factor);
+
+    EvalAnimation;
+    DrawSkeleton;
+  end;
+
+  var Pass := TPass.Create;
+  Pass.Action^ := FPassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+  sglDraw;
+  DebugFrame;
+  TGfx.EndPass;
+  TGfx.Commit;
+end;
+
+procedure TOzzAnimApp.Cleanup;
+begin
+  inherited;
+  FLocalMatrices.Free;
+  FModelMatrices.Free;
+  FCamera.Free;
+  sglShutdown;
+  TFetch.Shutdown;
+  FLocalToModelJob.Free;
+  FSamplingJob.Free;
+  FCache.Free;
+  FAnimation.Free;
+  FSkeleton.Free;
+end;
+
+class function TOzzAnimApp.HasImGui: Boolean;
+begin
+  Result := True;
+end;
 
 procedure TOzzAnimApp.AnimationDataLoaded(const AResponse: TFetchResponse);
 begin
@@ -91,7 +204,7 @@ begin
     var Archive: TOzzIArchive := nil;
     var Stream := TOzzMemoryStream.Create;
     try
-      Stream.Write(AResponse.BufferPtr^, AResponse.FetchedSize);
+      Stream.Write(AResponse.Data.Ptr^, AResponse.Data.Size);
       Stream.Seek(0, soBeginning);
 
       Archive := TOzzIArchive.Create(Stream);
@@ -111,31 +224,6 @@ begin
     FLoaded.Failed := True;
 end;
 
-procedure TOzzAnimApp.Cleanup;
-begin
-  inherited;
-  FLocalMatrices.Free;
-  FModelMatrices.Free;
-  FCamera.Free;
-  sglShutdown;
-  TFetch.Shutdown;
-  FLocalToModelJob.Free;
-  FSamplingJob.Free;
-  FCache.Free;
-  FAnimation.Free;
-  FSkeleton.Free;
-end;
-
-procedure TOzzAnimApp.Configure(var AConfig: TAppConfig);
-begin
-  inherited;
-  AConfig.Width := 800;
-  AConfig.Height := 600;
-  AConfig.SampleCount := 4;
-  AConfig.HighDpi := False;
-  AConfig.WindowTitle := 'Ozz-Anim';
-end;
-
 procedure TOzzAnimApp.DrawImGui;
 begin
   ImGui.SetNextWindowPos(Vector2(20, 30), TImGuiCond.Once);
@@ -151,16 +239,16 @@ begin
       ImGui.Text('  LMB + Drag:  Look');
       ImGui.Text('  Mouse wheel: Zoom');
 
-      ImGui.SliderFloat('Distance', FCamera.Distance, FCamera.MinDist, FCamera.MaxDist, '%.1f');
-      ImGui.SliderFloat('Latitude', FCamera.Latitude, FCamera.MinLat, FCamera.MaxLat, '%.1f');
-      ImGui.SliderFloat('Longitude', FCamera.Longitude, 0, 360, '%.1f');
+      ImGui.SliderFloat('Distance', @FCamera.Distance, FCamera.MinDist, FCamera.MaxDist, '%.1f');
+      ImGui.SliderFloat('Latitude', @FCamera.Latitude, FCamera.MinLat, FCamera.MaxLat, '%.1f');
+      ImGui.SliderFloat('Longitude', @FCamera.Longitude, 0, 360, '%.1f');
 
       ImGui.Separator;
 
       ImGui.Text('Time Controls:');
       ImGui.Checkbox('Paused', @FTime.Paused);
-      ImGui.SliderFloat('Factor', FTime.Factor, 0, 10, '%.1f');
-      if (ImGui.SliderFloat('Ratio', FTime.AnimRatio, 0, 1)) then
+      ImGui.SliderFloat('Factor', @FTime.Factor, 0, 10, '%.1f');
+      if (ImGui.SliderFloat('Ratio', @FTime.AnimRatio, 0, 1)) then
         FTime.AnimRatioUIOverride := True;
       if (ImGui.IsItemDeactivatedAfterEdit) then
         FTime.AnimRatioUIOverride := False;
@@ -243,87 +331,6 @@ begin
   FLocalToModelJob.Run;
 end;
 
-procedure TOzzAnimApp.Frame;
-begin
-  TFetch.DoWork;
-
-  var FBWidth := FramebufferWidth;
-  var FBHeight := FramebufferHeight;
-  FTime.Frame := FrameDuration;
-  FCamera.Update(FBWidth, FBHeight);
-
-  if (FLoaded.Animation and FLoaded.Skeleton) then
-  begin
-    if (not FTime.Paused) then
-      FTime.Absolut := FTime.Absolut + (FTime.Frame * FTime.Factor);
-
-    EvalAnimation;
-    DrawSkeleton;
-  end;
-
-  TGfx.BeginDefaultPass(FPassAction, FramebufferWidth, FramebufferHeight);
-  sglDraw;
-  DebugFrame;
-  TGfx.EndPass;
-  TGfx.Commit;
-end;
-
-class function TOzzAnimApp.HasImGui: Boolean;
-begin
-  Result := True;
-end;
-
-procedure TOzzAnimApp.Init;
-begin
-  inherited;
-  FSkeleton := TOzzSkeleton.Create;
-  FAnimation := TOzzAnimation.Create;
-  FCache := TOzzSamplingCache.Create;
-  FSamplingJob := TOzzSamplingJob.Create;
-  FLocalToModelJob := TOzzLocalToModelJob.Create;
-  FTime.Factor := 1;
-
-  FSamplingJob.Animation := FAnimation;
-  FSamplingJob.Cache := FCache;
-
-  FLocalToModelJob.Skeleton := FSkeleton;
-
-  { Setup Sokol Fetch }
-  var FetchDesc := TFetchDesc.Create;
-  FetchDesc.MaxRequests := 2;
-  FetchDesc.NumChannels := 1;
-  FetchDesc.NumLanes := 2;
-  FetchDesc.BaseDirectory := 'Data/ozz';
-  TFetch.Setup(FetchDesc);
-
-  { Setup Sokol GL }
-  var GLDesc := TGLDesc.Create;
-  GLDesc.SampleCount := SampleCount;
-  sglSetup(GLDesc);
-
-  { Initialize pass action for default-pass }
-  FPassAction.Colors[0].Init(TAction.Clear, 0.0, 0.1, 0.2);
-
-  { Initialize camera helper }
-  var CamDesc := TCameraDesc.Create;
-  CamDesc.MinDist := 1;
-  CamDesc.MaxDist := 10;
-  CamDesc.Center.Y := 1;
-  CamDesc.Distance := 3;
-  CamDesc.Latitude := 10;
-  CamDesc.Longitude := 20;
-  FCamera := TCamera.Create(CamDesc);
-
-  { Start loading the skeleton and animation files }
-  var Req := TFetchRequest.Create('ozz_anim_skeleton.ozz', SkeletonDataLoaded,
-    @FSkeletonData, SizeOf(FSkeletonData));
-  Req.Send;
-
-  Req := TFetchRequest.Create('ozz_anim_animation.ozz', AnimationDataLoaded,
-    @FAnimationData, SizeOf(FAnimationData));
-  Req.Send;
-end;
-
 procedure TOzzAnimApp.SkeletonDataLoaded(const AResponse: TFetchResponse);
 begin
   if (AResponse.Fetched) then
@@ -331,7 +338,7 @@ begin
     var Archive: TOzzIArchive := nil;
     var Stream := TOzzMemoryStream.Create;
     try
-      Stream.Write(AResponse.BufferPtr^, AResponse.FetchedSize);
+      Stream.Write(AResponse.Data.Ptr^, AResponse.Data.Size);
       Stream.Seek(0, soBeginning);
 
       Archive := TOzzIArchive.Create(Stream);

@@ -38,19 +38,8 @@ type
   // - Most users are likely to use this store an item INDEX but this may be used to store a POINTER/ID as well. Read comments near ImGuiMultiSelectIO for details.
   TImGuiSelectionUserData = Int64; 
   PImGuiSelectionUserData = ^TImGuiSelectionUserData;
-  // Callback and functions types
-  TImGuiInputTextCallback = function(data: Pointer): Int32; cdecl; // Callback function for ImGui::InputText()
-  PImGuiInputTextCallback = ^TImGuiInputTextCallback;
-  TImGuiSizeCallback = procedure(data: Pointer); cdecl; // Callback function for ImGui::SetNextWindowSizeConstraints()
-  PImGuiSizeCallback = ^TImGuiSizeCallback;
-  TImGuiMemAllocFunc = function(sz: NativeUInt; user_data: Pointer): Pointer; cdecl; // Function signature for ImGui::SetAllocatorFunctions()
-  PImGuiMemAllocFunc = ^TImGuiMemAllocFunc;
-  TImGuiMemFreeFunc = procedure(ptr: Pointer; user_data: Pointer); cdecl; // Function signature for ImGui::SetAllocatorFunctions()
-  PImGuiMemFreeFunc = ^TImGuiMemFreeFunc;
   TImTextureID = UInt64; // Default: store up to 64-bits (any pointer or integer). A majority of backends are ok with that.
   PImTextureID = ^TImTextureID;
-  TImDrawCallback = procedure(parent_list: Pointer; cmd: Pointer); cdecl; 
-  PImDrawCallback = ^TImDrawCallback;
   // An opaque identifier to a rectangle in the atlas. -1 when invalid.
   // The rectangle may move and UV may be invalidated, use GetCustomRect() to retrieve it.
   TImFontAtlasRectId = Int32; 
@@ -1401,6 +1390,16 @@ type
   PImVectorImTextureDataPtr = ^TImVectorImTextureDataPtr;
   TImVectorImWchar = TImVector<Char>;
   PImVectorImWchar = ^TImVectorImWchar;
+
+  TImGuiStringGetter = function(AUserData: Pointer; AIndex: Integer): PUTF8Char; cdecl;
+  TImGuiValueGetter = function(AUserData: Pointer; AIndex: Integer): Single; cdecl;
+  TImDrawCallback = procedure(const AParentList: PImDrawList; const ACommand: PImDrawCmd); cdecl;
+  TImGuiSizeCallback = procedure(AData: PImGuiSizeCallbackData); cdecl;
+  TImGuiInputTextCallback = function(AData: _PImGuiInputTextCallbackData): Integer; cdecl;
+  TImGuiMemAllocFunc = function(ASize: NativeInt; AUserData: Pointer): Pointer; cdecl;
+  PImGuiMemAllocFunc = ^TImGuiMemAllocFunc;
+  TImGuiMemFreeFunc = procedure(APtr, AUserData: Pointer); cdecl;
+  PImGuiMemFreeFunc = ^TImGuiMemFreeFunc;
 
   TImDrawListSharedData = record
   end; // Data shared among multiple draw lists (typically owned by parent ImGui context, but you may create one yourself)
@@ -2988,9 +2987,6 @@ type
     // Initialize with default values
     procedure Initialize; inline;
   end;
-
-  TImGuiStringGetter = function(AUserData: Pointer; AIndex: Integer): PUTF8Char; cdecl;
-  TImGuiValueGetter = function(AUserData: Pointer; AIndex: Integer): Single; cdecl;
 
   // Main ImGui interface
   ImGui = record

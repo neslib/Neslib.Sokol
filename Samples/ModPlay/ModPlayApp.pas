@@ -48,25 +48,48 @@ implementation
 uses
   System.SysUtils,
   Neslib.Sokol.Api,
+  Neslib.Sokol.Glue,
   Neslib.ModPlug.Api,
   Mods;
 
 { TModPlayApp }
-
-procedure TModPlayApp.Cleanup;
-begin
-  inherited;
-  TAudio.Shutdown;
-  FModPlugFile.Free;
-end;
 
 procedure TModPlayApp.Configure(var AConfig: TAppConfig);
 begin
   inherited;
   AConfig.Width := 400;
   AConfig.Height := 300;
-  AConfig.AndroidForceGles2 := True;
+  AConfig.DepthFormat := TAppPixelFormat.None;
   AConfig.WindowTitle := 'Sokol Audio + LibModPlug';
+end;
+
+procedure TModPlayApp.Init;
+begin
+  inherited;
+  { Setup Sokol Audio (default sample rate is 44100Hz) }
+  var AudioDesc := TAudioDesc.Create;
+  AudioDesc.NumChannels := NUM_CHANNELS;
+  {$IFNDEF USE_PUSH}
+  AudioDesc.OnStream := StreamCallback;
+  {$ENDIF}
+  AudioDesc.UseDelphiMemoryManager := True;
+  AudioDesc.Logger := AudioDesc.DefaultLogger;
+  TAudio.Setup(AudioDesc);
+
+  { Setup libmodplug and load mod from embedded array }
+  var MPSettings := TModPlug.Settings;
+  MPSettings.Channels := TAudio.NumChannels;
+  MPSettings.Bits := 32;
+  MPSettings.Frequency := TAudio.SampleRate;
+  MPSettings.ResamplingMode := TModPlugResamplingMode.Linear;
+  MPSettings.MaxMixChannels := 64;
+  MPSettings.LoopCount := -1; { loop play seems to be disabled in current libmodplug }
+  MPSettings.Flags := [TModPlugFlag.Oversampling];
+  TModPlug.Settings := MPSettings;
+
+  FModPlugFile := TModPlugFile.Create;
+  if (not FModPlugFile.Load(@EMBED_DISCO_FEVA_BABY_S3M, Length(EMBED_DISCO_FEVA_BABY_S3M))) then
+    FreeAndNil(FModPlugFile);
 end;
 
 procedure TModPlayApp.Frame;
@@ -90,39 +113,23 @@ begin
   {$ENDIF}
 
   var PassAction := TPassAction.Create;
-  PassAction.Colors[0].Init(TAction.Clear, 0.4, 0.7, 1);
+  PassAction.Colors[0].Init(TLoadAction.Clear, 0.4, 0.7, 1);
 
-  TGfx.BeginDefaultPass(PassAction, FramebufferWidth, FramebufferHeight);
+  var Pass := TPass.Create;
+  Pass.Action^ := PassAction;
+  Pass.Swapchain.FromAppSwapchain;
+  TGfx.BeginPass(Pass);
+
   DebugFrame;
   TGfx.EndPass;
   TGfx.Commit;
 end;
 
-procedure TModPlayApp.Init;
+procedure TModPlayApp.Cleanup;
 begin
   inherited;
-  { Setup Sokol Audio (default sample rate is 44100Hz) }
-  var AudioDesc := TAudioDesc.Create;
-  AudioDesc.NumChannels := NUM_CHANNELS;
-  {$IFNDEF USE_PUSH}
-  AudioDesc.OnStream := StreamCallback;
-  {$ENDIF}
-  TAudio.Setup(AudioDesc);
-
-  { Setup libmodplug and load mod from embedded array }
-  var MPSettings := TModPlug.Settings;
-  MPSettings.Channels := TAudio.NumChannels;
-  MPSettings.Bits := 32;
-  MPSettings.Frequency := TAudio.SampleRate;
-  MPSettings.ResamplingMode := TModPlugResamplingMode.Linear;
-  MPSettings.MaxMixChannels := 64;
-  MPSettings.LoopCount := -1; { loop play seems to be disabled in current libmodplug }
-  MPSettings.Flags := [TModPlugFlag.Oversampling];
-  TModPlug.Settings := MPSettings;
-
-  FModPlugFile := TModPlugFile.Create;
-  if (not FModPlugFile.Load(@EMBED_DISCO_FEVA_BABY_S3M, Length(EMBED_DISCO_FEVA_BABY_S3M))) then
-    FreeAndNil(FModPlugFile);
+  TAudio.Shutdown;
+  FModPlugFile.Free;
 end;
 
 procedure TModPlayApp.ReadSamples(const ABuffer: PAudioSample;

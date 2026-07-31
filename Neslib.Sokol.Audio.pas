@@ -197,10 +197,9 @@ uses
   Androidapi.OpenSles,
   {$ENDIF}
   {$IFDEF SOKOL_MEM_TRACK}
-  Neslib.Sokol.MemTrack;
-  {$ELSE}
-  Neslib.Sokol.Utils;
+  Neslib.Sokol.MemTrack,
   {$ENDIF}
+  Neslib.Sokol.Utils;
 
 {$IF Defined(MACOS_ONLY)}
 { Link AudioToolbox framework }
@@ -270,8 +269,8 @@ begin
   ADst.win32.skip_coinitialize := Win32.SkipCoinitialize;
 
   {$IFDEF SOKOL_MEM_TRACK}
-  ADst.allocator.alloc_nf := _MemTrackAlloc;
-  ADst.allocator.free_nf := _MemTrackFree;
+  ADst.allocator.alloc_fn := _MemTrackAlloc;
+  ADst.allocator.free_fn := _MemTrackFree;
   {$ELSE}
   if (UseDelphiMemoryManager) then
   begin

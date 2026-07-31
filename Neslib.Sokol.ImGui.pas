@@ -250,9 +250,8 @@ implementation
 uses
   {$IFDEF SOKOL_MEM_TRACK}
   Neslib.Sokol.MemTrack,
-  {$ELSE}
-  Neslib.Sokol.Utils,
   {$ENDIF}
+  Neslib.Sokol.Utils,
   Neslib.ImGui;
 
 { _TImGuiLogItemHelper }
