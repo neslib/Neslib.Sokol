@@ -12,7 +12,8 @@ interface
 
 uses
   Neslib.Sokol.Api,
-  Neslib.Sokol.Gfx;
+  Neslib.Sokol.Gfx,
+  Neslib.Sokol.Types;
 
 type
   { The state of a framebuffer object, obtainable via TFramebuffer.State }
@@ -174,17 +175,24 @@ type
   { Nested record in TFramebufferInfo to describe the properties of an internal
     image/view pair. }
   TFramebufferTextureInfo = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sfb_texture_info;
+    function GetImage: TImage; inline;
+    function GetPixelFormat: TPixelFormat; inline;
+    function GetTexView: TView; inline;
+  {$ENDREGION 'Internal Declarations'}
   public
-    Width: Integer;
-    Height: Integer;
-    PixelFormat: TPixelFormat;
-    Image: TImage;
-    View: TView;
+    property Width: Integer read FHandle.width;
+    property Height: Integer read FHandle.Height;
+    property PixelFormat: TPixelFormat read GetPixelFormat;
+    property Image: TImage read GetImage;
+    property TexView: TView read GetTexView;
   end;
   PFramebufferTextureInfo = ^TFramebufferTextureInfo;
 
 type
-  { Result of TFramebuffer.QueryInfo. Returns handles to the internally managed
+  { Result of TFramebuffer.Info. Returns handles to the internally managed
     images, texture views and samplers, image sizes and pixel formats. This is
     mostly useful when completely replacing the TFramebuffer.Render method with
     a complete custom implementation (like a CRT shader which requires multiple
@@ -209,8 +217,58 @@ type
   PFramebufferInfo = ^TFramebufferInfo;
 
 type
+  { An enum with a unique item for each log message, warning, error and
+    validation layer message. Note that these messages are only visible when a
+    logger function is installed in the TFramebuffer.Setup call. }
+  TFramebufferLogItem = (
+    Ok,
+    MallocFailed,
+    FramebufferPoolExhausted,
+    InvalidFramebufferWidth,
+    InvalidFramebufferHeight,
+    UpdateInvalidFramebufferHandle,
+    UpdateFramebufferResourceStateNotValid,
+    UpdatePaletteRangeIgnored,
+    UpdatePixelRangeSizeRgba8,
+    UpdatePixelRangeSizePalette8,
+    UpdatePaletteRangeSize,
+    RenderInvalidFramebufferHandle,
+    RenderFramebufferResourceStateInvalid);
+
+type
+  _TFramebufferLogItemHelper = record helper for TFramebufferLogItem
+  public
+    function ToString: String;
+  end;
+
+type
+  { Used in TFramebufferSetupDesc to provide a logging function. Please be aware
+    that without logging function, Neslib.Sokol.Framebuffer will be completely
+    silent, e.g. it will not report errors and warnings. For maximum error
+    verbosity, compile in debug mode and provide a compatible logger function in
+    the TFramebuffer.Setup call (for instance the standard logging function
+    TFramebufferSetupDesc.DefaultLogger).
+
+    Parameters:
+    * ALevel: log level
+    * AItem: log item
+    * AMessage: the log message corresponding to AItem.
+    * ALineNr: line number in original sokol_framebuffer.h file. }
+  TFramebufferLogger = procedure(const ALevel: TLogLevel;
+    const AItem: TFramebufferLogItem; const AMessage: String;
+    const ALineNr: Integer) of object;
+
+type
   { Initialization parameters passed into TFramebuffer.Setup. }
   TFramebufferSetupDesc = record
+  {$REGION 'Internal Declarations'}
+  private class var
+    GLogger: TFramebufferLogger;
+  private
+    class procedure LogCallback(const ATag: PUTF8Char; ALogLevel,
+      ALogItemId: UInt32; const AMessageOrNull: PUTF8Char; ALineNr: UInt32;
+      const AFilenameOrNull: PUTF8Char; AUserData: Pointer); cdecl; static;
+  {$ENDREGION 'Internal Declarations'}
   public
     { Default: 8 }
     FramebufferPoolSize: Integer;
@@ -219,10 +277,18 @@ type
       When SOKOL_MEM_TRACK is defined, it always uses Delphi's memory manager.
       Default: False }
     UseDelphiMemoryManager: Boolean;
+
+    { Optional log function override }
+    Logger: TFramebufferLogger;
   public
     { Initialize with default values }
     class function Create: TFramebufferSetupDesc; static;
     procedure Init; inline;
+
+    { A default log function you can assign to the Logger field. }
+    procedure DefaultLogger(const ALevel: TLogLevel;
+      const AItem: TFramebufferLogItem; const AMessage: String;
+      const ALineNr: Integer);
   end;
   PFramebufferSetupDesc = ^TFramebufferSetupDesc;
 
@@ -232,6 +298,9 @@ type
   {$REGION 'Internal Declarations'}
   private
     FHandle: _sfb_framebuffer;
+    function GetState: TFramebufferResourceState; inline;
+    function GetInfo: TFramebufferInfo; inline;
+    function GetDesc: TFramebufferDesc; inline;
   {$ENDREGION 'Internal Declarations'}
   public
     { Global setup of Neslib.Sokol.Framebuffer }
@@ -265,6 +334,15 @@ type
 
     { The resource Id }
     property Id: Cardinal read FHandle.id write FHandle.id;
+
+    { Framebuffer resource state (Valid or Failed) }
+    property State: TFramebufferResourceState read GetState;
+
+    { Current framebuffer properties }
+    property Info: TFramebufferInfo read GetInfo;
+
+    { The framebuffer desc, with default values patched in }
+    property Desc: TFramebufferDesc read GetDesc;
   end;
   PFramebuffer = ^TFramebuffer;
 
@@ -354,6 +432,45 @@ begin
   FillChar(Self, SizeOf(Self), 0);
 end;
 
+{ TFramebufferTextureInfo }
+
+function TFramebufferTextureInfo.GetImage: TImage;
+begin
+  Result := TImage(FHandle.image);
+end;
+
+function TFramebufferTextureInfo.GetPixelFormat: TPixelFormat;
+begin
+  Result := TPixelFormat(FHandle.pixel_format);
+end;
+
+function TFramebufferTextureInfo.GetTexView: TView;
+begin
+  Result := TView(FHandle.tex_view);
+end;
+
+{ _TFramebufferLogItemHelper }
+
+function _TFramebufferLogItemHelper.ToString: String;
+const
+  STRINGS: array [TFramebufferLogItem] of String = (
+    'Ok',
+    'memory allocation failed',
+    'framebuffer pool exhausted (TFramebufferSetupDesc.FramebufferPoolSize)',
+    'TFramebufferDesc.Width must be > 0',
+    'TFramebufferDesc.Height must be > 0',
+    'TFramebuffer.Update: framebuffer handle not valid',
+    'TFramebuffer.Update: framebuffer not in valid resource state',
+    'TFramebuffer.Update: TFramebufferUpdateDesc.Palette is ignored for non-paletted framebuffer',
+    'TFramebuffer.Update: unexpected TFramebufferUpdateDesc.Pixels.Size; must be (width * height * 4) bytes',
+    'TFramebuffer.Update: unexpected TFramebufferUpdateDesc.Pixels.Size; must be (width * height) bytes',
+    'TFramebuffer.Update: unexpected TFramebufferUpdateDesc.Palette.Size; must be 256 * 4 bytes',
+    'TFramebuffer.Render: framebuffer handle not valid',
+    'TFramebuffer.Render: framebuffer not in valid resource state');
+begin
+  Result := STRINGS[Self];
+end;
+
 { TFramebufferSetupDesc }
 
 class function TFramebufferSetupDesc.Create: TFramebufferSetupDesc;
@@ -361,9 +478,30 @@ begin
   Result.Init;
 end;
 
+procedure TFramebufferSetupDesc.DefaultLogger(const ALevel: TLogLevel;
+  const AItem: TFramebufferLogItem; const AMessage: String;
+  const ALineNr: Integer);
+begin
+  _LogDefault(ALevel, Ord(AItem), AMessage, ALineNr);
+end;
+
 procedure TFramebufferSetupDesc.Init;
 begin
   FillChar(Self, SizeOf(Self), 0);
+end;
+
+class procedure TFramebufferSetupDesc.LogCallback(const ATag: PUTF8Char;
+  ALogLevel, ALogItemId: UInt32; const AMessageOrNull: PUTF8Char;
+  ALineNr: UInt32; const AFilenameOrNull: PUTF8Char; AUserData: Pointer);
+begin
+  Assert(Assigned(GLogger));
+  var Msg: String;
+  if (ALogItemId <= Cardinal(Ord(High(TFramebufferLogItem)))) then
+    Msg := TFramebufferLogItem(ALogItemId).ToString
+  else
+    Msg := String(UTF8String(AMessageOrNull));
+
+  GLogger(TLogLevel(ALogLevel), TFramebufferLogItem(ALogItemId), Msg, ALineNr);
 end;
 
 { TFramebuffer }
@@ -377,6 +515,33 @@ procedure TFramebuffer.Free;
 begin
   _sfb_destroy_framebuffer(FHandle);
   FHandle.id := 0;
+end;
+
+function TFramebuffer.GetDesc: TFramebufferDesc;
+begin
+  var Src := _sfb_query_framebuffer_desc(FHandle);
+  Result.Width := Src.width;
+  Result.Height := Src.height;
+  Result.Prescale := Src.prescale;
+  Result.Format := TFramebufferFormat(Src.format);
+  Result.Cliprect := TFramebufferRect(Src.cliprect);
+  Result.Rotate90 := Src.rotate90;
+  Result.RenderPass.FHandle := Src.render_pass;
+end;
+
+function TFramebuffer.GetInfo: TFramebufferInfo;
+begin
+  var Src := _sfb_query_framebuffer_info(FHandle);
+  Result.Update.FHandle := Src.update;
+  Result.Offscreen.FHandle := Src.offscreen;
+  Result.Palette.FHandle := Src.palette;
+  Result.NearestSampler := TSampler(Src.nearest_sampler);
+  Result.LinearSampler := TSampler(Src.linear_sampler);
+end;
+
+function TFramebuffer.GetState: TFramebufferResourceState;
+begin
+  Result := TFramebufferResourceState(_sfb_query_framebuffer_state(FHandle));
 end;
 
 procedure TFramebuffer.Init(const ADesc: TFramebufferDesc);
@@ -402,10 +567,15 @@ procedure TFramebuffer.Render(const ADesc: TFramebufferRenderDesc);
 begin
   var Dst: _sfb_render_desc;
   Dst.use_nearest_filter := ADesc.UseNearestFilter;
-  Dst.pip := ADesc.Height;
-  Dst.prescale := ADesc.Prescale;
-  Dst.cliprect := _sfb_rect(ADesc.Cliprect);
-  Result := _sfb_resize(FHandle, @Dst);
+  Dst.pip := _sg_pipeline(ADesc.Pip);
+  Move(ADesc.Views, Dst.views, SizeOf(ADesc.Views));
+  Move(ADesc.Samplers, Dst.samplers, SizeOf(ADesc.Samplers));
+  for var I := 0 to MAX_UNIFORMBLOCK_BINDSLOTS - 1 do
+  begin
+    Dst.uniforms[I].ptr := ADesc.Uniforms[I].Data;
+    Dst.uniforms[I].size := ADesc.Uniforms[I].Size;
+  end;
+  _sfb_render_ex(FHandle, @Dst);
 end;
 
 function TFramebuffer.Resize(const ADesc: TFramebufferResizeDesc): Boolean;
@@ -433,6 +603,13 @@ begin
     Dst.allocator.free_fn := _FreeCallback;
   end;
   {$ENDIF}
+
+  if Assigned(ADesc.Logger) then
+  begin
+    TFramebufferSetupDesc.GLogger := ADesc.Logger;
+    Dst.logger.func := TFramebufferSetupDesc.LogCallback;
+  end;
+
   _sfb_setup(@Dst);
 end;
 
