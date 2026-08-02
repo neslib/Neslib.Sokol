@@ -356,7 +356,6 @@ uses
 class function TFramebufferRenderPassDesc.Create: TFramebufferRenderPassDesc;
 begin
   Result.Init;
-
 end;
 
 function TFramebufferRenderPassDesc.GetColorFormat: TPixelFormat;

@@ -3532,10 +3532,6 @@ type
 
     // only call EndCombo() if BeginCombo() returns true!
     class procedure EndCombo; inline; static;
-
-    // Implied popup_max_height_in_items = -1
-    class function Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; const AItems: PPUTF8Char; 
-      const AItemsCount: Int32): Boolean; overload; inline; static;
     class function Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; const AItems: PPUTF8Char; 
       const AItemsCount: Int32; const APopupMaxHeightInItems: Int32 = -1): Boolean; overload; inline; static;
 
@@ -7270,12 +7266,6 @@ end;
 class procedure ImGui.EndCombo;
 begin
   _igEndCombo();
-end;
-
-class function ImGui.Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; 
-  const AItems: PPUTF8Char; const AItemsCount: Int32): Boolean;
-begin
-  Result := _igComboChar(ALabel, ACurrentItem, AItems, AItemsCount);
 end;
 
 class function ImGui.Combo(const ALabel: PUTF8Char; const ACurrentItem: PInt32; 

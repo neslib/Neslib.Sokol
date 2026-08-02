@@ -24,6 +24,8 @@ It consists of the following independent modules (units):
 * [Neslib.FontStash](Doc/Neslib.FontStash.md): Delphi wrapper for [FontStash](https://github.com/memononen/fontstash), a font texture atlas builder.
 * [Neslib.Sokol.FontStash](Doc/Neslib.Sokol.FontStash.md): Neslib.Sokol.GL rendering backend for FontStash.
 * [Neslib.Sokol.DebugText](Doc/Neslib.Sokol.DebugText.md): simple ASCII debug text rendering on top of Neslib.Sokol.Gfx.
+* [Neslib.Sokol.Framebuffer](Doc/Neslib.Sokol.Framebuffer.md): pixel framebuffer for CPU rendering.
+* [Neslib.Sokol.Letterbox](Doc/Neslib.Sokol.Letterbox.md): fixed-aspect viewport for random-aspect framebuffer.
 * [Neslib.Sokol.MemTrack](Doc/Neslib.Sokol.MemTrack.md): memory allocation wrapper to track memory usage of Sokol libraries.
 
 ## Additional modules used in some samples

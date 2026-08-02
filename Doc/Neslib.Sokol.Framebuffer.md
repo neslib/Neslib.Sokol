@@ -122,6 +122,8 @@ var Pixels: array [0..255, 0..319] of UInt8;
 var Palette: array [0..255] of UInt32;
 ```
 
+You can pass the pixel buffer to a graphics library like Skia to render 2D geometry. Or you can 'render' to the pixel buffer yourself:
+
 ### Fill pixel buffer and optional palette
 
 Now 'render' into the pixel and palette buffers with the CPU.

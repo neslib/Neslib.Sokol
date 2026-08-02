@@ -1029,13 +1029,15 @@ end;
 
 function TArgument.IsSimple: Boolean;
 begin
-  Result := (FDefaultValue = '') and (not FIsArray) and (not FIsVarArgs)
-    and (not FIsInstancePointer);
+  Result := (FDefaultValue = '') and (not FIsVarArgs) and (not FIsInstancePointer);
 end;
 
 function TArgument.IsTypeCompatibleWith(const AOther: TArgument): Boolean;
 begin
   if (not IsSimple) or (not AOther.IsSimple) then
+    Exit(False);
+
+  if (FIsArray <> AOther.FIsArray) then
     Exit(False);
 
   if (FHasDefaultValue) or (AOther.FHasDefaultValue) then
