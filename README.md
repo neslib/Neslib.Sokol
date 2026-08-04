@@ -1,8 +1,12 @@
+<img src="Doc/logo_full_large.png" alt="sokol" style="zoom:60%;" />
+
 # Neslib.Sokol
 
 Simple libraries for creating cross-platform applications with Delphi without the VCL or FMX frameworks.
 
 These are language bindings and OOP-style wrappers of the excellent [sokol C libraries](https://github.com/floooh/sokol) by [Andre Weissflog](https://github.com/floooh).
+
+See [Live Examples](https://floooh.github.io/sokol-html5/) from the original C version. Most of these samples have a corresponding Delphi version in the Samples subdirectory.
 
 It consists of the following independent modules (units):
 
@@ -26,6 +30,7 @@ It consists of the following independent modules (units):
 * [Neslib.Sokol.DebugText](Doc/Neslib.Sokol.DebugText.md): simple ASCII debug text rendering on top of Neslib.Sokol.Gfx.
 * [Neslib.Sokol.Framebuffer](Doc/Neslib.Sokol.Framebuffer.md): pixel framebuffer for CPU rendering.
 * [Neslib.Sokol.Letterbox](Doc/Neslib.Sokol.Letterbox.md): fixed-aspect viewport for random-aspect framebuffer.
+* [Neslib.Sokol.Spine](Doc/Neslib.Sokol.Spine.md): A Neslib.Sokol.Gfx renderer for the spine-c runtime.
 * [Neslib.Sokol.MemTrack](Doc/Neslib.Sokol.MemTrack.md): memory allocation wrapper to track memory usage of Sokol libraries.
 
 ## Additional modules used in some samples

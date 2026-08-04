@@ -92,26 +92,6 @@ type
     Invalid = _SSPINE_RESOURCESTATE_INVALID);
 
 type
-  TSpineSkinset = record
-  {$REGION 'Internal Declarations'}
-  private
-    FHandle: _sspine_skinset;
-    function GetResourceState: TSpineResourceState; inline;
-    function GetValid: Boolean; inline;
-  {$ENDREGION 'Internal Declarations'}
-  public
-    { The resource Id }
-    property Id: Cardinal read FHandle.id write FHandle.id;
-
-    { Current resource state }
-    property ResourceState: TSpineResourceState read GetResourceState;
-
-    { Shortcut for `ResourceState = TSpineResourceState.Valid` }
-    property Valid: Boolean read GetValid;
-  end;
-  PSpineSkinset = ^TSpineSkinset;
-
-type
   TSpineRange = record
   {$REGION 'Internal Declarations'}
   private
@@ -136,7 +116,7 @@ type
 
       Parameters:
         AData: the memory buffer }
-    class function Create<T>(const [ref] AData: T): TRange; overload; static;
+    class function Create<T>(const [ref] AData: T): TSpineRange; overload; static;
 
     { Pointer to the data in the buffer }
     property Data: Pointer read FHandle.ptr;
@@ -163,8 +143,15 @@ type
   {$REGION 'Internal Declarations'}
   private
     FHandle: _sspine_string;
+    function GetLength: Integer; inline;
   {$ENDREGION 'Internal Declarations'}
   public
+    class operator Implicit(const ASrc: TSpineString): String; inline; static;
+    function ToString: String;
+
+    property Valid: Boolean read FHandle.valid;
+    property Truncated: Boolean read FHandle.truncated;
+    property Length: Integer read GetLength;
   end;
   PSpineString = ^TSpineString;
 
@@ -832,6 +819,29 @@ type
   PSpineSkinsetDesc = ^TSpineSkinsetDesc;
 
 type
+  TSpineSkinset = record
+  {$REGION 'Internal Declarations'}
+  private
+    FHandle: _sspine_skinset;
+    function GetResourceState: TSpineResourceState; inline;
+    function GetValid: Boolean; inline;
+  {$ENDREGION 'Internal Declarations'}
+  public
+    constructor Create(const ADesc: TSpineSkinsetDesc);
+    procedure Free; inline;
+
+    { The resource Id }
+    property Id: Cardinal read FHandle.id write FHandle.id;
+
+    { Current resource state }
+    property ResourceState: TSpineResourceState read GetResourceState;
+
+    { Shortcut for `ResourceState = TSpineResourceState.Valid` }
+    property Valid: Boolean read GetValid;
+  end;
+  PSpineSkinset = ^TSpineSkinset;
+
+type
   TSpineTriggeredEventInfo = record
   {$REGION 'Internal Declarations'}
   private
@@ -917,21 +927,21 @@ type
     procedure Update(const ADeltaTime: Single); inline;
 
     { Draw instance into current or explicit context }
-    procedure Draw(const ALayer: Integer); overload; inline;
+    procedure Draw(const ALayer: Integer = 0); overload; inline;
     procedure Draw(const AContext: TSpineContext;
-      const ALayer: Integer); overload; inline;
+      const ALayer: Integer = 0); overload; inline;
 
     { Instance animation functions }
     procedure ClearAnimationTracks; inline;
     procedure ClearAnimationTrack(const ATrackIndex: Integer); inline;
-    procedure SetAnimation(const AAnim: TSpineAnim; const ATrackIndex: Integer;
-      const ALoop: Boolean); inline;
-    procedure AddAnimation(const AAnim: TSpineAnim; const ATrackIndex: Integer;
-      const ALoop: Boolean; const ADelay: Single); inline;
+    procedure SetAnimation(const AAnim: TSpineAnim; const ATrackIndex: Integer = 0;
+      const ALoop: Boolean = False); inline;
+    procedure AddAnimation(const AAnim: TSpineAnim; const ATrackIndex: Integer = 0;
+      const ALoop: Boolean = False; const ADelay: Single = 0); inline;
     procedure SetEmptyAnimation(const ATrackIndex: Integer;
       const AMixDuration: Single); inline;
     procedure AddSetEmptyAnimation(const ATrackIndex: Integer;
-      const AMixDuration, ADelay: Single); inline;
+      const AMixDuration: Single; const ADelay: Single = 0); inline;
 
     function BoneLocalToWorld(const ABone: TSpineBone;
       const ALocalPos: TSpineVec2): TSpineVec2; inline;
@@ -1042,6 +1052,74 @@ implementation
 
 uses
   Neslib.Sokol.Utils;
+
+{ Custom API imports that return 8-byte structs as UInt64 }
+
+function _sspine_image_by_index(atlas: _sspine_atlas; index: Integer): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_image_by_index';
+
+function _sspine_atlas_page_by_index(atlas: _sspine_atlas; index: Integer): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_atlas_page_by_index';
+
+function _sspine_anim_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_anim_by_name';
+
+function _sspine_anim_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_anim_by_index';
+
+function _sspine_bone_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_by_name';
+
+function _sspine_bone_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_by_index';
+
+function _sspine_slot_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_slot_by_name';
+
+function _sspine_slot_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_slot_by_index';
+
+function _sspine_event_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_event_by_name';
+
+function _sspine_event_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_event_by_index';
+
+function _sspine_iktarget_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_iktarget_by_name';
+
+function _sspine_iktarget_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_iktarget_by_index';
+
+function _sspine_skin_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_skin_by_name';
+
+function _sspine_skin_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_skin_by_index';
+
+function _sspine_get_position(instance: _sspine_instance): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_position';
+
+function _sspine_get_scale(instance: _sspine_instance): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_scale';
+
+function _sspine_get_bone_position(instance: _sspine_instance; bone: _sspine_bone): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_position';
+
+function _sspine_get_bone_scale(instance: _sspine_instance; bone: _sspine_bone): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_scale';
+
+function _sspine_get_bone_shear(instance: _sspine_instance; bone: _sspine_bone): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_shear';
+
+function _sspine_get_bone_world_position(instance: _sspine_instance; bone: _sspine_bone): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_get_bone_world_position';
+
+function _sspine_bone_local_to_world(instance: _sspine_instance; bone: _sspine_bone; local_pos: _sspine_vec2): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_local_to_world';
+
+function _sspine_bone_world_to_local(instance: _sspine_instance; bone: _sspine_bone; world_pos: _sspine_vec2): UInt64; cdecl;
+  external _LIB_SOKOL name _PU + 'sspine_bone_world_to_local';
 
 { _TSpineLogItemHelper }
 
@@ -1214,7 +1292,10 @@ begin
   ADst.atlas := Atlas.FHandle;
   ADst.prescale := Prescale;
   ADst.anim_default_mix := AnimDefaultMix;
-  ADst.json_data := PUTF8Char(JsonData);
+  if (JsonData = '') then
+    ADst.json_data := nil
+  else
+    ADst.json_data := PUTF8Char(JsonData);
   ADst.binary_data := BinaryData.FHandle;
 end;
 
@@ -1514,7 +1595,7 @@ end;
 
 function TSpineAtlas.GetImage(const AIndex: Integer): TSpineImage;
 begin
-  Result.FHandle := _sspine_image_by_index(FHandle, AIndex);
+  UInt64(Result.FHandle) := _sspine_image_by_index(FHandle, AIndex);
 end;
 
 function TSpineAtlas.GetImageCount: Integer;
@@ -1524,7 +1605,7 @@ end;
 
 function TSpineAtlas.GetPage(const AIndex: Integer): TSpineAtlasPage;
 begin
-  Result.FHandle := _sspine_atlas_page_by_index(FHandle, AIndex);
+  UInt64(Result.FHandle) := _sspine_atlas_page_by_index(FHandle, AIndex);
 end;
 
 function TSpineAtlas.GetPageCount: Integer;
@@ -1546,12 +1627,12 @@ end;
 
 function TSpineSkeleton.AnimByName(const AName: PUTF8Char): TSpineAnim;
 begin
-  Result.FHandle := _sspine_anim_by_name(FHandle, AName);
+  UInt64(Result.FHandle) := _sspine_anim_by_name(FHandle, AName);
 end;
 
 function TSpineSkeleton.BoneByName(const AName: PUTF8Char): TSpineBone;
 begin
-  Result.FHandle := _sspine_bone_by_name(FHandle, AName);
+  UInt64(Result.FHandle) := _sspine_bone_by_name(FHandle, AName);
 end;
 
 constructor TSpineSkeleton.Create(const ADesc: TSpineSkeletonDesc);
@@ -1563,7 +1644,7 @@ end;
 
 function TSpineSkeleton.EventByName(const AName: PUTF8Char): TSpineEvent;
 begin
-  Result.FHandle := _sspine_event_by_name(FHandle, AName);
+  UInt64(Result.FHandle) := _sspine_event_by_name(FHandle, AName);
 end;
 
 procedure TSpineSkeleton.Free;
@@ -1573,7 +1654,7 @@ end;
 
 function TSpineSkeleton.GetAnimation(const AIndex: Integer): TSpineAnim;
 begin
-  Result.FHandle := _sspine_anim_by_index(FHandle, AIndex);
+  UInt64(Result.FHandle) := _sspine_anim_by_index(FHandle, AIndex);
 end;
 
 function TSpineSkeleton.GetAnimationCount: Integer;
@@ -1588,7 +1669,7 @@ end;
 
 function TSpineSkeleton.GetBone(const AIndex: Integer): TSpineBone;
 begin
-  Result.FHandle := _sspine_bone_by_index(FHandle, AIndex);
+  UInt64(Result.FHandle) := _sspine_bone_by_index(FHandle, AIndex);
 end;
 
 function TSpineSkeleton.GetBoneCount: Integer;
@@ -1598,7 +1679,7 @@ end;
 
 function TSpineSkeleton.GetEvent(const AIndex: Integer): TSpineEvent;
 begin
-  Result.FHandle := _sspine_event_by_index(FHandle, AIndex);
+  UInt64(Result.FHandle) := _sspine_event_by_index(FHandle, AIndex);
 end;
 
 function TSpineSkeleton.GetEventCount: Integer;
@@ -1608,7 +1689,7 @@ end;
 
 function TSpineSkeleton.GetIKTarget(const AIndex: Integer): TSpineIKTarget;
 begin
-  Result.FHandle := _sspine_iktarget_by_index(FHandle, AIndex);
+  UInt64(Result.FHandle) := _sspine_iktarget_by_index(FHandle, AIndex);
 end;
 
 function TSpineSkeleton.GetIKTargetCount: Integer;
@@ -1623,7 +1704,7 @@ end;
 
 function TSpineSkeleton.GetSkin(const AIndex: Integer): TSpineSkin;
 begin
-  Result.FHandle := _sspine_skin_by_index(FHandle, AIndex);
+  UInt64(Result.FHandle) := _sspine_skin_by_index(FHandle, AIndex);
 end;
 
 function TSpineSkeleton.GetSkinCount: Integer;
@@ -1633,7 +1714,7 @@ end;
 
 function TSpineSkeleton.GetSlot(const AIndex: Integer): TSpineSlot;
 begin
-  Result.FHandle := _sspine_slot_by_index(FHandle, AIndex);
+  UInt64(Result.FHandle) := _sspine_slot_by_index(FHandle, AIndex);
 end;
 
 function TSpineSkeleton.GetSlotCount: Integer;
@@ -1648,17 +1729,17 @@ end;
 
 function TSpineSkeleton.IKTargetByName(const AName: PUTF8Char): TSpineIKTarget;
 begin
-  Result.FHandle := _sspine_iktarget_by_name(FHandle, AName);
+  UInt64(Result.FHandle) := _sspine_iktarget_by_name(FHandle, AName);
 end;
 
 function TSpineSkeleton.SkinByName(const AName: PUTF8Char): TSpineSkin;
 begin
-  Result.FHandle := _sspine_skin_by_name(FHandle, AName);
+  UInt64(Result.FHandle) := _sspine_skin_by_name(FHandle, AName);
 end;
 
 function TSpineSkeleton.SlotByName(const AName: PUTF8Char): TSpineSlot;
 begin
-  Result.FHandle := _sspine_slot_by_name(FHandle, AName);
+  UInt64(Result.FHandle) := _sspine_slot_by_name(FHandle, AName);
 end;
 
 { TSpineInstance }
@@ -1890,6 +1971,25 @@ begin
   _sspine_context_draw_instance_in_layer(FHandle, AInstance.FHandle, ALayer);
 end;
 
+{ TSpineString }
+
+function TSpineString.GetLength: Integer;
+begin
+  Result := FHandle.len;
+end;
+
+class operator TSpineString.Implicit(const ASrc: TSpineString): String;
+begin
+  Result := ASrc.ToString;
+end;
+
+function TSpineString.ToString: String;
+begin
+  SetLength(Result, FHandle.len);
+  for var I := 0 to Result.Length - 1 do
+    Result[Low(String) + I] := Char(FHandle.cstr[I]);
+end;
+
 { TSpineLayerTransform }
 
 function TSpineLayerTransform.ToMatrix: TSpineMat4;
@@ -1899,6 +1999,18 @@ end;
 
 { TSpineSkinset }
 
+constructor TSpineSkinset.Create(const ADesc: TSpineSkinsetDesc);
+begin
+  var Dst: _sspine_skinset_desc;
+  ADesc.Convert(Dst);
+  FHandle := _sspine_make_skinset(@Dst);
+end;
+
+procedure TSpineSkinset.Free;
+begin
+  _sspine_destroy_skinset(FHandle);
+end;
+
 function TSpineSkinset.GetResourceState: TSpineResourceState;
 begin
   Result := TSpineResourceState(_sspine_get_skinset_resource_state(FHandle));
@@ -1907,6 +2019,27 @@ end;
 function TSpineSkinset.GetValid: Boolean;
 begin
   Result := _sspine_skinset_valid(FHandle);
+end;
+
+{ TSpineRange }
+
+constructor TSpineRange.Create(const ABytes: TBytes);
+begin
+  FBytes := ABytes;
+  FHandle.ptr := Pointer(ABytes);
+  FHandle.size := Length(ABytes);
+end;
+
+constructor TSpineRange.Create(const APointer: Pointer; const ASize: NativeInt);
+begin
+  FHandle.ptr := APointer;
+  FHandle.size := ASize;
+end;
+
+class function TSpineRange.Create<T>(const [ref] AData: T): TSpineRange;
+begin
+  Result.FHandle.ptr := @AData;
+  Result.FHandle.size := SizeOf(AData);
 end;
 
 { _TSpineImageHelper }
