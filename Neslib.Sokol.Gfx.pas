@@ -47,10 +47,10 @@ type
     class function Create<T>(const [ref] AData: T): TRange; overload; static;
 
     { Pointer to the data in the buffer }
-    property Data: Pointer read FHandle.ptr;
+    property Data: Pointer read FHandle.ptr write FHandle.ptr;
 
     { Size of the data in the buffer }
-    property Size: NativeUInt read FHandle.size;
+    property Size: NativeUInt read FHandle.size write FHandle.size;
   end;
 
 const

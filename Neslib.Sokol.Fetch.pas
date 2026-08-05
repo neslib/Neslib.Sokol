@@ -88,10 +88,10 @@ type
     class function Create<T>(const [ref] AData: T): TFetchRange; overload; static;
 
     { Pointer to the data in the buffer }
-    property Ptr: Pointer read FPtr;
+    property Ptr: Pointer read FPtr write FPtr;
 
     { Size of the data in the buffer }
-    property Size: NativeInt read FSize;
+    property Size: NativeInt read FSize write FSize;
   end;
   PFetchRange = ^TFetchRange;
 

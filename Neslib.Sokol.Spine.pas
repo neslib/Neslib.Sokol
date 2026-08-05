@@ -119,10 +119,10 @@ type
     class function Create<T>(const [ref] AData: T): TSpineRange; overload; static;
 
     { Pointer to the data in the buffer }
-    property Data: Pointer read FHandle.ptr;
+    property Data: Pointer read FHandle.ptr write FHandle.ptr;
 
     { Size of the data in the buffer }
-    property Size: NativeUInt read FHandle.size;
+    property Size: NativeUInt read FHandle.size write FHandle.size;
   end;
   PSpineRange = ^TSpineRange;
 
@@ -940,7 +940,7 @@ type
       const ALoop: Boolean = False; const ADelay: Single = 0); inline;
     procedure SetEmptyAnimation(const ATrackIndex: Integer;
       const AMixDuration: Single); inline;
-    procedure AddSetEmptyAnimation(const ATrackIndex: Integer;
+    procedure AddEmptyAnimation(const ATrackIndex: Integer;
       const AMixDuration: Single; const ADelay: Single = 0); inline;
 
     function BoneLocalToWorld(const ABone: TSpineBone;
@@ -1029,9 +1029,11 @@ type
 type
   { Global Spine functionality. }
   TSpine = record // static
+  {$REGION 'Internal Declarations'}
   private
     class function GetContext: TSpineContext; inline; static;
     class procedure SetContext(const AValue: TSpineContext); inline; static;
+  {$ENDREGION 'Internal Declarations'}
   public
     { Setup and shutdown }
     class procedure Setup(const ADesc: TSpineDesc); static;
@@ -1750,7 +1752,7 @@ begin
   _sspine_add_animation(FHandle, AAnim.FHandle, ATrackIndex, ALoop, ADelay);
 end;
 
-procedure TSpineInstance.AddSetEmptyAnimation(const ATrackIndex: Integer;
+procedure TSpineInstance.AddEmptyAnimation(const ATrackIndex: Integer;
   const AMixDuration, ADelay: Single);
 begin
   _sspine_add_empty_animation(FHandle, ATrackIndex, AMixDuration, ADelay);

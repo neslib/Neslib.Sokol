@@ -224,7 +224,7 @@ begin
 
   { Next create a spine skeleton object. Skeleton data files can be either
     text (JSON) or binary (in our case, 'raptor-pro.skel' is a binary skeleton
-    file). In case of JSON data, make sure that the data is 0-terminated! }
+    file). }
   var SkeletonDesc := TSpineSkeletonDesc.Create;
   SkeletonDesc.Atlas := FAtlas;
   SkeletonDesc.BinaryData := FLoadStatus.Skeleton.Data;
