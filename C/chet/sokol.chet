@@ -68,6 +68,7 @@ CommentConvert=KeepAsIs
 ReservedWordHandling=PrefixAmpersand
 TreatDirectivesAsReservedWords=1
 PrefixSymbolsWithUnderscore=1
+Convert8ByteReturnStructsToUInt64=1
 DelayedLoading=0
 EnumHandling=ConvertToConst
 UnconvertibleHandling=Ignore

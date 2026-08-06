@@ -148,6 +148,7 @@ type
   public
     class operator Implicit(const ASrc: TSpineString): String; inline; static;
     function ToString: String;
+    function ToUtf8: PUTF8Char; inline;
 
     property Valid: Boolean read FHandle.valid;
     property Truncated: Boolean read FHandle.truncated;
@@ -1055,74 +1056,6 @@ implementation
 uses
   Neslib.Sokol.Utils;
 
-{ Custom API imports that return 8-byte structs as UInt64 }
-
-function _sspine_image_by_index(atlas: _sspine_atlas; index: Integer): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_image_by_index';
-
-function _sspine_atlas_page_by_index(atlas: _sspine_atlas; index: Integer): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_atlas_page_by_index';
-
-function _sspine_anim_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_anim_by_name';
-
-function _sspine_anim_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_anim_by_index';
-
-function _sspine_bone_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_bone_by_name';
-
-function _sspine_bone_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_bone_by_index';
-
-function _sspine_slot_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_slot_by_name';
-
-function _sspine_slot_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_slot_by_index';
-
-function _sspine_event_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_event_by_name';
-
-function _sspine_event_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_event_by_index';
-
-function _sspine_iktarget_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_iktarget_by_name';
-
-function _sspine_iktarget_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_iktarget_by_index';
-
-function _sspine_skin_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_skin_by_name';
-
-function _sspine_skin_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_skin_by_index';
-
-function _sspine_get_position(instance: _sspine_instance): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_get_position';
-
-function _sspine_get_scale(instance: _sspine_instance): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_get_scale';
-
-function _sspine_get_bone_position(instance: _sspine_instance; bone: _sspine_bone): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_get_bone_position';
-
-function _sspine_get_bone_scale(instance: _sspine_instance; bone: _sspine_bone): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_get_bone_scale';
-
-function _sspine_get_bone_shear(instance: _sspine_instance; bone: _sspine_bone): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_get_bone_shear';
-
-function _sspine_get_bone_world_position(instance: _sspine_instance; bone: _sspine_bone): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_get_bone_world_position';
-
-function _sspine_bone_local_to_world(instance: _sspine_instance; bone: _sspine_bone; local_pos: _sspine_vec2): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_bone_local_to_world';
-
-function _sspine_bone_world_to_local(instance: _sspine_instance; bone: _sspine_bone; world_pos: _sspine_vec2): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sspine_bone_world_to_local';
-
 { _TSpineLogItemHelper }
 
 function _TSpineLogItemHelper.ToString: String;
@@ -1990,6 +1923,11 @@ begin
   SetLength(Result, FHandle.len);
   for var I := 0 to Result.Length - 1 do
     Result[Low(String) + I] := Char(FHandle.cstr[I]);
+end;
+
+function TSpineString.ToUtf8: PUTF8Char;
+begin
+  Result := @FHandle.cstr;
 end;
 
 { TSpineLayerTransform }

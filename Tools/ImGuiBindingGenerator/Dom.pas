@@ -528,6 +528,7 @@ type
     FCApiOnly: Boolean;
     FHasFields: Boolean;
     FHasBitFields: Boolean;
+    FIs8ByteStruct: Boolean;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure Loaded; override;
@@ -566,6 +567,13 @@ type
       Likewise, generic C++ types like ImVector<char> are handled specifically
       so are only used for the C-API as well. }
     property CApiOnly: Boolean read FCApiOnly;
+
+    { Whether this is an 8-byte struct. Used to convert 8-byte struct return
+      values to UInt64. This is needed on some platforms where Delphi expects
+      8-byte return values to be passes as a hidden out-parameter, while the C
+      compiler returns these in registers (like EDX:EAX) instead.
+      See https://en.delphipraxis.net/topic/11206-calling-c-dll-with-an-8-byte-struct-return-value-crashes-on-win32-works-on-win64/ }
+    property Is8ByteStruct: Boolean read FIs8ByteStruct;
   end;
 
 type
@@ -679,12 +687,15 @@ type
     FStructs: TStructs;
     FFunctions: TFunctions;
     FFunctionsByStruct: TObjectDictionary<String, TList<TFunction>>;
+    F8ByteStructs: TObjectDictionary<String, TStruct>;
   protected
     procedure LoadChild(const AName: String; const AValue: TJsonValue); override;
     procedure AddFunctionForStruct(const AStructName: String;
       const AFunction: TFunction);
     function GetFunctionsForStruct(const AStructName: String;
       const ACheckOverloads: Boolean): TArray<TFunction>;
+    procedure Add8ByteStruct(const AStruct: TStruct);
+    function Is8ByteStruct(const AStructName: String): Boolean;
     class property Instance: TDom read GInstance;
   {$ENDREGION 'Internal Declarations'}
   public
@@ -1503,7 +1514,7 @@ begin
         Assert(FName <> '');
         { Delphi does not support returning 8-byte structs from C API's.
           Return these as UInt64 instead and typecase them later. }
-        if (AForReturnType) and (FName = 'ImVec2') then
+        if (AForReturnType) and (TDom.Instance.Is8ByteStruct(FName)) then
           AWriter.Write('UInt64')
         else
         begin
@@ -2385,10 +2396,47 @@ begin
   if (I > 0) and (FOriginalFullyQualifiedName.IndexOf('::') = I) then
     FName := FName.Substring(I + 1);
 
+  var StructSize := 0;
+  var HasPointerFields := False;
   I := 0;
   while (I < FFields.Count) do
   begin
     var Field := FFields[I];
+    var FieldTypeDesc := Field.FFieldType.FDescription;
+    if (FieldTypeDesc.FKind = TDataTypeKind.Pointer) then
+      HasPointerFields := True
+    else if (FieldTypeDesc.FKind = TDataTypeKind.Builtin) then
+    begin
+      case FieldTypeDesc.FBuiltinType of
+        TBuiltinType.Void:
+          HasPointerFields := True;
+
+        TBuiltinType.Char,
+        TBuiltinType.UnsignedChar,
+        TBuiltinType.Bool:
+          Inc(StructSize);
+
+        TBuiltinType.Short,
+        TBuiltinType.UnsignedShort,
+        TBuiltinType.WChar16:
+          Inc(StructSize, 2);
+
+        TBuiltinType.Int,
+        TBuiltinType.UnsignedInt,
+        TBuiltinType.Float,
+        TBuiltinType.WChar32,
+        TBuiltinType.SizeT:
+          Inc(StructSize, 4);
+
+        TBuiltinType.LongLong,
+        TBuiltinType.UnsignedLongLong,
+        TBuiltinType.Double:
+          Inc(StructSize, 8);
+      else
+        Assert(False);
+      end;
+    end;
+
     if (Field.FWidth > 0) then
     begin
       var BitCount := Field.FWidth;
@@ -2437,6 +2485,10 @@ begin
     end;
     Inc(I);
   end;
+
+  FIs8ByteStruct := (StructSize = 8) and ((FFields.Count > 1) or (not HasPointerFields));
+  if (FIs8ByteStruct) then
+    TDom.Instance.Add8ByteStruct(Self);
 end;
 
 procedure TStruct.WriteCApi(const AWriter: TSourceWriter);
@@ -3118,6 +3170,11 @@ end;
 
 { TDom }
 
+procedure TDom.Add8ByteStruct(const AStruct: TStruct);
+begin
+  F8ByteStructs.Add(AStruct.Name, AStruct);
+end;
+
 procedure TDom.AddFunctionForStruct(const AStructName: String;
   const AFunction: TFunction);
 begin
@@ -3140,11 +3197,13 @@ begin
   FStructs := TStructs.Create(Self);
   FFunctions := TFunctions.Create(Self);
   FFunctionsByStruct := TObjectDictionary<String, TList<TFunction>>.Create([doOwnsValues]);
+  F8ByteStructs := TObjectDictionary<String, TStruct>.Create;
 end;
 
 destructor TDom.Destroy;
 begin
   GInstance := nil;
+  F8ByteStructs.Free;
   FFunctionsByStruct.Free;
   FFunctions.Free;
   FStructs.Free;
@@ -3249,6 +3308,11 @@ begin
   Result := Functions.ToArray;
 end;
 
+function TDom.Is8ByteStruct(const AStructName: String): Boolean;
+begin
+  Result := F8ByteStructs.ContainsKey(AStructName);
+end;
+
 procedure TDom.Load;
 begin
   FDefines.Clear;
@@ -3256,6 +3320,7 @@ begin
   FTypedefs.Clear;
   FStructs.Clear;
   FFunctions.Clear;
+  F8ByteStructs.Clear;
 
   var Doc := TJsonDocument.Load('dcimgui.json');
   LoadChildren(Doc.Root);

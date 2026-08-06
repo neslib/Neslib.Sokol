@@ -34,6 +34,7 @@ type
   protected
     procedure ConfigureGfx(var ADesc: TGfxDesc); virtual;
     procedure ConfigureSokolImGui(var ADesc: TSokolImGuiDesc); virtual;
+    procedure DrawImGuiMainMenuItems; virtual;
     procedure DrawImGui; virtual;
   protected
     procedure DebugFrame;
@@ -65,6 +66,11 @@ begin
 end;
 
 procedure TSampleApp.DrawImGui;
+begin
+  { No default implementation }
+end;
+
+procedure TSampleApp.DrawImGuiMainMenuItems;
 begin
   { No default implementation }
 end;

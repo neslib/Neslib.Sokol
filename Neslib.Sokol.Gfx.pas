@@ -524,13 +524,14 @@ type
 
     The default filter mode is Nearest. }
   TFilter = (
+    _Default = __SG_FILTER_DEFAULT,
     { Nearest neighbor filtering.
       Fastest, but lowest quality. }
-    Nearest              = _SG_FILTER_NEAREST,
+    Nearest  = _SG_FILTER_NEAREST,
 
     { Linear filtering.
       Slower, but higher quality. }
-    Linear               = _SG_FILTER_LINEAR);
+    Linear   = _SG_FILTER_LINEAR);
 
 type
   { The texture coordinates wrapping mode when sampling a texture image. This is
@@ -545,6 +546,8 @@ type
     Platforms which don't support ClampToBorder will silently fall back to
     ClampToEdge without a validation error. }
   TWrap = (
+    _Default       = __SG_WRAP_DEFAULT,
+
     { Repeat texture }
     Repeating      = _SG_WRAP_REPEAT,
 
@@ -5153,7 +5156,7 @@ end;
 
 function TBuffer.GetD3D11BufferInfo: TD3D11BufferInfo;
 begin
-  Result.FHandle := _sg_d3d11_buffer_info(FHandle);
+  Result.FHandle := _sg_d3d11_query_buffer_info(FHandle);
 end;
 
 function TBuffer.GetDesc: TBufferDesc;

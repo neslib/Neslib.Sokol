@@ -24,6 +24,9 @@ uses
   Neslib.Sokol.App.ImGui,
   Neslib.Sokol.Gfx.ImGui,
   Neslib.Sokol.Utils,
+  {$IFDEF SOKOL_MEM_TRACK}
+  Neslib.Sokol.MemTrack,
+  {$ENDIF}
   SampleApp;
 
 type
@@ -73,14 +76,15 @@ begin
   SokolImGui.NewFrame(Desc);
   TAppImGui.TrackFrame;
 
+  Assert(TApplication.Instance is TSampleApp);
   if (ImGui.BeginMainMenuBar) then
   begin
     TGfxImGui.DrawMenu('Sokol.Gfx');
     TAppImGui.DrawMenu('Sokol.App');
+    TSampleAppAccess(TApplication.Instance).DrawImGuiMainMenuItems;
     ImGui.EndMainMenuBar;
   end;
 
-  Assert(TApplication.Instance is TSampleApp);
   TSampleAppAccess(TApplication.Instance).DrawImGui;
 
   TAppImGui.Draw;
