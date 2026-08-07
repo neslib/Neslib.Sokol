@@ -441,7 +441,7 @@ type
 
     CursorHotspotX and Y are used only for cursors, to define which pixel
     of the image should be aligned with the mouse position. }
-  TImageDesc = record
+  TAppImageDesc = record
   public
     Width: Integer;
     Height: Integer;
@@ -465,7 +465,7 @@ type
       const APixels: TBytes; const ACursorHotspotX: Integer = 0;
       const ACursorHotspotY: Integer = 0); overload;
   end;
-  PImageDesc = ^TImageDesc;
+  PAppImageDesc = ^TAppImageDesc;
 
 type
   { An icon description structure for use in TAppConfig.Icon and
@@ -483,7 +483,7 @@ type
     MAX_IMAGES = _SAPP_MAX_ICONIMAGES;
   public
     UseDefault: Boolean;
-    Images: array [0..MAX_IMAGES - 1] of TImageDesc;
+    Images: array [0..MAX_IMAGES - 1] of TAppImageDesc;
   public
     { Intializes with default values }
     class function Create: TIconDesc; static;
@@ -1405,7 +1405,7 @@ type
 
     { Associate a custom mouse cursor image to a TMouseCursor enum entry }
     class function BindMouseCursorImage(const ACursor: TMouseCursor;
-      const ADesc: TImageDesc): TMouseCursor; static;
+      const ADesc: TAppImageDesc): TMouseCursor; static;
 
     { Restore the TMouseCursor enum entry to it's default system appearance }
     class procedure UnbindMouseCursorImage(const ACursor: TMouseCursor); inline; static;
@@ -1977,22 +1977,22 @@ begin
   FHandle.android_tooltype := Ord(AValue);
 end;
 
-{ TImageDesc }
+{ TAppImageDesc }
 
-constructor TImageDesc.Create(const AWidth, AHeight: Integer;
+constructor TAppImageDesc.Create(const AWidth, AHeight: Integer;
   const AData: Pointer; const ASize, ACursorHotspotX, ACursorHotspotY: Integer);
 begin
   Init(AWidth, AHeight, AData, ASize, ACursorHotspotX, ACursorHotspotY);
 end;
 
-constructor TImageDesc.Create(const AWidth, AHeight: Integer;
+constructor TAppImageDesc.Create(const AWidth, AHeight: Integer;
   const APixels: TBytes; const ACursorHotspotX, ACursorHotspotY: Integer);
 begin
   Init(AWidth, AHeight, Pointer(APixels), Length(APixels), ACursorHotspotX,
     ACursorHotspotY);
 end;
 
-procedure TImageDesc.Init(const AWidth, AHeight: Integer; const AData: Pointer;
+procedure TAppImageDesc.Init(const AWidth, AHeight: Integer; const AData: Pointer;
   const ASize, ACursorHotspotX, ACursorHotspotY: Integer);
 begin
   Width := AWidth;
@@ -2003,7 +2003,7 @@ begin
   Size := ASize;
 end;
 
-procedure TImageDesc.Init(const AWidth, AHeight: Integer;
+procedure TAppImageDesc.Init(const AWidth, AHeight: Integer;
   const APixels: TBytes; const ACursorHotspotX, ACursorHotspotY: Integer);
 begin
   Init(AWidth, AHeight, Pointer(APixels), Length(APixels), ACursorHotspotX,
@@ -2179,7 +2179,7 @@ begin
 end;
 
 class function TApplication.BindMouseCursorImage(const ACursor: TMouseCursor;
-  const ADesc: TImageDesc): TMouseCursor;
+  const ADesc: TAppImageDesc): TMouseCursor;
 begin
   var Desc: _sapp_image_desc;
   Desc.width := ADesc.Width;

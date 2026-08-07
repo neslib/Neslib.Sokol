@@ -233,6 +233,7 @@ begin
       FShapes[I].AngularVelocity := -FShapes[I].AngularVelocity;
   end;
 end;
+
 procedure TCubeMapRTApp.Frame;
 begin
   { Compute a frame time multiplier }

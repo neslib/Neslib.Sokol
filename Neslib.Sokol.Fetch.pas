@@ -85,7 +85,7 @@ type
 
       Parameters:
         AData: the memory buffer }
-    class function Create<T>(const [ref] AData: T): TFetchRange; overload; static;
+    class function Create<T: unmanaged>(const [ref] AData: T): TFetchRange; overload; static;
 
     { Pointer to the data in the buffer }
     property Ptr: Pointer read FPtr write FPtr;

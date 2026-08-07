@@ -2291,7 +2291,7 @@ begin
     GCubeShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GCubeShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GCubeShaderDesc.uniform_blocks[0].size := 176;
-    GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 11;
     GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'shape_uniforms';
     GCubeShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;
@@ -2322,7 +2322,7 @@ begin
     GCubeShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GCubeShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GCubeShaderDesc.uniform_blocks[0].size := 176;
-    GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 11;
     GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'shape_uniforms';
     GCubeShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;
@@ -2488,7 +2488,7 @@ begin
     GShapesShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GShapesShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GShapesShaderDesc.uniform_blocks[0].size := 176;
-    GShapesShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GShapesShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GShapesShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 11;
     GShapesShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'shape_uniforms';
     GShapesShaderDesc.&label := 'shapes_shader';
@@ -2509,7 +2509,7 @@ begin
     GShapesShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GShapesShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GShapesShaderDesc.uniform_blocks[0].size := 176;
-    GShapesShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GShapesShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GShapesShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 11;
     GShapesShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'shape_uniforms';
     GShapesShaderDesc.&label := 'shapes_shader';

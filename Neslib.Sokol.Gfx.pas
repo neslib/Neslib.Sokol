@@ -44,7 +44,7 @@ type
 
       Parameters:
         AData: the memory buffer }
-    class function Create<T>(const [ref] AData: T): TRange; overload; static;
+    class function Create<T: unmanaged>(const [ref] AData: T): TRange; overload; static;
 
     { Pointer to the data in the buffer }
     property Data: Pointer read FHandle.ptr write FHandle.ptr;
@@ -773,6 +773,7 @@ type
     the associated blend-op is Add, Subtract or ReverseSubtract or One if the
     associated blend-op is Min or Max. }
   TBlendFactor = (
+    Default            = __SG_BLENDFACTOR_DEFAULT,
     Zero               = _SG_BLENDFACTOR_ZERO,
     One                = _SG_BLENDFACTOR_ONE,
     SrcColor           = _SG_BLENDFACTOR_SRC_COLOR,
@@ -6561,6 +6562,7 @@ end;
 procedure TPipelineDesc._Convert(out ADst: _sg_pipeline_desc);
 begin
   FillChar(ADst, SizeOf(ADst), 0);
+  ADst.compute := Compute;
   ADst.shader.id := Shader.FHandle.id;
   Layout.Convert(ADst.layout);
   Depth.Convert(ADst.depth);

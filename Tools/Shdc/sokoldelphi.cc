@@ -161,7 +161,7 @@ void SokolDelphiGenerator::gen_uniform_block_decl(const GenInput &gen, const Uni
                 switch (uniform.type) {
                     case Type::Float4:  l("{}: array [0..{}] of TVector4;\n", uniform_name, uniform.array_count - 1); break;
                     case Type::Int4:    l("{}: array [0..{}] of TIVector4;\n",   uniform_name, uniform.array_count - 1); break;
-                    case Type::Mat4x4:  l("{}: array [0..{}] of TMatrix4; \n", uniform_name, uniform.array_count); break;
+                    case Type::Mat4x4:  l("{}: array [0..{}] of TMatrix4; \n", uniform_name, uniform.array_count - 1); break;
                     default:            l("INVALID_UNIFORM_TYPE;\n"); break;
                 }
             }
@@ -185,9 +185,10 @@ void SokolDelphiGenerator::gen_struct_interior_decl_std430(const GenInput& gen, 
     for (const Type& item: struc.struct_items) {
         int next_offset = item.offset;
         if (next_offset > cur_offset) {
-            l("uint8_t _pad_{}[{}];\n", cur_offset, next_offset - cur_offset);
+            l("_Pad{}: array [0..{}] of Byte;\n", cur_offset, next_offset - cur_offset);
             cur_offset = next_offset;
         }
+        auto item_name = delphi_case(item.name);
         if (item.type == Type::Struct) {
             // recurse into nested struct
             l_open("struct {{\n");
@@ -195,83 +196,83 @@ void SokolDelphiGenerator::gen_struct_interior_decl_std430(const GenInput& gen, 
             if (item.array_count == 0) {
                 // FIXME: do we need any padding here if array_stride != struct-size?
                 // NOTE: unbounded arrays are written as regular items
-                l_close("}} {};\n", item.name);
+                l_close("}} {};\n", item_name);
             } else {
-                l_close("}} {}[{}];\n", item.name, item.array_count);
+                l_close("}} {}[{}];\n", item_name, item.array_count);
             }
         } else if (gen.inp.ctype_map.count(item.type_as_glsl()) > 0) {
             // user-mapped typename
             if (item.array_count == 0) {
-                l("{} {};\n", gen.inp.ctype_map.at(item.type_as_glsl()), item.name);
+                l("{} {};\n", gen.inp.ctype_map.at(item.type_as_glsl()), item_name);
             } else {
-                l("{} {}[{}];\n", gen.inp.ctype_map.at(item.type_as_glsl()), item.name, item.array_count);
+                l("{} {}[{}];\n", gen.inp.ctype_map.at(item.type_as_glsl()), item_name, item.array_count);
             }
         } else {
             // default typenames
             if (item.array_count == 0) {
                 switch (item.type) {
                     // NOTE: bool => int is not a bug!
-                    case Type::Bool:    l("int32_t {};\n", item.name); break;
-                    case Type::Bool2:   l("int32_t {}[2];\n", item.name); break;
-                    case Type::Bool3:   l("int32_t {}[3];\n", item.name); break;
-                    case Type::Bool4:   l("int32_t {}[4];\n", item.name); break;
-                    case Type::Int:     l("int32_t {};\n", item.name); break;
-                    case Type::Int2:    l("int32_t {}[2];\n", item.name); break;
-                    case Type::Int3:    l("int32_t {}[3];\n", item.name); break;
-                    case Type::Int4:    l("int32_t {}[4];\n", item.name); break;
-                    case Type::UInt:    l("uint32_t {};\n", item.name); break;
-                    case Type::UInt2:   l("uint32_t {}[2];\n", item.name); break;
-                    case Type::UInt3:   l("uint32_t {}[3];\n", item.name); break;
-                    case Type::UInt4:   l("uint32_t {}[4];\n", item.name); break;
-                    case Type::Float:   l("float {};\n", item.name); break;
-                    case Type::Float2:  l("float {}[2];\n", item.name); break;
-                    case Type::Float3:  l("float {}[3];\n", item.name); break;
-                    case Type::Float4:  l("float {}[4];\n", item.name); break;
-                    case Type::Mat2x1:  l("float {}[2];\n", item.name); break;
-                    case Type::Mat2x2:  l("float {}[4];\n", item.name); break;
-                    case Type::Mat2x3:  l("float {}[6];\n", item.name); break;
-                    case Type::Mat2x4:  l("float {}[8];\n", item.name); break;
-                    case Type::Mat3x1:  l("float {}[3];\n", item.name); break;
-                    case Type::Mat3x2:  l("float {}[6];\n", item.name); break;
-                    case Type::Mat3x3:  l("float {}[9];\n", item.name); break;
-                    case Type::Mat3x4:  l("float {}[12];\n", item.name); break;
-                    case Type::Mat4x1:  l("float {}[4];\n", item.name); break;
-                    case Type::Mat4x2:  l("float {}[8];\n", item.name); break;
-                    case Type::Mat4x3:  l("float {}[12];\n", item.name); break;
-                    case Type::Mat4x4:  l("float {}[16];\n", item.name); break;
+                    case Type::Bool:    l("{}: Integer;\n", item_name); break;
+                    case Type::Bool2:   l("{}: TIVector2;\n", item_name); break;
+                    case Type::Bool3:   l("{}: TIVector3;\n", item_name); break;
+                    case Type::Bool4:   l("{}: TIVector4;\n", item_name); break;
+                    case Type::Int:     l("{}: Integer;\n", item_name); break;
+                    case Type::Int2:    l("{}: TIVector2;\n", item_name); break;
+                    case Type::Int3:    l("{}: TIVector3;\n", item_name); break;
+                    case Type::Int4:    l("{}: TIVector4;\n", item_name); break;
+                    case Type::UInt:    l("{}: Cardinal;\n", item_name); break;
+                    case Type::UInt2:   l("{}: array [0..1] of Cardinal;\n", item_name); break;
+                    case Type::UInt3:   l("{}: array [0..2] of Cardinal;\n", item_name); break;
+                    case Type::UInt4:   l("{}: array [0..3] of Cardinal;\n", item_name); break;
+                    case Type::Float:   l("{}: Single;\n", item_name); break;
+                    case Type::Float2:  l("{}: TVector2;\n", item_name); break;
+                    case Type::Float3:  l("{}: TVector3;\n", item_name); break;
+                    case Type::Float4:  l("{}: TVector4;\n", item_name); break;
+                    case Type::Mat2x1:  l("{}: array [0..1] of Single;\n", item_name); break;
+                    case Type::Mat2x2:  l("{}: TMatrix2;\n", item_name); break;
+                    case Type::Mat2x3:  l("{}: array [0..5] of Single;\n", item_name); break;
+                    case Type::Mat2x4:  l("{}: array [0..7] of Single;\n", item_name); break;
+                    case Type::Mat3x1:  l("{}: array [0..2] of Single;\n", item_name); break;
+                    case Type::Mat3x2:  l("{}: array [0..5] of Single;\n", item_name); break;
+                    case Type::Mat3x3:  l("{}: TMatrix3;\n", item_name); break;
+                    case Type::Mat3x4:  l("{}: array [0..11] of Single;\n", item_name); break;
+                    case Type::Mat4x1:  l("{}: array [0..3] of Single;\n", item_name); break;
+                    case Type::Mat4x2:  l("{}: array [0..7] of Single;\n", item_name); break;
+                    case Type::Mat4x3:  l("{}: array [0..11] of Single;\n", item_name); break;
+                    case Type::Mat4x4:  l("{}: TMatrix4;\n", item_name); break;
                     default: l("INVALID_TYPE\n"); break;
                 }
             } else {
                 switch (item.type) {
                     // NOTE: bool => int is not a bug!
-                    case Type::Bool:    l("int32_t {}[{}];\n", item.name, item.array_count); break;
-                    case Type::Bool2:   l("int32_t {}[{}][2];\n", item.name, item.array_count); break;
-                    case Type::Bool3:   l("int32_t {}[{}][3];\n", item.name, item.array_count); break;
-                    case Type::Bool4:   l("int32_t {}[{}][4];\n", item.name, item.array_count); break;
-                    case Type::Int:     l("int32_t {}[{}];\n", item.name, item.array_count); break;
-                    case Type::Int2:    l("int32_t {}[{}][2];\n", item.name, item.array_count); break;
-                    case Type::Int3:    l("int32_t {}[{}][3];\n", item.name, item.array_count); break;
-                    case Type::Int4:    l("int32_t {}[{}][4];\n", item.name, item.array_count); break;
-                    case Type::UInt:    l("uint32_t {}[{}];\n", item.name, item.array_count); break;
-                    case Type::UInt2:   l("uint32_t {}[{}][2];\n", item.name, item.array_count); break;
-                    case Type::UInt3:   l("uint32_t {}[{}][3];\n", item.name, item.array_count); break;
-                    case Type::UInt4:   l("uint32_t {}[{}][4];\n", item.name, item.array_count); break;
-                    case Type::Float:   l("float {}[{}];\n", item.name, item.array_count); break;
-                    case Type::Float2:  l("float {}[{}][2];\n", item.name, item.array_count); break;
-                    case Type::Float3:  l("float {}[{}][3];\n", item.name, item.array_count); break;
-                    case Type::Float4:  l("float {}[{}][4];\n", item.name, item.array_count); break;
-                    case Type::Mat2x1:  l("float {}[{}][2];\n", item.name, item.array_count); break;
-                    case Type::Mat2x2:  l("float {}[{}][4];\n", item.name, item.array_count); break;
-                    case Type::Mat2x3:  l("float {}[{}][6];\n", item.name, item.array_count); break;
-                    case Type::Mat2x4:  l("float {}[{}][8];\n", item.name, item.array_count); break;
-                    case Type::Mat3x1:  l("float {}[{}][3];\n", item.name, item.array_count); break;
-                    case Type::Mat3x2:  l("float {}[{}][6];\n", item.name, item.array_count); break;
-                    case Type::Mat3x3:  l("float {}[{}][9];\n", item.name, item.array_count); break;
-                    case Type::Mat3x4:  l("float {}[{}][12];\n", item.name, item.array_count); break;
-                    case Type::Mat4x1:  l("float {}[{}][4];\n", item.name, item.array_count); break;
-                    case Type::Mat4x2:  l("float {}[{}][8];\n", item.name, item.array_count); break;
-                    case Type::Mat4x3:  l("float {}[{}][12];\n", item.name, item.array_count); break;
-                    case Type::Mat4x4:  l("float {}[{}][16];\n", item.name, item.array_count); break;
+                    case Type::Bool:    l("{}: array [0..{}] of Integer;\n", item_name, item.array_count - 1); break;
+                    case Type::Bool2:   l("{}: array [0..{}] of TIVector2;\n", item_name, item.array_count - 1); break;
+                    case Type::Bool3:   l("{}: array [0..{}] of TIVector3;\n", item_name, item.array_count - 1); break;
+                    case Type::Bool4:   l("{}: array [0..{}] of TIVector4;\n", item_name, item.array_count - 1); break;
+                    case Type::Int:     l("{}: array [0..{}] of Integer;\n", item_name, item.array_count - 1); break;
+                    case Type::Int2:    l("{}: array [0..{}] of TIVector2;\n", item_name, item.array_count - 1); break;
+                    case Type::Int3:    l("{}: array [0..{}] of TIVector3;\n", item_name, item.array_count - 1); break;
+                    case Type::Int4:    l("{}: array [0..{}] of TIVector4;\n", item_name, item.array_count - 1); break;
+                    case Type::UInt:    l("{}: array [0..{}] of Cardinal;\n", item_name, item.array_count - 1); break;
+                    case Type::UInt2:   l("{}: array [0..{}, 0..1] of Cardinal;\n", item_name, item.array_count - 1); break;
+                    case Type::UInt3:   l("{}: array [0..{}, 0..2] of Cardinal;\n", item_name, item.array_count - 1); break;
+                    case Type::UInt4:   l("{}: array [0..{}, 0..3] of Cardinal;\n", item_name, item.array_count - 1); break;
+                    case Type::Float:   l("{}: array [0..{}] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Float2:  l("{}: array [0..{}] of TVector2;\n", item_name, item.array_count - 1); break;
+                    case Type::Float3:  l("{}: array [0..{}] of TVector3;\n", item_name, item.array_count - 1); break;
+                    case Type::Float4:  l("{}: array [0..{}] of TVector4;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat2x1:  l("{}: array [0..{}, 0..1] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat2x2:  l("{}: array [0..{}] of TMatrix2;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat2x3:  l("{}: array [0..{}, 0..5] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat2x4:  l("{}: array [0..{}, 0..7] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat3x1:  l("{}: array [0..{}, 0..2] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat3x2:  l("{}: array [0..{}, 0..5] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat3x3:  l("{}: array [0..{}] of TMatrix3;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat3x4:  l("{}: array [0..{}, 0..11] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat4x1:  l("{}: array [0..{}, 0..3] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat4x2:  l("{}: array [0..{}, 0..7] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat4x3:  l("{}: array [0..{}, 0..11] of Single;\n", item_name, item.array_count - 1); break;
+                    case Type::Mat4x4:  l("{}: array [0..{}] of TMatrix4;\n", item_name, item.array_count - 1); break;
                     default: l("INVALID_TYPE\n"); break;
                 }
             }
@@ -279,16 +280,17 @@ void SokolDelphiGenerator::gen_struct_interior_decl_std430(const GenInput& gen, 
         cur_offset += item.size;
     }
     if (cur_offset < pad_to_size) {
-        l("uint8_t _pad_{}[{}];\n", cur_offset, pad_to_size - cur_offset);
+        l("_Pad{}: array [0..{}] of Byte;\n", cur_offset, pad_to_size - cur_offset);
     }
 }
 
 void SokolDelphiGenerator::gen_storage_buffer_decl(const GenInput& gen, const Type& struc) {
-    l("#pragma pack(push,1)\n");
-    l_open("SOKOL_SHDC_ALIGN({}) typedef struct {} {{\n", struc.align, struct_name(struc.struct_typename));
+    l_open("type\n");
+    l("{} = packed record\n", struct_name(struc.struct_typename));
+    l_open("public\n");
     gen_struct_interior_decl_std430(gen, struc, struc.size);
-    l_close("}} {};\n", struct_name(struc.struct_typename));
-    l("#pragma pack(pop)\n");
+    l_close("end align {};\n\n", struc.align);
+    l_close();
 }
 
 void SokolDelphiGenerator::gen_shader_desc_func_prototype(const ProgramReflection& prog) {
@@ -376,14 +378,14 @@ void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const Progr
                     } else if (Slang::is_glsl(slang) && (ub->struct_info.struct_items.size() > 0)) {
                         if (ub->flattened) {
                             // NOT A BUG (to take the type from the first struct item, but the size from the toplevel ub)
-                            l("{}.glsl_uniforms[0].type := {};\n", ubn, flattened_uniform_type(ub->struct_info.struct_items[0].type));
+                            l("{}.glsl_uniforms[0].&type := {};\n", ubn, flattened_uniform_type(ub->struct_info.struct_items[0].type));
                             l("{}.glsl_uniforms[0].array_count := {};\n", ubn, roundup(ub->struct_info.size, 16) / 16);
                             l("{}.glsl_uniforms[0].glsl_name := '{}';\n", ubn, ub->name);
                         } else {
                             for (int u_index = 0; u_index < (int)ub->struct_info.struct_items.size(); u_index++) {
                                 const Type& u = ub->struct_info.struct_items[u_index];
                                 const std::string un = fmt::format("{}.glsl_uniforms[{}]", ubn, u_index);
-                                l("{}.type := {};\n", un, uniform_type(u.type));
+                                l("{}.&type := {};\n", un, uniform_type(u.type));
                                 l("{}.array_count := {};\n", un, u.array_count);
                                 l("{}.glsl_name := '{}.{}';\n", un, ub->inst_name, u.name);
                             }
@@ -625,7 +627,7 @@ void SokolDelphiGenerator::gen_uniform_desc_refl_func(const GenInput& gen, const
             l_open("if (0 == strcmp(ub_name, \"{}\")) {{\n", ub.name);
             for (const Type& u: ub.struct_info.struct_items) {
                 l_open("if (0 == strcmp(u_name, \"{}\")) {{\n", u.name);
-                l("res.type = {};\n", uniform_type(u.type));
+                l("res.&type = {};\n", uniform_type(u.type));
                 l("res.array_count = {};\n", u.array_count);
                 l("res.glsl_name = \"{}\";\n", u.name);
                 l("return res;\n");

@@ -116,7 +116,7 @@ type
 
       Parameters:
         AData: the memory buffer }
-    class function Create<T>(const [ref] AData: T): TSpineRange; overload; static;
+    class function Create<T: unmanaged>(const [ref] AData: T): TSpineRange; overload; static;
 
     { Pointer to the data in the buffer }
     property Data: Pointer read FHandle.ptr write FHandle.ptr;

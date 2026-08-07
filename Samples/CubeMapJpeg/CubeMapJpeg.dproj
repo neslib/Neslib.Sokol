@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{75DD85FB-B3C9-4C84-A5C4-A5A546EE213F}</ProjectGuid>
+        <ProjectGuid>{2CE8D21E-1FDA-443E-9F8B-DC19A6AE6DD3}</ProjectGuid>
         <ProjectVersion>20.3</ProjectVersion>
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
@@ -8,8 +8,8 @@
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
-        <MainSource>Cube.dpr</MainSource>
-        <ProjectName Condition="'$(ProjectName)'==''">Cube</ProjectName>
+        <MainSource>CubeMapJpeg.dpr</MainSource>
+        <ProjectName Condition="'$(ProjectName)'==''">CubeMapJpeg</ProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
         <Base>true</Base>
@@ -133,10 +133,10 @@
         <AUP_READ_PHONE_STATE>true</AUP_READ_PHONE_STATE>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <SanitizedProjectName>Cube</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\..\;..\Shared\;..\..\..\FastMath\FastMath\;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <SanitizedProjectName>CubeMapJpeg</SanitizedProjectName>
+        <DCC_UnitSearchPath>..\..\;..\Shared\;..\..\..\FastMath\FastMath\;..\Libs\;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
-        <PreBuildEvent><![CDATA[..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas
+        <PreBuildEvent><![CDATA[..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas
 $(PreBuildEvent)]]></PreBuildEvent>
         <DCC_Define>FM_COLUMN_MAJOR;$(DCC_Define)</DCC_Define>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -296,6 +296,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_3_Win32)'!=''">
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -324,7 +325,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="..\..\Neslib.Sokol.App.pas"/>
-        <DCCReference Include="CubeApp.pas"/>
+        <DCCReference Include="CubeMapJpegApp.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -351,7 +352,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">Cube.dpr</Source>
+                    <Source Name="MainSource">CubeMapJpeg.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k370.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
@@ -473,53 +474,59 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\mips\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeMipsFile"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\mips\libnative-activity.so" Configuration="DebugUI" Class="AndroidLibnativeMipsFile"/>
                 <DeployFile LocalName="$(NDKBasePath)\prebuilt\android-arm\gdbserver\gdbserver" Configuration="DebugUI" Class="AndroidGDBServer"/>
-                <DeployFile LocalName="..\Bin\Cube.exe" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="..\Bin\Cube.exe" Configuration="DebugUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\Bin\CubeMapJpeg.exe" Configuration="DebugUI" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>CubeMapJpeg.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\CubeMapRT.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\Bin\CubeMapRT.exe" Configuration="DebugUI" Class="ProjectOutput"/>
                 <DeployFile LocalName="Android64\Debug\AndroidManifest.xml" Configuration="Debug" Class="ProjectAndroidManifest"/>
                 <DeployFile LocalName="Android64\Debug\colors.xml" Configuration="Debug" Class="Android_Colors"/>
-                <DeployFile LocalName="Android64\Debug\libCube.so" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="Android64\Debug\libCubeMapRT.so" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="Android64\Debug\splash_image_def.xml" Configuration="Debug" Class="AndroidSplashImageDef"/>
                 <DeployFile LocalName="Android64\Debug\strings.xml" Configuration="Debug" Class="Android_Strings"/>
                 <DeployFile LocalName="Android64\Debug\styles-v21.xml" Configuration="Debug" Class="AndroidSplashStylesV21"/>
                 <DeployFile LocalName="Android64\Debug\styles.xml" Configuration="Debug" Class="AndroidSplashStyles"/>
                 <DeployFile LocalName="Android\DebugUI\AndroidManifest.xml" Configuration="DebugUI" Class="ProjectAndroidManifest"/>
                 <DeployFile LocalName="Android\DebugUI\colors.xml" Configuration="DebugUI" Class="Android_Colors"/>
-                <DeployFile LocalName="Android\DebugUI\libCube.so" Configuration="DebugUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="Android\DebugUI\libCubeMapRT.so" Configuration="DebugUI" Class="ProjectOutput"/>
                 <DeployFile LocalName="Android\DebugUI\splash_image_def.xml" Configuration="DebugUI" Class="AndroidSplashImageDef"/>
                 <DeployFile LocalName="Android\DebugUI\strings.xml" Configuration="DebugUI" Class="Android_Strings"/>
                 <DeployFile LocalName="Android\DebugUI\styles-v21.xml" Configuration="DebugUI" Class="AndroidSplashStylesV21"/>
                 <DeployFile LocalName="Android\DebugUI\styles.xml" Configuration="DebugUI" Class="AndroidSplashStyles"/>
                 <DeployFile LocalName="Android\Debug\AndroidManifest.xml" Configuration="Debug" Class="ProjectAndroidManifest"/>
                 <DeployFile LocalName="Android\Debug\colors.xml" Configuration="Debug" Class="Android_Colors"/>
-                <DeployFile LocalName="Android\Debug\libCube.so" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="Android\Debug\libCubeMapRT.so" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="Android\Debug\splash_image_def.xml" Configuration="Debug" Class="AndroidSplashImageDef"/>
                 <DeployFile LocalName="Android\Debug\strings.xml" Configuration="Debug" Class="Android_Strings"/>
                 <DeployFile LocalName="Android\Debug\styles-v21.xml" Configuration="Debug" Class="AndroidSplashStylesV21"/>
                 <DeployFile LocalName="Android\Debug\styles.xml" Configuration="Debug" Class="AndroidSplashStyles"/>
-                <DeployFile LocalName="OSX64\DebugUI\Cube" Configuration="DebugUI" Class="ProjectOutput"/>
-                <DeployFile LocalName="OSX64\DebugUI\Quad.dSYM" Configuration="DebugUI" Class="ProjectOSXDebug"/>
-                <DeployFile LocalName="OSX64\DebugUI\Quad.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements"/>
-                <DeployFile LocalName="OSX64\DebugUI\Quad.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList"/>
-                <DeployFile LocalName="OSX64\Debug\Cube" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="OSX64\DebugUI\CubeMapRT.dSYM" Configuration="DebugUI" Class="ProjectOSXDebug"/>
+                <DeployFile LocalName="OSX64\DebugUI\CubeMapRT.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements"/>
+                <DeployFile LocalName="OSX64\DebugUI\CubeMapRT.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList"/>
+                <DeployFile LocalName="OSX64\DebugUI\CubeMapRT" Configuration="DebugUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="OSX64\Debug\CubeMapRT" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="OSX64\Debug\Triangle.dSYM" Configuration="Debug" Class="ProjectOSXDebug"/>
                 <DeployFile LocalName="OSX64\Debug\Triangle.entitlements" Configuration="Debug" Class="ProjectOSXEntitlements"/>
                 <DeployFile LocalName="OSX64\Debug\Triangle.info.plist" Configuration="Debug" Class="ProjectOSXInfoPList"/>
                 <DeployFile LocalName="OSX64\ReleaseUI\Clear.entitlements" Configuration="ReleaseUI" Class="ProjectOSXEntitlements"/>
                 <DeployFile LocalName="OSX64\ReleaseUI\Clear.info.plist" Configuration="ReleaseUI" Class="ProjectOSXInfoPList"/>
-                <DeployFile LocalName="OSX64\ReleaseUI\Cube" Configuration="ReleaseUI" Class="ProjectOutput"/>
-                <DeployFile LocalName="iOSDevice64\DebugUI\Cube" Configuration="DebugUI" Class="ProjectOutput"/>
-                <DeployFile LocalName="iOSDevice64\DebugUI\Quad.dSYM" Configuration="DebugUI" Class="ProjectiOSDeviceDebug"/>
-                <DeployFile LocalName="iOSDevice64\DebugUI\Quad.entitlements" Configuration="DebugUI" Class="ProjectiOSEntitlements"/>
-                <DeployFile LocalName="iOSDevice64\DebugUI\Quad.info.plist" Configuration="DebugUI" Class="ProjectiOSInfoPList"/>
-                <DeployFile LocalName="iOSDevice64\DebugUI\Quad.launchscreen" Configuration="DebugUI" Class="ProjectiOSLaunchScreen"/>
+                <DeployFile LocalName="OSX64\ReleaseUI\CubeMapRT" Configuration="ReleaseUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="iOSDevice64\DebugUI\CubeMapRT.dSYM" Configuration="DebugUI" Class="ProjectiOSDeviceDebug"/>
+                <DeployFile LocalName="iOSDevice64\DebugUI\CubeMapRT.entitlements" Configuration="DebugUI" Class="ProjectiOSEntitlements"/>
+                <DeployFile LocalName="iOSDevice64\DebugUI\CubeMapRT.info.plist" Configuration="DebugUI" Class="ProjectiOSInfoPList"/>
+                <DeployFile LocalName="iOSDevice64\DebugUI\CubeMapRT.launchscreen" Configuration="DebugUI" Class="ProjectiOSLaunchScreen"/>
+                <DeployFile LocalName="iOSDevice64\DebugUI\CubeMapRT" Configuration="DebugUI" Class="ProjectOutput"/>
                 <DeployFile LocalName="iOSDevice64\Debug\Clear.entitlements" Configuration="Debug" Class="ProjectiOSEntitlements"/>
                 <DeployFile LocalName="iOSDevice64\Debug\Clear.info.plist" Configuration="Debug" Class="ProjectiOSInfoPList"/>
                 <DeployFile LocalName="iOSDevice64\Debug\Clear.launchscreen" Configuration="Debug" Class="ProjectiOSLaunchScreen"/>
-                <DeployFile LocalName="iOSDevice64\Debug\Cube" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="iOSDevice64\Debug\CubeMapRT" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="iOSDevice64\ReleaseUI\Clear.entitlements" Configuration="ReleaseUI" Class="ProjectiOSEntitlements"/>
                 <DeployFile LocalName="iOSDevice64\ReleaseUI\Clear.info.plist" Configuration="ReleaseUI" Class="ProjectiOSInfoPList"/>
                 <DeployFile LocalName="iOSDevice64\ReleaseUI\Clear.launchscreen" Configuration="ReleaseUI" Class="ProjectiOSLaunchScreen"/>
-                <DeployFile LocalName="iOSDevice64\ReleaseUI\Cube" Configuration="ReleaseUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="iOSDevice64\ReleaseUI\CubeMapRT" Configuration="ReleaseUI" Class="ProjectOutput"/>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">
                         <Operation>1</Operation>
@@ -1490,7 +1497,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
     <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
     <Import Project="$(MSBuildProjectName).deployproj" Condition="Exists('$(MSBuildProjectName).deployproj')"/>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Android'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1498,7 +1505,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Android64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1506,7 +1513,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='iOSDevice64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1514,7 +1521,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='iOSSimARM64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1522,7 +1529,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='OSX64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1530,7 +1537,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='OSXARM64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1538,7 +1545,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1546,7 +1553,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1554,7 +1561,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='DebugUI' And '$(Platform)'=='Android'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1562,7 +1569,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='DebugUI' And '$(Platform)'=='Android64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1570,7 +1577,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='DebugUI' And '$(Platform)'=='iOSDevice64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1578,7 +1585,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='DebugUI' And '$(Platform)'=='iOSSimARM64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1586,7 +1593,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='DebugUI' And '$(Platform)'=='OSX64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1594,7 +1601,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='DebugUI' And '$(Platform)'=='OSXARM64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1602,7 +1609,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='DebugUI' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1610,7 +1617,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='DebugUI' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1618,7 +1625,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Android'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1626,7 +1633,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Android64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1634,7 +1641,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='iOSDevice64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1642,7 +1649,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='iOSSimARM64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1650,7 +1657,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='OSX64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1658,7 +1665,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='OSXARM64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1666,7 +1673,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1674,7 +1681,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1682,7 +1689,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='ReleaseUI' And '$(Platform)'=='Android'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1690,7 +1697,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='ReleaseUI' And '$(Platform)'=='Android64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1698,7 +1705,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='ReleaseUI' And '$(Platform)'=='iOSDevice64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1706,7 +1713,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='ReleaseUI' And '$(Platform)'=='iOSSimARM64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1714,7 +1721,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='ReleaseUI' And '$(Platform)'=='OSX64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1722,7 +1729,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='ReleaseUI' And '$(Platform)'=='OSXARM64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1730,7 +1737,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='ReleaseUI' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -1738,7 +1745,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='ReleaseUI' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeShader.glsl --output CubeShader.pas</PreBuildEvent>
+        <PreBuildEvent>..\..\Tools\sokol-shdc.exe --input CubeMapJpegShader.glsl --output CubeMapJpegShader.pas</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
