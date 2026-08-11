@@ -37,7 +37,7 @@ type
   private
     function XorShift32: UInt32; inline;
     function Rnd: Single; inline;
-  public
+  protected
     class function HasImGui: Boolean; override;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
