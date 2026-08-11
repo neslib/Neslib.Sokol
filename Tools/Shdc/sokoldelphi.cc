@@ -185,7 +185,7 @@ void SokolDelphiGenerator::gen_struct_interior_decl_std430(const GenInput& gen, 
     for (const Type& item: struc.struct_items) {
         int next_offset = item.offset;
         if (next_offset > cur_offset) {
-            l("_Pad{}: array [0..{}] of Byte;\n", cur_offset, next_offset - cur_offset);
+            l("_Pad{}: array [0..{}] of Byte;\n", cur_offset, next_offset - cur_offset - 1);
             cur_offset = next_offset;
         }
         auto item_name = delphi_case(item.name);
@@ -280,7 +280,7 @@ void SokolDelphiGenerator::gen_struct_interior_decl_std430(const GenInput& gen, 
         cur_offset += item.size;
     }
     if (cur_offset < pad_to_size) {
-        l("_Pad{}: array [0..{}] of Byte;\n", cur_offset, pad_to_size - cur_offset);
+        l("_Pad{}: array [0..{}] of Byte;\n", cur_offset, pad_to_size - cur_offset - 1);
     }
 }
 

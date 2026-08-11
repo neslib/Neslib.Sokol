@@ -1,6 +1,6 @@
 # Delphi Bindings Generator for ImGui
 
-Using [Dear Bindings](https://github.com/dearimgui/dear_bindings) for [ImGui 1.92.8, master (*not* docking) branch](https://github.com/dearimgui/dear_bindings/releases/tag/DearBindings_v0.21_ImGui_v1.92.8).
+Using [Dear Bindings](https://github.com/dearimgui/dear_bindings) for [ImGui 1.92.8, *docking* branch](https://github.com/dearimgui/dear_bindings/releases/tag/DearBindings_v0.21_ImGui_v1.92.8-docking).
 
 Creates bindings only for the main imgui.h header file (from dcimgui.json), *not* for extensions or internal headers (like imgui_internal.h).
 

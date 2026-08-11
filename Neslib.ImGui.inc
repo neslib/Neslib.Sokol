@@ -39,6 +39,7 @@ type
   _ImGuiTabItemFlags = Integer;
   _ImGuiFocusedFlags = Integer;
   _ImGuiHoveredFlags = Integer;
+  _ImGuiDockNodeFlags = Integer;
   _ImGuiDragDropFlags = Integer;
   _ImGuiDataType = Integer;
   _ImGuiDir = Integer;
@@ -76,8 +77,8 @@ const
   _ImGuiDataType_COUNT = 12;
   _ImGuiDir_COUNT = 4;
   _ImGuiKey_NamedKey_COUNT = 155;
-  _ImGuiCol_COUNT = 61;
-  _ImGuiStyleVar_COUNT = 42;
+  _ImGuiCol_COUNT = 63;
+  _ImGuiStyleVar_COUNT = 43;
   _ImGuiMouseButton_COUNT = 5;
   _ImGuiMouseCursor_COUNT = 11;
   _ImGuiMouseSource_COUNT = 3;
@@ -280,7 +281,19 @@ type
     _Data: Pointer;
   end;
 
+  _ImVector_ImGuiPlatformMonitor = record
+    _Size: Int32;
+    _Capacity: Int32;
+    _Data: Pointer;
+  end;
+
   _ImVector_ImTextureDataPtr = record
+    _Size: Int32;
+    _Capacity: Int32;
+    _Data: Pointer;
+  end;
+
+  _ImVector_ImGuiViewportPtr = record
     _Size: Int32;
     _Capacity: Int32;
     _Data: Pointer;
@@ -346,6 +359,8 @@ type
     _SeparatorTextPadding: _ImVec2;
     _DisplayWindowPadding: _ImVec2;
     _DisplaySafeAreaPadding: _ImVec2;
+    _DockingNodeHasCloseButton: Boolean;
+    _DockingSeparatorSize: Single;
     _MouseCursorScale: Single;
     _AntiAliasedLines: Boolean;
     _AntiAliasedLinesUseTex: Boolean;
@@ -389,6 +404,18 @@ type
     _ConfigNavEscapeClearFocusWindow: Boolean;
     _ConfigNavCursorVisibleAuto: Boolean;
     _ConfigNavCursorVisibleAlways: Boolean;
+    _ConfigDockingNoSplit: Boolean;
+    _ConfigDockingNoDockingOver: Boolean;
+    _ConfigDockingWithShift: Boolean;
+    _ConfigDockingAlwaysTabBar: Boolean;
+    _ConfigDockingTransparentPayload: Boolean;
+    _ConfigViewportsNoAutoMerge: Boolean;
+    _ConfigViewportsNoTaskBarIcon: Boolean;
+    _ConfigViewportsNoDecoration: Boolean;
+    _ConfigViewportsNoDefaultParent: Boolean;
+    _ConfigViewportsPlatformFocusSetsImGuiFocus: Boolean;
+    _ConfigDpiScaleFonts: Boolean;
+    _ConfigDpiScaleViewports: Boolean;
     _MouseDrawCursor: Boolean;
     _ConfigMacOSXBehaviors: Boolean;
     _ConfigInputTrickleEventQueue: Boolean;
@@ -440,6 +467,7 @@ type
     _MouseWheel: Single;
     _MouseWheelH: Single;
     _MouseSource: _ImGuiMouseSource;
+    _MouseHoveredViewport: _ImGuiID;
     _KeyCtrl: Boolean;
     _KeyShift: Boolean;
     _KeyAlt: Boolean;
@@ -462,6 +490,7 @@ type
     _MouseCtrlLeftAsRightClick: Boolean;
     _MouseDownDuration: array [0..4] of Single;
     _MouseDownDurationPrev: array [0..4] of Single;
+    _MouseDragMaxDistanceAbs: array [0..4] of _ImVec2;
     _MouseDragMaxDistanceSqr: array [0..4] of Single;
     _PenPressure: Single;
     _AppFocusLost: Boolean;
@@ -493,6 +522,19 @@ type
     _Pos: _ImVec2;
     _CurrentSize: _ImVec2;
     _DesiredSize: _ImVec2;
+  end;
+
+  _ImGuiWindowClass = record
+    _ClassId: _ImGuiID;
+    _ParentViewportId: _ImGuiID;
+    _FocusRouteParentWindowId: _ImGuiID;
+    _ViewportFlagsOverrideSet: _ImGuiViewportFlags;
+    _ViewportFlagsOverrideClear: _ImGuiViewportFlags;
+    _TabItemFlagsOverrideSet: _ImGuiTabItemFlags;
+    _DockNodeFlagsOverrideSet: _ImGuiDockNodeFlags;
+    _DockingAlwaysTabBar: Boolean;
+    _DockingAllowUnclassed: Boolean;
+    _PlatformIconData: Pointer;
   end;
 
   _ImGuiPayload = record
@@ -806,8 +848,28 @@ type
     _FramebufferScale: _ImVec2;
     _WorkPos: _ImVec2;
     _WorkSize: _ImVec2;
+    _DpiScale: Single;
+    _ParentViewportId: _ImGuiID;
+    _ParentViewport: Pointer;
+    _DrawData: Pointer;
+    _RendererUserData: Pointer;
+    _PlatformUserData: Pointer;
+    _PlatformIconData: Pointer;
     _PlatformHandle: Pointer;
     _PlatformHandleRaw: Pointer;
+    _PlatformWindowCreated: Boolean;
+    _PlatformRequestMove: Boolean;
+    _PlatformRequestResize: Boolean;
+    _PlatformRequestClose: Boolean;
+  end;
+
+  _ImGuiPlatformMonitor = record
+    _MainPos: _ImVec2;
+    _MainSize: _ImVec2;
+    _WorkPos: _ImVec2;
+    _WorkSize: _ImVec2;
+    _DpiScale: Single;
+    _PlatformHandle: Pointer;
   end;
 
   _ImGuiPlatformIO = record
@@ -825,7 +887,34 @@ type
     _DrawCallback_ResetRenderState: _ImDrawCallback;
     _DrawCallback_SetSamplerLinear: _ImDrawCallback;
     _DrawCallback_SetSamplerNearest: _ImDrawCallback;
+    _Platform_CreateWindow: procedure(vp: Pointer); cdecl;
+    _Platform_DestroyWindow: procedure(vp: Pointer); cdecl;
+    _Platform_ShowWindow: procedure(vp: Pointer); cdecl;
+    _Platform_SetWindowPos: procedure(vp: Pointer; pos: _ImVec2); cdecl;
+    _Platform_GetWindowPos: function(vp: Pointer): _ImVec2; cdecl;
+    _Platform_SetWindowSize: procedure(vp: Pointer; size: _ImVec2); cdecl;
+    _Platform_GetWindowSize: function(vp: Pointer): _ImVec2; cdecl;
+    _Platform_GetWindowFramebufferScale: function(vp: Pointer): _ImVec2; cdecl;
+    _Platform_SetWindowFocus: procedure(vp: Pointer); cdecl;
+    _Platform_GetWindowFocus: function(vp: Pointer): Boolean; cdecl;
+    _Platform_GetWindowMinimized: function(vp: Pointer): Boolean; cdecl;
+    _Platform_SetWindowTitle: procedure(vp: Pointer; str: Pointer); cdecl;
+    _Platform_SetWindowAlpha: procedure(vp: Pointer; alpha: Single); cdecl;
+    _Platform_UpdateWindow: procedure(vp: Pointer); cdecl;
+    _Platform_RenderWindow: procedure(vp: Pointer; render_arg: Pointer); cdecl;
+    _Platform_SwapBuffers: procedure(vp: Pointer; render_arg: Pointer); cdecl;
+    _Platform_GetWindowDpiScale: function(vp: Pointer): Single; cdecl;
+    _Platform_OnChangedViewport: procedure(vp: Pointer); cdecl;
+    _Platform_GetWindowWorkAreaInsets: function(vp: Pointer): _ImVec4; cdecl;
+    _Platform_CreateVkSurface: function(vp: Pointer; vk_inst: _ImU64; vk_allocators: Pointer; out_vk_surface: Pointer): Int32; cdecl;
+    _Renderer_CreateWindow: procedure(vp: Pointer); cdecl;
+    _Renderer_DestroyWindow: procedure(vp: Pointer); cdecl;
+    _Renderer_SetWindowSize: procedure(vp: Pointer; size: _ImVec2); cdecl;
+    _Renderer_RenderWindow: procedure(vp: Pointer; render_arg: Pointer); cdecl;
+    _Renderer_SwapBuffers: procedure(vp: Pointer; render_arg: Pointer); cdecl;
+    _Monitors: _ImVector_ImGuiPlatformMonitor;
     _Textures: _ImVector_ImTextureDataPtr;
+    _Viewports: _ImVector_ImGuiViewportPtr;
   end;
 
   _ImGuiPlatformImeData = record
@@ -945,6 +1034,9 @@ function _igIsWindowHovered(_flags: _ImGuiHoveredFlags): Boolean; cdecl;
 function _igGetWindowDrawList(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'igGetWindowDrawList';
 
+function _igGetWindowDpiScale(): Single; cdecl;
+  external _LIB_SOKOL name _PU + 'igGetWindowDpiScale';
+
 function _igGetWindowPos(): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'igGetWindowPos';
 
@@ -956,6 +1048,9 @@ function _igGetWindowWidth(): Single; cdecl;
 
 function _igGetWindowHeight(): Single; cdecl;
   external _LIB_SOKOL name _PU + 'igGetWindowHeight';
+
+function _igGetWindowViewport(): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'igGetWindowViewport';
 
 procedure _igSetNextWindowPos(_pos: _ImVec2; _cond: _ImGuiCond); cdecl;
   external _LIB_SOKOL name _PU + 'igSetNextWindowPos';
@@ -983,6 +1078,9 @@ procedure _igSetNextWindowScroll(_scroll: _ImVec2); cdecl;
 
 procedure _igSetNextWindowBgAlpha(_alpha: Single); cdecl;
   external _LIB_SOKOL name _PU + 'igSetNextWindowBgAlpha';
+
+procedure _igSetNextWindowViewport(_viewport_id: _ImGuiID); cdecl;
+  external _LIB_SOKOL name _PU + 'igSetNextWindowViewport';
 
 procedure _igSetWindowPos(_pos: _ImVec2; _cond: _ImGuiCond); cdecl;
   external _LIB_SOKOL name _PU + 'igSetWindowPos';
@@ -1911,6 +2009,30 @@ function _igTabItemButton(_label: Pointer; _flags: _ImGuiTabItemFlags): Boolean;
 procedure _igSetTabItemClosed(_tab_or_docked_window_label: Pointer); cdecl;
   external _LIB_SOKOL name _PU + 'igSetTabItemClosed';
 
+function _igDockSpace(_dockspace_id: _ImGuiID): _ImGuiID; cdecl;
+  external _LIB_SOKOL name _PU + 'igDockSpace';
+
+function _igDockSpaceEx(_dockspace_id: _ImGuiID; _size: _ImVec2; _flags: _ImGuiDockNodeFlags; _window_class: Pointer): _ImGuiID; cdecl;
+  external _LIB_SOKOL name _PU + 'igDockSpaceEx';
+
+function _igDockSpaceOverViewport(): _ImGuiID; cdecl;
+  external _LIB_SOKOL name _PU + 'igDockSpaceOverViewport';
+
+function _igDockSpaceOverViewportEx(_dockspace_id: _ImGuiID; _viewport: Pointer; _flags: _ImGuiDockNodeFlags; _window_class: Pointer): _ImGuiID; cdecl;
+  external _LIB_SOKOL name _PU + 'igDockSpaceOverViewportEx';
+
+procedure _igSetNextWindowDockID(_dock_id: _ImGuiID; _cond: _ImGuiCond); cdecl;
+  external _LIB_SOKOL name _PU + 'igSetNextWindowDockID';
+
+procedure _igSetNextWindowClass(_window_class: Pointer); cdecl;
+  external _LIB_SOKOL name _PU + 'igSetNextWindowClass';
+
+function _igGetWindowDockID(): _ImGuiID; cdecl;
+  external _LIB_SOKOL name _PU + 'igGetWindowDockID';
+
+function _igIsWindowDocked(): Boolean; cdecl;
+  external _LIB_SOKOL name _PU + 'igIsWindowDocked';
+
 procedure _igLogToTTY(_auto_open_depth: Int32); cdecl;
   external _LIB_SOKOL name _PU + 'igLogToTTY';
 
@@ -2040,8 +2162,14 @@ function _igGetMainViewport(): Pointer; cdecl;
 function _igGetBackgroundDrawList(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'igGetBackgroundDrawList';
 
+function _igGetBackgroundDrawListEx(_viewport: Pointer): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'igGetBackgroundDrawListEx';
+
 function _igGetForegroundDrawList(): Pointer; cdecl;
   external _LIB_SOKOL name _PU + 'igGetForegroundDrawList';
+
+function _igGetForegroundDrawListEx(_viewport: Pointer): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'igGetForegroundDrawListEx';
 
 function _igIsRectVisibleBySize(_size: _ImVec2): Boolean; cdecl;
   external _LIB_SOKOL name _PU + 'igIsRectVisibleBySize';
@@ -2223,6 +2351,24 @@ function _igMemAlloc(_size: NativeUInt): Pointer; cdecl;
 procedure _igMemFree(_ptr: Pointer); cdecl;
   external _LIB_SOKOL name _PU + 'igMemFree';
 
+procedure _igUpdatePlatformWindows(); cdecl;
+  external _LIB_SOKOL name _PU + 'igUpdatePlatformWindows';
+
+procedure _igRenderPlatformWindowsDefault(); cdecl;
+  external _LIB_SOKOL name _PU + 'igRenderPlatformWindowsDefault';
+
+procedure _igRenderPlatformWindowsDefaultEx(_platform_render_arg: Pointer; _renderer_render_arg: Pointer); cdecl;
+  external _LIB_SOKOL name _PU + 'igRenderPlatformWindowsDefaultEx';
+
+procedure _igDestroyPlatformWindows(); cdecl;
+  external _LIB_SOKOL name _PU + 'igDestroyPlatformWindows';
+
+function _igFindViewportByID(_viewport_id: _ImGuiID): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'igFindViewportByID';
+
+function _igFindViewportByPlatformHandle(_platform_handle: Pointer): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'igFindViewportByPlatformHandle';
+
 procedure _ImGuiStyle_ScaleAllSizes(_self: Pointer; _scale_factor: Single); cdecl;
   external _LIB_SOKOL name _PU + 'ImGuiStyle_ScaleAllSizes';
 
@@ -2243,6 +2389,9 @@ procedure _ImGuiIO_AddMouseWheelEvent(_self: Pointer; _wheel_x, _wheel_y: Single
 
 procedure _ImGuiIO_AddMouseSourceEvent(_self: Pointer; _source: _ImGuiMouseSource); cdecl;
   external _LIB_SOKOL name _PU + 'ImGuiIO_AddMouseSourceEvent';
+
+procedure _ImGuiIO_AddMouseViewportEvent(_self: Pointer; _id: _ImGuiID); cdecl;
+  external _LIB_SOKOL name _PU + 'ImGuiIO_AddMouseViewportEvent';
 
 procedure _ImGuiIO_AddFocusEvent(_self: Pointer; _focused: Boolean); cdecl;
   external _LIB_SOKOL name _PU + 'ImGuiIO_AddFocusEvent';
@@ -2912,6 +3061,9 @@ function _ImGuiViewport_GetCenter(_self: Pointer): UInt64; cdecl;
 
 function _ImGuiViewport_GetWorkCenter(_self: Pointer): UInt64; cdecl;
   external _LIB_SOKOL name _PU + 'ImGuiViewport_GetWorkCenter';
+
+function _ImGuiViewport_GetDebugName(_self: Pointer): Pointer; cdecl;
+  external _LIB_SOKOL name _PU + 'ImGuiViewport_GetDebugName';
 
 procedure _ImGuiPlatformIO_ClearPlatformHandlers(_self: Pointer); cdecl;
   external _LIB_SOKOL name _PU + 'ImGuiPlatformIO_ClearPlatformHandlers';

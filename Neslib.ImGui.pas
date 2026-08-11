@@ -72,6 +72,7 @@ type
     NoNavInputs = 16,               // No keyboard/gamepad navigation within the window 
     NoNavFocus = 17,                // No focusing toward this window with keyboard/gamepad navigation (e.g. skipped by Ctrl+Tab) 
     UnsavedDocument = 18,           // Display a dot next to the title. When used in a tab/docking context, tab is selected when clicking the X + closure is not assumed (will wait for user to stop submitting the tab). Otherwise closure is assumed when pressing the X, so if you keep submitting the tab may reappear at end of tab bar. 
+    NoDocking = 19,                 // Disable docking of this window 
     _ = 31); 
   TImGuiWindowFlags = set of TImGuiWindowFlag;
 
@@ -321,6 +322,7 @@ type
     RootWindow = 1,       // Test from root window (top most parent of the current hierarchy) 
     AnyWindow = 2,        // Return true if any window is focused. Important: If you are trying to tell how to dispatch your low-level inputs, do NOT use this. Use 'io.WantCaptureMouse' instead! Please read the FAQ! 
     NoPopupHierarchy = 3, // Do not consider popup hierarchy (do not treat popup emitter as parent of popup) (when used with _ChildWindows or _RootWindow) 
+    DockHierarchy = 4,    // Consider docking hierarchy (treat dockspace host as parent of docked window) (when used with _ChildWindows or _RootWindow) 
     _ = 31); 
   TImGuiFocusedFlags = set of TImGuiFocusedFlag;
 
@@ -339,7 +341,7 @@ type
     RootWindow = 1,                   // IsWindowHovered() only: Test from root window (top most parent of the current hierarchy) 
     AnyWindow = 2,                    // IsWindowHovered() only: Return true if any window is hovered 
     NoPopupHierarchy = 3,             // IsWindowHovered() only: Do not consider popup hierarchy (do not treat popup emitter as parent of popup) (when used with _ChildWindows or _RootWindow) 
-    //ImGuiHoveredFlags_DockHierarchy               = 1 << 4,   // IsWindowHovered() only: Consider docking hierarchy (treat dockspace host as parent of docked window) (when used with _ChildWindows or _RootWindow)
+    DockHierarchy = 4,                // IsWindowHovered() only: Consider docking hierarchy (treat dockspace host as parent of docked window) (when used with _ChildWindows or _RootWindow) 
     AllowWhenBlockedByPopup = 5,      // Return true even if a popup window is normally blocking access to this item/window 
     //ImGuiHoveredFlags_AllowWhenBlockedByModal     = 1 << 6,   // Return true even if a modal popup window is normally blocking access to this item/window. FIXME-TODO: Unavailable yet.
     AllowWhenBlockedByActiveItem = 7, // Return true even if an active item is blocking access to this item/window. Useful for Drag and Drop patterns. 
@@ -371,6 +373,27 @@ type
     AllowWhenOverlapped = [TImGuiHoveredFlag.AllowWhenOverlappedByItem, TImGuiHoveredFlag.AllowWhenOverlappedByWindow]; 
     RectOnly = [TImGuiHoveredFlag.AllowWhenBlockedByPopup, TImGuiHoveredFlag.AllowWhenBlockedByActiveItem, TImGuiHoveredFlag.AllowWhenOverlappedByItem, TImGuiHoveredFlag.AllowWhenOverlappedByWindow]; 
     RootAndChildWindows = [TImGuiHoveredFlag.ChildWindows, TImGuiHoveredFlag.RootWindow]; 
+  end;
+
+type
+  // Flags for ImGui::DockSpace(), shared/inherited by child nodes.
+  // (Some flags can be applied to individual nodes directly)
+  // FIXME-DOCK: Also see ImGuiDockNodeFlagsPrivate_ which may involve using the WIP and internal DockBuilder api.
+  TImGuiDockNodeFlag = (
+    KeepAliveOnly = 0,            //       // Don't display the dockspace node but keep it alive. Windows docked into this dockspace node won't be undocked. 
+    //ImGuiDockNodeFlags_NoCentralNode              = 1 << 1,   //       // Disable Central Node (the node which can stay empty)
+    NoDockingOverCentralNode = 2, //       // Disable docking over the Central Node, which will be always kept empty. 
+    PassthruCentralNode = 3,      //       // Enable passthru dockspace: 1) DockSpace() will render a ImGuiCol_WindowBg background covering everything excepted the Central Node when empty. Meaning the host window should probably use SetNextWindowBgAlpha(0.0f) prior to Begin() when using this. 2) When Central Node is empty: let inputs pass-through + won't display a DockingEmptyBg background. See demo for details. 
+    NoDockingSplit = 4,           //       // Disable other windows/nodes from splitting this node. 
+    NoResize = 5,                 // Saved // Disable resizing node using the splitter/separators. Useful with programmatically setup dockspaces. 
+    AutoHideTabBar = 6,           //       // Tab bar will automatically hide when there is a single window in the dock node. 
+    NoUndocking = 7,              //       // Disable undocking this node. 
+    _ = 31); 
+  TImGuiDockNodeFlags = set of TImGuiDockNodeFlag;
+
+  _TImGuiDockNodeFlagsHelper = record helper for TImGuiDockNodeFlags
+  public const
+    None = []; 
   end;
 
 type
@@ -652,6 +675,11 @@ type
     NoMouse = 4,             // Instruct dear imgui to disable mouse inputs and interactions. 
     NoMouseCursorChange = 5, // Instruct backend to not alter mouse cursor shape and visibility. Use if the backend cursor changes are interfering with yours and you don't want to use SetMouseCursor() to change mouse cursor. You may want to honor requests from imgui by reading GetMouseCursor() yourself instead. 
     NoKeyboard = 6,          // Instruct dear imgui to disable keyboard inputs and interactions. This is done by ignoring keyboard events and clearing existing states. 
+    // [BETA] Docking
+    DockingEnable = 7,       // Docking enable flags. 
+    // [BETA] Viewports
+    // When using viewports it is recommended that your default value for ImGuiCol_WindowBg is opaque (Alpha=1.0) so transition to a viewport won't be noticeable.
+    ViewportsEnable = 10,    // Viewport enable flags (require both ImGuiBackendFlags_PlatformHasViewports + ImGuiBackendFlags_RendererHasViewports set by the respective backends) 
     // [Unused] User storage (to allow your backend/engine to communicate to code that may be shared between multiple projects. Those flags are NOT used by core Dear ImGui)
     IsSRGB = 20,             // Application is SRGB-aware. 
     IsTouchScreen = 21,      // Application is using a touch screen instead of a mouse. 
@@ -666,11 +694,16 @@ type
 type
   // Backend capabilities flags stored in io.BackendFlags. Set by imgui_impl_xxx or custom backend.
   TImGuiBackendFlag = (
-    HasGamepad = 0,           // Backend Platform supports gamepad and currently has one connected. 
-    HasMouseCursors = 1,      // Backend Platform supports honoring GetMouseCursor() value to change the OS cursor shape. 
-    HasSetMousePos = 2,       // Backend Platform supports io.WantSetMousePos requests to reposition the OS mouse position (only used if io.ConfigNavMoveSetMousePos is set). 
-    RendererHasVtxOffset = 3, // Backend Renderer supports ImDrawCmd::VtxOffset. This enables output of large meshes (64K+ vertices) while still using 16-bit indices. 
-    RendererHasTextures = 4,  // Backend Renderer supports ImTextureData requests to create/update/destroy textures. This enables incremental texture updates and texture reloads. See https://github.com/ocornut/imgui/blob/master/docs/BACKENDS.md for instructions on how to upgrade your custom backend. 
+    HasGamepad = 0,               // Backend Platform supports gamepad and currently has one connected. 
+    HasMouseCursors = 1,          // Backend Platform supports honoring GetMouseCursor() value to change the OS cursor shape. 
+    HasSetMousePos = 2,           // Backend Platform supports io.WantSetMousePos requests to reposition the OS mouse position (only used if io.ConfigNavMoveSetMousePos is set). 
+    RendererHasVtxOffset = 3,     // Backend Renderer supports ImDrawCmd::VtxOffset. This enables output of large meshes (64K+ vertices) while still using 16-bit indices. 
+    RendererHasTextures = 4,      // Backend Renderer supports ImTextureData requests to create/update/destroy textures. This enables incremental texture updates and texture reloads. See https://github.com/ocornut/imgui/blob/master/docs/BACKENDS.md for instructions on how to upgrade your custom backend. 
+    // [BETA] Multi-Viewports
+    RendererHasViewports = 10,    // Backend Renderer supports multiple viewports. 
+    PlatformHasViewports = 11,    // Backend Platform supports multiple viewports. 
+    HasMouseHoveredViewport = 12, // Backend Platform supports calling io.AddMouseViewportEvent() with the viewport under the mouse. IF POSSIBLE, ignore viewports with the ImGuiViewportFlags_NoInputs flag (Win32 backend, GLFW 3.30+ backend can do this, SDL backend cannot). If this cannot be done, Dear ImGui needs to use a flawed heuristic to find the viewport under. 
+    HasParentViewport = 13,       // Backend Platform supports honoring viewport->ParentViewport/ParentViewportId value, by applying the corresponding parent/child relationship at the Platform level. Child windows always appear in front of their parent window. 
     _ = 31); 
   TImGuiBackendFlags = set of TImGuiBackendFlag;
 
@@ -724,25 +757,27 @@ type
     TabDimmed = 39,                 // Tab background, when tab-bar is unfocused & tab is unselected 
     TabDimmedSelected = 40,         // Tab background, when tab-bar is unfocused & tab is selected 
     TabDimmedSelectedOverline = 41, //..horizontal overline, when tab-bar is unfocused & tab is selected 
-    PlotLines = 42, 
-    PlotLinesHovered = 43, 
-    PlotHistogram = 44, 
-    PlotHistogramHovered = 45, 
-    TableHeaderBg = 46,             // Table header background 
-    TableBorderStrong = 47,         // Table outer and header borders (prefer using Alpha=1.0 here) 
-    TableBorderLight = 48,          // Table inner borders (prefer using Alpha=1.0 here) 
-    TableRowBg = 49,                // Table row background (even rows) 
-    TableRowBgAlt = 50,             // Table row background (odd rows) 
-    TextLink = 51,                  // Hyperlink color 
-    TextSelectedBg = 52,            // Selected text inside an InputText 
-    TreeLines = 53,                 // Tree node hierarchy outlines when using ImGuiTreeNodeFlags_DrawLines 
-    DragDropTarget = 54,            // Rectangle border highlighting a drop target 
-    DragDropTargetBg = 55,          // Rectangle background highlighting a drop target 
-    UnsavedMarker = 56,             // Unsaved Document marker (in window title and tabs) 
-    NavCursor = 57,                 // Color of keyboard/gamepad navigation cursor/rectangle, when visible 
-    NavWindowingHighlight = 58,     // Highlight window when using Ctrl+Tab 
-    NavWindowingDimBg = 59,         // Darken/colorize entire screen behind the Ctrl+Tab window list, when active 
-    ModalWindowDimBg = 60);         // Darken/colorize entire screen behind a modal window, when one is active 
+    DockingPreview = 42,            // Preview overlay color when about to docking something 
+    DockingEmptyBg = 43,            // Background color for empty node (e.g. CentralNode with no window docked into it) 
+    PlotLines = 44, 
+    PlotLinesHovered = 45, 
+    PlotHistogram = 46, 
+    PlotHistogramHovered = 47, 
+    TableHeaderBg = 48,             // Table header background 
+    TableBorderStrong = 49,         // Table outer and header borders (prefer using Alpha=1.0 here) 
+    TableBorderLight = 50,          // Table inner borders (prefer using Alpha=1.0 here) 
+    TableRowBg = 51,                // Table row background (even rows) 
+    TableRowBgAlt = 52,             // Table row background (odd rows) 
+    TextLink = 53,                  // Hyperlink color 
+    TextSelectedBg = 54,            // Selected text inside an InputText 
+    TreeLines = 55,                 // Tree node hierarchy outlines when using ImGuiTreeNodeFlags_DrawLines 
+    DragDropTarget = 56,            // Rectangle border highlighting a drop target 
+    DragDropTargetBg = 57,          // Rectangle background highlighting a drop target 
+    UnsavedMarker = 58,             // Unsaved Document marker (in window title and tabs) 
+    NavCursor = 59,                 // Color of keyboard/gamepad navigation cursor/rectangle, when visible 
+    NavWindowingHighlight = 60,     // Highlight window when using Ctrl+Tab 
+    NavWindowingDimBg = 61,         // Darken/colorize entire screen behind the Ctrl+Tab window list, when active 
+    ModalWindowDimBg = 62);         // Darken/colorize entire screen behind a modal window, when one is active 
 
 type
   // Enumeration for PushStyleVar() / PopStyleVar() to temporarily modify the ImGuiStyle structure.
@@ -796,7 +831,8 @@ type
     SeparatorSize = 38,               // float     SeparatorSize 
     SeparatorTextBorderSize = 39,     // float     SeparatorTextBorderSize 
     SeparatorTextAlign = 40,          // ImVec2    SeparatorTextAlign 
-    SeparatorTextPadding = 41);       // ImVec2    SeparatorTextPadding 
+    SeparatorTextPadding = 41,        // ImVec2    SeparatorTextPadding 
+    DockingSeparatorSize = 42);       // float     DockingSeparatorSize 
 
 type
   // Flags for InvisibleButton() [extended in imgui_internal.h]
@@ -1193,9 +1229,21 @@ type
 type
   // Flags stored in ImGuiViewport::Flags, giving indications to the platform backends.
   TImGuiViewportFlag = (
-    IsPlatformWindow = 0,  // Represent a Platform Window 
-    IsPlatformMonitor = 1, // Represent a Platform Monitor (unused yet) 
-    OwnedByApp = 2,        // Platform Window: Is created/managed by the application (rather than a dear imgui backend) 
+    IsPlatformWindow = 0,     // Represent a Platform Window 
+    IsPlatformMonitor = 1,    // Represent a Platform Monitor (unused yet) 
+    OwnedByApp = 2,           // Platform Window: Is created/managed by the user application? (rather than our backend) 
+    NoDecoration = 3,         // Platform Window: Disable platform decorations: title bar, borders, etc. (generally set all windows, but if ImGuiConfigFlags_ViewportsDecoration is set we only set this on popups/tooltips) 
+    NoTaskBarIcon = 4,        // Platform Window: Disable platform task bar icon (generally set on popups/tooltips, or all windows if ImGuiConfigFlags_ViewportsNoTaskBarIcon is set) 
+    NoFocusOnAppearing = 5,   // Platform Window: Don't take focus when created. 
+    NoFocusOnClick = 6,       // Platform Window: Don't take focus when clicked on. 
+    NoInputs = 7,             // Platform Window: Make mouse pass through so we can drag this window while peaking behind it. 
+    NoRendererClear = 8,      // Platform Window: Renderer doesn't need to clear the framebuffer ahead (because we will fill it entirely). 
+    NoAutoMerge = 9,          // Platform Window: Avoid merging this window into another host window. This can only be set via ImGuiWindowClass viewport flags override (because we need to now ahead if we are going to create a viewport in the first place!). 
+    TopMost = 10,             // Platform Window: Display on top (for tooltips only). 
+    CanHostOtherWindows = 11, // Viewport can host multiple imgui windows (secondary viewports are associated to a single window). // FIXME: In practice there's still probably code making the assumption that this is always and only on the MainViewport. Will fix once we add support for "no main viewport". 
+    // Output status flags (from Platform)
+    IsMinimized = 12,         // Platform Window: Window is minimized, can skip render. When minimized we tend to avoid using the viewport pos/size for clipping window or testing if they are contained in the viewport. 
+    IsFocused = 13,           // Platform Window: Window is focused (last call to Platform_GetWindowFocus() returned true) 
     _ = 31); 
   TImGuiViewportFlags = set of TImGuiViewportFlag;
 
@@ -1295,6 +1343,9 @@ type
   TImGuiSizeCallbackDataPtr = ^TImGuiSizeCallbackData;
   PImGuiSizeCallbackData = ^TImGuiSizeCallbackData;
   PPImGuiSizeCallbackData = ^PImGuiSizeCallbackData;
+  TImGuiWindowClassPtr = ^TImGuiWindowClass;
+  PImGuiWindowClass = ^TImGuiWindowClass;
+  PPImGuiWindowClass = ^PImGuiWindowClass;
   TImGuiPayloadPtr = ^TImGuiPayload;
   PImGuiPayload = ^TImGuiPayload;
   PPImGuiPayload = ^PImGuiPayload;
@@ -1379,6 +1430,9 @@ type
   TImGuiViewportPtr = ^TImGuiViewport;
   PImGuiViewport = ^TImGuiViewport;
   PPImGuiViewport = ^PImGuiViewport;
+  TImGuiPlatformMonitorPtr = ^TImGuiPlatformMonitor;
+  PImGuiPlatformMonitor = ^TImGuiPlatformMonitor;
+  PPImGuiPlatformMonitor = ^PImGuiPlatformMonitor;
   TImGuiPlatformIOPtr = ^TImGuiPlatformIO;
   PImGuiPlatformIO = ^TImGuiPlatformIO;
   PPImGuiPlatformIO = ^PImGuiPlatformIO;
@@ -1516,6 +1570,8 @@ type
     SeparatorTextPadding: TVector2;                // Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y. 
     DisplayWindowPadding: TVector2;                // Apply to regular windows: amount which we enforce to keep visible when moving near edges of your screen. 
     DisplaySafeAreaPadding: TVector2;              // Apply to every windows, menus, popups, tooltips: amount where we avoid displaying contents. Adjust if you cannot see the edges of your screen (e.g. on a TV where scaling has not been configured). 
+    DockingNodeHasCloseButton: Boolean;            // Docking node has their own CloseButton() to close all docked windows. 
+    DockingSeparatorSize: Single;                  // Thickness of resizing border between docked windows 
     MouseCursorScale: Single;                      // Scale software rendered mouse cursor (when io.MouseDrawCursor is enabled). We apply per-monitor DPI scaling over this scale. May be removed later. 
     AntiAliasedLines: Boolean;                     // Enable anti-aliased lines/borders. Disable if you are really tight on CPU/GPU. Latched at the beginning of the frame (copied to ImDrawList). 
     AntiAliasedLinesUseTex: Boolean;               // Enable anti-aliased lines/borders using textures where possible. Require backend to render with bilinear filtering (NOT point/nearest filtering). Latched at the beginning of the frame (copied to ImDrawList). 
@@ -1578,6 +1634,23 @@ type
     ConfigNavEscapeClearFocusWindow: Boolean;                           // = false          // Pressing Escape can clear focused window as well (super set of io.ConfigNavEscapeClearFocusItem). 
     ConfigNavCursorVisibleAuto: Boolean;                                // = true           // Using directional navigation key makes the cursor visible. Mouse click hides the cursor. 
     ConfigNavCursorVisibleAlways: Boolean;                              // = false          // Navigation cursor is always visible. 
+    // Docking options (when ImGuiConfigFlags_DockingEnable is set)
+    ConfigDockingNoSplit: Boolean;                                      // = false          // Simplified docking mode: disable window splitting, so docking is limited to merging multiple windows together into tab-bars. 
+    ConfigDockingNoDockingOver: Boolean;                                // = false          // Simplified docking mode: disable window merging into a same tab-bar, so docking is limited to splitting windows. 
+    ConfigDockingWithShift: Boolean;                                    // = false          // Enable docking with holding Shift key (reduce visual noise, allows dropping in wider space) 
+    ConfigDockingAlwaysTabBar: Boolean;                                 // = false          // [BETA] [FIXME: This currently creates regression with auto-sizing and general overhead] Make every single floating window display within a docking node. 
+    ConfigDockingTransparentPayload: Boolean;                           // = false          // [BETA] Make window or viewport transparent when docking and only display docking boxes on the target viewport. Useful if rendering of multiple viewport cannot be synced. Best used with ConfigViewportsNoAutoMerge. 
+    // Viewport options (when ImGuiConfigFlags_ViewportsEnable is set)
+    // (sorry for the amount of "NoXXXX" flags, which may be harder to reason about! may rework someday)
+    ConfigViewportsNoAutoMerge: Boolean;                                // = false;         // Set to make all floating imgui windows always create their own viewport. Otherwise, they are merged into the main host viewports when overlapping it. May also set ImGuiViewportFlags_NoAutoMerge on individual viewport. 
+    ConfigViewportsNoTaskBarIcon: Boolean;                              // = false          // Disable default OS task bar icon flag for secondary viewports. When a viewport doesn't want a task bar icon, ImGuiViewportFlags_NoTaskBarIcon will be set on it. 
+    ConfigViewportsNoDecoration: Boolean;                               // = true           // Disable default OS window decoration flag for secondary viewports. When a viewport doesn't want window decorations, ImGuiViewportFlags_NoDecoration will be set on it. Enabling decoration can create subsequent issues at OS levels (e.g. minimum window size). 
+    ConfigViewportsNoDefaultParent: Boolean;                            // = true           // Disable setting OS window parent to main viewport by default. The platform backend is expected to honor `viewport->ParentViewportID` to setup a parent/child relationship between the OS windows (supported if ImGuiBackendFlags_HasParentViewport is set). When parented: child windows always appear in front of their parent. Set to false if you want viewports to automatically be parent of main viewport, otherwise all viewports will be top-level OS windows. Parent/child relationship may be set on a per-window basis using ImGuiWindowClass. 
+    ConfigViewportsPlatformFocusSetsImGuiFocus: Boolean;                //= true // When a platform window is focused (e.g. using Alt+Tab, clicking Platform Title Bar), apply corresponding focus on imgui windows (may clear focus/active id from imgui windows location in other platform windows). In principle this is better enabled but we provide an opt-out, because some Linux window managers tend to eagerly focus windows (e.g. on mouse hover, or even a simple window pos/size change). 
+    // DPI/Scaling options
+    // This may keep evolving during 1.92.x releases. Expect some turbulence.
+    ConfigDpiScaleFonts: Boolean;                                       // = false          // [EXPERIMENTAL] Automatically overwrite style.FontScaleDpi when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now. 
+    ConfigDpiScaleViewports: Boolean;                                   // = false          // [EXPERIMENTAL] Scale Dear ImGui and Platform Windows when Monitor DPI changes. 
     // Miscellaneous options
     // (you can visualize and interact with all options in 'Demo->Configuration')
     MouseDrawCursor: Boolean;                                           // = false          // Request ImGui to draw a mouse cursor for you (if you are on a platform without a mouse cursor). Cannot be easily renamed to 'io.ConfigXXX' because this is frequently used by backend implementations. 
@@ -1668,6 +1741,7 @@ type
     MouseWheel: Single;                                                 // Mouse wheel Vertical: 1 unit scrolls about 5 lines text. >0 scrolls Up, <0 scrolls Down. Hold Shift to turn vertical scroll into horizontal scroll. 
     MouseWheelH: Single;                                                // Mouse wheel Horizontal. >0 scrolls Left, <0 scrolls Right. Most users don't have a mouse with a horizontal wheel, may not be filled by all backends. 
     MouseSource: TImGuiMouseSource;                                     // Mouse actual input peripheral (Mouse/TouchScreen/Pen). 
+    MouseHoveredViewport: TImGuiID;                                     // (Optional) Modify using io.AddMouseViewportEvent(). With multi-viewports: viewport the OS mouse is hovering. If possible _IGNORING_ viewports with the ImGuiViewportFlags_NoInputs flag is much better (few backends can handle that). Set io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport if you can provide this info. If you don't imgui will infer the value using the rectangles and last focused time of the viewports it knows about (ignoring other OS windows). 
     KeyCtrl: Boolean;                                                   // Keyboard modifier down: Ctrl (non-macOS), Cmd (macOS) 
     KeyShift: Boolean;                                                  // Keyboard modifier down: Shift 
     KeyAlt: Boolean;                                                    // Keyboard modifier down: Alt 
@@ -1691,6 +1765,7 @@ type
     MouseCtrlLeftAsRightClick: Boolean;                                 // (OSX) Set to true when the current click was a Ctrl+Click that spawned a simulated right click 
     MouseDownDuration: array [0..4] of Single;                          // Duration the mouse button has been down (0.0f == just clicked) 
     MouseDownDurationPrev: array [0..4] of Single;                      // Previous time the mouse button has been down 
+    MouseDragMaxDistanceAbs: array [0..4] of TVector2;                  // Maximum distance, absolute, on each axis, of how much mouse has traveled from the clicking point 
     MouseDragMaxDistanceSqr: array [0..4] of Single;                    // Squared maximum distance of how much mouse has traveled from the clicking point (used for moving thresholds) 
     PenPressure: Single;                                                // Touch/Pen pressure (0.0f to 1.0f, should be >0.0f only when MouseDown[0] == true). Helper storage currently unused by Dear ImGui. 
     AppFocusLost: Boolean;                                              // Only modify via AddFocusEvent() 
@@ -1719,6 +1794,9 @@ type
 
     // Queue a mouse source change (Mouse/TouchScreen/Pen)
     procedure AddMouseSourceEvent(const ASource: TImGuiMouseSource); inline;
+
+    // Queue a mouse hovered viewport. Requires backend to set ImGuiBackendFlags_HasMouseHoveredViewport to call this (for multi-viewport support).
+    procedure AddMouseViewportEvent(const AId: TImGuiID); inline;
 
     // Queue a gain/loss of focus for the application (generally based on OS/platform focus of your window)
     procedure AddFocusEvent(const AFocused: Boolean); inline;
@@ -1804,6 +1882,30 @@ type
     Pos: TVector2;         // Read-only.   Window position, for reference. 
     CurrentSize: TVector2; // Read-only.   Current window size. 
     DesiredSize: TVector2; // Read-write.  Desired size, based on user's mouse position. Write to this field to restrain resizing. 
+  public
+    // Initialize with default values
+    procedure Initialize; inline;
+  end; 
+
+  // [ALPHA] Rarely used / very advanced uses only. Use with SetNextWindowClass() and DockSpace() functions.
+  // Important: the content of this class is still highly WIP and likely to change and be refactored
+  // before we stabilize Docking features. Please be mindful if using this.
+  // Provide hints:
+  // - To the platform backend via altered viewport flags (enable/disable OS decoration, OS task bar icons, etc.)
+  // - To the platform backend for OS level parent/child relationships of viewport (otherwise: default is configured via io.ConfigViewportsNoDefaultParent)
+  // - To the docking system for various options and filtering.
+  TImGuiWindowClass = record
+  public
+    ClassId: TImGuiID;                               // User data. 0 = Default class (unclassed). Windows of different classes cannot be docked with each others. 
+    ParentViewportId: TImGuiID;                      // Hint for the platform backend. -1: use default. 0: request platform backend to not parent the platform. != 0: request platform backend to create a parent<>child relationship between the platform windows. Not conforming backends are free to e.g. parent every viewport to the main viewport or not. 
+    FocusRouteParentWindowId: TImGuiID;              // ID of parent window for shortcut focus route evaluation, e.g. Shortcut() call from Parent Window will succeed when this window is focused. 
+    ViewportFlagsOverrideSet: TImGuiViewportFlags;   // Viewport flags to set when a window of this class owns a viewport. This allows you to enforce OS decoration or task bar icon, override the defaults on a per-window basis. 
+    ViewportFlagsOverrideClear: TImGuiViewportFlags; // Viewport flags to clear when a window of this class owns a viewport. This allows you to enforce OS decoration or task bar icon, override the defaults on a per-window basis. 
+    TabItemFlagsOverrideSet: TImGuiTabItemFlags;     // [EXPERIMENTAL] TabItem flags to set when a window of this class gets submitted into a dock node tab bar. May use with ImGuiTabItemFlags_Leading or ImGuiTabItemFlags_Trailing. 
+    DockNodeFlagsOverrideSet: TImGuiDockNodeFlags;   // [EXPERIMENTAL] Dock node flags to set when a window of this class is hosted by a dock node (it doesn't have to be selected!) 
+    DockingAlwaysTabBar: Boolean;                    // Set to true to enforce single floating windows of this class always having their own docking node (equivalent of setting the global io.ConfigDockingAlwaysTabBar) 
+    DockingAllowUnclassed: Boolean;                  // Set to true to allow windows of this class to be docked/merged with an unclassed window. // FIXME-DOCK: Move to DockNodeFlags override? 
+    PlatformIconData: Pointer;                       // [EXPERIMENTAL] Pass opaque data for Platform backend to handle. 
   public
     // Initialize with default values
     procedure Initialize; inline;
@@ -2906,7 +3008,7 @@ type
   end; 
 
   // - Currently represents the Platform Window created by the application which is hosting our Dear ImGui windows.
-  // - In 'docking' branch with multi-viewport enabled, we extend this concept to have multiple active viewports.
+  // - With multi-viewport enabled, we extend this concept to have multiple active viewports.
   // - In the future we will extend this concept further to also represent Platform Monitor and support a "no main platform window" operation mode.
   // - About Main Area vs Work Area:
   //   - Main Area = entire viewport.
@@ -2914,16 +3016,31 @@ type
   //   - Windows are generally trying to stay within the Work Area of their host viewport.
   TImGuiViewport = record
   public
-    ID: TImGuiID;               // Unique identifier for the viewport 
-    Flags: TImGuiViewportFlags; // See ImGuiViewportFlags_ 
-    Pos: TVector2;              // Main Area: Position of the viewport (Dear ImGui coordinates are the same as OS desktop/native coordinates) 
-    Size: TVector2;             // Main Area: Size of the viewport. 
-    FramebufferScale: TVector2; // Density of the viewport for Retina display (always 1,1 on Windows, may be 2,2 etc on macOS/iOS). This will affect font rasterizer density. 
-    WorkPos: TVector2;          // Work Area: Position of the viewport minus task bars, menus bars, status bars (>= Pos) 
-    WorkSize: TVector2;         // Work Area: Size of the viewport minus task bars, menu bars, status bars (<= Size) 
+    ID: TImGuiID;                   // Unique identifier for the viewport 
+    Flags: TImGuiViewportFlags;     // See ImGuiViewportFlags_ 
+    Pos: TVector2;                  // Main Area: Position of the viewport (Dear ImGui coordinates are the same as OS desktop/native coordinates) 
+    Size: TVector2;                 // Main Area: Size of the viewport. 
+    FramebufferScale: TVector2;     // Density of the viewport for Retina display (always 1,1 on Windows, may be 2,2 etc on macOS/iOS). This will affect font rasterizer density. 
+    WorkPos: TVector2;              // Work Area: Position of the viewport minus task bars, menus bars, status bars (>= Pos) 
+    WorkSize: TVector2;             // Work Area: Size of the viewport minus task bars, menu bars, status bars (<= Size) 
+    DpiScale: Single;               // 1.0f = 96 DPI = No extra scale. 
+    ParentViewportId: TImGuiID;     // (Advanced) 0: no parent. Instruct the platform backend to setup a parent/child relationship between platform windows. 
+    ParentViewport: PImGuiViewport; // (Advanced) Direct shortcut to ImGui::FindViewportByID(ParentViewportId). NULL: no parent. 
+    DrawData: PImDrawData;          // The ImDrawData corresponding to this viewport. Valid after Render() and until the next call to NewFrame(). 
     // Platform/Backend Dependent Data
-    PlatformHandle: Pointer;    // void* to hold higher-level, platform window handle (e.g. HWND, GLFWWindow*, SDL_Window*) 
-    PlatformHandleRaw: Pointer; // void* to hold lower-level, platform-native window handle (under Win32 this is expected to be a HWND, unused for other platforms) 
+    // Our design separate the Renderer and Platform backends to facilitate combining default backends with each others.
+    // When our create your own backend for a custom engine, it is possible that both Renderer and Platform will be handled
+    // by the same system and you may not need to use all the UserData/Handle fields.
+    // The library never uses those fields, they are merely storage to facilitate backend implementation.
+    RendererUserData: Pointer;      // void* to hold custom data structure for the renderer (e.g. swap chain, framebuffers etc.). generally set by your Renderer_CreateWindow function. 
+    PlatformUserData: Pointer;      // void* to hold custom data structure for the OS / platform (e.g. windowing info, render context). generally set by your Platform_CreateWindow function. 
+    PlatformIconData: Pointer;      // void* to hold custom data structure for the OS / platform to specify an icon. Currently unused for exposed to allow experiments. 
+    PlatformHandle: Pointer;        // void* to hold higher-level, platform window handle (e.g. HWND for Win32 backend, Uint32 WindowID for SDL, GLFWWindow* for GLFW), for FindViewportByPlatformHandle(). 
+    PlatformHandleRaw: Pointer;     // void* to hold lower-level, platform-native window handle (always HWND on Win32 platform, unused for other platforms). 
+    PlatformWindowCreated: Boolean; // Platform window has been created (Platform_CreateWindow() has been called). This is false during the first frame where a viewport is being created. 
+    PlatformRequestMove: Boolean;   // Platform window requested move (e.g. window was moved by the OS / host window manager, authoritative position will be OS window position) 
+    PlatformRequestResize: Boolean; // Platform window requested resize (e.g. window was resized by the OS / host window manager, authoritative size will be OS window size) 
+    PlatformRequestClose: Boolean;  // Platform window requested closure (e.g. window was moved by the OS / host window manager, e.g. pressing ALT-F4) 
   public
     // Initialize with default values
     procedure Initialize; inline;
@@ -2931,6 +3048,22 @@ type
     // Helpers
     function GetCenter: TVector2; inline;
     function GetWorkCenter: TVector2; inline;
+    function GetDebugName: PUTF8Char; inline;
+  end; 
+
+  // (Optional) This is required when enabling multi-viewport. Represent the bounds of each connected monitor/display and their DPI.
+  // We use this information for multiple DPI support + clamping the position of popups and tooltips so they don't straddle multiple monitors.
+  TImGuiPlatformMonitor = record
+  public
+    MainPos: TVector2;       // Coordinates of the area displayed on this monitor (Min = upper left, Max = bottom right) 
+    MainSize: TVector2;      // Coordinates of the area displayed on this monitor (Min = upper left, Max = bottom right) 
+    WorkPos: TVector2;       // Coordinates without task bars / side bars / menu bars. Used to avoid positioning popups/tooltips inside this region. If you don't have this info, please copy the value for MainPos/MainSize. 
+    WorkSize: TVector2;      // Coordinates without task bars / side bars / menu bars. Used to avoid positioning popups/tooltips inside this region. If you don't have this info, please copy the value for MainPos/MainSize. 
+    DpiScale: Single;        // 1.0f = 96 DPI 
+    PlatformHandle: Pointer; // Backend dependant data (e.g. HMONITOR, GLFWmonitor*, SDL Display Index, NSScreen*) 
+  public
+    // Initialize with default values
+    procedure Initialize; inline;
   end; 
 
   // Access via ImGui::GetPlatformIO()
@@ -2938,7 +3071,7 @@ type
   public
     // Optional: Access OS clipboard
     // (default to use native Win32 clipboard on Windows, otherwise uses a private clipboard. Override to access OS clipboard on other architectures)
-    PlatformGetClipboardTextFn: function(ctx: Pointer): Pointer; cdecl; // Should return NULL on failure (e.g. clipboard data is not text). 
+    PlatformGetClipboardTextFn: function(ctx: Pointer): Pointer; cdecl;                                                             // Should return NULL on failure (e.g. clipboard data is not text). 
     PlatformSetClipboardTextFn: procedure(ctx: Pointer; text: Pointer); cdecl; 
     PlatformClipboardUserData: Pointer; 
     // Optional: Open link/folder/file in OS Shell
@@ -2951,19 +3084,53 @@ type
     PlatformImeUserData: Pointer; 
     // Optional: Platform locale
     // [Experimental] Configure decimal point e.g. '.' or ',' useful for some languages (e.g. German), generally pulled from *localeconv()->decimal_point
-    PlatformLocaleDecimalPoint: Char;                                   // '.' 
+    PlatformLocaleDecimalPoint: Char;                                                                                               // '.' 
     // Optional: Maximum texture size supported by renderer (used to adjust how we size textures). 0 if not known.
     RendererTextureMaxWidth: Int32; 
     RendererTextureMaxHeight: Int32; 
     // Written by some backends during ImGui_ImplXXXX_RenderDrawData() call to point backend_specific ImGui_ImplXXXX_RenderState* structure.
     RendererRenderState: Pointer; 
     // Standard draw callbacks provided by renderer backend.
-    DrawCallbackResetRenderState: TImDrawCallback;                      // Request to reset the graphics/render state. 
-    DrawCallbackSetSamplerLinear: TImDrawCallback;                      // Request backend to set texture sampling to Linear. 
-    DrawCallbackSetSamplerNearest: TImDrawCallback;                     // Request backend to set texture sampling to Nearest/Point. 
+    DrawCallbackResetRenderState: TImDrawCallback;                                                                                  // Request to reset the graphics/render state. 
+    DrawCallbackSetSamplerLinear: TImDrawCallback;                                                                                  // Request backend to set texture sampling to Linear. 
+    DrawCallbackSetSamplerNearest: TImDrawCallback;                                                                                 // Request backend to set texture sampling to Nearest/Point. 
+    // Platform Backend functions (e.g. Win32, GLFW, SDL) ------------------- Called by -----
+    PlatformCreateWindow: procedure(vp: Pointer); cdecl;                                                                            // . . U . .  // Create a new platform window for the given viewport 
+    PlatformDestroyWindow: procedure(vp: Pointer); cdecl;                                                                           // N . U . D  // 
+    PlatformShowWindow: procedure(vp: Pointer); cdecl;                                                                              // . . U . .  // Newly created windows are initially hidden so SetWindowPos/Size/Title can be called on them before showing the window 
+    PlatformSetWindowPos: procedure(vp: Pointer; pos: _ImVec2); cdecl;                                                              // . . U . .  // Set platform window position (given the upper-left corner of client area) 
+    PlatformGetWindowPos: function(vp: Pointer): _ImVec2; cdecl;                                                                    // N . . . .  // (Use ImGuiPlatformIO_SetPlatform_GetWindowPos() to set this from C, otherwise you will likely encounter stack corruption) 
+    PlatformSetWindowSize: procedure(vp: Pointer; size: _ImVec2); cdecl;                                                            // . . U . .  // Set platform window client area size (ignoring OS decorations such as OS title bar etc.) 
+    PlatformGetWindowSize: function(vp: Pointer): _ImVec2; cdecl;                                                                   // N . . . .  // Get platform window client area size (Use ImGuiPlatformIO_SetPlatform_GetWindowSize() to set this from C, otherwise you will likely encounter stack corruption) 
+    PlatformGetWindowFramebufferScale: function(vp: Pointer): _ImVec2; cdecl;                                                       // N . . . .  // Return viewport density. Always 1,1 on Windows, often 2,2 on Retina display on macOS/iOS. MUST BE INTEGER VALUES. (Use ImGuiPlatformIO_SetPlatform_GetWindowFramebufferScale() to set this from C, otherwise you will likely encounter stack corruption) 
+    PlatformSetWindowFocus: procedure(vp: Pointer); cdecl;                                                                          // N . . . .  // Move window to front and set input focus 
+    PlatformGetWindowFocus: function(vp: Pointer): Boolean; cdecl;                                                                  // . . U . .  // 
+    PlatformGetWindowMinimized: function(vp: Pointer): Boolean; cdecl;                                                              // N . . . .  // Get platform window minimized state. When minimized, we generally won't attempt to get/set size and contents will be culled more easily 
+    PlatformSetWindowTitle: procedure(vp: Pointer; str: Pointer); cdecl;                                                            // . . U . .  // Set platform window title (given an UTF-8 string) 
+    PlatformSetWindowAlpha: procedure(vp: Pointer; alpha: Single); cdecl;                                                           // . . U . .  // (Optional) Setup global transparency (not per-pixel transparency) 
+    PlatformUpdateWindow: procedure(vp: Pointer); cdecl;                                                                            // . . U . .  // (Optional) Called by UpdatePlatformWindows(). Optional hook to allow the platform backend from doing general book-keeping every frame. 
+    PlatformRenderWindow: procedure(vp: Pointer; render_arg: Pointer); cdecl;                                                       // . . . R .  // (Optional) Main rendering (platform side! This is often unused, or just setting a "current" context for OpenGL bindings). 'render_arg' is the value passed to RenderPlatformWindowsDefault(). 
+    PlatformSwapBuffers: procedure(vp: Pointer; render_arg: Pointer); cdecl;                                                        // . . . R .  // (Optional) Call Present/SwapBuffers (platform side! This is often unused!). 'render_arg' is the value passed to RenderPlatformWindowsDefault(). 
+    PlatformGetWindowDpiScale: function(vp: Pointer): Single; cdecl;                                                                // N . . . .  // (Optional) [BETA] FIXME-DPI: DPI handling: Return DPI scale for this viewport. 1.0f = 96 DPI. 
+    PlatformOnChangedViewport: procedure(vp: Pointer); cdecl;                                                                       // . F . . .  // (Optional) [BETA] FIXME-DPI: DPI handling: Called during Begin() every time the viewport we are outputting into changes, so backend has a chance to swap fonts to adjust style. 
+    PlatformGetWindowWorkAreaInsets: function(vp: Pointer): _ImVec4; cdecl;                                                         // N . . . .  // (Optional) [BETA] Get initial work area inset for the viewport (won't be covered by main menu bar, dockspace over viewport etc.). Default to (0,0),(0,0). 'safeAreaInsets' in iOS land, 'DisplayCutout' in Android land. (Use ImGuiPlatformIO_SetPlatform_GetWindowWorkAreaInsets() to set this from C, otherwise you will likely encounter stack corruption) 
+    PlatformCreateVkSurface: function(vp: Pointer; vk_inst: _ImU64; vk_allocators: Pointer; out_vk_surface: Pointer): Int32; cdecl; // (Optional) For a Vulkan Renderer to call into Platform code (since the surface creation needs to tie them both). 
+    // Renderer Backend functions (e.g. DirectX, OpenGL, Vulkan) ------------ Called by -----
+    RendererCreateWindow: procedure(vp: Pointer); cdecl;                                                                            // . . U . .  // Create swap chain, frame buffers etc. (called after Platform_CreateWindow) 
+    RendererDestroyWindow: procedure(vp: Pointer); cdecl;                                                                           // N . U . D  // Destroy swap chain, frame buffers etc. (called before Platform_DestroyWindow) 
+    RendererSetWindowSize: procedure(vp: Pointer; size: _ImVec2); cdecl;                                                            // . . U . .  // Resize swap chain, frame buffers etc. (called after Platform_SetWindowSize) 
+    RendererRenderWindow: procedure(vp: Pointer; render_arg: Pointer); cdecl;                                                       // . . . R .  // (Optional) Clear framebuffer, setup render target, then render the viewport->DrawData. 'render_arg' is the value passed to RenderPlatformWindowsDefault(). 
+    RendererSwapBuffers: procedure(vp: Pointer; render_arg: Pointer); cdecl;                                                        // . . . R .  // (Optional) Call Present/SwapBuffers. 'render_arg' is the value passed to RenderPlatformWindowsDefault(). 
+    // (Optional) Monitor list
+    // - Updated by: app/backend. Update every frame to dynamically support changing monitor or DPI configuration.
+    // - Used by: dear imgui to query DPI info, clamp popups/tooltips within same monitor and not have them straddle monitors.
+    Monitors: TImVector<TImGuiPlatformMonitor>; 
     // Textures list (the list is updated by calling ImGui::EndFrame or ImGui::Render)
     // The ImGui_ImplXXXX_RenderDrawData() function of each backend generally access this via ImDrawData::Textures which points to this. The array is available here mostly because backends will want to destroy textures on shutdown.
-    Textures: TImVector<TImTextureDataPtr>;                             // List of textures used by Dear ImGui (most often 1) + contents of external texture list is automatically appended into this. 
+    Textures: TImVector<TImTextureDataPtr>;                                                                                         // List of textures used by Dear ImGui (most often 1) + contents of external texture list is automatically appended into this. 
+    // Viewports list (the list is updated by calling ImGui::EndFrame or ImGui::Render)
+    // (in the future we will attempt to organize this feature to remove the need for a "main viewport")
+    Viewports: TImVector<TImGuiViewportPtr>;                                                                                        // Main viewports, followed by all secondary viewports. 
   public
     // Initialize with default values
     procedure Initialize; inline;
@@ -3123,6 +3290,9 @@ type
     // get draw list associated to the current window, to append your own drawing primitives
     class function GetWindowDrawList: PImDrawList; inline; static;
 
+    // get DPI scale currently associated to the current window's viewport.
+    class function GetWindowDpiScale: Single; inline; static;
+
     // get current window position in screen space (IT IS UNLIKELY YOU EVER NEED TO USE THIS. Consider always using GetCursorScreenPos() and GetContentRegionAvail() instead)
     class function GetWindowPos: TVector2; inline; static;
 
@@ -3134,6 +3304,9 @@ type
 
     // get current window height (IT IS UNLIKELY YOU EVER NEED TO USE THIS). Shortcut for GetWindowSize().y.
     class function GetWindowHeight: Single; inline; static;
+
+    // get viewport currently associated to the current window.
+    class function GetWindowViewport: PImGuiViewport; inline; static;
 
     // Window manipulation
     // - Prefer using SetNextXXX functions (before Begin) rather that SetXXX functions (after Begin).
@@ -3165,6 +3338,9 @@ type
 
     // set next window background color alpha. helper to easily override the Alpha component of ImGuiCol_WindowBg/ChildBg/PopupBg. you may also use ImGuiWindowFlags_NoBackground.
     class procedure SetNextWindowBgAlpha(const AAlpha: Single); inline; static;
+
+    // set next window viewport
+    class procedure SetNextWindowViewport(const AViewportId: TImGuiID); inline; static;
 
     // (not recommended) set current window position - call within Begin()/End(). prefer using SetNextWindowPos(), as this may incur tearing and side-effects.
     class procedure SetWindowPos(const APos: TVector2; const ACond: TImGuiCond = TImGuiCond(0)); overload; inline; static;
@@ -4202,6 +4378,47 @@ type
     // notify TabBar or Docking system of a closed tab/window ahead (useful to reduce visual flicker on reorderable tab bars). For tab-bar: call after BeginTabBar() and before Tab submissions. Otherwise call with a window name.
     class procedure SetTabItemClosed(const ATabOrDockedWindowLabel: PUTF8Char); inline; static;
 
+    // Docking
+    // - Read https://github.com/ocornut/imgui/wiki/Docking for details.
+    // - Enable with io.ConfigFlags |= ImGuiConfigFlags_DockingEnable.
+    // - You can use many Docking facilities without calling any API.
+    //   - Drag from window title bar or their tab to dock/undock. Hold SHIFT to disable docking.
+    //   - Drag from window menu button (upper-left button) to undock an entire node (all windows).
+    //   - When io.ConfigDockingWithShift == true, you instead need to hold SHIFT to enable docking.
+    // - DockSpaceOverViewport:
+    //   - This is a helper to create an invisible window covering a viewport, then submit a DockSpace() into it.
+    //   - Most applications can simply call DockSpaceOverViewport() once to allow docking windows into e.g. the edge of your screen.
+    //     e.g. ImGui::NewFrame(); ImGui::DockSpaceOverViewport();                                                   // Create a dockspace in main viewport.
+    //      or: ImGui::NewFrame(); ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode); // Create a dockspace in main viewport, central node is transparent.
+    // - Dockspaces:
+    //   - A dockspace is an explicit dock node within an existing window.
+    //   - IMPORTANT: Dockspaces need to be submitted _before_ any window they can host. Submit them early in your frame!
+    //   - IMPORTANT: Dockspaces need to be kept alive if hidden, otherwise windows docked into it will be undocked.
+    //     If you have e.g. multiple tabs with a dockspace inside each tab: submit the non-visible dockspaces with ImGuiDockNodeFlags_KeepAliveOnly.
+    //   - See 'Demo->Examples->Dockspace' or 'Demo->Examples->Documents' for more detailed demos.
+    // - Programmatic docking:
+    //   - There is no public API yet other than the very limited SetNextWindowDockID() function. Sorry for that!
+    //   - Read https://github.com/ocornut/imgui/wiki/Docking for examples of how to use current internal API.
+    // Implied size = ImVec2(0, 0), flags = 0, window_class = NULL
+    class function DockSpace(const ADockspaceId: TImGuiID): TImGuiID; overload; inline; static;
+    class function DockSpace(const ADockspaceId: TImGuiID; const ASize: TVector2; 
+      const AFlags: TImGuiDockNodeFlags = []; const AWindowClass: PImGuiWindowClass = nil): TImGuiID; overload; inline; static;
+    class function DockSpaceOverViewport(const ADockspaceId: TImGuiID = TImGuiID(0); 
+      const AViewport: PImGuiViewport = nil; const AFlags: TImGuiDockNodeFlags = []; 
+      const AWindowClass: PImGuiWindowClass = nil): TImGuiID; overload; inline; static;
+
+    // set next window dock id
+    class procedure SetNextWindowDockID(const ADockId: TImGuiID; const ACond: TImGuiCond = TImGuiCond(0)); inline; static;
+
+    // set next window class (control docking compatibility + provide hints to platform backend via custom viewport flags and platform parent/child relationship)
+    class procedure SetNextWindowClass(const AWindowClass: PImGuiWindowClass); inline; static;
+
+    // get dock id of current window, or 0 if not associated to any docking node.
+    class function GetWindowDockID: TImGuiID; inline; static;
+
+    // is current window docked into another window?
+    class function IsWindowDocked: Boolean; inline; static;
+
     // Logging/Capture
     // - All text output from the interface can be captured into tty/file/clipboard. By default, tree nodes are automatically opened during logging.
     // start logging to tty (stdout)
@@ -4341,12 +4558,11 @@ type
     // return primary/default viewport. This can never be NULL.
     class function GetMainViewport: PImGuiViewport; inline; static;
 
-    // Background/Foreground Draw Lists
-    // this draw list will be the first rendered one. Useful to quickly draw shapes/text behind dear imgui contents.
-    class function GetBackgroundDrawList: PImDrawList; inline; static;
+    // get background draw list for the given viewport or viewport associated to the current window. this draw list will be the first rendering one. Useful to quickly draw shapes/text behind dear imgui contents.
+    class function GetBackgroundDrawList(const AViewport: PImGuiViewport = nil): PImDrawList; overload; inline; static;
 
-    // this draw list will be the last rendered one. Useful to quickly draw shapes/text over dear imgui contents.
-    class function GetForegroundDrawList: PImDrawList; inline; static;
+    // get foreground draw list for the given viewport or viewport associated to the current window. this draw list will be the top-most rendered one. Useful to quickly draw shapes/text over dear imgui contents.
+    class function GetForegroundDrawList(const AViewport: PImGuiViewport = nil): PImDrawList; overload; inline; static;
 
     // Miscellaneous Utilities
     // test if rectangle (of given size, starting from cursor position) is visible / not clipped.
@@ -4542,6 +4758,25 @@ type
       const APFreeFunc: PImGuiMemFreeFunc; const APUserData: PPointer); inline; static;
     class function MemAlloc(const ASize: NativeUInt): Pointer; inline; static;
     class procedure MemFree(const APtr: Pointer); inline; static;
+
+    // (Optional) Platform/OS interface for multi-viewport support
+    // Read comments around the ImGuiPlatformIO structure for more details.
+    // Note: You may use GetWindowViewport() to get the current viewport of the current window.
+    // call in main loop. will call CreateWindow/ResizeWindow/etc. platform functions for each secondary viewport, and DestroyWindow for each inactive viewport.
+    class procedure UpdatePlatformWindows; inline; static;
+
+    // call in main loop. will call RenderWindow/SwapBuffers platform functions for each secondary viewport which doesn't have the ImGuiViewportFlags_Minimized flag set. May be reimplemented by user for custom rendering needs.
+    class procedure RenderPlatformWindowsDefault(const APlatformRenderArg: Pointer = nil; 
+      const ARendererRenderArg: Pointer = nil); overload; inline; static;
+
+    // call DestroyWindow platform functions for all viewports. call from backend Shutdown() if you need to close platform windows before imgui shutdown. otherwise will be called by DestroyContext().
+    class procedure DestroyPlatformWindows; inline; static;
+
+    // this is a helper for backends.
+    class function FindViewportByID(const AViewportId: TImGuiID): PImGuiViewport; inline; static;
+
+    // this is a helper for backends. the type platform_handle is decided by the backend (e.g. HWND, MyWindow*, GLFWwindow* etc.)
+    class function FindViewportByPlatformHandle(const APlatformHandle: Pointer): PImGuiViewport; inline; static;
   end;
 
 type
@@ -4912,6 +5147,11 @@ begin
   _ImGuiIO_AddMouseSourceEvent(@Self, _ImGuiMouseSource(ASource));
 end;
 
+procedure TImGuiIO.AddMouseViewportEvent(const AId: TImGuiID);
+begin
+  _ImGuiIO_AddMouseViewportEvent(@Self, _ImGuiID(AId));
+end;
+
 procedure TImGuiIO.AddFocusEvent(const AFocused: Boolean);
 begin
   _ImGuiIO_AddFocusEvent(@Self, AFocused);
@@ -5006,6 +5246,14 @@ end;
 { TImGuiSizeCallbackData }
 
 procedure TImGuiSizeCallbackData.Initialize;
+begin
+  FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
+end;
+
+{ TImGuiWindowClass }
+
+procedure TImGuiWindowClass.Initialize;
 begin
   FillChar(Self, SizeOf(Self), 0);
   TImDefaults.Apply(Self);
@@ -6405,6 +6653,19 @@ begin
   Result := TVector2(_ImGuiViewport_GetWorkCenter(@Self));
 end;
 
+function TImGuiViewport.GetDebugName: PUTF8Char;
+begin
+  Result := _ImGuiViewport_GetDebugName(@Self);
+end;
+
+{ TImGuiPlatformMonitor }
+
+procedure TImGuiPlatformMonitor.Initialize;
+begin
+  FillChar(Self, SizeOf(Self), 0);
+  TImDefaults.Apply(Self);
+end;
+
 { TImGuiPlatformIO }
 
 procedure TImGuiPlatformIO.Initialize;
@@ -6615,6 +6876,11 @@ begin
   Result := _igGetWindowDrawList();
 end;
 
+class function ImGui.GetWindowDpiScale: Single;
+begin
+  Result := _igGetWindowDpiScale();
+end;
+
 class function ImGui.GetWindowPos: TVector2;
 begin
   Result := TVector2(_igGetWindowPos());
@@ -6633,6 +6899,11 @@ end;
 class function ImGui.GetWindowHeight: Single;
 begin
   Result := _igGetWindowHeight();
+end;
+
+class function ImGui.GetWindowViewport: PImGuiViewport;
+begin
+  Result := _igGetWindowViewport();
 end;
 
 class procedure ImGui.SetNextWindowPos(const APos: TVector2; const ACond: TImGuiCond);
@@ -6680,6 +6951,11 @@ end;
 class procedure ImGui.SetNextWindowBgAlpha(const AAlpha: Single);
 begin
   _igSetNextWindowBgAlpha(AAlpha);
+end;
+
+class procedure ImGui.SetNextWindowViewport(const AViewportId: TImGuiID);
+begin
+  _igSetNextWindowViewport(_ImGuiID(AViewportId));
 end;
 
 class procedure ImGui.SetWindowPos(const APos: TVector2; const ACond: TImGuiCond);
@@ -8404,6 +8680,43 @@ begin
   _igSetTabItemClosed(ATabOrDockedWindowLabel);
 end;
 
+class function ImGui.DockSpace(const ADockspaceId: TImGuiID): TImGuiID;
+begin
+  Result := TImGuiID(_igDockSpace(_ImGuiID(ADockspaceId)));
+end;
+
+class function ImGui.DockSpace(const ADockspaceId: TImGuiID; const ASize: TVector2; 
+  const AFlags: TImGuiDockNodeFlags; const AWindowClass: PImGuiWindowClass): TImGuiID;
+begin
+  Result := TImGuiID(_igDockSpaceEx(_ImGuiID(ADockspaceId), _ImVec2(ASize), Cardinal(AFlags), AWindowClass));
+end;
+
+class function ImGui.DockSpaceOverViewport(const ADockspaceId: TImGuiID; const AViewport: PImGuiViewport; 
+  const AFlags: TImGuiDockNodeFlags; const AWindowClass: PImGuiWindowClass): TImGuiID;
+begin
+  Result := TImGuiID(_igDockSpaceOverViewportEx(_ImGuiID(ADockspaceId), AViewport, Cardinal(AFlags), AWindowClass));
+end;
+
+class procedure ImGui.SetNextWindowDockID(const ADockId: TImGuiID; const ACond: TImGuiCond);
+begin
+  _igSetNextWindowDockID(_ImGuiID(ADockId), _ImGuiCond(ACond));
+end;
+
+class procedure ImGui.SetNextWindowClass(const AWindowClass: PImGuiWindowClass);
+begin
+  _igSetNextWindowClass(AWindowClass);
+end;
+
+class function ImGui.GetWindowDockID: TImGuiID;
+begin
+  Result := TImGuiID(_igGetWindowDockID());
+end;
+
+class function ImGui.IsWindowDocked: Boolean;
+begin
+  Result := _igIsWindowDocked();
+end;
+
 class procedure ImGui.LogToTTY(const AAutoOpenDepth: Int32);
 begin
   _igLogToTTY(AAutoOpenDepth);
@@ -8605,14 +8918,14 @@ begin
   Result := _igGetMainViewport();
 end;
 
-class function ImGui.GetBackgroundDrawList: PImDrawList;
+class function ImGui.GetBackgroundDrawList(const AViewport: PImGuiViewport): PImDrawList;
 begin
-  Result := _igGetBackgroundDrawList();
+  Result := _igGetBackgroundDrawListEx(AViewport);
 end;
 
-class function ImGui.GetForegroundDrawList: PImDrawList;
+class function ImGui.GetForegroundDrawList(const AViewport: PImGuiViewport): PImDrawList;
 begin
-  Result := _igGetForegroundDrawList();
+  Result := _igGetForegroundDrawListEx(AViewport);
 end;
 
 class function ImGui.IsRectVisible(const ASize: TVector2): Boolean;
@@ -8898,6 +9211,32 @@ begin
   _igMemFree(APtr);
 end;
 
+class procedure ImGui.UpdatePlatformWindows;
+begin
+  _igUpdatePlatformWindows();
+end;
+
+class procedure ImGui.RenderPlatformWindowsDefault(const APlatformRenderArg: Pointer; 
+  const ARendererRenderArg: Pointer);
+begin
+  _igRenderPlatformWindowsDefaultEx(APlatformRenderArg, ARendererRenderArg);
+end;
+
+class procedure ImGui.DestroyPlatformWindows;
+begin
+  _igDestroyPlatformWindows();
+end;
+
+class function ImGui.FindViewportByID(const AViewportId: TImGuiID): PImGuiViewport;
+begin
+  Result := _igFindViewportByID(_ImGuiID(AViewportId));
+end;
+
+class function ImGui.FindViewportByPlatformHandle(const APlatformHandle: Pointer): PImGuiViewport;
+begin
+  Result := _igFindViewportByPlatformHandle(APlatformHandle);
+end;
+
 initialization
   Assert(SizeOf(TImDrawListSharedData) = SizeOf(_ImDrawListSharedData));
   Assert(SizeOf(TImFontAtlasBuilder) = SizeOf(_ImFontAtlasBuilder));
@@ -8911,6 +9250,7 @@ initialization
   Assert(SizeOf(TImGuiIO) = SizeOf(_ImGuiIO));
   Assert(SizeOf(TImGuiInputTextCallbackData) = SizeOf(_ImGuiInputTextCallbackData));
   Assert(SizeOf(TImGuiSizeCallbackData) = SizeOf(_ImGuiSizeCallbackData));
+  Assert(SizeOf(TImGuiWindowClass) = SizeOf(_ImGuiWindowClass));
   Assert(SizeOf(TImGuiPayload) = SizeOf(_ImGuiPayload));
   Assert(SizeOf(TImGuiTextRange) = SizeOf(_ImGuiTextRange));
   Assert(SizeOf(TImGuiTextFilter) = SizeOf(_ImGuiTextFilter));
@@ -8939,6 +9279,7 @@ initialization
   Assert(SizeOf(TImFontBaked) = SizeOf(_ImFontBaked));
   Assert(SizeOf(TImFont) = SizeOf(_ImFont));
   Assert(SizeOf(TImGuiViewport) = SizeOf(_ImGuiViewport));
+  Assert(SizeOf(TImGuiPlatformMonitor) = SizeOf(_ImGuiPlatformMonitor));
   Assert(SizeOf(TImGuiPlatformIO) = SizeOf(_ImGuiPlatformIO));
   Assert(SizeOf(TImGuiPlatformImeData) = SizeOf(_ImGuiPlatformImeData));
 

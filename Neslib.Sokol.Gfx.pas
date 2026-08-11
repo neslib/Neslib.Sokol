@@ -525,6 +525,7 @@ type
     The default filter mode is Nearest. }
   TFilter = (
     _Default = __SG_FILTER_DEFAULT,
+
     { Nearest neighbor filtering.
       Fastest, but lowest quality. }
     Nearest  = _SG_FILTER_NEAREST,
@@ -2246,9 +2247,18 @@ type
     { D3D11 specific }
     D3D11Sampler: IInterface;
   public
-    { Initializes with default values }
-    class function Create: TSamplerDesc; inline; static;
-    procedure Init;
+    { Initializes with default values.
+      When AFilter is given, it sets MinFilter and MagFilter to this value
+      (but NOT MipMapFilter!).
+      When AWrap is given, it sets WrapU and WrapV to this value
+      (but NOT WrapW!). }
+    class function Create: TSamplerDesc; overload; inline; static;
+    class function Create(const AFilter: TFilter): TSamplerDesc; overload; inline; static;
+    class function Create(const AFilter: TFilter;
+      const AWrap: TWrap): TSamplerDesc; overload; inline; static;
+    procedure Init; overload;
+    procedure Init(const AFilter: TFilter); overload;
+    procedure Init(const AFilter: TFilter; const AWrap: TWrap); overload;
   end;
   PSamplerDesc = ^TSamplerDesc;
 
@@ -5481,12 +5491,39 @@ begin
   Result.Init;
 end;
 
+class function TSamplerDesc.Create(const AFilter: TFilter): TSamplerDesc;
+begin
+  Result.Init(AFilter);
+end;
+
+class function TSamplerDesc.Create(const AFilter: TFilter;
+  const AWrap: TWrap): TSamplerDesc;
+begin
+  Result.Init(AFilter, AWrap);
+end;
+
 procedure TSamplerDesc.Init;
 begin
   var Def: _sg_sampler_desc;
   FillChar(Def, SizeOf(Def), 0);
   Def := _sg_query_sampler_defaults(@Def);
   _InitFrom(Def);
+end;
+
+procedure TSamplerDesc.Init(const AFilter: TFilter);
+begin
+  Init;
+  MinFilter := AFilter;
+  MagFilter := AFilter;
+end;
+
+procedure TSamplerDesc.Init(const AFilter: TFilter; const AWrap: TWrap);
+begin
+  Init;
+  MinFilter := AFilter;
+  MagFilter := AFilter;
+  WrapU := AWrap;
+  WrapV := AWrap;
 end;
 
 procedure TSamplerDesc._Convert(out ADst: _sg_sampler_desc);

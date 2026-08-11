@@ -49,6 +49,12 @@
       "impl": "*"
     }
   ],
+  "igDockSpaceEx": [  
+    { 
+      "intf": "*",
+      "impl": "*"
+    }
+  ],
   "igProgressBar": [  
     { 
       "intf": "class procedure ProgressBar(const AFraction: Single; const AOverlay: PUTF8Char = nil); overload; inline; static;",
