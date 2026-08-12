@@ -61,9 +61,6 @@ ErrMsg SokolDelphiGenerator::begin(const GenInput& gen) {
         mod_prefix = delphi_case(gen.inp.module);
         mod_prefix_underscore = mod_prefix + "_";
     }
-    if (gen.args.output_format != Format::SOKOL_IMPL) {
-        func_prefix = "static inline ";
-    }
     return Generator::begin(gen);
 }
 
@@ -297,7 +294,7 @@ void SokolDelphiGenerator::gen_shader_desc_func_prototype(const ProgramReflectio
     l("function {}{}ShaderDesc: PNativeShaderDesc;\n", mod_prefix, delphi_case(prog.name));
 }
 
-void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const ProgramReflection& prog) {
+void SokolDelphiGenerator::gen_shader_desc_func(const GenInput & gen, const ProgramReflection & prog) {
     std::string prog_name = delphi_case(prog.name);
     std::string desc = fmt::format("G{}ShaderDesc", prog_name);
     l("var\n");
@@ -498,152 +495,213 @@ void SokolDelphiGenerator::gen_shader_desc_func(const GenInput& gen, const Progr
     l_close("end;\n");
 }
 
+void SokolDelphiGenerator::gen_attr_slot_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}AttrSlot(const AAttrName: String): Integer; inline;\n", mod_prefix, delphi_case(prog.name));
+}
+
 void SokolDelphiGenerator::gen_attr_slot_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}int {}{}_attr_slot(const char* attr_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)attr_name;\n");
+    l("\n");
+    gen_attr_slot_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
     for (const StageAttr& attr: prog.vs().inputs) {
         if (attr.slot >= 0) {
-            l_open("if (0 == strcmp(attr_name, \"{}\")) {{\n", attr.name);
-            l("return {};\n", attr.slot);
-            l_close("}}\n");
+            l("if (AAttrName = '{}') then\n", attr.name);
+            l("  Exit({});\n", attr.slot);
         }
     }
-    l("return -1;\n");
-    l_close("}}\n");
+    l("Result := -1;\n");
+    l_close("end;\n");
+}
+
+void SokolDelphiGenerator::gen_texture_slot_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}TextureSlot(const ATexName: String): Integer; inline;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_texture_slot_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}int {}{}_texture_slot(const char* tex_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)tex_name;\n");
+    l("\n");
+    gen_texture_slot_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
     for (const Texture& tex: prog.bindings.textures) {
         if (tex.sokol_slot >= 0) {
-            l_open("if (0 == strcmp(tex_name, \"{}\")) {{\n", tex.name);
-            l("return {};\n", tex.sokol_slot);
-            l_close("}}\n");
+            l("if (ATexName = '{}') then\n", tex.name);
+            l("  Exit({});\n", tex.sokol_slot);
         }
     }
-    l("return -1;\n");
-    l_close("}}\n");
+    l("Result := -1;\n");
+    l_close("end;\n");
+}
+
+void SokolDelphiGenerator::gen_sampler_slot_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}SamplerSlot(const ASmpName: String): Integer; inline;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_sampler_slot_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}int {}{}_sampler_slot(const char* smp_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)smp_name;\n");
+    l("\n");
+    gen_sampler_slot_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
     for (const Sampler& smp: prog.bindings.samplers) {
         if (smp.sokol_slot >= 0) {
-            l_open("if (0 == strcmp(smp_name, \"{}\")) {{\n", smp.name);
-            l("return {};\n", smp.sokol_slot);
-            l_close("}}\n");
+            l("if (ASmpName = '{}') then\n", smp.name);
+            l("  Exit({});\n", smp.sokol_slot);
         }
     }
-    l("return -1;\n");
-    l_close("}}\n");
+    l("Result := -1;\n");
+    l_close("end;\n");
+}
+
+void SokolDelphiGenerator::gen_uniform_block_slot_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}UniformBlockSlot(const AUBName: String): Integer; inline;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_uniform_block_slot_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}int {}{}_uniformblock_slot(const char* ub_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)ub_name;\n");
+    l("\n");
+    gen_uniform_block_slot_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
     for (const UniformBlock& ub: prog.bindings.uniform_blocks) {
         if (ub.sokol_slot >= 0) {
-            l_open("if (0 == strcmp(ub_name, \"{}\")) {{\n", ub.name);
-            l("return {};\n", ub.sokol_slot);
-            l_close("}}\n");
+            l("if (AUBName = '{}') then\n", ub.name);
+            l("  Exit({});\n", ub.sokol_slot);
         }
     }
-    l("return -1;\n");
-    l_close("}}\n");
+    l("Result := -1;\n");
+    l_close("end;\n");
+}
+
+void SokolDelphiGenerator::gen_uniform_block_size_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}UniformBlockSize(const AUBName: String): NativeInt; inline;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_uniform_block_size_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}size_t {}{}_uniformblock_size(const char* ub_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)ub_name;\n");
-    for (const UniformBlock& ub: prog.bindings.uniform_blocks) {
+    l("\n");
+    gen_uniform_block_size_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
+    for (const UniformBlock& ub : prog.bindings.uniform_blocks) {
         if (ub.sokol_slot >= 0) {
-            l_open("if (0 == strcmp(ub_name, \"{}\")) {{\n", ub.name);
-            l("return sizeof({});\n", struct_name(ub.name));
-            l_close("}}\n");
+            l("if (AUBName = '{}') then\n", ub.name);
+            l("  Exit(SizeOf({}));\n", struct_name(ub.name));
         }
     }
-    l("return 0;\n");
-    l_close("}}\n");
+    l("Result := 0;\n");
+    l_close("end;\n");
+}
+
+void SokolDelphiGenerator::gen_storage_buffer_slot_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}StorageBufferSlot(const ASBufName: String): Integer; inline;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_storage_buffer_slot_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}int {}{}_storagebuffer_slot(const char* sbuf_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)sbuf_name;\n");
+    l("\n");
+    gen_storage_buffer_slot_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
     for (const StorageBuffer& sbuf: prog.bindings.storage_buffers) {
         if (sbuf.sokol_slot >= 0) {
-            l_open("if (0 == strcmp(sbuf_name, \"{}\")) {{\n", sbuf.name);
-            l("return {};\n", sbuf.sokol_slot);
-            l_close("}}\n");
+            l("if (ASBufName = '{}') then\n", sbuf.name);
+            l("  Exit({});\n", sbuf.sokol_slot);
         }
     }
-    l("return -1;\n");
-    l_close("}}\n");
+    l("Result := -1;\n");
+    l_close("end;\n");
+}
+
+void SokolDelphiGenerator::gen_storage_image_slot_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}StorageImageSlot(const ASImgName: String): Integer; inline;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_storage_image_slot_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}int {}{}_storageimage_slot(const char* simg_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)simg_name;\n");
+    l("\n");
+    gen_storage_image_slot_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
     for (const StorageImage& simg: prog.bindings.storage_images) {
         if (simg.sokol_slot >= 0) {
-            l_open("if (0 == strcmp(simg_name, \"{}\")) {{\n", simg.name);
-            l("return {};\n", simg.sokol_slot);
-            l_close("}}\n");
+            l("if (ASImgName = '{}') then\n", simg.name);
+            l("  Exit({});\n", simg.sokol_slot);
         }
     }
-    l("return -1;\n");
-    l_close("}}\n");
+    l("Result := -1;\n");
+    l_close("end;\n");
+}
+
+void SokolDelphiGenerator::gen_uniform_offset_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}UniformOffset(const AUBName, AUName: String): Integer; inline;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_uniform_offset_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}int {}{}_uniform_offset(const char* ub_name, const char* u_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)ub_name; (void)u_name;\n");
+    l("\n");
+    gen_uniform_offset_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
     for (const UniformBlock& ub: prog.bindings.uniform_blocks) {
         if (ub.sokol_slot >= 0) {
-            l_open("if (0 == strcmp(ub_name, \"{}\")) {{\n", ub.name);
-            for (const Type& u: ub.struct_info.struct_items) {
-                l_open("if (0 == strcmp(u_name, \"{}\")) {{\n", u.name);
-                l("return {};\n", u.offset);
-                l_close("}}\n");
+            l("if (AUBName = '{}') then\n", ub.name);
+            l_open("begin\n");
+            for (const Type& u : ub.struct_info.struct_items) {
+                l("if (AUName = '{}') then\n", u.name);
+                l("  Exit({});\n", u.offset);
             }
-            l_close("}}\n");
+            l_close("end;\n");
         }
     }
-    l("return -1;\n");
-    l_close("}}\n");
+    l("Result := -1;\n");
+    l_close("end;\n");
+}
+
+void SokolDelphiGenerator::gen_uniform_desc_refl_func_prototype(const GenInput& gen, const ProgramReflection& prog) {
+    l("function {}{}UniformDesc(const AUBName, AUName: String): TGlslShaderUniform; inline;\n", mod_prefix, delphi_case(prog.name));
 }
 
 void SokolDelphiGenerator::gen_uniform_desc_refl_func(const GenInput& gen, const ProgramReflection& prog) {
-    l_open("{}sg_glsl_shader_uniform {}{}_uniform_desc(const char* ub_name, const char* u_name) {{\n", func_prefix, mod_prefix, prog.name);
-    l("(void)ub_name; (void)u_name;\n");
-    l("#if defined(__cplusplus)\n");
-    l("sg_glsl_shader_uniform res = {{}};\n");
-    l("#else\n");
-    l("sg_glsl_shader_uniform res = {{0}};\n");
-    l("#endif\n");
+    l("\n");
+    gen_uniform_desc_refl_func_prototype(gen, prog);
+
+    l_open("begin\n");
+
+    l("Result := Default(TGlslShaderUniform);\n");
     for (const UniformBlock& ub: prog.bindings.uniform_blocks) {
         if (ub.sokol_slot >= 0) {
-            l_open("if (0 == strcmp(ub_name, \"{}\")) {{\n", ub.name);
-            for (const Type& u: ub.struct_info.struct_items) {
-                l_open("if (0 == strcmp(u_name, \"{}\")) {{\n", u.name);
-                l("res.&type = {};\n", uniform_type(u.type));
-                l("res.array_count = {};\n", u.array_count);
-                l("res.glsl_name = \"{}\";\n", u.name);
-                l("return res;\n");
-                l_close("}}\n");
+            l("if (AUBName = '{}') then\n", ub.name);
+            l_open("begin\n");
+            for (const Type& u : ub.struct_info.struct_items) {
+                l("if (AUName = '{}') then\n", u.name);
+                l_open("begin\n");
+                l("Result.UniformType := {};\n", delphi_uniform_type(u.type));
+                l("Result.ArrayCount := {};\n", u.array_count);
+                l("Result.GlslName := '{}';\n", u.name);
+                l("Exit;\n");
+                l_close("end;\n");
             }
-            l_close("}}\n");
+            l_close("end;\n");
         }
     }
-    l("return res;\n");
-    l_close("}}\n");
+    l_close("end;\n");
 }
 
 void SokolDelphiGenerator::gen_shader_arrays(const GenInput& gen) {
     // Write function prototypes in interface section
     for (const auto& prog : gen.refl.progs) {
         gen_shader_desc_func_prototype(prog);
+    }
+
+    if (gen.args.reflection) {
+        // Write reflection function prototypes in interface section
+        for (const auto& prog : gen.refl.progs) {
+            l("\n");
+            gen_attr_slot_refl_func_prototype(gen, prog);
+            gen_texture_slot_refl_func_prototype(gen, prog);
+            gen_sampler_slot_refl_func_prototype(gen, prog);
+            gen_uniform_block_slot_refl_func_prototype(gen, prog);
+            gen_uniform_block_size_refl_func_prototype(gen, prog);
+            gen_uniform_offset_refl_func_prototype(gen, prog);
+            gen_uniform_desc_refl_func_prototype(gen, prog);
+            gen_storage_buffer_slot_refl_func_prototype(gen, prog);
+            gen_storage_image_slot_refl_func_prototype(gen, prog);
+        }
     }
 
     l("\nimplementation\n\n");
@@ -728,16 +786,31 @@ std::string SokolDelphiGenerator::attr_basetype(Type::Enum e) {
 
 std::string SokolDelphiGenerator::uniform_type(Type::Enum e) {
     switch (e) {
-        case Type::Float:  return "_SG_UNIFORMTYPE_FLOAT";
-        case Type::Float2: return "_SG_UNIFORMTYPE_FLOAT2";
-        case Type::Float3: return "_SG_UNIFORMTYPE_FLOAT3";
-        case Type::Float4: return "_SG_UNIFORMTYPE_FLOAT4";
-        case Type::Int:    return "_SG_UNIFORMTYPE_INT";
-        case Type::Int2:   return "_SG_UNIFORMTYPE_INT2";
-        case Type::Int3:   return "_SG_UNIFORMTYPE_INT3";
-        case Type::Int4:   return "_SG_UNIFORMTYPE_INT4";
-        case Type::Mat4x4: return "_SG_UNIFORMTYPE_MAT4";
-        default: return "INVALID";
+    case Type::Float:  return "_SG_UNIFORMTYPE_FLOAT";
+    case Type::Float2: return "_SG_UNIFORMTYPE_FLOAT2";
+    case Type::Float3: return "_SG_UNIFORMTYPE_FLOAT3";
+    case Type::Float4: return "_SG_UNIFORMTYPE_FLOAT4";
+    case Type::Int:    return "_SG_UNIFORMTYPE_INT";
+    case Type::Int2:   return "_SG_UNIFORMTYPE_INT2";
+    case Type::Int3:   return "_SG_UNIFORMTYPE_INT3";
+    case Type::Int4:   return "_SG_UNIFORMTYPE_INT4";
+    case Type::Mat4x4: return "_SG_UNIFORMTYPE_MAT4";
+    default: return "INVALID";
+    }
+}
+
+std::string SokolDelphiGenerator::delphi_uniform_type(Type::Enum e) {
+    switch (e) {
+    case Type::Float:  return "TUniformType.Float";
+    case Type::Float2: return "TUniformType.Float2";
+    case Type::Float3: return "TUniformType.Float3";
+    case Type::Float4: return "TUniformType.Float4";
+    case Type::Int:    return "TUniformType.Int";
+    case Type::Int2:   return "TUniformType.Int2";
+    case Type::Int3:   return "TUniformType.Int3";
+    case Type::Int4:   return "TUniformType.Int4";
+    case Type::Mat4x4: return "TUniformType.Mat4";
+    default: return "TUniformType.Invalid";
     }
 }
 

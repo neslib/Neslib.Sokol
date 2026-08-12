@@ -6,7 +6,6 @@ namespace shdc::gen {
 class SokolDelphiGenerator: public Generator {
     std::string mod_prefix;
     std::string mod_prefix_underscore;
-    std::string func_prefix;
     bool need_const;
 private:
     void start_const();
@@ -24,16 +23,25 @@ protected:
     virtual void gen_shader_array_end(const GenInput& gen);
     virtual void gen_stb_impl_start(const GenInput& gen);
     virtual void gen_stb_impl_end(const GenInput& gen);
-    virtual void gen_shader_desc_func_prototype(const refl::ProgramReflection& prog);
+    void gen_shader_desc_func_prototype(const refl::ProgramReflection& prog);
     virtual void gen_shader_desc_func(const GenInput& gen, const refl::ProgramReflection& prog);
+    void gen_attr_slot_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual void gen_attr_slot_refl_func(const GenInput& gen, const refl::ProgramReflection& prog);
+    void gen_texture_slot_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual void gen_texture_slot_refl_func(const GenInput& gen, const refl::ProgramReflection& prog);
+    void gen_sampler_slot_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& progm);
     virtual void gen_sampler_slot_refl_func(const GenInput& gen, const refl::ProgramReflection& progm);
+    void gen_uniform_block_slot_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual void gen_uniform_block_slot_refl_func(const GenInput& gen, const refl::ProgramReflection& prog);
+    void gen_uniform_block_size_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual void gen_uniform_block_size_refl_func(const GenInput& gen, const refl::ProgramReflection& prog);
+    void gen_uniform_offset_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual void gen_uniform_offset_refl_func(const GenInput& gen, const refl::ProgramReflection& prog);
+    void gen_uniform_desc_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual void gen_uniform_desc_refl_func(const GenInput& gen, const refl::ProgramReflection& prog);
+    void gen_storage_buffer_slot_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual void gen_storage_buffer_slot_refl_func(const GenInput& gen, const refl::ProgramReflection& prog);
+    void gen_storage_image_slot_refl_func_prototype(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual void gen_storage_image_slot_refl_func(const GenInput& gen, const refl::ProgramReflection& prog);
     virtual std::string lang_name();
     virtual std::string comment_block_start();
@@ -45,6 +53,7 @@ protected:
     virtual std::string shader_stage(ShaderStage::Enum e);
     virtual std::string attr_basetype(refl::Type::Enum e);
     virtual std::string uniform_type(refl::Type::Enum e);
+    std::string delphi_uniform_type(refl::Type::Enum e);
     virtual std::string flattened_uniform_type(refl::Type::Enum e);
     virtual std::string image_type(refl::ImageType::Enum e);
     virtual std::string image_sample_type(refl::ImageSampleType::Enum e);
