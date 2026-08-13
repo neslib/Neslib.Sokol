@@ -363,7 +363,7 @@ begin
   { A lookup table for looking up vertex attributes by name.
     The last parameter is the offset of the corresponding field in the
     TOzzVertex record. }
-  FVertexComponents[0].Init('position', TVertexFormat.Float, 0);
+  FVertexComponents[0].Init('position', TVertexFormat.Float3, 0);
   FVertexComponents[1].Init('normal', TVertexFormat.Byte4N, 12);
   FVertexComponents[2].Init('jindices', TVertexFormat.UByte4N, 16);
   FVertexComponents[3].Init('jweights', TVertexFormat.UByte4N, 20);
@@ -399,7 +399,7 @@ begin
   { Setup ozz-utility wrapper and create a character instance }
   var OzzDesc := TOzzDesc.Create;
   OzzDesc.MaxPaletteJoints := 64;
-  OzzDesc.MaxInstances := 64;
+  OzzDesc.MaxInstances := 1;
   TOzz.Setup(OzzDesc);
 
   FOzz := TOzzInstance.Create(0);

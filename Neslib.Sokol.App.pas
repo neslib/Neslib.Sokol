@@ -1188,6 +1188,8 @@ type
     { Is called when the mouse wheel is scrolled.
 
       Parameters:
+        AX: X-coordinate in logical units.
+        AY: Y-coordinate in logical units.
         AWheelDeltaX: relative horizontal movement (when the mousewheel is
           tilted left or right).
         AWheelDeltaX: relative vertical movement (when the mousewheel is rotated
@@ -1195,7 +1197,7 @@ type
         AModifiers: any modifier keys that are currently down.
 
       Does nothing by default. }
-    procedure MouseScroll(const AWheelDeltaX, AWheelDeltaY: Single;
+    procedure MouseScroll(const AX, AY, AWheelDeltaX, AWheelDeltaY: Single;
       const AModifiers: TModifiers); virtual;
 
     { Is called when the mouse is moved.
@@ -2503,7 +2505,7 @@ begin
       MouseUp(TMouseButton(AEvent.mouse_button), AEvent.mouse_x, AEvent.mouse_y, TModifiers(Word(AEvent.modifiers)));
 
     _SAPP_EVENTTYPE_MOUSE_SCROLL:
-      MouseScroll(AEvent.scroll_x, AEvent.scroll_y, TModifiers(Word(AEvent.modifiers)));
+      MouseScroll(AEvent.mouse_x, AEvent.mouse_y, AEvent.scroll_x, AEvent.scroll_y, TModifiers(Word(AEvent.modifiers)));
 
     _SAPP_EVENTTYPE_MOUSE_MOVE:
       MouseMove(AEvent.mouse_x, AEvent.mouse_y, AEvent.mouse_dx, AEvent.mouse_dy, TModifiers(Word(AEvent.modifiers)));
@@ -2707,8 +2709,8 @@ begin
   { No default implementation }
 end;
 
-procedure TApplication.MouseScroll(const AWheelDeltaX, AWheelDeltaY: Single;
-  const AModifiers: TModifiers);
+procedure TApplication.MouseScroll(const AX, AY, AWheelDeltaX,
+  AWheelDeltaY: Single; const AModifiers: TModifiers);
 begin
   { No default implementation }
 end;

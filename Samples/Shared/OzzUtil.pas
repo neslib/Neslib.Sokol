@@ -67,6 +67,7 @@ type
     FMeshInverseBindPoses: TArray<TMatrix4>;
     FLocalMatrices: TAlignedArray<TOzzSoaTransform>;
     FModelMatrices: TAlignedArray<TMatrix4>;
+    FCache: TOzzSamplingCache;
     FSamplingJob: TOzzSamplingJob;
     FLocalToModelJob: TOzzLocalToModelJob;
     FVBuf: TBuffer;
@@ -195,7 +196,7 @@ begin
   Assert(GJointUpoadBuffer <> nil);
 
   var ImgData := TImageData.Create;
-  ImgData.MipLevels[0].Data := @GJointUpoadBuffer;
+  ImgData.MipLevels[0].Data := Pointer(GJointUpoadBuffer);
   ImgData.MipLevels[0].Size := GJointTexturePitch * GJointTextureHeight * SizeOf(Single);
   GJointTexture.Update(ImgData);
 end;
@@ -210,6 +211,7 @@ begin
   FIndex := AIndex;
   FSkel := TOzzSkeleton.Create;
   FAnim := TOzzAnimation.Create;
+  FCache := TOzzSamplingCache.Create;
   FSamplingJob := TOzzSamplingJob.Create;
   FLocalToModelJob := TOzzLocalToModelJob.Create;
 end;
@@ -220,6 +222,7 @@ begin
   FVBuf.Free;
   FLocalToModelJob.Free;
   FSamplingJob.Free;
+  FCache.Free;
   FModelMatrices.Free;
   FLocalMatrices.Free;
   FAnim.Free;
@@ -369,6 +372,7 @@ begin
       FSkelLoaded := True;
       var NumSoaJoints := FSkel.NumSoaJoints;
       var NumJoints := FSkel.NumJoints;
+      FCache.Resize(NumJoints);
 
       FLocalMatrices := TAlignedArray<TOzzSoaTransform>.Create(NumSoaJoints);
       FModelMatrices  := TAlignedArray<TMatrix4>.Create(NumJoints);
@@ -396,6 +400,7 @@ begin
   var AnimRatio: Single := FMod(ASeconds / AnimDuration, 1);
 
   FSamplingJob.Animation := FAnim;
+  FSamplingJob.Cache := FCache;
   FSamplingJob.Ratio := AnimRatio;
   FSamplingJob.Output := TOzzSpan<TOzzSoaTransform>.Create(FLocalMatrices);
   FSamplingJob.Run;

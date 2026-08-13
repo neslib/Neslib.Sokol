@@ -13,6 +13,9 @@ const
   {$ELSEIF Defined(WIN64)}
   _LIB_STB = 'stb64.dll';
   _PU = '';
+  {$ELSEIF Defined(MACOS64) and Defined(CPUARM64) and not Defined(IOS)}
+  _LIB_STB = 'libstb_macos_arm.a';
+  _PU = '';
   {$ELSEIF Defined(MACOS64) and Defined(CPUX64) and not Defined(IOS)}
   _LIB_STB = 'libstb_macos_intel.a';
   _PU = '';
@@ -31,6 +34,11 @@ const
 
 const
   _STBI_VERSION = 1;
+  _STBTT_MACSTYLE_DONTCARE = 0;
+  _STBTT_MACSTYLE_BOLD = 1;
+  _STBTT_MACSTYLE_ITALIC = 2;
+  _STBTT_MACSTYLE_UNDERSCORE = 4;
+  _STBTT_MACSTYLE_NONE = 8;
 
 const
   _STBI_default = 0;
@@ -39,11 +47,88 @@ const
   _STBI_rgb = 3;
   _STBI_rgb_alpha = 4;
 
+const
+  _STBTT_vmove = 1;
+  _STBTT_vline = 2;
+  _STBTT_vcurve = 3;
+  _STBTT_vcubic = 4;
+
+const
+  _STBTT_PLATFORM_ID_UNICODE = 0;
+  _STBTT_PLATFORM_ID_MAC = 1;
+  _STBTT_PLATFORM_ID_ISO = 2;
+  _STBTT_PLATFORM_ID_MICROSOFT = 3;
+
+const
+  _STBTT_UNICODE_EID_UNICODE_1_0 = 0;
+  _STBTT_UNICODE_EID_UNICODE_1_1 = 1;
+  _STBTT_UNICODE_EID_ISO_10646 = 2;
+  _STBTT_UNICODE_EID_UNICODE_2_0_BMP = 3;
+  _STBTT_UNICODE_EID_UNICODE_2_0_FULL = 4;
+
+const
+  _STBTT_MS_EID_SYMBOL = 0;
+  _STBTT_MS_EID_UNICODE_BMP = 1;
+  _STBTT_MS_EID_SHIFTJIS = 2;
+  _STBTT_MS_EID_UNICODE_FULL = 10;
+
+const
+  _STBTT_MAC_EID_ROMAN = 0;
+  _STBTT_MAC_EID_ARABIC = 4;
+  _STBTT_MAC_EID_JAPANESE = 1;
+  _STBTT_MAC_EID_HEBREW = 5;
+  _STBTT_MAC_EID_CHINESE_TRAD = 2;
+  _STBTT_MAC_EID_GREEK = 6;
+  _STBTT_MAC_EID_KOREAN = 3;
+  _STBTT_MAC_EID_RUSSIAN = 7;
+
+const
+  _STBTT_MS_LANG_ENGLISH = 1033;
+  _STBTT_MS_LANG_ITALIAN = 1040;
+  _STBTT_MS_LANG_CHINESE = 2052;
+  _STBTT_MS_LANG_JAPANESE = 1041;
+  _STBTT_MS_LANG_DUTCH = 1043;
+  _STBTT_MS_LANG_KOREAN = 1042;
+  _STBTT_MS_LANG_FRENCH = 1036;
+  _STBTT_MS_LANG_RUSSIAN = 1049;
+  _STBTT_MS_LANG_GERMAN = 1031;
+  _STBTT_MS_LANG_SPANISH = 1033;
+  _STBTT_MS_LANG_HEBREW = 1037;
+  _STBTT_MS_LANG_SWEDISH = 1053;
+
+const
+  _STBTT_MAC_LANG_ENGLISH = 0;
+  _STBTT_MAC_LANG_JAPANESE = 11;
+  _STBTT_MAC_LANG_ARABIC = 12;
+  _STBTT_MAC_LANG_KOREAN = 23;
+  _STBTT_MAC_LANG_DUTCH = 4;
+  _STBTT_MAC_LANG_RUSSIAN = 32;
+  _STBTT_MAC_LANG_FRENCH = 1;
+  _STBTT_MAC_LANG_SPANISH = 6;
+  _STBTT_MAC_LANG_GERMAN = 2;
+  _STBTT_MAC_LANG_SWEDISH = 5;
+  _STBTT_MAC_LANG_HEBREW = 10;
+  _STBTT_MAC_LANG_CHINESE_SIMPLIFIED = 33;
+  _STBTT_MAC_LANG_ITALIAN = 3;
+  _STBTT_MAC_LANG_CHINESE_TRAD = 19;
+
 type
   // Forward declarations
+  PPUTF8Char = ^PUTF8Char;
   PPInteger = ^PInteger;
   PPointer = ^Pointer;
   _Pstbi_io_callbacks = ^_stbi_io_callbacks;
+  _Pstbtt__buf = ^_stbtt__buf;
+  _Pstbtt_bakedchar = ^_stbtt_bakedchar;
+  _Pstbtt_aligned_quad = ^_stbtt_aligned_quad;
+  _Pstbtt_packedchar = ^_stbtt_packedchar;
+  _Pstbtt_pack_range = ^_stbtt_pack_range;
+  _Pstbtt_pack_context = ^_stbtt_pack_context;
+  _Pstbtt_fontinfo = ^_stbtt_fontinfo;
+  _Pstbtt_kerningentry = ^_stbtt_kerningentry;
+  _Pstbtt_vertex = ^_stbtt_vertex;
+  _PPstbtt_vertex = ^_Pstbtt_vertex;
+  _Pstbtt__bitmap = ^_stbtt__bitmap;
 
   _stbi_uc = Byte;
   _Pstbi_uc = ^_stbi_uc;
@@ -55,6 +140,121 @@ type
     read: function(user: Pointer; data: PUTF8Char; size: Integer): Integer; cdecl;
     skip: procedure(user: Pointer; n: Integer); cdecl;
     eof: function(user: Pointer): Integer; cdecl;
+  end;
+
+  _stbtt__buf = record
+    data: PByte;
+    cursor: Integer;
+    size: Integer;
+  end;
+
+  //////////////////////////////////////////////////////////////////////////////
+  _stbtt_bakedchar = record
+    x0: Word;
+    y0: Word;
+    x1: Word;
+    y1: Word;
+    xoff: Single;
+    yoff: Single;
+    xadvance: Single;
+  end;
+
+  _stbtt_aligned_quad = record
+    x0: Single;
+    y0: Single;
+    s0: Single;
+    t0: Single;
+    x1: Single;
+    y1: Single;
+    s1: Single;
+    t1: Single;
+  end;
+
+  //////////////////////////////////////////////////////////////////////////////
+  _stbtt_packedchar = record
+    x0: Word;
+    y0: Word;
+    x1: Word;
+    y1: Word;
+    xoff: Single;
+    yoff: Single;
+    xadvance: Single;
+    xoff2: Single;
+    yoff2: Single;
+  end;
+
+  _Pstbrp_rect = Pointer;
+  _PPstbrp_rect = ^_Pstbrp_rect;
+
+  _stbtt_pack_range = record
+    font_size: Single;
+    first_unicode_codepoint_in_range: Integer;
+    array_of_unicode_codepoints: PInteger;
+    num_chars: Integer;
+    chardata_for_range: _Pstbtt_packedchar;
+    h_oversample: Byte;
+    v_oversample: Byte;
+  end;
+
+  _stbtt_pack_context = record
+    user_allocator_context: Pointer;
+    pack_info: Pointer;
+    width: Integer;
+    height: Integer;
+    stride_in_bytes: Integer;
+    padding: Integer;
+    skip_missing: Integer;
+    h_oversample: Cardinal;
+    v_oversample: Cardinal;
+    pixels: PByte;
+    nodes: Pointer;
+  end;
+
+  _stbtt_fontinfo = record
+    userdata: Pointer;
+    data: PByte;
+    fontstart: Integer;
+    numGlyphs: Integer;
+    loca: Integer;
+    head: Integer;
+    glyf: Integer;
+    hhea: Integer;
+    hmtx: Integer;
+    kern: Integer;
+    gpos: Integer;
+    svg: Integer;
+    index_map: Integer;
+    indexToLocFormat: Integer;
+    cff: _stbtt__buf;
+    charstrings: _stbtt__buf;
+    gsubrs: _stbtt__buf;
+    subrs: _stbtt__buf;
+    fontdicts: _stbtt__buf;
+    fdselect: _stbtt__buf;
+  end;
+
+  _stbtt_kerningentry = record
+    glyph1: Integer;
+    glyph2: Integer;
+    advance: Integer;
+  end;
+
+  _stbtt_vertex = record
+    x: Smallint;
+    y: Smallint;
+    cx: Smallint;
+    cy: Smallint;
+    cx1: Smallint;
+    cy1: Smallint;
+    &type: Byte;
+    padding: Byte;
+  end;
+
+  _stbtt__bitmap = record
+    w: Integer;
+    h: Integer;
+    stride: Integer;
+    pixels: PByte;
   end;
 
 ////////////////////////////////////
@@ -178,6 +378,188 @@ function _stbi_zlib_decode_noheader_malloc(const buffer: PUTF8Char; len: Integer
 
 function _stbi_zlib_decode_noheader_buffer(obuffer: PUTF8Char; olen: Integer; const ibuffer: PUTF8Char; ilen: Integer): Integer; cdecl;
   external _LIB_STB name _PU + 'stbi_zlib_decode_noheader_buffer';
+
+function _stbtt_BakeFontBitmap(const data: PByte; offset: Integer; pixel_height: Single; pixels: PByte; pw: Integer; ph: Integer; first_char: Integer; num_chars: Integer; chardata: _Pstbtt_bakedchar): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_BakeFontBitmap';
+
+procedure _stbtt_GetBakedQuad(const chardata: _Pstbtt_bakedchar; pw: Integer; ph: Integer; char_index: Integer; xpos: PSingle; ypos: PSingle; q: _Pstbtt_aligned_quad; opengl_fillrule: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetBakedQuad';
+
+procedure _stbtt_GetScaledFontVMetrics(const fontdata: PByte; index: Integer; size: Single; ascent: PSingle; descent: PSingle; lineGap: PSingle); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetScaledFontVMetrics';
+
+function _stbtt_PackBegin(spc: _Pstbtt_pack_context; pixels: PByte; width: Integer; height: Integer; stride_in_bytes: Integer; padding: Integer; alloc_context: Pointer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackBegin';
+
+procedure _stbtt_PackEnd(spc: _Pstbtt_pack_context); cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackEnd';
+
+function _stbtt_PackFontRange(spc: _Pstbtt_pack_context; const fontdata: PByte; font_index: Integer; font_size: Single; first_unicode_char_in_range: Integer; num_chars_in_range: Integer; chardata_for_range: _Pstbtt_packedchar): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackFontRange';
+
+function _stbtt_PackFontRanges(spc: _Pstbtt_pack_context; const fontdata: PByte; font_index: Integer; ranges: _Pstbtt_pack_range; num_ranges: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackFontRanges';
+
+procedure _stbtt_PackSetOversampling(spc: _Pstbtt_pack_context; h_oversample: Cardinal; v_oversample: Cardinal); cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackSetOversampling';
+
+procedure _stbtt_PackSetSkipMissingCodepoints(spc: _Pstbtt_pack_context; skip: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackSetSkipMissingCodepoints';
+
+procedure _stbtt_GetPackedQuad(const chardata: _Pstbtt_packedchar; pw: Integer; ph: Integer; char_index: Integer; xpos: PSingle; ypos: PSingle; q: _Pstbtt_aligned_quad; align_to_integer: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetPackedQuad';
+
+function _stbtt_PackFontRangesGatherRects(spc: _Pstbtt_pack_context; const info: _Pstbtt_fontinfo; ranges: _Pstbtt_pack_range; num_ranges: Integer; rects: _Pstbrp_rect): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackFontRangesGatherRects';
+
+procedure _stbtt_PackFontRangesPackRects(spc: _Pstbtt_pack_context; rects: _Pstbrp_rect; num_rects: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackFontRangesPackRects';
+
+function _stbtt_PackFontRangesRenderIntoRects(spc: _Pstbtt_pack_context; const info: _Pstbtt_fontinfo; ranges: _Pstbtt_pack_range; num_ranges: Integer; rects: _Pstbrp_rect): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_PackFontRangesRenderIntoRects';
+
+//////////////////////////////////////////////////////////////////////////////
+function _stbtt_GetNumberOfFonts(const data: PByte): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetNumberOfFonts';
+
+function _stbtt_GetFontOffsetForIndex(const data: PByte; index: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetFontOffsetForIndex';
+
+function _stbtt_InitFont(info: _Pstbtt_fontinfo; const data: PByte; offset: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_InitFont';
+
+//////////////////////////////////////////////////////////////////////////////
+function _stbtt_FindGlyphIndex(const info: _Pstbtt_fontinfo; unicode_codepoint: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_FindGlyphIndex';
+
+//////////////////////////////////////////////////////////////////////////////
+function _stbtt_ScaleForPixelHeight(const info: _Pstbtt_fontinfo; pixels: Single): Single; cdecl;
+  external _LIB_STB name _PU + 'stbtt_ScaleForPixelHeight';
+
+function _stbtt_ScaleForMappingEmToPixels(const info: _Pstbtt_fontinfo; pixels: Single): Single; cdecl;
+  external _LIB_STB name _PU + 'stbtt_ScaleForMappingEmToPixels';
+
+procedure _stbtt_GetFontVMetrics(const info: _Pstbtt_fontinfo; ascent: PInteger; descent: PInteger; lineGap: PInteger); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetFontVMetrics';
+
+function _stbtt_GetFontVMetricsOS2(const info: _Pstbtt_fontinfo; typoAscent: PInteger; typoDescent: PInteger; typoLineGap: PInteger): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetFontVMetricsOS2';
+
+procedure _stbtt_GetFontBoundingBox(const info: _Pstbtt_fontinfo; x0: PInteger; y0: PInteger; x1: PInteger; y1: PInteger); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetFontBoundingBox';
+
+procedure _stbtt_GetCodepointHMetrics(const info: _Pstbtt_fontinfo; codepoint: Integer; advanceWidth: PInteger; leftSideBearing: PInteger); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointHMetrics';
+
+function _stbtt_GetCodepointKernAdvance(const info: _Pstbtt_fontinfo; ch1: Integer; ch2: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointKernAdvance';
+
+function _stbtt_GetCodepointBox(const info: _Pstbtt_fontinfo; codepoint: Integer; x0: PInteger; y0: PInteger; x1: PInteger; y1: PInteger): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointBox';
+
+procedure _stbtt_GetGlyphHMetrics(const info: _Pstbtt_fontinfo; glyph_index: Integer; advanceWidth: PInteger; leftSideBearing: PInteger); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphHMetrics';
+
+function _stbtt_GetGlyphKernAdvance(const info: _Pstbtt_fontinfo; glyph1: Integer; glyph2: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphKernAdvance';
+
+function _stbtt_GetGlyphBox(const info: _Pstbtt_fontinfo; glyph_index: Integer; x0: PInteger; y0: PInteger; x1: PInteger; y1: PInteger): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphBox';
+
+function _stbtt_GetKerningTableLength(const info: _Pstbtt_fontinfo): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetKerningTableLength';
+
+function _stbtt_GetKerningTable(const info: _Pstbtt_fontinfo; table: _Pstbtt_kerningentry; table_length: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetKerningTable';
+
+function _stbtt_IsGlyphEmpty(const info: _Pstbtt_fontinfo; glyph_index: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_IsGlyphEmpty';
+
+function _stbtt_GetCodepointShape(const info: _Pstbtt_fontinfo; unicode_codepoint: Integer; vertices: _PPstbtt_vertex): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointShape';
+
+function _stbtt_GetGlyphShape(const info: _Pstbtt_fontinfo; glyph_index: Integer; vertices: _PPstbtt_vertex): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphShape';
+
+procedure _stbtt_FreeShape(const info: _Pstbtt_fontinfo; vertices: _Pstbtt_vertex); cdecl;
+  external _LIB_STB name _PU + 'stbtt_FreeShape';
+
+function _stbtt_FindSVGDoc(const info: _Pstbtt_fontinfo; gl: Integer): PByte; cdecl;
+  external _LIB_STB name _PU + 'stbtt_FindSVGDoc';
+
+function _stbtt_GetCodepointSVG(const info: _Pstbtt_fontinfo; unicode_codepoint: Integer; svg: PPUTF8Char): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointSVG';
+
+function _stbtt_GetGlyphSVG(const info: _Pstbtt_fontinfo; gl: Integer; svg: PPUTF8Char): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphSVG';
+
+//////////////////////////////////////////////////////////////////////////////
+procedure _stbtt_FreeBitmap(bitmap: PByte; userdata: Pointer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_FreeBitmap';
+
+function _stbtt_GetCodepointBitmap(const info: _Pstbtt_fontinfo; scale_x: Single; scale_y: Single; codepoint: Integer; width: PInteger; height: PInteger; xoff: PInteger; yoff: PInteger): PByte; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointBitmap';
+
+function _stbtt_GetCodepointBitmapSubpixel(const info: _Pstbtt_fontinfo; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; codepoint: Integer; width: PInteger; height: PInteger; xoff: PInteger; yoff: PInteger): PByte; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointBitmapSubpixel';
+
+procedure _stbtt_MakeCodepointBitmap(const info: _Pstbtt_fontinfo; output: PByte; out_w: Integer; out_h: Integer; out_stride: Integer; scale_x: Single; scale_y: Single; codepoint: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_MakeCodepointBitmap';
+
+procedure _stbtt_MakeCodepointBitmapSubpixel(const info: _Pstbtt_fontinfo; output: PByte; out_w: Integer; out_h: Integer; out_stride: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; codepoint: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_MakeCodepointBitmapSubpixel';
+
+procedure _stbtt_MakeCodepointBitmapSubpixelPrefilter(const info: _Pstbtt_fontinfo; output: PByte; out_w: Integer; out_h: Integer; out_stride: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; oversample_x: Integer; oversample_y: Integer; sub_x: PSingle; sub_y: PSingle; codepoint: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_MakeCodepointBitmapSubpixelPrefilter';
+
+procedure _stbtt_GetCodepointBitmapBox(const font: _Pstbtt_fontinfo; codepoint: Integer; scale_x: Single; scale_y: Single; ix0: PInteger; iy0: PInteger; ix1: PInteger; iy1: PInteger); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointBitmapBox';
+
+procedure _stbtt_GetCodepointBitmapBoxSubpixel(const font: _Pstbtt_fontinfo; codepoint: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; ix0: PInteger; iy0: PInteger; ix1: PInteger; iy1: PInteger); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointBitmapBoxSubpixel';
+
+function _stbtt_GetGlyphBitmap(const info: _Pstbtt_fontinfo; scale_x: Single; scale_y: Single; glyph: Integer; width: PInteger; height: PInteger; xoff: PInteger; yoff: PInteger): PByte; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphBitmap';
+
+function _stbtt_GetGlyphBitmapSubpixel(const info: _Pstbtt_fontinfo; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; glyph: Integer; width: PInteger; height: PInteger; xoff: PInteger; yoff: PInteger): PByte; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphBitmapSubpixel';
+
+procedure _stbtt_MakeGlyphBitmap(const info: _Pstbtt_fontinfo; output: PByte; out_w: Integer; out_h: Integer; out_stride: Integer; scale_x: Single; scale_y: Single; glyph: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_MakeGlyphBitmap';
+
+procedure _stbtt_MakeGlyphBitmapSubpixel(const info: _Pstbtt_fontinfo; output: PByte; out_w: Integer; out_h: Integer; out_stride: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; glyph: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_MakeGlyphBitmapSubpixel';
+
+procedure _stbtt_MakeGlyphBitmapSubpixelPrefilter(const info: _Pstbtt_fontinfo; output: PByte; out_w: Integer; out_h: Integer; out_stride: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; oversample_x: Integer; oversample_y: Integer; sub_x: PSingle; sub_y: PSingle; glyph: Integer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_MakeGlyphBitmapSubpixelPrefilter';
+
+procedure _stbtt_GetGlyphBitmapBox(const font: _Pstbtt_fontinfo; glyph: Integer; scale_x: Single; scale_y: Single; ix0: PInteger; iy0: PInteger; ix1: PInteger; iy1: PInteger); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphBitmapBox';
+
+procedure _stbtt_GetGlyphBitmapBoxSubpixel(const font: _Pstbtt_fontinfo; glyph: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; ix0: PInteger; iy0: PInteger; ix1: PInteger; iy1: PInteger); cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphBitmapBoxSubpixel';
+
+procedure _stbtt_Rasterize(result: _Pstbtt__bitmap; flatness_in_pixels: Single; vertices: _Pstbtt_vertex; num_verts: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; x_off: Integer; y_off: Integer; invert: Integer; userdata: Pointer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_Rasterize';
+
+//////////////////////////////////////////////////////////////////////////////
+procedure _stbtt_FreeSDF(bitmap: PByte; userdata: Pointer); cdecl;
+  external _LIB_STB name _PU + 'stbtt_FreeSDF';
+
+function _stbtt_GetGlyphSDF(const info: _Pstbtt_fontinfo; scale: Single; glyph: Integer; padding: Integer; onedge_value: Byte; pixel_dist_scale: Single; width: PInteger; height: PInteger; xoff: PInteger; yoff: PInteger): PByte; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetGlyphSDF';
+
+function _stbtt_GetCodepointSDF(const info: _Pstbtt_fontinfo; scale: Single; codepoint: Integer; padding: Integer; onedge_value: Byte; pixel_dist_scale: Single; width: PInteger; height: PInteger; xoff: PInteger; yoff: PInteger): PByte; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetCodepointSDF';
+
+function _stbtt_FindMatchingFont(const fontdata: PByte; const name: PUTF8Char; flags: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_FindMatchingFont';
+
+function _stbtt_CompareUTF8toUTF16_bigendian(const s1: PUTF8Char; len1: Integer; const s2: PUTF8Char; len2: Integer): Integer; cdecl;
+  external _LIB_STB name _PU + 'stbtt_CompareUTF8toUTF16_bigendian';
+
+function _stbtt_GetFontNameString(const font: _Pstbtt_fontinfo; length: PInteger; platformID: Integer; encodingID: Integer; languageID: Integer; nameID: Integer): PUTF8Char; cdecl;
+  external _LIB_STB name _PU + 'stbtt_GetFontNameString';
 
 implementation
 
