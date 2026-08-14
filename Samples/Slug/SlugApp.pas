@@ -129,7 +129,6 @@ type
     procedure PushDrawCommand;
     function MeasureLine(const AFont: TSlugFont; const AText: TLine): Single;
     procedure EndPushGlyphs;
-  private
   protected
     class function HasImGui: Boolean; override;
   protected
@@ -265,6 +264,7 @@ begin
     each glyph is rendered as a 4-vertex triangle-strip }
   var PipDesc := TPipelineDesc.Create;
   PipDesc.Shader := TShader.Create(SlugShaderDesc);
+  PipDesc.Layout.Buffers[0].StepFunc := TVertexStep.PerInstance;
   PipDesc.Layout.Attrs[ATTR_SLUG_DRAW_RECT].Format := TVertexFormat.Float4;
   PipDesc.Layout.Attrs[ATTR_SLUG_GLYPH_BBOX].Format := TVertexFormat.Float4;
   PipDesc.Layout.Attrs[ATTR_SLUG_IN_BAND_TRANSFORM].Format := TVertexFormat.Float4;
@@ -322,16 +322,15 @@ begin
 
     if (FFonts.Cairo.Valid) then
     begin
-//      FLine[0, 3] := 0;
-      for var I := 0 to 0{3} do
+      for var I := 0 to 3 do
         PushCenteredLine(FFonts.Cairo, FLine[I], I);
     end;
 
-//    if (FFonts.Lucide.Valid) then
-//      PushCenteredLine(FFonts.Lucide, FLine[4], 4);
-//
-//    if (FFonts.Twemoji.Valid) then
-//      PushCenteredLineEmoji(FFonts.Twemoji, FLine[5], 5);
+    if (FFonts.Lucide.Valid) then
+      PushCenteredLine(FFonts.Lucide, FLine[4], 4);
+
+    if (FFonts.Twemoji.Valid) then
+      PushCenteredLineEmoji(FFonts.Twemoji, FLine[5], 5);
 
     EndPushGlyphs;
   end;
