@@ -2646,7 +2646,7 @@ begin
     GFsqShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GFsqShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GFsqShaderDesc.uniform_blocks[0].size := 16;
-    GFsqShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GFsqShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GFsqShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 1;
     GFsqShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'fsq_params';
     GFsqShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;
@@ -2691,7 +2691,7 @@ begin
     GFsqShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GFsqShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GFsqShaderDesc.uniform_blocks[0].size := 16;
-    GFsqShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GFsqShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GFsqShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 1;
     GFsqShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'fsq_params';
     GFsqShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;
@@ -2931,7 +2931,7 @@ begin
     GOffscreenShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GOffscreenShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GOffscreenShaderDesc.uniform_blocks[0].size := 64;
-    GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'offscreen_params';
     GOffscreenShaderDesc.&label := 'offscreen_shader';
@@ -2952,7 +2952,7 @@ begin
     GOffscreenShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GOffscreenShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GOffscreenShaderDesc.uniform_blocks[0].size := 64;
-    GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'offscreen_params';
     GOffscreenShaderDesc.&label := 'offscreen_shader';

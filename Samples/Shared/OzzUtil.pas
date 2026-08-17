@@ -103,7 +103,8 @@ type
 implementation
 
 uses
-  System.Classes;
+  System.Classes,
+  Neslib.Sokol.Api;
 
 function PackU32(const AX, AY, AZ, AW: Byte): UInt32;
 begin

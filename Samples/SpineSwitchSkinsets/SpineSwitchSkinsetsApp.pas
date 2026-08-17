@@ -6,6 +6,7 @@ unit SpineSwitchSkinsetsApp;
 interface
 
 uses
+  System.UITypes,
   Neslib.Sokol.App,
   Neslib.Sokol.Gfx,
   Neslib.Sokol.Spine,

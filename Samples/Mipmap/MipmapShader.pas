@@ -781,7 +781,7 @@ begin
     GMipmapShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GMipmapShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GMipmapShaderDesc.uniform_blocks[0].size := 64;
-    GMipmapShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GMipmapShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GMipmapShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GMipmapShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'vs_params';
     GMipmapShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;
@@ -812,7 +812,7 @@ begin
     GMipmapShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GMipmapShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GMipmapShaderDesc.uniform_blocks[0].size := 64;
-    GMipmapShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GMipmapShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GMipmapShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GMipmapShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'vs_params';
     GMipmapShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;

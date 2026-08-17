@@ -1804,7 +1804,7 @@ begin
     GOffscreenShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GOffscreenShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GOffscreenShaderDesc.uniform_blocks[0].size := 64;
-    GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'offscreen_params';
     GOffscreenShaderDesc.&label := 'offscreen_shader';
@@ -1827,7 +1827,7 @@ begin
     GOffscreenShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GOffscreenShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GOffscreenShaderDesc.uniform_blocks[0].size := 64;
-    GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GOffscreenShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'offscreen_params';
     GOffscreenShaderDesc.&label := 'offscreen_shader';
@@ -1943,7 +1943,7 @@ begin
     GQuadShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_FRAGMENT;
     GQuadShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GQuadShaderDesc.uniform_blocks[0].size := 16;
-    GQuadShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GQuadShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GQuadShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 1;
     GQuadShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'quad_params';
     GQuadShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;
@@ -1972,7 +1972,7 @@ begin
     GQuadShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_FRAGMENT;
     GQuadShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GQuadShaderDesc.uniform_blocks[0].size := 16;
-    GQuadShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GQuadShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GQuadShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 1;
     GQuadShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'quad_params';
     GQuadShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;

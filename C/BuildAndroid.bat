@@ -5,8 +5,8 @@ set LIB32=obj\local\armeabi-v7a\libsokol.a
 set LIB64=obj\local\arm64-v8a\libsokol.a
 
 REM Location of NDK tools
-set NDK_BUILD=c:\Users\Public\Documents\Embarcadero\Studio\23.0\CatalogRepository\AndroidSDK-2525-23.0.55362.2017\ndk\27.1.12297006\ndk-build.cmd
-set NDK_STRIP=C:\Users\Public\Documents\Embarcadero\Studio\37.0\CatalogRepository\AndroidSDK-37.0.57242.3601\ndk\27.1.12297006\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip.exe
+set NDK_BUILD=C:\Users\Public\Documents\Embarcadero\Studio\37.0\CatalogRepository\AndroidSDK-37.0.59082.6021\ndk\27.1.12297006\ndk-build.cmd
+set NDK_STRIP=C:\Users\Public\Documents\Embarcadero\Studio\37.0\CatalogRepository\AndroidSDK-37.0.59082.6021\ndk\27.1.12297006\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip.exe
 
 if not exist %NDK_BUILD% (
   echo Cannot find ndk-build. Should be installed in: %NDK_BUILD%

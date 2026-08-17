@@ -14,7 +14,7 @@ fi
 
 rm libsokol_ios.a
 
-clang -c -O3 -arch arm64 -isysroot $SDK_ROOT -DNDEBUG -Isokol -xobjective-c++ -std=c++11 -miphoneos-version-min=11.0 sokol.c sokol/deps/cimgui.cpp sokol/deps/imgui/imgui.cpp sokol/deps/imgui/imgui_widgets.cpp sokol/deps/imgui/imgui_draw.cpp sokol/deps/imgui/imgui_tables.cpp sokol/deps/imgui/imgui_demo.cpp sokol/libs/basisu/sokol_basisu.cpp
+clang -c -O3 -arch arm64 -isysroot $SDK_ROOT -DNDEBUG -Isokol -xobjective-c++ -std=c++11 -Wno-address-of-temporary -Wno-return-mismatch -Wno-deprecated-builtins -Wno-deprecated-declarations -Wno-builtin-macro-redefined -Wno-macro-redefined -miphoneos-version-min=16.0 sokol.c sokol/deps/cimgui.cpp sokol/deps/cimgui_internal.cpp sokol/deps/imgui.cpp sokol/deps/imgui_widgets.cpp sokol/deps/imgui_draw.cpp sokol/deps/imgui_tables.cpp sokol/deps/imgui_demo.cpp sokol/libs/basisu/sokol_basisu.cpp sokol/spine/src/*.c
 
 ar rcs libsokol_ios.a *.o
 ranlib libsokol_ios.a

@@ -109,7 +109,7 @@ type
       const AKeyRepeat: Boolean); override;
     procedure MouseMove(const AX, AY, ADX, ADY: Single;
       const AModifiers: TModifiers); override;
-    procedure MouseScroll(const AWheelDeltaX, AWheelDeltaY: Single;
+    procedure MouseScroll(const AX, AY, AWheelDeltaX, AWheelDeltaY: Single;
       const AModifiers: TModifiers); override;
   protected
     procedure Configure(var AConfig: TAppConfig); override;
@@ -287,7 +287,7 @@ begin
     FControl.Move(ADX, ADY);
 end;
 
-procedure TBlendPlaygroundApp.MouseScroll(const AWheelDeltaX,
+procedure TBlendPlaygroundApp.MouseScroll(const AX, AY, AWheelDeltaX,
   AWheelDeltaY: Single; const AModifiers: TModifiers);
 begin
   inherited;

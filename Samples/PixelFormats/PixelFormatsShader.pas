@@ -1414,7 +1414,7 @@ begin
     GBGShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_FRAGMENT;
     GBGShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GBGShaderDesc.uniform_blocks[0].size := 16;
-    GBGShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GBGShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GBGShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 1;
     GBGShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'bg_fs_params';
     GBGShaderDesc.&label := 'bg_shader';
@@ -1433,7 +1433,7 @@ begin
     GBGShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_FRAGMENT;
     GBGShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GBGShaderDesc.uniform_blocks[0].size := 16;
-    GBGShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GBGShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GBGShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 1;
     GBGShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'bg_fs_params';
     GBGShaderDesc.&label := 'bg_shader';
@@ -1539,7 +1539,7 @@ begin
     GCubeShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GCubeShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GCubeShaderDesc.uniform_blocks[0].size := 64;
-    GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'cube_vs_params';
     GCubeShaderDesc.&label := 'cube_shader';
@@ -1560,7 +1560,7 @@ begin
     GCubeShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GCubeShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GCubeShaderDesc.uniform_blocks[0].size := 64;
-    GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GCubeShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'cube_vs_params';
     GCubeShaderDesc.&label := 'cube_shader';

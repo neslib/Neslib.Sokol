@@ -728,7 +728,7 @@ begin
     GSceneShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GSceneShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GSceneShaderDesc.uniform_blocks[0].size := 64;
-    GSceneShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GSceneShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GSceneShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GSceneShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'vs_params';
     GSceneShaderDesc.&label := 'scene_shader';
@@ -749,7 +749,7 @@ begin
     GSceneShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GSceneShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GSceneShaderDesc.uniform_blocks[0].size := 64;
-    GSceneShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GSceneShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GSceneShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 4;
     GSceneShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'vs_params';
     GSceneShaderDesc.&label := 'scene_shader';

@@ -786,7 +786,7 @@ begin
     GUvwrapShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GUvwrapShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GUvwrapShaderDesc.uniform_blocks[0].size := 16;
-    GUvwrapShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GUvwrapShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GUvwrapShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 1;
     GUvwrapShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'vs_params';
     GUvwrapShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;
@@ -815,7 +815,7 @@ begin
     GUvwrapShaderDesc.uniform_blocks[0].stage := _SG_SHADERSTAGE_VERTEX;
     GUvwrapShaderDesc.uniform_blocks[0].layout := _SG_UNIFORMLAYOUT_STD140;
     GUvwrapShaderDesc.uniform_blocks[0].size := 16;
-    GUvwrapShaderDesc.uniform_blocks[0].glsl_uniforms[0].type := _SG_UNIFORMTYPE_FLOAT4;
+    GUvwrapShaderDesc.uniform_blocks[0].glsl_uniforms[0].&type := _SG_UNIFORMTYPE_FLOAT4;
     GUvwrapShaderDesc.uniform_blocks[0].glsl_uniforms[0].array_count := 1;
     GUvwrapShaderDesc.uniform_blocks[0].glsl_uniforms[0].glsl_name := 'vs_params';
     GUvwrapShaderDesc.views[0].texture.stage := _SG_SHADERSTAGE_FRAGMENT;

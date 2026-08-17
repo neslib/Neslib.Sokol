@@ -47,8 +47,17 @@ This requires Visual Studio (the Community edition suffices).
 * Enter `> BuildAndroid.bat`
 
 ## Building for macOS/iOS
+* In the following files, comment out the line `#include <stddef.h>`
+  * util/sokol_app_imgui.h
+  * util/sokol_gfx_imgui.h
+  * util/sokol_imgui.h
+  * util/sokol_fontstash.h
+  * util/sokol_shape.h
+  * util/sokol_spine.h
+
 * Open a terminal window on macOS
 * Enter `> ./BuildMacOSIntel.sh`
+* Enter `> ./BuildMacOSArm.sh`
 * Enter `> ./BuildIOS.sh`
 
 # About the original samples

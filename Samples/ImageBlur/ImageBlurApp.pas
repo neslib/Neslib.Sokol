@@ -7,6 +7,7 @@ unit ImageBlurApp;
 interface
 
 uses
+  System.Math,
   Neslib.Sokol.App,
   Neslib.Sokol.Gfx,
   Neslib.Sokol.Fetch,
