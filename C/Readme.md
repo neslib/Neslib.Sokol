@@ -20,11 +20,17 @@ To update Neslib.Sokol:
 5. Update the "deps" subdirectory with the contents from the "libs\\fontstash" and ".fibs\\imports\\dcimgui\\src" directories of the samples repo.
 6. Update the "spine" subdirectory with the contents from the "libs\\spine-c\\include\\spine" directory of the samples repo.
 7. Update the "spine\\src" subdirectory with the contents from the "libs\\spine-c\\src\\spine" directory of the samples repo.
-8. If there are new or renamed APIs in sokol\deps\fontstash.h or sokol\libs\basisu\sokol_basisu.h, then update the "sokol.def" accordingly.
-9. Update the subdirectories in the "chet" directory accordingly, but only with those header files we want to translate to be accessible from Delphi.
-10. Open the "chet\\sokol\\deps\\fontstash.h" file and copy the `fonsAddFontMem` signature in the "implementation" section to the "interface" section (under the `fonsDrawDebug` signature). Make sure the line ends with a semicolon.
-11. Rebuild the header translations by opening the "sokol.chet" file in [Chet](https://github.com/neslib/Chet) and running the translator.
-12. Compare the old and new header files and update the Delphi OOP-wrappers and documentation (in the Doc folder) accordingly.
+8. Both FontStash and ImGui use "stb_truetype.h", however ImGui uses a slightly customized (and new) version named "imstb_truetype.h". To avoid duplication:
+
+    * open "fontstash.h" 
+    * replace "stb_truetype.h" with "imstb_truetype.h"
+    * a few lines above that, comment out "#define STBTT_STATIC"
+    * You should delete any "stb_truetype.h" files
+10. If there are new or renamed APIs in sokol\deps\fontstash.h or sokol\libs\basisu\sokol_basisu.h, then update the "sokol.def" accordingly.
+11. Update the subdirectories in the "chet" directory accordingly, but only with those header files we want to translate to be accessible from Delphi.
+12. Open the "chet\\sokol\\deps\\fontstash.h" file and copy the `fonsAddFontMem` signature in the "implementation" section to the "interface" section (under the `fonsDrawDebug` signature). Make sure the line ends with a semicolon.
+13. Rebuild the header translations by opening the "sokol.chet" file in [Chet](https://github.com/neslib/Chet) and running the translator.
+14. Compare the old and new header files and update the Delphi OOP-wrappers and documentation (in the Doc folder) accordingly.
 
 ## Building for Windows
 This requires Visual Studio (the Community edition suffices).

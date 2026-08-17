@@ -32,6 +32,7 @@ Win64/
 *.dproj.local
 *.identcache
 *.groupproj.local
+*.cmds
 #ignore temporary help files
 HtmlHelp/
 Html/
