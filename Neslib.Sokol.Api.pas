@@ -16,6 +16,9 @@ const
   {$ELSEIF Defined(MACOS64) and Defined(CPUX64) and not Defined(IOS)}
   _LIB_SOKOL = 'libsokol_macos_intel.a';
   _PU = '';
+  {$ELSEIF Defined(MACOS64) and Defined(CPUARM) and not Defined(IOS)}
+  _LIB_SOKOL = 'libsokol_macos_arm.a';
+  _PU = '';
   {$ELSEIF Defined(IOS)}
   _LIB_SOKOL = 'libsokol_ios.a';
   _PU = '';

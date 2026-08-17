@@ -12,6 +12,7 @@ iOSSimulator/
 LaunchScreen.TemplateiOS/
 OSX32/
 OSX64/
+OSXARM64/
 Win32/
 Win64/
 #ignore Delphi build files
