@@ -18,6 +18,12 @@
         <Projects Include="Cube\Cube.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="VertexIndexBuffer\VertexIndexBuffer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="VertexPull\VertexPull.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="Audio\Audio.dproj">
             <Dependencies/>
         </Projects>
@@ -231,6 +237,12 @@
         <Projects Include="Slug\Slug.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="VertexTexture\VertexTexture.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="WriteStorageImage\WriteStorageImage.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -283,6 +295,24 @@
     </Target>
     <Target Name="Cube:Make">
         <MSBuild Projects="Cube\Cube.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VertexIndexBuffer">
+        <MSBuild Projects="VertexIndexBuffer\VertexIndexBuffer.dproj"/>
+    </Target>
+    <Target Name="VertexIndexBuffer:Clean">
+        <MSBuild Projects="VertexIndexBuffer\VertexIndexBuffer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VertexIndexBuffer:Make">
+        <MSBuild Projects="VertexIndexBuffer\VertexIndexBuffer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VertexPull">
+        <MSBuild Projects="VertexPull\VertexPull.dproj"/>
+    </Target>
+    <Target Name="VertexPull:Clean">
+        <MSBuild Projects="VertexPull\VertexPull.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VertexPull:Make">
+        <MSBuild Projects="VertexPull\VertexPull.dproj" Targets="Make"/>
     </Target>
     <Target Name="Audio">
         <MSBuild Projects="Audio\Audio.dproj"/>
@@ -923,14 +953,32 @@
     <Target Name="Slug:Make">
         <MSBuild Projects="Slug\Slug.dproj" Targets="Make"/>
     </Target>
+    <Target Name="VertexTexture">
+        <MSBuild Projects="VertexTexture\VertexTexture.dproj"/>
+    </Target>
+    <Target Name="VertexTexture:Clean">
+        <MSBuild Projects="VertexTexture\VertexTexture.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VertexTexture:Make">
+        <MSBuild Projects="VertexTexture\VertexTexture.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="WriteStorageImage">
+        <MSBuild Projects="WriteStorageImage\WriteStorageImage.dproj"/>
+    </Target>
+    <Target Name="WriteStorageImage:Clean">
+        <MSBuild Projects="WriteStorageImage\WriteStorageImage.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="WriteStorageImage:Make">
+        <MSBuild Projects="WriteStorageImage\WriteStorageImage.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="Clear;Triangle;Quad;BufferOffsets;Cube;Audio;NonInterleaved;TexCube;Tex3D;DynTex;ArrayTex;Blend;BlendPlayground;Mipmap;Instancing;InstancingPull;InstancingCompute;OffScreen;OffScreenMsaa;CubeMapRT;CubeMapJpeg;Mrt;Sdf;Sgl;SglPoints;SglLines;SglContext;SglBoing;BasisU;DebugText;DebugTextFormat;DebugTextContext;DebugTextUserFont;glTF;FontStash;LoadPng;MrtPixelFormats;PLMpeg;PrimTypes;Shadows;Shapes;ShapesTransform;UniformTypes;UVWrap;Drop;Events;Icon;Cursor;ImGui;ImGuiHighDpi;ImGuiPerf;ImGuiUserCallback;ImGuiDock;ModPlay;OzzAnim;OzzSkin;PixelFormats;Restart;FrameBuffer;Letterbox;SpineSimple;SpineContexts;SpineLayers;SpineSkinsets;SpineSwitchSkinsets;SpineInspector;ComputeBoids;CustomResolve;DrawCallPerf;Hdr;ImageBlur;LayerRender;MipRender;Mandelbrot;ShdFeatures;Slug"/>
+        <CallTarget Targets="Clear;Triangle;Quad;BufferOffsets;Cube;VertexIndexBuffer;VertexPull;Audio;NonInterleaved;TexCube;Tex3D;DynTex;ArrayTex;Blend;BlendPlayground;Mipmap;Instancing;InstancingPull;InstancingCompute;OffScreen;OffScreenMsaa;CubeMapRT;CubeMapJpeg;Mrt;Sdf;Sgl;SglPoints;SglLines;SglContext;SglBoing;BasisU;DebugText;DebugTextFormat;DebugTextContext;DebugTextUserFont;glTF;FontStash;LoadPng;MrtPixelFormats;PLMpeg;PrimTypes;Shadows;Shapes;ShapesTransform;UniformTypes;UVWrap;Drop;Events;Icon;Cursor;ImGui;ImGuiHighDpi;ImGuiPerf;ImGuiUserCallback;ImGuiDock;ModPlay;OzzAnim;OzzSkin;PixelFormats;Restart;FrameBuffer;Letterbox;SpineSimple;SpineContexts;SpineLayers;SpineSkinsets;SpineSwitchSkinsets;SpineInspector;ComputeBoids;CustomResolve;DrawCallPerf;Hdr;ImageBlur;LayerRender;MipRender;Mandelbrot;ShdFeatures;Slug;VertexTexture;WriteStorageImage"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="Clear:Clean;Triangle:Clean;Quad:Clean;BufferOffsets:Clean;Cube:Clean;Audio:Clean;NonInterleaved:Clean;TexCube:Clean;Tex3D:Clean;DynTex:Clean;ArrayTex:Clean;Blend:Clean;BlendPlayground:Clean;Mipmap:Clean;Instancing:Clean;InstancingPull:Clean;InstancingCompute:Clean;OffScreen:Clean;OffScreenMsaa:Clean;CubeMapRT:Clean;CubeMapJpeg:Clean;Mrt:Clean;Sdf:Clean;Sgl:Clean;SglPoints:Clean;SglLines:Clean;SglContext:Clean;SglBoing:Clean;BasisU:Clean;DebugText:Clean;DebugTextFormat:Clean;DebugTextContext:Clean;DebugTextUserFont:Clean;glTF:Clean;FontStash:Clean;LoadPng:Clean;MrtPixelFormats:Clean;PLMpeg:Clean;PrimTypes:Clean;Shadows:Clean;Shapes:Clean;ShapesTransform:Clean;UniformTypes:Clean;UVWrap:Clean;Drop:Clean;Events:Clean;Icon:Clean;Cursor:Clean;ImGui:Clean;ImGuiHighDpi:Clean;ImGuiPerf:Clean;ImGuiUserCallback:Clean;ImGuiDock:Clean;ModPlay:Clean;OzzAnim:Clean;OzzSkin:Clean;PixelFormats:Clean;Restart:Clean;FrameBuffer:Clean;Letterbox:Clean;SpineSimple:Clean;SpineContexts:Clean;SpineLayers:Clean;SpineSkinsets:Clean;SpineSwitchSkinsets:Clean;SpineInspector:Clean;ComputeBoids:Clean;CustomResolve:Clean;DrawCallPerf:Clean;Hdr:Clean;ImageBlur:Clean;LayerRender:Clean;MipRender:Clean;Mandelbrot:Clean;ShdFeatures:Clean;Slug:Clean"/>
+        <CallTarget Targets="Clear:Clean;Triangle:Clean;Quad:Clean;BufferOffsets:Clean;Cube:Clean;VertexIndexBuffer:Clean;VertexPull:Clean;Audio:Clean;NonInterleaved:Clean;TexCube:Clean;Tex3D:Clean;DynTex:Clean;ArrayTex:Clean;Blend:Clean;BlendPlayground:Clean;Mipmap:Clean;Instancing:Clean;InstancingPull:Clean;InstancingCompute:Clean;OffScreen:Clean;OffScreenMsaa:Clean;CubeMapRT:Clean;CubeMapJpeg:Clean;Mrt:Clean;Sdf:Clean;Sgl:Clean;SglPoints:Clean;SglLines:Clean;SglContext:Clean;SglBoing:Clean;BasisU:Clean;DebugText:Clean;DebugTextFormat:Clean;DebugTextContext:Clean;DebugTextUserFont:Clean;glTF:Clean;FontStash:Clean;LoadPng:Clean;MrtPixelFormats:Clean;PLMpeg:Clean;PrimTypes:Clean;Shadows:Clean;Shapes:Clean;ShapesTransform:Clean;UniformTypes:Clean;UVWrap:Clean;Drop:Clean;Events:Clean;Icon:Clean;Cursor:Clean;ImGui:Clean;ImGuiHighDpi:Clean;ImGuiPerf:Clean;ImGuiUserCallback:Clean;ImGuiDock:Clean;ModPlay:Clean;OzzAnim:Clean;OzzSkin:Clean;PixelFormats:Clean;Restart:Clean;FrameBuffer:Clean;Letterbox:Clean;SpineSimple:Clean;SpineContexts:Clean;SpineLayers:Clean;SpineSkinsets:Clean;SpineSwitchSkinsets:Clean;SpineInspector:Clean;ComputeBoids:Clean;CustomResolve:Clean;DrawCallPerf:Clean;Hdr:Clean;ImageBlur:Clean;LayerRender:Clean;MipRender:Clean;Mandelbrot:Clean;ShdFeatures:Clean;Slug:Clean;VertexTexture:Clean;WriteStorageImage:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="Clear:Make;Triangle:Make;Quad:Make;BufferOffsets:Make;Cube:Make;Audio:Make;NonInterleaved:Make;TexCube:Make;Tex3D:Make;DynTex:Make;ArrayTex:Make;Blend:Make;BlendPlayground:Make;Mipmap:Make;Instancing:Make;InstancingPull:Make;InstancingCompute:Make;OffScreen:Make;OffScreenMsaa:Make;CubeMapRT:Make;CubeMapJpeg:Make;Mrt:Make;Sdf:Make;Sgl:Make;SglPoints:Make;SglLines:Make;SglContext:Make;SglBoing:Make;BasisU:Make;DebugText:Make;DebugTextFormat:Make;DebugTextContext:Make;DebugTextUserFont:Make;glTF:Make;FontStash:Make;LoadPng:Make;MrtPixelFormats:Make;PLMpeg:Make;PrimTypes:Make;Shadows:Make;Shapes:Make;ShapesTransform:Make;UniformTypes:Make;UVWrap:Make;Drop:Make;Events:Make;Icon:Make;Cursor:Make;ImGui:Make;ImGuiHighDpi:Make;ImGuiPerf:Make;ImGuiUserCallback:Make;ImGuiDock:Make;ModPlay:Make;OzzAnim:Make;OzzSkin:Make;PixelFormats:Make;Restart:Make;FrameBuffer:Make;Letterbox:Make;SpineSimple:Make;SpineContexts:Make;SpineLayers:Make;SpineSkinsets:Make;SpineSwitchSkinsets:Make;SpineInspector:Make;ComputeBoids:Make;CustomResolve:Make;DrawCallPerf:Make;Hdr:Make;ImageBlur:Make;LayerRender:Make;MipRender:Make;Mandelbrot:Make;ShdFeatures:Make;Slug:Make"/>
+        <CallTarget Targets="Clear:Make;Triangle:Make;Quad:Make;BufferOffsets:Make;Cube:Make;VertexIndexBuffer:Make;VertexPull:Make;Audio:Make;NonInterleaved:Make;TexCube:Make;Tex3D:Make;DynTex:Make;ArrayTex:Make;Blend:Make;BlendPlayground:Make;Mipmap:Make;Instancing:Make;InstancingPull:Make;InstancingCompute:Make;OffScreen:Make;OffScreenMsaa:Make;CubeMapRT:Make;CubeMapJpeg:Make;Mrt:Make;Sdf:Make;Sgl:Make;SglPoints:Make;SglLines:Make;SglContext:Make;SglBoing:Make;BasisU:Make;DebugText:Make;DebugTextFormat:Make;DebugTextContext:Make;DebugTextUserFont:Make;glTF:Make;FontStash:Make;LoadPng:Make;MrtPixelFormats:Make;PLMpeg:Make;PrimTypes:Make;Shadows:Make;Shapes:Make;ShapesTransform:Make;UniformTypes:Make;UVWrap:Make;Drop:Make;Events:Make;Icon:Make;Cursor:Make;ImGui:Make;ImGuiHighDpi:Make;ImGuiPerf:Make;ImGuiUserCallback:Make;ImGuiDock:Make;ModPlay:Make;OzzAnim:Make;OzzSkin:Make;PixelFormats:Make;Restart:Make;FrameBuffer:Make;Letterbox:Make;SpineSimple:Make;SpineContexts:Make;SpineLayers:Make;SpineSkinsets:Make;SpineSwitchSkinsets:Make;SpineInspector:Make;ComputeBoids:Make;CustomResolve:Make;DrawCallPerf:Make;Hdr:Make;ImageBlur:Make;LayerRender:Make;MipRender:Make;Mandelbrot:Make;ShdFeatures:Make;Slug:Make;VertexTexture:Make;WriteStorageImage:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

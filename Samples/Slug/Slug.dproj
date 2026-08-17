@@ -297,6 +297,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
     <PropertyGroup Condition="'$(Cfg_3_Win32)'!=''">
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <Debugger_LoadAllSymbols>false</Debugger_LoadAllSymbols>
+        <DCC_ShowGeneralMessages>true</DCC_ShowGeneralMessages>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
