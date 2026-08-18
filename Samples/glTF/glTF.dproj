@@ -499,6 +499,18 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\iOS\iPhone\FM_SpotlightSearchIcon_80x80.png" Configuration="ReleaseUI" Class="iPhone_Spotlight80"/>
                 <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="Debug" Class="ProjectOSXResource"/>
                 <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="DebugUI" Class="ProjectOSXResource"/>
+                <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="DebugUI" Class="ProjectOSXResource">
+                    <Platform Name="OSX64">
+                        <RemoteName>glTF.icns</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="DebugUI" Class="ProjectOSXResource">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>glTF.icns</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="ReleaseUI" Class="ProjectOSXResource"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi-v7a\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeArmeabiv7aFile"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeArmeabiFile"/>
@@ -528,6 +540,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.bin" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>DamagedHelmet.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.bin" Configuration="Debug" Class="File">
                     <Platform Name="iOSDevice64">
                         <RemoteDir>.\Data\glTF\</RemoteDir>
                         <RemoteName>DamagedHelmet.bin</RemoteName>
@@ -550,6 +569,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.bin" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>DamagedHelmet.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.bin" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>DamagedHelmet.bin</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -584,6 +610,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.bin" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>DamagedHelmet.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.bin" Configuration="Release" Class="File">
                     <Platform Name="iOSDevice64">
                         <RemoteDir>.\Data\glTF\</RemoteDir>
                         <RemoteName>DamagedHelmet.bin</RemoteName>
@@ -606,6 +639,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.bin" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>DamagedHelmet.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.bin" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>DamagedHelmet.bin</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -634,6 +674,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.gltf" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>DamagedHelmet.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.gltf" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>DamagedHelmet.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -662,6 +709,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.gltf" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>DamagedHelmet.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.gltf" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>DamagedHelmet.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -690,6 +744,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.gltf" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>DamagedHelmet.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.gltf" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>DamagedHelmet.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -718,6 +779,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.gltf" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>DamagedHelmet.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\DamagedHelmet.gltf" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>DamagedHelmet.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -746,6 +814,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_AO.basis" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_AO.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_AO.basis" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_AO.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -774,6 +849,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_AO.basis" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_AO.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_AO.basis" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_AO.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -802,6 +884,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_AO.basis" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_AO.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_AO.basis" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_AO.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -830,6 +919,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_AO.basis" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_AO.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_AO.basis" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_AO.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -858,6 +954,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_albedo.basis" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_albedo.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_albedo.basis" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_albedo.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -886,6 +989,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_albedo.basis" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_albedo.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_albedo.basis" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_albedo.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -914,6 +1024,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_albedo.basis" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_albedo.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_albedo.basis" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_albedo.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -942,6 +1059,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_albedo.basis" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_albedo.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_albedo.basis" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_albedo.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -970,6 +1094,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_emissive.basis" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_emissive.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_emissive.basis" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_emissive.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -998,6 +1129,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_emissive.basis" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_emissive.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_emissive.basis" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_emissive.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1026,6 +1164,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_emissive.basis" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_emissive.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_emissive.basis" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_emissive.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1054,6 +1199,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_emissive.basis" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_emissive.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_emissive.basis" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_emissive.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1082,6 +1234,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_metalRoughness.basis" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_metalRoughness.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_metalRoughness.basis" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_metalRoughness.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1110,6 +1269,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_metalRoughness.basis" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_metalRoughness.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_metalRoughness.basis" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_metalRoughness.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1138,6 +1304,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_metalRoughness.basis" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_metalRoughness.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_metalRoughness.basis" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_metalRoughness.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1166,6 +1339,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_metalRoughness.basis" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_metalRoughness.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_metalRoughness.basis" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_metalRoughness.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1194,6 +1374,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_normal.basis" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_normal.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_normal.basis" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_normal.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1222,6 +1409,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_normal.basis" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_normal.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_normal.basis" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_normal.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1250,6 +1444,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_normal.basis" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_normal.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_normal.basis" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_normal.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1278,6 +1479,13 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\glTF\Default_normal.basis" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
+                        <RemoteName>Default_normal.basis</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\glTF\Default_normal.basis" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\glTF\</RemoteDir>
                         <RemoteName>Default_normal.basis</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -1314,9 +1522,32 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 <DeployFile LocalName="Android\Debug\styles-v21.xml" Configuration="Debug" Class="AndroidSplashStylesV21"/>
                 <DeployFile LocalName="Android\Debug\styles.xml" Configuration="Debug" Class="AndroidSplashStyles"/>
                 <DeployFile LocalName="OSX64\DebugUI\glTF.dSYM" Configuration="DebugUI" Class="ProjectOSXDebug"/>
+                <DeployFile LocalName="OSX64\DebugUI\glTF.dSYM" Configuration="DebugUI" Class="ProjectOSXDebug">
+                    <Platform Name="OSX64">
+                        <RemoteName>glTF</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="OSX64\DebugUI\glTF.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements"/>
+                <DeployFile LocalName="OSX64\DebugUI\glTF.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements">
+                    <Platform Name="OSX64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="OSX64\DebugUI\glTF.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList"/>
+                <DeployFile LocalName="OSX64\DebugUI\glTF.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList">
+                    <Platform Name="OSX64">
+                        <RemoteName>Info.plist</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="OSX64\DebugUI\glTF" Configuration="DebugUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="OSX64\DebugUI\glTF" Configuration="DebugUI" Class="ProjectOutput">
+                    <Platform Name="OSX64">
+                        <RemoteName>glTF</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="OSX64\Debug\Triangle.dSYM" Configuration="Debug" Class="ProjectOSXDebug"/>
                 <DeployFile LocalName="OSX64\Debug\Triangle.entitlements" Configuration="Debug" Class="ProjectOSXEntitlements"/>
                 <DeployFile LocalName="OSX64\Debug\Triangle.info.plist" Configuration="Debug" Class="ProjectOSXInfoPList"/>
@@ -1324,6 +1555,29 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 <DeployFile LocalName="OSX64\ReleaseUI\Clear.entitlements" Configuration="ReleaseUI" Class="ProjectOSXEntitlements"/>
                 <DeployFile LocalName="OSX64\ReleaseUI\Clear.info.plist" Configuration="ReleaseUI" Class="ProjectOSXInfoPList"/>
                 <DeployFile LocalName="OSX64\ReleaseUI\glTF" Configuration="ReleaseUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="OSXARM64\DebugUI\glTF.dSYM" Configuration="DebugUI" Class="ProjectOSXDebug">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>glTF</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\glTF.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements">
+                    <Platform Name="OSXARM64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\glTF.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>Info.plist</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\glTF" Configuration="DebugUI" Class="ProjectOutput">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>glTF</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="iOSDevice64\DebugUI\glTF.dSYM" Configuration="DebugUI" Class="ProjectiOSDeviceDebug"/>
                 <DeployFile LocalName="iOSDevice64\DebugUI\glTF.entitlements" Configuration="DebugUI" Class="ProjectiOSEntitlements"/>
                 <DeployFile LocalName="iOSDevice64\DebugUI\glTF.info.plist" Configuration="DebugUI" Class="ProjectiOSInfoPList"/>

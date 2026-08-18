@@ -5,8 +5,8 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">DebugUI</Config>
-        <Platform Condition="'$(Platform)'==''">OSX64</Platform>
-        <TargetedPlatforms>4099</TargetedPlatforms>
+        <Platform Condition="'$(Platform)'==''">OSXARM64</Platform>
+        <TargetedPlatforms>135171</TargetedPlatforms>
         <AppType>Application</AppType>
         <MainSource>ShdFeatures.dpr</MainSource>
     </PropertyGroup>
@@ -78,6 +78,13 @@
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='OSX64' and '$(Cfg_3)'=='true') or '$(Cfg_3_OSX64)'!=''">
         <Cfg_3_OSX64>true</Cfg_3_OSX64>
+        <CfgParent>Cfg_3</CfgParent>
+        <Cfg_3>true</Cfg_3>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='OSXARM64' and '$(Cfg_3)'=='true') or '$(Cfg_3_OSXARM64)'!=''">
+        <Cfg_3_OSXARM64>true</Cfg_3_OSXARM64>
         <CfgParent>Cfg_3</CfgParent>
         <Cfg_3>true</Cfg_3>
         <Cfg_1>true</Cfg_1>
@@ -248,6 +255,10 @@
     <PropertyGroup Condition="'$(Base_OSXARM64)'!=''">
         <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSLocationUsageDescription=The reason for accessing the location information of the user;NSContactsUsageDescription=The reason for accessing the contacts;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSCameraUsageDescription=The reason for accessing the camera;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSMotionUsageDescription=The reason for accessing the accelerometer;NSDesktopFolderUsageDescription=The reason for accessing the Desktop folder;NSDocumentsFolderUsageDescription=The reason for accessing the Documents folder;NSDownloadsFolderUsageDescription=The reason for accessing the Downloads folder;NSNetworkVolumesUsageDescription=The reason for accessing files on a network volume;NSRemovableVolumesUsageDescription=The reason for accessing files on a removable volume;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing the Bluetooth interface</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
+        <DCC_macOSArmMinimumVersion>14.0</DCC_macOSArmMinimumVersion>
+        <Debugger_Launcher>/usr/X11/bin/xterm -e &quot;%debuggee%&quot;</Debugger_Launcher>
+        <Manifest_File>(None)</Manifest_File>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>vclwinx;DataSnapServer;htmlcompfm_xe11;fmx;emshosting;vclie;DbxCommonDriver;bindengine;IndyIPCommon;VCLRESTComponents;DBXMSSQLDriver;FireDACCommonODBC;emsclient;FireDACCommonDriver;appanalytics;IndyProtocols;vclx;Grijjy.Package.RTL280;IndyIPClient;dbxcds;vcledge;bindcompvclwinx;htmleditfm_xe11;emsedge;bindcompfmx;DBXFirebirdDriver;hclcore_xe11;inetdb;FireDACSqliteDriver;DbxClientDriver;FireDACASADriver;soapmidas;vclactnband;fmxFireDAC;dbexpress;FireDACInfxDriver;DBXMySQLDriver;VclSmp;inet;DataSnapCommon;EurekaLogCore;vcltouch;fmxase;htmleditcore_xe11;TMSFMXPackPkgDXE14;DBXOdbcDriver;dbrtl;FireDACDBXDriver;FireDACOracleDriver;fmxdae;FireDACMSAccDriver;CustomIPTransport;FireDACMSSQLDriver;DataSnapIndy10ServerTransport;DataSnapConnectors;vcldsnap;DBXInterBaseDriver;FireDACMongoDBDriver;IndySystem;FireDACTDataDriver;Grijjy.Package.FMX280;vcldb;vclFireDAC;bindcomp;FireDACCommon;DataSnapServerMidas;FireDACODBCDriver;emsserverresource;IndyCore;RESTBackendComponents;bindcompdbx;rtl;FireDACMySQLDriver;FireDACADSDriver;RESTComponents;DBXSqliteDriver;vcl;IndyIPServer;dsnapxml;dsnapcon;DataSnapClient;DataSnapProviderClient;adortl;DBXSybaseASEDriver;DBXDb2Driver;vclimg;DataSnapFireDAC;emsclientfiredac;FireDACPgDriver;FireDAC;FireDACDSDriver;inetdbxpress;xmlrtl;tethering;bindcompvcl;dsnap;CloudService;DBXSybaseASADriver;DBXOracleDriver;FireDACDb2Driver;DBXInformixDriver;fmxobj;bindcompvclsmp;DataSnapNativeClient;DatasnapConnectorsFreePascal;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -302,6 +313,12 @@
         <DCC_Define>USE_DBG_UI;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_3_OSX64)'!=''">
+        <Debugger_Launcher>/usr/X11/bin/xterm -e &quot;%debuggee%&quot;</Debugger_Launcher>
+        <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSLocationUsageDescription=The reason for accessing the location information of the user;NSContactsUsageDescription=The reason for accessing the contacts;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSCameraUsageDescription=The reason for accessing the camera;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSMotionUsageDescription=The reason for accessing the accelerometer;NSDesktopFolderUsageDescription=The reason for accessing the Desktop folder;NSDocumentsFolderUsageDescription=The reason for accessing the Documents folder;NSDownloadsFolderUsageDescription=The reason for accessing the Downloads folder;NSNetworkVolumesUsageDescription=The reason for accessing files on a network volume;NSRemovableVolumesUsageDescription=The reason for accessing files on a removable volume;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing the Bluetooth interface</VerInfo_Keys>
+        <Manifest_File>(None)</Manifest_File>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_3_OSXARM64)'!=''">
         <Debugger_Launcher>/usr/X11/bin/xterm -e &quot;%debuggee%&quot;</Debugger_Launcher>
         <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSLocationUsageDescription=The reason for accessing the location information of the user;NSContactsUsageDescription=The reason for accessing the contacts;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSCameraUsageDescription=The reason for accessing the camera;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSMotionUsageDescription=The reason for accessing the accelerometer;NSDesktopFolderUsageDescription=The reason for accessing the Desktop folder;NSDocumentsFolderUsageDescription=The reason for accessing the Documents folder;NSDownloadsFolderUsageDescription=The reason for accessing the Downloads folder;NSNetworkVolumesUsageDescription=The reason for accessing files on a network volume;NSRemovableVolumesUsageDescription=The reason for accessing files on a removable volume;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing the Bluetooth interface</VerInfo_Keys>
         <Manifest_File>(None)</Manifest_File>
@@ -480,6 +497,18 @@
                 <DeployFile LocalName="$(BDS)\bin\Artwork\iOS\iPhone\FM_SpotlightSearchIcon_80x80.png" Configuration="ReleaseUI" Class="iPhone_Spotlight80"/>
                 <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="Debug" Class="ProjectOSXResource"/>
                 <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="DebugUI" Class="ProjectOSXResource"/>
+                <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="DebugUI" Class="ProjectOSXResource">
+                    <Platform Name="OSX64">
+                        <RemoteName>ShdFeatures.icns</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="DebugUI" Class="ProjectOSXResource">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>ShdFeatures.icns</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="ReleaseUI" Class="ProjectOSXResource"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi-v7a\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeArmeabiv7aFile"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi-v7a\libnative-activity.so" Configuration="DebugUI" Class="AndroidLibnativeArmeabiv7aFile"/>
@@ -510,6 +539,13 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_animation.ozz" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_animation.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_animation.ozz" Configuration="Debug" Class="File">
                     <Platform Name="iOSDevice64">
                         <RemoteDir>.\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_animation.ozz</RemoteName>
@@ -532,6 +568,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_animation.ozz" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_animation.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_animation.ozz" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_animation.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -566,6 +609,13 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_animation.ozz" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_animation.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_animation.ozz" Configuration="Release" Class="File">
                     <Platform Name="iOSDevice64">
                         <RemoteDir>.\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_animation.ozz</RemoteName>
@@ -588,6 +638,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_animation.ozz" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_animation.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_animation.ozz" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_animation.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -616,6 +673,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_mesh.ozz" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_mesh.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_mesh.ozz" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_mesh.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -644,6 +708,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_mesh.ozz" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_mesh.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_mesh.ozz" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_mesh.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -672,6 +743,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_mesh.ozz" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_mesh.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_mesh.ozz" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_mesh.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -700,6 +778,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_mesh.ozz" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_mesh.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_mesh.ozz" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_mesh.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -728,6 +813,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_skeleton.ozz" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_skeleton.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_skeleton.ozz" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_skeleton.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -756,6 +848,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_skeleton.ozz" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_skeleton.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_skeleton.ozz" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_skeleton.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -784,6 +883,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_skeleton.ozz" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_skeleton.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_skeleton.ozz" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_skeleton.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -812,6 +918,13 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_skeleton.ozz" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
+                        <RemoteName>ozz_skin_skeleton.ozz</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\ozz\ozz_skin_skeleton.ozz" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\ozz\</RemoteDir>
                         <RemoteName>ozz_skin_skeleton.ozz</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -864,6 +977,29 @@
                 <DeployFile LocalName="OSX64\DebugUI\OzzSkin.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements"/>
                 <DeployFile LocalName="OSX64\DebugUI\OzzSkin.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList"/>
                 <DeployFile LocalName="OSX64\DebugUI\OzzSkin" Configuration="DebugUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="OSX64\DebugUI\ShdFeatures.dSYM" Configuration="DebugUI" Class="ProjectOSXDebug">
+                    <Platform Name="OSX64">
+                        <RemoteName>ShdFeatures</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSX64\DebugUI\ShdFeatures.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements">
+                    <Platform Name="OSX64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSX64\DebugUI\ShdFeatures.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList">
+                    <Platform Name="OSX64">
+                        <RemoteName>Info.plist</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSX64\DebugUI\ShdFeatures" Configuration="DebugUI" Class="ProjectOutput">
+                    <Platform Name="OSX64">
+                        <RemoteName>ShdFeatures</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="OSX64\Debug\Clear.dSYM" Configuration="Debug" Class="ProjectOSXDebug"/>
                 <DeployFile LocalName="OSX64\Debug\Clear.entitlements" Configuration="Debug" Class="ProjectOSXEntitlements"/>
                 <DeployFile LocalName="OSX64\Debug\Clear.info.plist" Configuration="Debug" Class="ProjectOSXInfoPList"/>
@@ -871,6 +1007,29 @@
                 <DeployFile LocalName="OSX64\ReleaseUI\Clear.entitlements" Configuration="ReleaseUI" Class="ProjectOSXEntitlements"/>
                 <DeployFile LocalName="OSX64\ReleaseUI\Clear.info.plist" Configuration="ReleaseUI" Class="ProjectOSXInfoPList"/>
                 <DeployFile LocalName="OSX64\ReleaseUI\OzzSkin" Configuration="ReleaseUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="OSXARM64\DebugUI\ShdFeatures.dSYM" Configuration="DebugUI" Class="ProjectOSXDebug">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>ShdFeatures</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\ShdFeatures.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements">
+                    <Platform Name="OSXARM64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\ShdFeatures.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>Info.plist</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\ShdFeatures" Configuration="DebugUI" Class="ProjectOutput">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>ShdFeatures</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="iOSDevice64\DebugUI\OzzSkin.dSYM" Configuration="DebugUI" Class="ProjectiOSDeviceDebug"/>
                 <DeployFile LocalName="iOSDevice64\DebugUI\OzzSkin.entitlements" Configuration="DebugUI" Class="ProjectiOSEntitlements"/>
                 <DeployFile LocalName="iOSDevice64\DebugUI\OzzSkin.info.plist" Configuration="DebugUI" Class="ProjectiOSInfoPList"/>
@@ -1854,7 +2013,7 @@
                 <Platform value="iOSDevice64">False</Platform>
                 <Platform value="iOSSimARM64">False</Platform>
                 <Platform value="OSX64">True</Platform>
-                <Platform value="OSXARM64">False</Platform>
+                <Platform value="OSXARM64">True</Platform>
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">True</Platform>
             </Platforms>

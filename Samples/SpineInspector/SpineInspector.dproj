@@ -5,8 +5,8 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">DebugUI</Config>
-        <Platform Condition="'$(Platform)'==''">OSX64</Platform>
-        <TargetedPlatforms>4099</TargetedPlatforms>
+        <Platform Condition="'$(Platform)'==''">OSXARM64</Platform>
+        <TargetedPlatforms>135171</TargetedPlatforms>
         <AppType>Application</AppType>
         <MainSource>SpineInspector.dpr</MainSource>
     </PropertyGroup>
@@ -78,6 +78,13 @@
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='OSX64' and '$(Cfg_3)'=='true') or '$(Cfg_3_OSX64)'!=''">
         <Cfg_3_OSX64>true</Cfg_3_OSX64>
+        <CfgParent>Cfg_3</CfgParent>
+        <Cfg_3>true</Cfg_3>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='OSXARM64' and '$(Cfg_3)'=='true') or '$(Cfg_3_OSXARM64)'!=''">
+        <Cfg_3_OSXARM64>true</Cfg_3_OSXARM64>
         <CfgParent>Cfg_3</CfgParent>
         <Cfg_3>true</Cfg_3>
         <Cfg_1>true</Cfg_1>
@@ -249,6 +256,10 @@
     <PropertyGroup Condition="'$(Base_OSXARM64)'!=''">
         <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSLocationUsageDescription=The reason for accessing the location information of the user;NSContactsUsageDescription=The reason for accessing the contacts;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSCameraUsageDescription=The reason for accessing the camera;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSMotionUsageDescription=The reason for accessing the accelerometer;NSDesktopFolderUsageDescription=The reason for accessing the Desktop folder;NSDocumentsFolderUsageDescription=The reason for accessing the Documents folder;NSDownloadsFolderUsageDescription=The reason for accessing the Downloads folder;NSNetworkVolumesUsageDescription=The reason for accessing files on a network volume;NSRemovableVolumesUsageDescription=The reason for accessing files on a removable volume;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing the Bluetooth interface</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
+        <DCC_macOSArmMinimumVersion>14.0</DCC_macOSArmMinimumVersion>
+        <Debugger_Launcher>/usr/X11/bin/xterm -e &quot;%debuggee%&quot;</Debugger_Launcher>
+        <Manifest_File>(None)</Manifest_File>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>vclwinx;DataSnapServer;htmlcompfm_xe11;fmx;emshosting;vclie;DbxCommonDriver;bindengine;IndyIPCommon;VCLRESTComponents;DBXMSSQLDriver;FireDACCommonODBC;emsclient;FireDACCommonDriver;appanalytics;IndyProtocols;vclx;Grijjy.Package.RTL280;IndyIPClient;dbxcds;vcledge;bindcompvclwinx;htmleditfm_xe11;emsedge;bindcompfmx;DBXFirebirdDriver;hclcore_xe11;inetdb;FireDACSqliteDriver;DbxClientDriver;FireDACASADriver;soapmidas;vclactnband;fmxFireDAC;dbexpress;FireDACInfxDriver;DBXMySQLDriver;VclSmp;inet;DataSnapCommon;EurekaLogCore;vcltouch;fmxase;htmleditcore_xe11;TMSFMXPackPkgDXE14;DBXOdbcDriver;dbrtl;FireDACDBXDriver;FireDACOracleDriver;fmxdae;FireDACMSAccDriver;CustomIPTransport;FireDACMSSQLDriver;DataSnapIndy10ServerTransport;DataSnapConnectors;vcldsnap;DBXInterBaseDriver;FireDACMongoDBDriver;IndySystem;FireDACTDataDriver;Grijjy.Package.FMX280;vcldb;vclFireDAC;bindcomp;FireDACCommon;DataSnapServerMidas;FireDACODBCDriver;emsserverresource;IndyCore;RESTBackendComponents;bindcompdbx;rtl;FireDACMySQLDriver;FireDACADSDriver;RESTComponents;DBXSqliteDriver;vcl;IndyIPServer;dsnapxml;dsnapcon;DataSnapClient;DataSnapProviderClient;adortl;DBXSybaseASEDriver;DBXDb2Driver;vclimg;DataSnapFireDAC;emsclientfiredac;FireDACPgDriver;FireDAC;FireDACDSDriver;inetdbxpress;xmlrtl;tethering;bindcompvcl;dsnap;CloudService;DBXSybaseASADriver;DBXOracleDriver;FireDACDb2Driver;DBXInformixDriver;fmxobj;bindcompvclsmp;DataSnapNativeClient;DatasnapConnectorsFreePascal;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -300,6 +311,12 @@
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_3_OSX64)'!=''">
+        <Debugger_Launcher>/usr/X11/bin/xterm -e &quot;%debuggee%&quot;</Debugger_Launcher>
+        <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSLocationUsageDescription=The reason for accessing the location information of the user;NSContactsUsageDescription=The reason for accessing the contacts;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSCameraUsageDescription=The reason for accessing the camera;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSMotionUsageDescription=The reason for accessing the accelerometer;NSDesktopFolderUsageDescription=The reason for accessing the Desktop folder;NSDocumentsFolderUsageDescription=The reason for accessing the Documents folder;NSDownloadsFolderUsageDescription=The reason for accessing the Downloads folder;NSNetworkVolumesUsageDescription=The reason for accessing files on a network volume;NSRemovableVolumesUsageDescription=The reason for accessing files on a removable volume;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing the Bluetooth interface</VerInfo_Keys>
+        <Manifest_File>(None)</Manifest_File>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_3_OSXARM64)'!=''">
         <Debugger_Launcher>/usr/X11/bin/xterm -e &quot;%debuggee%&quot;</Debugger_Launcher>
         <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSLocationUsageDescription=The reason for accessing the location information of the user;NSContactsUsageDescription=The reason for accessing the contacts;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSCameraUsageDescription=The reason for accessing the camera;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSMotionUsageDescription=The reason for accessing the accelerometer;NSDesktopFolderUsageDescription=The reason for accessing the Desktop folder;NSDocumentsFolderUsageDescription=The reason for accessing the Documents folder;NSDownloadsFolderUsageDescription=The reason for accessing the Downloads folder;NSNetworkVolumesUsageDescription=The reason for accessing files on a network volume;NSRemovableVolumesUsageDescription=The reason for accessing files on a removable volume;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing the Bluetooth interface</VerInfo_Keys>
         <Manifest_File>(None)</Manifest_File>
@@ -481,6 +498,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="DebugUI" Class="ProjectOSXResource">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>SpineInspector.icns</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\delphi_PROJECTICNS.icns" Configuration="ReleaseUI" Class="ProjectOSXResource"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi-v7a\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeArmeabiv7aFile"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeArmeabiFile"/>
@@ -495,8 +518,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -509,8 +546,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -523,8 +574,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -537,8 +602,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -551,8 +630,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pro.skel</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -565,8 +658,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pro.skel</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -579,8 +686,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -593,8 +714,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -607,8 +742,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -621,8 +770,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -635,8 +798,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pro.skel</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -649,8 +826,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pro.skel</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -663,8 +854,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -677,8 +882,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -691,8 +910,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -705,8 +938,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -719,8 +966,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pro.skel</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -733,8 +994,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pro.skel</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -747,8 +1022,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-ess.skel</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -761,8 +1050,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-ess.skel</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -775,8 +1078,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -789,8 +1106,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -803,8 +1134,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -817,8 +1162,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -831,8 +1190,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy-pro.json</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -845,8 +1218,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy-pro.json</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -859,8 +1246,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -873,8 +1274,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.atlas</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -887,8 +1302,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Debug" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -901,8 +1330,22 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Release" Class="File">
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
+                        <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="OSXARM64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -971,6 +1414,29 @@
                 <DeployFile LocalName="OSX64\ReleaseUI\Clear.entitlements" Configuration="ReleaseUI" Class="ProjectOSXEntitlements"/>
                 <DeployFile LocalName="OSX64\ReleaseUI\Clear.info.plist" Configuration="ReleaseUI" Class="ProjectOSXInfoPList"/>
                 <DeployFile LocalName="OSX64\ReleaseUI\TexCube" Configuration="ReleaseUI" Class="ProjectOutput"/>
+                <DeployFile LocalName="OSXARM64\DebugUI\SpineInspector.dSYM" Configuration="DebugUI" Class="ProjectOSXDebug">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>SpineInspector</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\SpineInspector.entitlements" Configuration="DebugUI" Class="ProjectOSXEntitlements">
+                    <Platform Name="OSXARM64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\SpineInspector.info.plist" Configuration="DebugUI" Class="ProjectOSXInfoPList">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>Info.plist</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="OSXARM64\DebugUI\SpineInspector" Configuration="DebugUI" Class="ProjectOutput">
+                    <Platform Name="OSXARM64">
+                        <RemoteName>SpineInspector</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="iOSDevice64\DebugUI\TexCube.dSYM" Configuration="DebugUI" Class="ProjectiOSDeviceDebug"/>
                 <DeployFile LocalName="iOSDevice64\DebugUI\TexCube.entitlements" Configuration="DebugUI" Class="ProjectiOSEntitlements"/>
                 <DeployFile LocalName="iOSDevice64\DebugUI\TexCube.info.plist" Configuration="DebugUI" Class="ProjectiOSInfoPList"/>
@@ -1954,7 +2420,7 @@
                 <Platform value="iOSDevice64">False</Platform>
                 <Platform value="iOSSimARM64">False</Platform>
                 <Platform value="OSX64">True</Platform>
-                <Platform value="OSXARM64">False</Platform>
+                <Platform value="OSXARM64">True</Platform>
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">True</Platform>
             </Platforms>

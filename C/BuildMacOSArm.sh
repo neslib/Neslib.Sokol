@@ -1,5 +1,3 @@
-# NOTE: ARM build currently not used until I am able to test it
-
 PLATFORM="MacOSX"
 
 DEVELOPER_DIR=`xcode-select -print-path`
