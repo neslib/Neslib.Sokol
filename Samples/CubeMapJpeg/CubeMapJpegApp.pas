@@ -1,6 +1,8 @@
 unit CubeMapJpegApp;
 { Load and render cubemap from individual jpeg files. }
 
+{$INCLUDE 'Neslib.Sokol.inc'}
+
 interface
 
 uses
@@ -194,8 +196,8 @@ begin
   var VSParams: TVSParams;
   VSParams.Mvp := FCamera.ViewProj;
 
-  TDbgText.Canvas(FramebufferWidth * 0.5, FramebufferHeight * 0.5);
-  TDbgText.Origin(1, 3);
+  TDbgText.Canvas(FramebufferWidth * 0.25, FramebufferHeight * 0.25);
+  TDbgText.Origin(1, {$IFDEF MOBILE}6{$ELSE}2{$ENDIF});
   if (FLoadFailed) then
     TDbgText.Write('LOAD FAILED!')
   else if (FLoadCount < 6) then

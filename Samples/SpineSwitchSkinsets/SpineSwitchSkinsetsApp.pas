@@ -172,12 +172,14 @@ begin
   LayerTransform.Origin.Init(W * 0.5, H * 0.5);
 
   { Debug text }
-  TDbgText.Canvas(W * 0.5, H * 0.5);
-  TDbgText.Origin(2, 3);
-  TDbgText.Home;
+  TDbgText.Canvas(W * 0.25, H * 0.25);
   {$IFDEF DESKTOP}
+  TDbgText.Origin(2, 2);
+  TDbgText.Home;
   TDbgText.Write('Press 1, 2 or 3 to switch skin sets!');
   {$ELSE}
+  TDbgText.Origin(2, 6);
+  TDbgText.Home;
   TDbgText.Write('Tap to switch skin sets!');
   {$ENDIF}
 

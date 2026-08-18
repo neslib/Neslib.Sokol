@@ -14,7 +14,7 @@ const
   CAMERA_DEFAULT_MIN_LAT  = -85.0;
   CAMERA_DEFAULT_MAX_LAT  = 85.0;
   CAMERA_DEFAULT_DIST     = 5.0;
-  CAMERA_DEFAULT_ASPECT   = 60.0;
+  CAMERA_DEFAULT_FOV      = 60.0;
   CAMERA_DEFAULT_NEARZ    = 0.01;
   CAMERA_DEFAULT_FARZ     = 100.0;
 
@@ -28,7 +28,7 @@ type
     Distance: Single;
     Latitude: Single;
     Longitude: Single;
-    Aspect: Single;
+    Fov: Single;
     NearZ: Single;
     FarZ: Single;
     Center: TVector3;
@@ -60,7 +60,7 @@ type
     Distance: Single;
     Latitude: Single;
     Longitude: Single;
-    Aspect: Single;
+    Fov: Single;
     NearZ: Single;
     FarZ: Single;
     Center: TVector3;
@@ -114,7 +114,7 @@ begin
   Distance := CAMERA_DEFAULT_DIST;
   Latitude := 0;
   Longitude := 0;
-  Aspect := CAMERA_DEFAULT_ASPECT;
+  Fov := CAMERA_DEFAULT_FOV;
   NearZ := CAMERA_DEFAULT_NEARZ;
   FarZ := CAMERA_DEFAULT_FARZ;
   Center := TVector3.Zero;
@@ -142,7 +142,7 @@ begin
   Center := ADesc.Center;
   Latitude := ADesc.Latitude;
   Longitude := ADesc.Longitude;
-  Aspect := ADesc.Aspect;
+  Fov := ADesc.Fov;
   NearZ := ADesc.NearZ;
   FarZ := ADesc.FarZ;
 end;
@@ -245,7 +245,7 @@ begin
   var H: Single := AFramebufferHeight;
   EyePos := Center + (Euclidian(Latitude, Longitude) * Distance);
   View.InitLookAtRH(EyePos, Center, TVector3.UnitY);
-  Proj.InitPerspectiveFovRH(Radians(Aspect), H / W, NearZ, FarZ, True);
+  Proj.InitPerspectiveFovRH(Radians(Fov), W / H, NearZ, FarZ);
   ViewProj := Proj * View;
 end;
 

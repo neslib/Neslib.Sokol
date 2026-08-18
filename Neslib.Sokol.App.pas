@@ -121,7 +121,7 @@ type
     property X: Single read FHandle.pos_x write FHandle.pos_x;
 
     { Y position in logical units }
-    property Y: Single read FHandle.pos_x write FHandle.pos_y;
+    property Y: Single read FHandle.pos_y write FHandle.pos_y;
 
     { Tool type. Only valid on Android. }
     property ToolType: TAndroidToolType read GetToolType write SetToolType;
