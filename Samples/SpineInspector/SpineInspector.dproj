@@ -5,11 +5,10 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">DebugUI</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
-        <TargetedPlatforms>136195</TargetedPlatforms>
+        <Platform Condition="'$(Platform)'==''">Android64</Platform>
+        <TargetedPlatforms>168979</TargetedPlatforms>
         <AppType>Application</AppType>
         <MainSource>SpineInspector.dpr</MainSource>
-        <ProjectName Condition="'$(ProjectName)'==''">SpineInspector</ProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
         <Base>true</Base>
@@ -162,7 +161,7 @@
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
-        <VerInfo_Keys>package=com.embarcadero.$(MSBuildProjectName);label=$(MSBuildProjectName);versionCode=1;versionName=1.0.0;persistent=False;restoreAnyVersion=False;installLocation=auto;largeHeap=False;theme=TitleBar;hardwareAccelerated=true;apiKey=;minSdkVersion=23;targetSdkVersion=35</VerInfo_Keys>
+        <VerInfo_Keys>package=com.embarcadero.$(MSBuildProjectName);label=$(MSBuildProjectName);versionCode=1;versionName=1.0.0;persistent=False;restoreAnyVersion=False;installLocation=auto;largeHeap=False;theme=TitleBar;hardwareAccelerated=true;apiKey=;minSdkVersion=23;targetSdkVersion=36</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
         <Android_LauncherIcon36>$(BDS)\bin\Artwork\Android\FM_LauncherIcon_36x36.png</Android_LauncherIcon36>
         <Android_LauncherIcon48>$(BDS)\bin\Artwork\Android\FM_LauncherIcon_48x48.png</Android_LauncherIcon48>
@@ -179,10 +178,10 @@
         <Android_NotificationIcon48>$(BDS)\bin\Artwork\Android\FM_NotificationIcon_48x48.png</Android_NotificationIcon48>
         <Android_NotificationIcon72>$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png</Android_NotificationIcon72>
         <Android_NotificationIcon96>$(BDS)\bin\Artwork\Android\FM_NotificationIcon_96x96.png</Android_NotificationIcon96>
-        <EnabledSysJars>activity-1.7.2.dex.jar;annotation-experimental-1.4.1.dex.jar;annotation-jvm-1.8.1.dex.jar;annotations-13.0.dex.jar;appcompat-1.2.0.dex.jar;appcompat-resources-1.2.0.dex.jar;billing-7.1.1.dex.jar;biometric-1.1.0.dex.jar;browser-1.4.0.dex.jar;cloud-messaging.dex.jar;collection-jvm-1.4.2.dex.jar;concurrent-futures-1.1.0.dex.jar;core-1.15.0.dex.jar;core-common-2.2.0.dex.jar;core-ktx-1.15.0.dex.jar;core-runtime-2.2.0.dex.jar;cursoradapter-1.0.0.dex.jar;customview-1.0.0.dex.jar;documentfile-1.0.0.dex.jar;drawerlayout-1.0.0.dex.jar;error_prone_annotations-2.9.0.dex.jar;exifinterface-1.3.6.dex.jar;firebase-annotations-16.2.0.dex.jar;firebase-common-20.3.1.dex.jar;firebase-components-17.1.0.dex.jar;firebase-datatransport-18.1.7.dex.jar;firebase-encoders-17.0.0.dex.jar;firebase-encoders-json-18.0.0.dex.jar;firebase-encoders-proto-16.0.0.dex.jar;firebase-iid-interop-17.1.0.dex.jar;firebase-installations-17.1.3.dex.jar;firebase-installations-interop-17.1.0.dex.jar;firebase-measurement-connector-19.0.0.dex.jar;firebase-messaging-23.1.2.dex.jar;fmx.dex.jar;fragment-1.2.5.dex.jar;google-play-licensing.dex.jar;interpolator-1.0.0.dex.jar;javax.inject-1.dex.jar;kotlin-stdlib-1.8.22.dex.jar;kotlin-stdlib-common-1.8.22.dex.jar;kotlin-stdlib-jdk7-1.8.22.dex.jar;kotlin-stdlib-jdk8-1.8.22.dex.jar;kotlinx-coroutines-android-1.6.4.dex.jar;kotlinx-coroutines-core-jvm-1.6.4.dex.jar;legacy-support-core-utils-1.0.0.dex.jar;lifecycle-common-2.6.2.dex.jar;lifecycle-livedata-2.6.2.dex.jar;lifecycle-livedata-core-2.6.2.dex.jar;lifecycle-runtime-2.6.2.dex.jar;lifecycle-service-2.6.2.dex.jar;lifecycle-viewmodel-2.6.2.dex.jar;lifecycle-viewmodel-savedstate-2.6.2.dex.jar;listenablefuture-1.0.dex.jar;loader-1.0.0.dex.jar;localbroadcastmanager-1.0.0.dex.jar;okio-jvm-3.4.0.dex.jar;play-services-ads-22.2.0.dex.jar;play-services-ads-base-22.2.0.dex.jar;play-services-ads-identifier-18.0.0.dex.jar;play-services-ads-lite-22.2.0.dex.jar;play-services-appset-16.0.1.dex.jar;play-services-base-18.5.0.dex.jar;play-services-basement-18.4.0.dex.jar;play-services-cloud-messaging-17.0.1.dex.jar;play-services-location-21.0.1.dex.jar;play-services-maps-18.1.0.dex.jar;play-services-measurement-base-20.1.2.dex.jar;play-services-measurement-sdk-api-20.1.2.dex.jar;play-services-stats-17.0.2.dex.jar;play-services-tasks-18.2.0.dex.jar;print-1.0.0.dex.jar;profileinstaller-1.3.0.dex.jar;room-common-2.2.5.dex.jar;room-runtime-2.2.5.dex.jar;savedstate-1.2.1.dex.jar;sqlite-2.1.0.dex.jar;sqlite-framework-2.1.0.dex.jar;startup-runtime-1.1.1.dex.jar;tracing-1.2.0.dex.jar;transport-api-3.0.0.dex.jar;transport-backend-cct-3.1.8.dex.jar;transport-runtime-3.1.8.dex.jar;user-messaging-platform-2.0.0.dex.jar;vectordrawable-1.1.0.dex.jar;vectordrawable-animated-1.1.0.dex.jar;versionedparcelable-1.1.1.dex.jar;viewpager-1.0.0.dex.jar;work-runtime-2.7.0.dex.jar</EnabledSysJars>
+        <EnabledSysJars>activity-1.7.2.dex.jar;annotation-experimental-1.4.1.dex.jar;annotation-jvm-1.8.1.dex.jar;annotations-23.0.0.dex.jar;appcompat-1.2.0.dex.jar;appcompat-resources-1.2.0.dex.jar;billing-7.1.1.dex.jar;biometric-1.1.0.dex.jar;browser-1.4.0.dex.jar;cloud-messaging.dex.jar;collection-jvm-1.4.2.dex.jar;concurrent-futures-1.1.0.dex.jar;core-1.17.0.dex.jar;core-common-2.2.0.dex.jar;core-ktx-1.17.0.dex.jar;core-runtime-2.2.0.dex.jar;core-viewtree-1.0.0.dex.jar;cursoradapter-1.0.0.dex.jar;customview-1.0.0.dex.jar;documentfile-1.0.0.dex.jar;drawerlayout-1.0.0.dex.jar;error_prone_annotations-2.9.0.dex.jar;exifinterface-1.3.6.dex.jar;firebase-annotations-16.2.0.dex.jar;firebase-common-20.3.1.dex.jar;firebase-components-17.1.0.dex.jar;firebase-datatransport-18.1.7.dex.jar;firebase-encoders-17.0.0.dex.jar;firebase-encoders-json-18.0.0.dex.jar;firebase-encoders-proto-16.0.0.dex.jar;firebase-iid-interop-17.1.0.dex.jar;firebase-installations-17.1.3.dex.jar;firebase-installations-interop-17.1.0.dex.jar;firebase-measurement-connector-19.0.0.dex.jar;firebase-messaging-23.1.2.dex.jar;fmx.dex.jar;fragment-1.2.5.dex.jar;google-play-licensing.dex.jar;interpolator-1.0.0.dex.jar;javax.inject-1.dex.jar;jspecify-1.0.0.dex.jar;kotlin-stdlib-2.1.21.dex.jar;kotlinx-coroutines-android-1.8.1.dex.jar;kotlinx-coroutines-core-jvm-1.8.1.dex.jar;legacy-support-core-utils-1.0.0.dex.jar;lifecycle-common-2.6.2.dex.jar;lifecycle-livedata-2.6.2.dex.jar;lifecycle-livedata-core-2.6.2.dex.jar;lifecycle-runtime-2.6.2.dex.jar;lifecycle-service-2.6.2.dex.jar;lifecycle-viewmodel-2.6.2.dex.jar;lifecycle-viewmodel-savedstate-2.6.2.dex.jar;listenablefuture-1.0.dex.jar;loader-1.0.0.dex.jar;localbroadcastmanager-1.0.0.dex.jar;okio-jvm-3.4.0.dex.jar;play-services-ads-22.2.0.dex.jar;play-services-ads-base-22.2.0.dex.jar;play-services-ads-identifier-18.0.0.dex.jar;play-services-ads-lite-22.2.0.dex.jar;play-services-appset-16.0.1.dex.jar;play-services-base-18.5.0.dex.jar;play-services-basement-18.4.0.dex.jar;play-services-cloud-messaging-17.0.1.dex.jar;play-services-location-21.0.1.dex.jar;play-services-maps-18.1.0.dex.jar;play-services-measurement-base-20.1.2.dex.jar;play-services-measurement-sdk-api-20.1.2.dex.jar;play-services-stats-17.0.2.dex.jar;play-services-tasks-18.2.0.dex.jar;print-1.0.0.dex.jar;profileinstaller-1.3.0.dex.jar;room-common-2.2.5.dex.jar;room-runtime-2.2.5.dex.jar;savedstate-1.2.1.dex.jar;sqlite-2.1.0.dex.jar;sqlite-framework-2.1.0.dex.jar;startup-runtime-1.1.1.dex.jar;tracing-1.2.0.dex.jar;transport-api-3.0.0.dex.jar;transport-backend-cct-3.1.8.dex.jar;transport-runtime-3.1.8.dex.jar;user-messaging-platform-2.0.0.dex.jar;vectordrawable-1.1.0.dex.jar;vectordrawable-animated-1.1.0.dex.jar;versionedparcelable-1.1.1.dex.jar;viewpager-1.0.0.dex.jar;work-runtime-2.7.0.dex.jar</EnabledSysJars>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android64)'!=''">
-        <VerInfo_Keys>package=com.embarcadero.$(MSBuildProjectName);label=$(MSBuildProjectName);versionCode=1;versionName=1.0.0;persistent=False;restoreAnyVersion=False;installLocation=auto;largeHeap=False;theme=TitleBar;hardwareAccelerated=true;apiKey=;minSdkVersion=23;targetSdkVersion=35</VerInfo_Keys>
+        <VerInfo_Keys>package=com.embarcadero.$(MSBuildProjectName);label=$(MSBuildProjectName);versionCode=1;versionName=1.0.0;persistent=False;restoreAnyVersion=False;installLocation=auto;largeHeap=False;theme=TitleBar;hardwareAccelerated=true;apiKey=;minSdkVersion=23;targetSdkVersion=36</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
         <Android_LauncherIcon36>$(BDS)\bin\Artwork\Android\FM_LauncherIcon_36x36.png</Android_LauncherIcon36>
         <Android_LauncherIcon48>$(BDS)\bin\Artwork\Android\FM_LauncherIcon_48x48.png</Android_LauncherIcon48>
@@ -199,7 +198,7 @@
         <Android_NotificationIcon48>$(BDS)\bin\Artwork\Android\FM_NotificationIcon_48x48.png</Android_NotificationIcon48>
         <Android_NotificationIcon72>$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png</Android_NotificationIcon72>
         <Android_NotificationIcon96>$(BDS)\bin\Artwork\Android\FM_NotificationIcon_96x96.png</Android_NotificationIcon96>
-        <EnabledSysJars>activity-1.7.2.dex.jar;annotation-experimental-1.4.1.dex.jar;annotation-jvm-1.8.1.dex.jar;annotations-13.0.dex.jar;appcompat-1.2.0.dex.jar;appcompat-resources-1.2.0.dex.jar;billing-7.1.1.dex.jar;biometric-1.1.0.dex.jar;browser-1.4.0.dex.jar;cloud-messaging.dex.jar;collection-jvm-1.4.2.dex.jar;concurrent-futures-1.1.0.dex.jar;core-1.15.0.dex.jar;core-common-2.2.0.dex.jar;core-ktx-1.15.0.dex.jar;core-runtime-2.2.0.dex.jar;cursoradapter-1.0.0.dex.jar;customview-1.0.0.dex.jar;documentfile-1.0.0.dex.jar;drawerlayout-1.0.0.dex.jar;error_prone_annotations-2.9.0.dex.jar;exifinterface-1.3.6.dex.jar;firebase-annotations-16.2.0.dex.jar;firebase-common-20.3.1.dex.jar;firebase-components-17.1.0.dex.jar;firebase-datatransport-18.1.7.dex.jar;firebase-encoders-17.0.0.dex.jar;firebase-encoders-json-18.0.0.dex.jar;firebase-encoders-proto-16.0.0.dex.jar;firebase-iid-interop-17.1.0.dex.jar;firebase-installations-17.1.3.dex.jar;firebase-installations-interop-17.1.0.dex.jar;firebase-measurement-connector-19.0.0.dex.jar;firebase-messaging-23.1.2.dex.jar;fmx.dex.jar;fragment-1.2.5.dex.jar;google-play-licensing.dex.jar;interpolator-1.0.0.dex.jar;javax.inject-1.dex.jar;kotlin-stdlib-1.8.22.dex.jar;kotlin-stdlib-common-1.8.22.dex.jar;kotlin-stdlib-jdk7-1.8.22.dex.jar;kotlin-stdlib-jdk8-1.8.22.dex.jar;kotlinx-coroutines-android-1.6.4.dex.jar;kotlinx-coroutines-core-jvm-1.6.4.dex.jar;legacy-support-core-utils-1.0.0.dex.jar;lifecycle-common-2.6.2.dex.jar;lifecycle-livedata-2.6.2.dex.jar;lifecycle-livedata-core-2.6.2.dex.jar;lifecycle-runtime-2.6.2.dex.jar;lifecycle-service-2.6.2.dex.jar;lifecycle-viewmodel-2.6.2.dex.jar;lifecycle-viewmodel-savedstate-2.6.2.dex.jar;listenablefuture-1.0.dex.jar;loader-1.0.0.dex.jar;localbroadcastmanager-1.0.0.dex.jar;okio-jvm-3.4.0.dex.jar;play-services-ads-22.2.0.dex.jar;play-services-ads-base-22.2.0.dex.jar;play-services-ads-identifier-18.0.0.dex.jar;play-services-ads-lite-22.2.0.dex.jar;play-services-appset-16.0.1.dex.jar;play-services-base-18.5.0.dex.jar;play-services-basement-18.4.0.dex.jar;play-services-cloud-messaging-17.0.1.dex.jar;play-services-location-21.0.1.dex.jar;play-services-maps-18.1.0.dex.jar;play-services-measurement-base-20.1.2.dex.jar;play-services-measurement-sdk-api-20.1.2.dex.jar;play-services-stats-17.0.2.dex.jar;play-services-tasks-18.2.0.dex.jar;print-1.0.0.dex.jar;profileinstaller-1.3.0.dex.jar;room-common-2.2.5.dex.jar;room-runtime-2.2.5.dex.jar;savedstate-1.2.1.dex.jar;sqlite-2.1.0.dex.jar;sqlite-framework-2.1.0.dex.jar;startup-runtime-1.1.1.dex.jar;tracing-1.2.0.dex.jar;transport-api-3.0.0.dex.jar;transport-backend-cct-3.1.8.dex.jar;transport-runtime-3.1.8.dex.jar;user-messaging-platform-2.0.0.dex.jar;vectordrawable-1.1.0.dex.jar;vectordrawable-animated-1.1.0.dex.jar;versionedparcelable-1.1.1.dex.jar;viewpager-1.0.0.dex.jar;work-runtime-2.7.0.dex.jar</EnabledSysJars>
+        <EnabledSysJars>activity-1.7.2.dex.jar;annotation-experimental-1.4.1.dex.jar;annotation-jvm-1.8.1.dex.jar;annotations-23.0.0.dex.jar;appcompat-1.2.0.dex.jar;appcompat-resources-1.2.0.dex.jar;billing-7.1.1.dex.jar;biometric-1.1.0.dex.jar;browser-1.4.0.dex.jar;cloud-messaging.dex.jar;collection-jvm-1.4.2.dex.jar;concurrent-futures-1.1.0.dex.jar;core-1.17.0.dex.jar;core-common-2.2.0.dex.jar;core-ktx-1.17.0.dex.jar;core-runtime-2.2.0.dex.jar;core-viewtree-1.0.0.dex.jar;cursoradapter-1.0.0.dex.jar;customview-1.0.0.dex.jar;documentfile-1.0.0.dex.jar;drawerlayout-1.0.0.dex.jar;error_prone_annotations-2.9.0.dex.jar;exifinterface-1.3.6.dex.jar;firebase-annotations-16.2.0.dex.jar;firebase-common-20.3.1.dex.jar;firebase-components-17.1.0.dex.jar;firebase-datatransport-18.1.7.dex.jar;firebase-encoders-17.0.0.dex.jar;firebase-encoders-json-18.0.0.dex.jar;firebase-encoders-proto-16.0.0.dex.jar;firebase-iid-interop-17.1.0.dex.jar;firebase-installations-17.1.3.dex.jar;firebase-installations-interop-17.1.0.dex.jar;firebase-measurement-connector-19.0.0.dex.jar;firebase-messaging-23.1.2.dex.jar;fmx.dex.jar;fragment-1.2.5.dex.jar;google-play-licensing.dex.jar;interpolator-1.0.0.dex.jar;javax.inject-1.dex.jar;jspecify-1.0.0.dex.jar;kotlin-stdlib-2.1.21.dex.jar;kotlinx-coroutines-android-1.8.1.dex.jar;kotlinx-coroutines-core-jvm-1.8.1.dex.jar;legacy-support-core-utils-1.0.0.dex.jar;lifecycle-common-2.6.2.dex.jar;lifecycle-livedata-2.6.2.dex.jar;lifecycle-livedata-core-2.6.2.dex.jar;lifecycle-runtime-2.6.2.dex.jar;lifecycle-service-2.6.2.dex.jar;lifecycle-viewmodel-2.6.2.dex.jar;lifecycle-viewmodel-savedstate-2.6.2.dex.jar;listenablefuture-1.0.dex.jar;loader-1.0.0.dex.jar;localbroadcastmanager-1.0.0.dex.jar;okio-jvm-3.4.0.dex.jar;play-services-ads-22.2.0.dex.jar;play-services-ads-base-22.2.0.dex.jar;play-services-ads-identifier-18.0.0.dex.jar;play-services-ads-lite-22.2.0.dex.jar;play-services-appset-16.0.1.dex.jar;play-services-base-18.5.0.dex.jar;play-services-basement-18.4.0.dex.jar;play-services-cloud-messaging-17.0.1.dex.jar;play-services-location-21.0.1.dex.jar;play-services-maps-18.1.0.dex.jar;play-services-measurement-base-20.1.2.dex.jar;play-services-measurement-sdk-api-20.1.2.dex.jar;play-services-stats-17.0.2.dex.jar;play-services-tasks-18.2.0.dex.jar;print-1.0.0.dex.jar;profileinstaller-1.3.0.dex.jar;room-common-2.2.5.dex.jar;room-runtime-2.2.5.dex.jar;savedstate-1.2.1.dex.jar;sqlite-2.1.0.dex.jar;sqlite-framework-2.1.0.dex.jar;startup-runtime-1.1.1.dex.jar;tracing-1.2.0.dex.jar;transport-api-3.0.0.dex.jar;transport-backend-cct-3.1.8.dex.jar;transport-runtime-3.1.8.dex.jar;user-messaging-platform-2.0.0.dex.jar;vectordrawable-1.1.0.dex.jar;vectordrawable-animated-1.1.0.dex.jar;versionedparcelable-1.1.1.dex.jar;viewpager-1.0.0.dex.jar;work-runtime-2.7.0.dex.jar</EnabledSysJars>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_iOSDevice64)'!=''">
         <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDevelopmentRegion=en;CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleInfoDictionaryVersion=7.1;CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;LSRequiresIPhoneOS=true;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);UIDeviceFamily=iPhone &amp; iPad;NSLocationAlwaysUsageDescription=The reason for accessing the location information of the user;NSLocationWhenInUseUsageDescription=The reason for accessing the location information of the user;NSLocationAlwaysAndWhenInUseUsageDescription=The reason for accessing the location information of the user;UIBackgroundModes=;NSContactsUsageDescription=The reason for accessing the contacts;NSPhotoLibraryUsageDescription=The reason for accessing the photo library;NSPhotoLibraryAddUsageDescription=The reason for adding to the photo library;NSCameraUsageDescription=The reason for accessing the camera;NSFaceIDUsageDescription=The reason for accessing the face id;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSSiriUsageDescription=The reason for accessing Siri;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing bluetooth;NSBluetoothPeripheralUsageDescription=The reason for accessing bluetooth peripherals;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSMotionUsageDescription=The reason for accessing the accelerometer;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers</VerInfo_Keys>
@@ -417,34 +416,124 @@
                 </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_144x144.png" Configuration="Debug" Class="Android_LauncherIcon144"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_144x144.png" Configuration="DebugUI" Class="Android_LauncherIcon144"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_144x144.png" Configuration="DebugUI" Class="Android_LauncherIcon144">
+                    <Platform Name="Android">
+                        <RemoteName>ic_launcher.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_192x192.png" Configuration="Debug" Class="Android_LauncherIcon192"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_192x192.png" Configuration="DebugUI" Class="Android_LauncherIcon192"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_192x192.png" Configuration="DebugUI" Class="Android_LauncherIcon192">
+                    <Platform Name="Android">
+                        <RemoteName>ic_launcher.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_36x36.png" Configuration="Debug" Class="Android_LauncherIcon36"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_36x36.png" Configuration="DebugUI" Class="Android_LauncherIcon36"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_36x36.png" Configuration="DebugUI" Class="Android_LauncherIcon36">
+                    <Platform Name="Android">
+                        <RemoteName>ic_launcher.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_48x48.png" Configuration="Debug" Class="Android_LauncherIcon48"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_48x48.png" Configuration="DebugUI" Class="Android_LauncherIcon48"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_48x48.png" Configuration="DebugUI" Class="Android_LauncherIcon48">
+                    <Platform Name="Android">
+                        <RemoteName>ic_launcher.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_72x72.png" Configuration="Debug" Class="Android_LauncherIcon72"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_72x72.png" Configuration="DebugUI" Class="Android_LauncherIcon72"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_72x72.png" Configuration="DebugUI" Class="Android_LauncherIcon72">
+                    <Platform Name="Android">
+                        <RemoteName>ic_launcher.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_96x96.png" Configuration="Debug" Class="Android_LauncherIcon96"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_96x96.png" Configuration="DebugUI" Class="Android_LauncherIcon96"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_LauncherIcon_96x96.png" Configuration="DebugUI" Class="Android_LauncherIcon96">
+                    <Platform Name="Android">
+                        <RemoteName>ic_launcher.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_24x24.png" Configuration="Debug" Class="Android_NotificationIcon24"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_24x24.png" Configuration="DebugUI" Class="Android_NotificationIcon24"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_24x24.png" Configuration="DebugUI" Class="Android_NotificationIcon24">
+                    <Platform Name="Android">
+                        <RemoteName>ic_notification.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_36x36.png" Configuration="Debug" Class="Android_NotificationIcon36"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_36x36.png" Configuration="DebugUI" Class="Android_NotificationIcon36"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_36x36.png" Configuration="DebugUI" Class="Android_NotificationIcon36">
+                    <Platform Name="Android">
+                        <RemoteName>ic_notification.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_48x48.png" Configuration="Debug" Class="Android_NotificationIcon48"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_48x48.png" Configuration="DebugUI" Class="Android_NotificationIcon48"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_48x48.png" Configuration="DebugUI" Class="Android_NotificationIcon48">
+                    <Platform Name="Android">
+                        <RemoteName>ic_notification.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png" Configuration="Debug" Class="Android_NotificationIcon72"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png" Configuration="DebugUI" Class="Android_NotificationIcon72"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_72x72.png" Configuration="DebugUI" Class="Android_NotificationIcon72">
+                    <Platform Name="Android">
+                        <RemoteName>ic_notification.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_96x96.png" Configuration="Debug" Class="Android_NotificationIcon96"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_96x96.png" Configuration="DebugUI" Class="Android_NotificationIcon96"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_NotificationIcon_96x96.png" Configuration="DebugUI" Class="Android_NotificationIcon96">
+                    <Platform Name="Android">
+                        <RemoteName>ic_notification.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_426x320.png" Configuration="Debug" Class="Android_SplashImage426"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_426x320.png" Configuration="DebugUI" Class="Android_SplashImage426"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_426x320.png" Configuration="DebugUI" Class="Android_SplashImage426">
+                    <Platform Name="Android">
+                        <RemoteName>splash_image.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_470x320.png" Configuration="Debug" Class="Android_SplashImage470"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_470x320.png" Configuration="DebugUI" Class="Android_SplashImage470"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_470x320.png" Configuration="DebugUI" Class="Android_SplashImage470">
+                    <Platform Name="Android">
+                        <RemoteName>splash_image.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_640x480.png" Configuration="Debug" Class="Android_SplashImage640"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_640x480.png" Configuration="DebugUI" Class="Android_SplashImage640"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_640x480.png" Configuration="DebugUI" Class="Android_SplashImage640">
+                    <Platform Name="Android">
+                        <RemoteName>splash_image.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_960x720.png" Configuration="Debug" Class="Android_SplashImage960"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_960x720.png" Configuration="DebugUI" Class="Android_SplashImage960"/>
+                <DeployFile LocalName="$(BDS)\bin\Artwork\Android\FM_SplashImage_960x720.png" Configuration="DebugUI" Class="Android_SplashImage960">
+                    <Platform Name="Android">
+                        <RemoteName>splash_image.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\iOS\iPad\FM_ApplicationIcon_152x152.png" Configuration="DebugUI" Class="iPad_AppIcon152"/>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\iOS\iPad\FM_ApplicationIcon_152x152.png" Configuration="DebugUI" Class="iPad_AppIcon152">
                     <Platform Name="iOSDevice64">
@@ -629,10 +718,36 @@
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi-v7a\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeArmeabiv7aFile"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeArmeabiFile"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Configuration="DebugUI" Class="AndroidLibnativeArmeabiFile"/>
+                <DeployFile LocalName="$(BDS)\lib\android\debug\armeabi\libnative-activity.so" Configuration="DebugUI" Class="AndroidLibnativeArmeabiFile">
+                    <Platform Name="Android">
+                        <RemoteName>libSpineInspector.so</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\mips\libnative-activity.so" Configuration="Debug" Class="AndroidLibnativeMipsFile"/>
                 <DeployFile LocalName="$(BDS)\lib\android\debug\mips\libnative-activity.so" Configuration="DebugUI" Class="AndroidLibnativeMipsFile"/>
+                <DeployFile LocalName="$(BDS)\lib\android\debug\mips\libnative-activity.so" Configuration="DebugUI" Class="AndroidLibnativeMipsFile">
+                    <Platform Name="Android">
+                        <RemoteName>libSpineInspector.so</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(NDKBasePath)\prebuilt\android-arm\gdbserver\gdbserver" Configuration="DebugUI" Class="AndroidGDBServer"/>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.atlas</RemoteName>
@@ -654,6 +769,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.atlas</RemoteName>
@@ -675,6 +804,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.atlas</RemoteName>
@@ -696,6 +839,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.atlas</RemoteName>
@@ -717,6 +874,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.png</RemoteName>
@@ -738,6 +909,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.png</RemoteName>
@@ -759,6 +944,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.png</RemoteName>
@@ -780,6 +979,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pma.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pma.png</RemoteName>
@@ -801,6 +1014,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pro.skel</RemoteName>
@@ -822,6 +1049,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pro.skel</RemoteName>
@@ -843,6 +1084,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pro.skel</RemoteName>
@@ -864,6 +1119,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>alien-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\alien-pro.skel" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>alien-pro.skel</RemoteName>
@@ -885,6 +1154,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.atlas</RemoteName>
@@ -906,6 +1189,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.atlas</RemoteName>
@@ -927,6 +1224,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.atlas</RemoteName>
@@ -948,6 +1259,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.atlas</RemoteName>
@@ -969,6 +1294,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.png</RemoteName>
@@ -990,6 +1329,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.png</RemoteName>
@@ -1011,6 +1364,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.png</RemoteName>
@@ -1032,6 +1399,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pma.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pma.png</RemoteName>
@@ -1053,6 +1434,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pro.skel</RemoteName>
@@ -1074,6 +1469,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pro.skel</RemoteName>
@@ -1095,6 +1504,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pro.skel</RemoteName>
@@ -1116,6 +1539,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>mix-and-match-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\mix-and-match-pro.skel" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>mix-and-match-pro.skel</RemoteName>
@@ -1137,6 +1574,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.atlas</RemoteName>
@@ -1158,6 +1609,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.atlas</RemoteName>
@@ -1179,6 +1644,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.atlas</RemoteName>
@@ -1200,6 +1679,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.atlas</RemoteName>
@@ -1221,6 +1714,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.png</RemoteName>
@@ -1242,6 +1749,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.png</RemoteName>
@@ -1263,6 +1784,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.png</RemoteName>
@@ -1284,6 +1819,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pma.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pma.png</RemoteName>
@@ -1305,6 +1854,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pro.skel</RemoteName>
@@ -1326,6 +1889,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pro.skel</RemoteName>
@@ -1347,6 +1924,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pro.skel</RemoteName>
@@ -1368,6 +1959,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>raptor-pro.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\raptor-pro.skel" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>raptor-pro.skel</RemoteName>
@@ -1389,6 +1994,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-ess.skel</RemoteName>
@@ -1410,6 +2029,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-ess.skel</RemoteName>
@@ -1431,6 +2064,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-ess.skel</RemoteName>
@@ -1452,6 +2099,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-ess.skel</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-ess.skel" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-ess.skel</RemoteName>
@@ -1473,6 +2134,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.atlas</RemoteName>
@@ -1494,6 +2169,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.atlas</RemoteName>
@@ -1515,6 +2204,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.atlas</RemoteName>
@@ -1536,6 +2239,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.atlas</RemoteName>
@@ -1557,6 +2274,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.png</RemoteName>
@@ -1578,6 +2309,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.png</RemoteName>
@@ -1599,6 +2344,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.png</RemoteName>
@@ -1620,6 +2379,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>speedy-pma.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\speedy-pma.png" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>speedy-pma.png</RemoteName>
@@ -1641,6 +2414,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy-pro.json</RemoteName>
@@ -1662,6 +2449,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy-pro.json</RemoteName>
@@ -1683,6 +2484,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy-pro.json</RemoteName>
@@ -1704,6 +2519,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy-pro.json</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy-pro.json" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy-pro.json</RemoteName>
@@ -1725,6 +2554,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.atlas</RemoteName>
@@ -1746,6 +2589,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.atlas</RemoteName>
@@ -1767,6 +2624,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.atlas</RemoteName>
@@ -1788,6 +2659,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.atlas</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.atlas" Configuration="ReleaseUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.atlas</RemoteName>
@@ -1809,6 +2694,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Debug" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.png</RemoteName>
@@ -1830,6 +2729,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="DebugUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="DebugUI" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.png</RemoteName>
@@ -1851,6 +2764,20 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Release" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Release" Class="File">
                     <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.png</RemoteName>
@@ -1867,6 +2794,20 @@
                 <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="Release" Class="File">
                     <Platform Name="iOSDevice64">
                         <RemoteDir>.\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
+                        <RemoteName>spineboy.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Bin\Data\Spine\spineboy.png" Configuration="ReleaseUI" Class="File">
+                    <Platform Name="Android64">
+                        <RemoteDir>assets\internal\Data\Spine\</RemoteDir>
                         <RemoteName>spineboy.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
@@ -1908,12 +2849,61 @@
                 <DeployFile LocalName="Android64\Debug\styles-v21.xml" Configuration="Debug" Class="AndroidSplashStylesV21"/>
                 <DeployFile LocalName="Android64\Debug\styles.xml" Configuration="Debug" Class="AndroidSplashStyles"/>
                 <DeployFile LocalName="Android\DebugUI\AndroidManifest.xml" Configuration="DebugUI" Class="ProjectAndroidManifest"/>
+                <DeployFile LocalName="Android\DebugUI\AndroidManifest.xml" Configuration="DebugUI" Class="ProjectAndroidManifest">
+                    <Platform Name="Android">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Android\DebugUI\colors-night-v21.xml" Configuration="DebugUI" Class="Android_ColorsDark">
+                    <Platform Name="Android">
+                        <RemoteName>colors.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Android\DebugUI\colors.xml" Configuration="DebugUI" Class="Android_Colors"/>
+                <DeployFile LocalName="Android\DebugUI\colors.xml" Configuration="DebugUI" Class="Android_Colors">
+                    <Platform Name="Android">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Android\DebugUI\libSpineInspector.so" Configuration="DebugUI" Class="ProjectOutput">
+                    <Platform Name="Android">
+                        <RemoteName>libSpineInspector.so</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Android\DebugUI\libTexCube.so" Configuration="DebugUI" Class="ProjectOutput"/>
                 <DeployFile LocalName="Android\DebugUI\splash_image_def.xml" Configuration="DebugUI" Class="AndroidSplashImageDef"/>
+                <DeployFile LocalName="Android\DebugUI\splash_image_def.xml" Configuration="DebugUI" Class="AndroidSplashImageDef">
+                    <Platform Name="Android">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Android\DebugUI\strings.xml" Configuration="DebugUI" Class="Android_Strings"/>
+                <DeployFile LocalName="Android\DebugUI\strings.xml" Configuration="DebugUI" Class="Android_Strings">
+                    <Platform Name="Android">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Android\DebugUI\styles-v21.xml" Configuration="DebugUI" Class="AndroidSplashStylesV21"/>
+                <DeployFile LocalName="Android\DebugUI\styles-v21.xml" Configuration="DebugUI" Class="AndroidSplashStylesV21">
+                    <Platform Name="Android">
+                        <RemoteName>styles.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Android\DebugUI\styles-v35.xml" Configuration="DebugUI" Class="AndroidSplashStylesV35">
+                    <Platform Name="Android">
+                        <RemoteName>styles.xml</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Android\DebugUI\styles.xml" Configuration="DebugUI" Class="AndroidSplashStyles"/>
+                <DeployFile LocalName="Android\DebugUI\styles.xml" Configuration="DebugUI" Class="AndroidSplashStyles">
+                    <Platform Name="Android">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Android\Debug\AndroidManifest.xml" Configuration="Debug" Class="ProjectAndroidManifest"/>
                 <DeployFile LocalName="Android\Debug\colors.xml" Configuration="Debug" Class="Android_Colors"/>
                 <DeployFile LocalName="Android\Debug\libTexCube.so" Configuration="Debug" Class="ProjectOutput"/>
@@ -2985,8 +3975,8 @@
                 <ProjectRoot Platform="WinARM64EC" Name="$(PROJECTNAME)"/>
             </Deployment>
             <Platforms>
-                <Platform value="Android">False</Platform>
-                <Platform value="Android64">False</Platform>
+                <Platform value="Android">True</Platform>
+                <Platform value="Android64">True</Platform>
                 <Platform value="iOSDevice64">True</Platform>
                 <Platform value="iOSSimARM64">False</Platform>
                 <Platform value="OSX64">True</Platform>

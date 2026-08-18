@@ -7856,6 +7856,7 @@ begin
     Include(FFeatures, TFeature.VertexFormatInt10N2);
   if (Features.gl_texture_views) then
     Include(FFeatures, TFeature.GLTextureViews);
+  FFeaturesValid := True;
 end;
 
 class procedure TGfx.Draw(const ABaseElement, ANumElements, ANumInstances,

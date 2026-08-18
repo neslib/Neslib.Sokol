@@ -78,7 +78,6 @@ begin
   inherited;
   { Display pass action: clear to blue-ish }
   FDisplay.PassAction.Colors[0].Init(TLoadAction.Clear, 0.25, 0.45, 0.65, 1.0);
-
   { Setup a render pass struct with one color and one depth render attachment
     image.
     NOTE: we need to explicitly set the sample count in the attachment image

@@ -1530,7 +1530,11 @@ end;
 
 function TSpineAtlas.GetImage(const AIndex: Integer): TSpineImage;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_image_by_index(FHandle, AIndex);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_image_by_index(FHandle, AIndex);
+  {$ENDIF}
 end;
 
 function TSpineAtlas.GetImageCount: Integer;
@@ -1540,7 +1544,11 @@ end;
 
 function TSpineAtlas.GetPage(const AIndex: Integer): TSpineAtlasPage;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_atlas_page_by_index(FHandle, AIndex);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_atlas_page_by_index(FHandle, AIndex);
+  {$ENDIF}
 end;
 
 function TSpineAtlas.GetPageCount: Integer;
@@ -1562,12 +1570,20 @@ end;
 
 function TSpineSkeleton.AnimByName(const AName: PUTF8Char): TSpineAnim;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_anim_by_name(FHandle, AName);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_anim_by_name(FHandle, AName);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.BoneByName(const AName: PUTF8Char): TSpineBone;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_bone_by_name(FHandle, AName);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_bone_by_name(FHandle, AName);
+  {$ENDIF}
 end;
 
 constructor TSpineSkeleton.Create(const ADesc: TSpineSkeletonDesc);
@@ -1579,7 +1595,11 @@ end;
 
 function TSpineSkeleton.EventByName(const AName: PUTF8Char): TSpineEvent;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_event_by_name(FHandle, AName);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_event_by_name(FHandle, AName);
+  {$ENDIF}
 end;
 
 procedure TSpineSkeleton.Free;
@@ -1589,7 +1609,11 @@ end;
 
 function TSpineSkeleton.GetAnimation(const AIndex: Integer): TSpineAnim;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_anim_by_index(FHandle, AIndex);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_anim_by_index(FHandle, AIndex);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.GetAnimationCount: Integer;
@@ -1604,7 +1628,11 @@ end;
 
 function TSpineSkeleton.GetBone(const AIndex: Integer): TSpineBone;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_bone_by_index(FHandle, AIndex);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_bone_by_index(FHandle, AIndex);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.GetBoneCount: Integer;
@@ -1614,7 +1642,11 @@ end;
 
 function TSpineSkeleton.GetEvent(const AIndex: Integer): TSpineEvent;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_event_by_index(FHandle, AIndex);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_event_by_index(FHandle, AIndex);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.GetEventCount: Integer;
@@ -1624,7 +1656,11 @@ end;
 
 function TSpineSkeleton.GetIKTarget(const AIndex: Integer): TSpineIKTarget;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_iktarget_by_index(FHandle, AIndex);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_iktarget_by_index(FHandle, AIndex);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.GetIKTargetCount: Integer;
@@ -1639,7 +1675,11 @@ end;
 
 function TSpineSkeleton.GetSkin(const AIndex: Integer): TSpineSkin;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_skin_by_index(FHandle, AIndex);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_skin_by_index(FHandle, AIndex);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.GetSkinCount: Integer;
@@ -1649,7 +1689,11 @@ end;
 
 function TSpineSkeleton.GetSlot(const AIndex: Integer): TSpineSlot;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_slot_by_index(FHandle, AIndex);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_slot_by_index(FHandle, AIndex);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.GetSlotCount: Integer;
@@ -1664,17 +1708,29 @@ end;
 
 function TSpineSkeleton.IKTargetByName(const AName: PUTF8Char): TSpineIKTarget;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_iktarget_by_name(FHandle, AName);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_iktarget_by_name(FHandle, AName);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.SkinByName(const AName: PUTF8Char): TSpineSkin;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_skin_by_name(FHandle, AName);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_skin_by_name(FHandle, AName);
+  {$ENDIF}
 end;
 
 function TSpineSkeleton.SlotByName(const AName: PUTF8Char): TSpineSlot;
 begin
+  {$IFDEF ANDROID32}
+  Result.FHandle := _sspine_slot_by_name(FHandle, AName);
+  {$ELSE}
   UInt64(Result.FHandle) := _sspine_slot_by_name(FHandle, AName);
+  {$ENDIF}
 end;
 
 { TSpineInstance }

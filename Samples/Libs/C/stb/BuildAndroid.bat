@@ -5,22 +5,16 @@ set LIB32=obj\local\armeabi-v7a\libstb.a
 set LIB64=obj\local\arm64-v8a\libstb.a
 
 REM Location of NDK tools
-set NDK_BUILD=c:\Users\Public\Documents\Embarcadero\Studio\22.0\CatalogRepository\AndroidNDK-21-22.0.44500.8973\android-ndk-r21\ndk-build.cmd
-set NDK_STRIP32=c:\Users\Public\Documents\Embarcadero\Studio\22.0\CatalogRepository\AndroidNDK-21-22.0.44500.8973\android-ndk-r21\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\bin\arm-linux-androideabi-strip.exe
-set NDK_STRIP64=c:\Users\Public\Documents\Embarcadero\Studio\22.0\CatalogRepository\AndroidNDK-21-22.0.44500.8973\android-ndk-r21\toolchains\aarch64-linux-android-4.9\prebuilt\windows-x86_64\bin\aarch64-linux-android-strip.exe
+set NDK_BUILD=C:\Users\Public\Documents\Embarcadero\Studio\37.0\CatalogRepository\AndroidSDK-37.0.59082.6021\ndk\27.1.12297006\ndk-build.cmd
+set NDK_STRIP=C:\Users\Public\Documents\Embarcadero\Studio\37.0\CatalogRepository\AndroidSDK-37.0.59082.6021\ndk\27.1.12297006\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip.exe
 
 if not exist %NDK_BUILD% (
   echo Cannot find ndk-build. Should be installed in: %NDK_BUILD%
   exit /b
 )
 
-if not exist %NDK_STRIP32% (
-  echo Cannot find ndk-strip. Should be installed in: %NDK_STRIP32%
-  exit /b
-)
-
-if not exist %NDK_STRIP64% (
-  echo Cannot find ndk-strip. Should be installed in: %NDK_STRIP64%
+if not exist %NDK_STRIP% (
+  echo Cannot find ndk-strip. Should be installed in: %NDK_STRIP%
   exit /b
 )
 
@@ -32,7 +26,7 @@ if not exist %LIB32% (
   exit /b
 )
 
-%NDK_STRIP32% -g -X %LIB32%
+%NDK_STRIP% -g %LIB32%
 
 REM Copy static library to directory with Delphi source code
 copy %LIB32% ..\..\libstb_android32.a
@@ -40,7 +34,7 @@ if %ERRORLEVEL% NEQ 0 (
   echo Cannot copy static library. Make sure it is not write protected
 )
 
-%NDK_STRIP64% -g -X %LIB64%
+%NDK_STRIP% -g %LIB64%
 
 if not exist %LIB64% (
   echo Cannot find static library %LIB64%

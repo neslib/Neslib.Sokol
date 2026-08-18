@@ -4,9 +4,9 @@ include $(CLEAR_VARS)
 LOCAL_MODULE     := sokol
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/sokol
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
-  LOCAL_CFLAGS     := -O3 -DNDEBUG -Wno-deprecated-builtins -Wno-implicit-const-int-float-conversion
+  LOCAL_CFLAGS   := -O3 -DNDEBUG -Wno-deprecated-builtins -Wno-implicit-const-int-float-conversion
 else
-  LOCAL_CFLAGS     := -O3 -mfpu=neon -DNDEBUG -Wno-deprecated-builtins -Wno-implicit-const-int-float-conversion
+  LOCAL_CFLAGS   := -O3 -mfpu=neon -DNDEBUG -Wno-deprecated-builtins -Wno-implicit-const-int-float-conversion
 endif
 
 LOCAL_SRC_FILES  := sokol.c\

@@ -14,7 +14,7 @@ It consists of the following independent modules (units):
 
 * [Neslib.Sokol.App](Doc/Neslib.Sokol.App.md): application framework that takes care of window creation, 3D-context creation, keyboard-, mouse- and touch-input and operating system events.
 * [Neslib.Sokol.Gfx](Doc/Neslib.Sokol.Gfx.md): 3D-API abstraction layer that uses Direct3D 11 on Windows, OpenGL ES-2/3 on Android and Metal on macOS and iOS.
-* [Neslib.Sokol.Audio](Doc/Neslib.Sokol.Audio.md): minimal buffer-streaming audio playback that uses WASAPI on Windows, OpenSLES on Android and CoreAudio on macOS and iOS.
+* [Neslib.Sokol.Audio](Doc/Neslib.Sokol.Audio.md): minimal buffer-streaming audio playback that uses WASAPI on Windows, AAudio on Android and CoreAudio on macOS and iOS.
 * [Neslib.Sokol.Fetch](Doc/Neslib.Sokol.Fetch.md): asynchronous data streaming from the local filesystem.
 * [Neslib.Sokol.Time](Doc/Neslib.Sokol.Time.md): high precision time measurement.
 
@@ -32,6 +32,30 @@ It consists of the following independent modules (units):
 * [Neslib.Sokol.Letterbox](Doc/Neslib.Sokol.Letterbox.md): fixed-aspect viewport for random-aspect framebuffer.
 * [Neslib.Sokol.Spine](Doc/Neslib.Sokol.Spine.md): A Neslib.Sokol.Gfx renderer for the spine-c runtime.
 * [Neslib.Sokol.MemTrack](Doc/Neslib.Sokol.MemTrack.md): memory allocation wrapper to track memory usage of Sokol libraries.
+
+## Requirements
+
+* **Windows**: Windows 10 or later.
+* **macOS**: macOS 14.0 (Sonoma) or later.
+* **iOS**: iOS 16 or later.
+* **Android**: Android 8 (API level 26) or later. See below.
+
+### Setup Delphi for Android API level 26 or later
+
+If you build an Android version of a Neslib.Sokol app and you get the following error:
+
+```
+[DCC Error] E2597 ld.lld: error: unable to find library -laaudio
+```
+
+Then this means that Delphi cannot find the directory for API level 26 or later in the NDK library path. To fix this:
+
+* In Delphi, select the "Tools | Options..." menu.
+* Navigate to "Deployment | SDK Manager".
+* Select the "Android 32-bit" SDK you are using.
+* Select the "NDK" tab and click the "..." button near the bottom for "Delphi NDK library path".
+* You will see one or more directories here. Some directories may end in an API level number (for example "C:\\Users\\...\\sysroot\\usr\\lib\\arm-linux-androideabi\\23"). Copy this entire path and add a new path with level number replaced with "26".
+* Repeat the steps above for the "Android 64-bit" SDK.
 
 ## Additional modules used in some samples
 

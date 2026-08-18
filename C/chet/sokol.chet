@@ -21,7 +21,7 @@ DebugLibraryName=sokold64.dll
 Prefix=
 
 [Platform.MacARM]
-Enabled=0
+Enabled=1
 LibraryName=libsokol_macos_arm.a
 DebugLibraryName=
 Prefix=

@@ -13,11 +13,11 @@ const
   {$ELSEIF Defined(WIN64)}
   _LIB_SOKOL = {$IFDEF DEBUG}'sokold64.dll'{$ELSE}'sokol64.dll'{$ENDIF};
   _PU = '';
+  {$ELSEIF Defined(MACOS64) and Defined(CPUARM64) and not Defined(IOS)}
+  _LIB_SOKOL = 'libsokol_macos_arm.a';
+  _PU = '';
   {$ELSEIF Defined(MACOS64) and Defined(CPUX64) and not Defined(IOS)}
   _LIB_SOKOL = 'libsokol_macos_intel.a';
-  _PU = '';
-  {$ELSEIF Defined(MACOS64) and Defined(CPUARM) and not Defined(IOS)}
-  _LIB_SOKOL = 'libsokol_macos_arm.a';
   _PU = '';
   {$ELSEIF Defined(IOS)}
   _LIB_SOKOL = 'libsokol_ios.a';
@@ -5784,7 +5784,7 @@ procedure _simgui_shutdown(); cdecl;
 function _slbx_letterbox(width: Integer; height: Integer; const desc: _Pslbx_letterbox_desc): _slbx_viewport; cdecl;
   external _LIB_SOKOL name _PU + 'slbx_letterbox';
 
-function _smemtrack_info(): UInt64{_smemtrack_info_t}; cdecl;
+function _smemtrack_info(): {$IFDEF ANDROID32}_smemtrack_info_t{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'smemtrack_info';
 
 function _smemtrack_alloc(size: NativeUInt; user_data: Pointer): Pointer; cdecl;
@@ -5823,7 +5823,7 @@ function _sshape_cylinder_sizes(slices: UInt32; stacks: UInt32): _sshape_sizes_t
 function _sshape_torus_sizes(sides: UInt32; rings: UInt32): _sshape_sizes_t; cdecl;
   external _LIB_SOKOL name _PU + 'sshape_torus_sizes';
 
-function _sshape_element_range(const buf: _Psshape_buffer_t): UInt64{_sshape_element_range_t}; cdecl;
+function _sshape_element_range(const buf: _Psshape_buffer_t): {$IFDEF ANDROID32}_sshape_element_range_t{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sshape_element_range';
 
 function _sshape_vertex_buffer_desc(const buf: _Psshape_buffer_t): _sg_buffer_desc; cdecl;
@@ -5979,7 +5979,7 @@ function _sspine_get_instance_skeleton(instance: _sspine_instance): _sspine_skel
 function _sspine_num_images(atlas: _sspine_atlas): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_num_images';
 
-function _sspine_image_by_index(atlas: _sspine_atlas; index: Integer): UInt64{_sspine_image}; cdecl;
+function _sspine_image_by_index(atlas: _sspine_atlas; index: Integer): {$IFDEF ANDROID32}_sspine_image{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_image_by_index';
 
 function _sspine_image_valid(image: _sspine_image): Boolean; cdecl;
@@ -5994,7 +5994,7 @@ function _sspine_get_image_info(image: _sspine_image): _sspine_image_info; cdecl
 function _sspine_num_atlas_pages(atlas: _sspine_atlas): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_num_atlas_pages';
 
-function _sspine_atlas_page_by_index(atlas: _sspine_atlas; index: Integer): UInt64{_sspine_atlas_page}; cdecl;
+function _sspine_atlas_page_by_index(atlas: _sspine_atlas; index: Integer): {$IFDEF ANDROID32}_sspine_atlas_page{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_atlas_page_by_index';
 
 function _sspine_atlas_page_valid(page: _sspine_atlas_page): Boolean; cdecl;
@@ -6015,10 +6015,10 @@ procedure _sspine_set_scale(instance: _sspine_instance; scale: _sspine_vec2); cd
 procedure _sspine_set_color(instance: _sspine_instance; color: _sspine_color); cdecl;
   external _LIB_SOKOL name _PU + 'sspine_set_color';
 
-function _sspine_get_position(instance: _sspine_instance): UInt64{_sspine_vec2}; cdecl;
+function _sspine_get_position(instance: _sspine_instance): {$IFDEF ANDROID32}_sspine_vec2{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_get_position';
 
-function _sspine_get_scale(instance: _sspine_instance): UInt64{_sspine_vec2}; cdecl;
+function _sspine_get_scale(instance: _sspine_instance): {$IFDEF ANDROID32}_sspine_vec2{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_get_scale';
 
 function _sspine_get_color(instance: _sspine_instance): _sspine_color; cdecl;
@@ -6027,10 +6027,10 @@ function _sspine_get_color(instance: _sspine_instance): _sspine_color; cdecl;
 function _sspine_num_anims(skeleton: _sspine_skeleton): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_num_anims';
 
-function _sspine_anim_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64{_sspine_anim}; cdecl;
+function _sspine_anim_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): {$IFDEF ANDROID32}_sspine_anim{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_anim_by_name';
 
-function _sspine_anim_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64{_sspine_anim}; cdecl;
+function _sspine_anim_by_index(skeleton: _sspine_skeleton; index: Integer): {$IFDEF ANDROID32}_sspine_anim{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_anim_by_index';
 
 function _sspine_anim_valid(anim: _sspine_anim): Boolean; cdecl;
@@ -6063,10 +6063,10 @@ procedure _sspine_add_empty_animation(instance: _sspine_instance; track_index: I
 function _sspine_num_bones(skeleton: _sspine_skeleton): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_num_bones';
 
-function _sspine_bone_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64{_sspine_bone}; cdecl;
+function _sspine_bone_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): {$IFDEF ANDROID32}_sspine_bone{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_bone_by_name';
 
-function _sspine_bone_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64{_sspine_bone}; cdecl;
+function _sspine_bone_by_index(skeleton: _sspine_skeleton; index: Integer): {$IFDEF ANDROID32}_sspine_bone{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_bone_by_index';
 
 function _sspine_bone_valid(bone: _sspine_bone): Boolean; cdecl;
@@ -6096,34 +6096,34 @@ procedure _sspine_set_bone_shear(instance: _sspine_instance; bone: _sspine_bone;
 function _sspine_get_bone_transform(instance: _sspine_instance; bone: _sspine_bone): _sspine_bone_transform; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_get_bone_transform';
 
-function _sspine_get_bone_position(instance: _sspine_instance; bone: _sspine_bone): UInt64{_sspine_vec2}; cdecl;
+function _sspine_get_bone_position(instance: _sspine_instance; bone: _sspine_bone): {$IFDEF ANDROID32}_sspine_vec2{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_get_bone_position';
 
 function _sspine_get_bone_rotation(instance: _sspine_instance; bone: _sspine_bone): Single; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_get_bone_rotation';
 
-function _sspine_get_bone_scale(instance: _sspine_instance; bone: _sspine_bone): UInt64{_sspine_vec2}; cdecl;
+function _sspine_get_bone_scale(instance: _sspine_instance; bone: _sspine_bone): {$IFDEF ANDROID32}_sspine_vec2{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_get_bone_scale';
 
-function _sspine_get_bone_shear(instance: _sspine_instance; bone: _sspine_bone): UInt64{_sspine_vec2}; cdecl;
+function _sspine_get_bone_shear(instance: _sspine_instance; bone: _sspine_bone): {$IFDEF ANDROID32}_sspine_vec2{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_get_bone_shear';
 
-function _sspine_get_bone_world_position(instance: _sspine_instance; bone: _sspine_bone): UInt64{_sspine_vec2}; cdecl;
+function _sspine_get_bone_world_position(instance: _sspine_instance; bone: _sspine_bone): {$IFDEF ANDROID32}_sspine_vec2{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_get_bone_world_position';
 
-function _sspine_bone_local_to_world(instance: _sspine_instance; bone: _sspine_bone; local_pos: _sspine_vec2): UInt64{_sspine_vec2}; cdecl;
+function _sspine_bone_local_to_world(instance: _sspine_instance; bone: _sspine_bone; local_pos: _sspine_vec2): {$IFDEF ANDROID32}_sspine_vec2{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_bone_local_to_world';
 
-function _sspine_bone_world_to_local(instance: _sspine_instance; bone: _sspine_bone; world_pos: _sspine_vec2): UInt64{_sspine_vec2}; cdecl;
+function _sspine_bone_world_to_local(instance: _sspine_instance; bone: _sspine_bone; world_pos: _sspine_vec2): {$IFDEF ANDROID32}_sspine_vec2{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_bone_world_to_local';
 
 function _sspine_num_slots(skeleton: _sspine_skeleton): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_num_slots';
 
-function _sspine_slot_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64{_sspine_slot}; cdecl;
+function _sspine_slot_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): {$IFDEF ANDROID32}_sspine_slot{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_slot_by_name';
 
-function _sspine_slot_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64{_sspine_slot}; cdecl;
+function _sspine_slot_by_index(skeleton: _sspine_skeleton; index: Integer): {$IFDEF ANDROID32}_sspine_slot{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_slot_by_index';
 
 function _sspine_slot_valid(slot: _sspine_slot): Boolean; cdecl;
@@ -6144,10 +6144,10 @@ function _sspine_get_slot_color(instance: _sspine_instance; slot: _sspine_slot):
 function _sspine_num_events(skeleton: _sspine_skeleton): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_num_events';
 
-function _sspine_event_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64{_sspine_event}; cdecl;
+function _sspine_event_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): {$IFDEF ANDROID32}_sspine_event{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_event_by_name';
 
-function _sspine_event_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64{_sspine_event}; cdecl;
+function _sspine_event_by_index(skeleton: _sspine_skeleton; index: Integer): {$IFDEF ANDROID32}_sspine_event{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_event_by_index';
 
 function _sspine_event_valid(event: _sspine_event): Boolean; cdecl;
@@ -6162,10 +6162,10 @@ function _sspine_get_event_info(event: _sspine_event): _sspine_event_info; cdecl
 function _sspine_num_iktargets(skeleton: _sspine_skeleton): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_num_iktargets';
 
-function _sspine_iktarget_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64{_sspine_iktarget}; cdecl;
+function _sspine_iktarget_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): {$IFDEF ANDROID32}_sspine_iktarget{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_iktarget_by_name';
 
-function _sspine_iktarget_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64{_sspine_iktarget}; cdecl;
+function _sspine_iktarget_by_index(skeleton: _sspine_skeleton; index: Integer): {$IFDEF ANDROID32}_sspine_iktarget{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_iktarget_by_index';
 
 function _sspine_iktarget_valid(iktarget: _sspine_iktarget): Boolean; cdecl;
@@ -6183,10 +6183,10 @@ procedure _sspine_set_iktarget_world_pos(instance: _sspine_instance; iktarget: _
 function _sspine_num_skins(skeleton: _sspine_skeleton): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_num_skins';
 
-function _sspine_skin_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): UInt64{_sspine_skin}; cdecl;
+function _sspine_skin_by_name(skeleton: _sspine_skeleton; const name: PUTF8Char): {$IFDEF ANDROID32}_sspine_skin{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_skin_by_name';
 
-function _sspine_skin_by_index(skeleton: _sspine_skeleton; index: Integer): UInt64{_sspine_skin}; cdecl;
+function _sspine_skin_by_index(skeleton: _sspine_skeleton; index: Integer): {$IFDEF ANDROID32}_sspine_skin{$ELSE}UInt64{$ENDIF}; cdecl;
   external _LIB_SOKOL name _PU + 'sspine_skin_by_index';
 
 function _sspine_skin_valid(skin: _sspine_skin): Boolean; cdecl;

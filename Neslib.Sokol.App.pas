@@ -1704,14 +1704,18 @@ exports
 {$ELSEIF Defined(ANDROID)}
 const
   AndroidGles3Lib = '/usr/lib/libGLESv3.so';
+  AndroidAAudioLib = '/usr/lib/libaaudio.so';
 
 procedure ANativeActivity_onCreate(activity: PANativeActivity;
   saved_state: Pointer; saved_state_size: NativeInt); cdecl;
   external _LIB_SOKOL name 'ANativeActivity_onCreate'
   dependency LibCPP_ABI;
 
-{ Link in GLES-3 library }
-procedure _Gles3Dummy; cdecl; external AndroidGles3Lib name 'glGetStringi';
+{ Link in GLES-3 and C++_static library }
+procedure _Gles3Dummy; cdecl; external AndroidGles3Lib name 'glGetStringi' dependency 'c++_static';
+
+{ Link in AAudio library }
+procedure _AAudioDummy; cdecl; external AndroidAAudioLib name 'AAudio_createStreamBuilder';
 
 function sokol_main(argc: Integer; argv: PPAnsiChar): _sapp_desc;
 type
@@ -1737,7 +1741,7 @@ begin
         var EntryPoint := TMainFunction(Sym);
         EntryPoint();
 
-        Result := TApplication.FDesc;
+        Result := TApplication.GDesc;
       end;
     end;
   end;
@@ -1753,6 +1757,8 @@ var
     instancecount: GLsizei); cdecl = nil;
   glDrawElementsInstanced: procedure(mode: GLenum; count: GLsizei;
     type_: GLenum; const indices: Pointer; instancecount: GLsizei); cdecl = nil;
+  glColorMaski_: procedure(index: GLuint; r: GLboolean; g: GLboolean; b: GLboolean;
+    a: GLboolean); cdecl = nil;
 
 procedure glVertexAttribDivisorANGLE(index: GLuint; divisor: GLuint); cdecl;
 begin
@@ -1772,6 +1778,13 @@ procedure glDrawElementsInstancedANGLE(mode: GLenum; count: GLsizei;
 begin
   if Assigned(glDrawElementsInstanced) then
     glDrawElementsInstanced(mode, count, type_, indices, instancecount);
+end;
+
+procedure glColorMaski(index: GLuint; r: GLboolean; g: GLboolean; b: GLboolean;
+  a: GLboolean); cdecl;
+begin
+  if Assigned(glColorMaski_) then
+    glColorMaski_(index, r, g, b, a);
 end;
 
 procedure InitGles2Angle;
@@ -1802,10 +1815,30 @@ begin
   dlclose(Lib);
 end;
 
+procedure InitGles3;
+begin
+  var Lib := dlopen(
+    {$IFDEF ANDROID64}
+    '/system/lib64/libGLESv3.so',
+    {$ELSE}
+    '/system/lib/libGLESv3.so',
+    {$ENDIF}
+    RTLD_LAZY);
+  Assert(Lib <> 0);
+  if (Lib = 0) then
+    Exit;
+
+  { Sokol tries to get glColormaski from libGLESv2.so, but it is in libGLESv3.so }
+  @glColorMaski_ := dlsym(Lib, 'glColorMaski');
+
+  dlclose(Lib);
+end;
+
 exports
   glVertexAttribDivisorANGLE,
   glDrawArraysInstancedANGLE,
-  glDrawElementsInstancedANGLE;
+  glDrawElementsInstancedANGLE,
+  glColorMaski;
 {$ENDIF}
 
 procedure RunApp(const AAppClass: TApplicationClass);
@@ -2863,6 +2896,7 @@ end;
 initialization
   {$IFDEF ANDROID}
   InitGles2Angle;
+  InitGles3;
   {$ENDIF}
 
 end.

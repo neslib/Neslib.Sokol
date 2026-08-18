@@ -332,12 +332,6 @@ type
 
 implementation
 
-{ The original _sshape_element_range API returns an 8-byte struct, which Delphi
-  doesn't support. So we modifed the API to return an UInt64 instead, and unpack
-  it ourselves. }
-function __sshape_element_range(const buf: _Psshape_buffer_t): UInt64; cdecl;
-  external _LIB_SOKOL name _PU + 'sshape_element_range';
-
 { TShapeSizesItem }
 
 function TShapeSizesItem.GetCount: Integer;
@@ -551,7 +545,7 @@ begin
   {$IFDEF ANDROID32}
   Result.FHandle := _sshape_element_range(@FHandle);
   {$ELSE}
-  var Res := __sshape_element_range(@FHandle);
+  var Res := _sshape_element_range(@FHandle);
   Result.FHandle.base_element := Integer(Res);
   Result.FHandle.num_elements := Integer(Res shr 32);
   {$ENDIF}
