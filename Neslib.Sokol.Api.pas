@@ -40,6 +40,7 @@ const
   _STBTT_MACSTYLE_ITALIC = 2;
   _STBTT_MACSTYLE_UNDERSCORE = 4;
   _STBTT_MACSTYLE_NONE = 8;
+  _STBI_VERSION = 1;
   _SOKOL_GFX_INCLUDED = (1);
   _SOKOL_APP_INCLUDED = (1);
   _SOKOL_ARGS_INCLUDED = (1);
@@ -300,6 +301,13 @@ const
   _STBTT_MAC_LANG_CHINESE_SIMPLIFIED = 33;
   _STBTT_MAC_LANG_ITALIAN = 3;
   _STBTT_MAC_LANG_CHINESE_TRAD = 19;
+
+const
+  _STBI_default = 0;
+  _STBI_grey = 1;
+  _STBI_grey_alpha = 2;
+  _STBI_rgb = 3;
+  _STBI_rgb_alpha = 4;
 
 const
   _SG_INVALID_ID = 0;
@@ -1844,7 +1852,9 @@ const
 type
   // Forward declarations
   PPUTF8Char = ^PUTF8Char;
+  PPInteger = ^PInteger;
   PUInt64 = ^UInt64;
+  PPointer = ^Pointer;
   _PFONSfont = Pointer;
   _PPFONSfont = ^_PFONSfont;
   _PFONSparams = ^_FONSparams;
@@ -1857,9 +1867,11 @@ type
   _Pstbtt_pack_range = ^_stbtt_pack_range;
   _Pstbtt_pack_context = ^_stbtt_pack_context;
   _Pstbtt_fontinfo = ^_stbtt_fontinfo;
+  _Pstbtt_kerningentry = ^_stbtt_kerningentry;
   _Pstbtt_vertex = ^_stbtt_vertex;
   _PPstbtt_vertex = ^_Pstbtt_vertex;
   _Pstbtt__bitmap = ^_stbtt__bitmap;
+  _Pstbi_io_callbacks = ^_stbi_io_callbacks;
   _Psg_buffer = ^_sg_buffer;
   _Psg_image = ^_sg_image;
   _Psg_sampler = ^_sg_sampler;
@@ -2211,6 +2223,7 @@ type
     height: Integer;
     stride_in_bytes: Integer;
     padding: Integer;
+    skip_missing: Integer;
     h_oversample: Cardinal;
     v_oversample: Cardinal;
     pixels: PByte;
@@ -2228,6 +2241,8 @@ type
     hhea: Integer;
     hmtx: Integer;
     kern: Integer;
+    gpos: Integer;
+    svg: Integer;
     index_map: Integer;
     indexToLocFormat: Integer;
     cff: _stbtt__buf;
@@ -2236,6 +2251,12 @@ type
     subrs: _stbtt__buf;
     fontdicts: _stbtt__buf;
     fdselect: _stbtt__buf;
+  end;
+
+  _stbtt_kerningentry = record
+    glyph1: Integer;
+    glyph2: Integer;
+    advance: Integer;
   end;
 
   _stbtt_vertex = record
@@ -2254,6 +2275,18 @@ type
     h: Integer;
     stride: Integer;
     pixels: PByte;
+  end;
+
+  _stbi_uc = Byte;
+  _Pstbi_uc = ^_stbi_uc;
+  _stbi_us = Word;
+  _Pstbi_us = ^_stbi_us;
+
+  //////////////////////////////////////////////////////////////////////////////
+  _stbi_io_callbacks = record
+    read: function(user: Pointer; data: PUTF8Char; size: Integer): Integer; cdecl;
+    skip: procedure(user: Pointer; n: Integer); cdecl;
+    eof: function(user: Pointer): Integer; cdecl;
   end;
 
   _sg_buffer = record
@@ -4246,20 +4279,26 @@ function _stbtt_BakeFontBitmap(const data: PByte; offset: Integer; pixel_height:
 procedure _stbtt_GetBakedQuad(const chardata: _Pstbtt_bakedchar; pw: Integer; ph: Integer; char_index: Integer; xpos: PSingle; ypos: PSingle; q: _Pstbtt_aligned_quad; opengl_fillrule: Integer); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_GetBakedQuad';
 
+procedure _stbtt_GetScaledFontVMetrics(const fontdata: PByte; index: Integer; size: Single; ascent: PSingle; descent: PSingle; lineGap: PSingle); cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_GetScaledFontVMetrics';
+
 function _stbtt_PackBegin(spc: _Pstbtt_pack_context; pixels: PByte; width: Integer; height: Integer; stride_in_bytes: Integer; padding: Integer; alloc_context: Pointer): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_PackBegin';
 
 procedure _stbtt_PackEnd(spc: _Pstbtt_pack_context); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_PackEnd';
 
-function _stbtt_PackFontRange(spc: _Pstbtt_pack_context; fontdata: PByte; font_index: Integer; font_size: Single; first_unicode_char_in_range: Integer; num_chars_in_range: Integer; chardata_for_range: _Pstbtt_packedchar): Integer; cdecl;
+function _stbtt_PackFontRange(spc: _Pstbtt_pack_context; const fontdata: PByte; font_index: Integer; font_size: Single; first_unicode_char_in_range: Integer; num_chars_in_range: Integer; chardata_for_range: _Pstbtt_packedchar): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_PackFontRange';
 
-function _stbtt_PackFontRanges(spc: _Pstbtt_pack_context; fontdata: PByte; font_index: Integer; ranges: _Pstbtt_pack_range; num_ranges: Integer): Integer; cdecl;
+function _stbtt_PackFontRanges(spc: _Pstbtt_pack_context; const fontdata: PByte; font_index: Integer; ranges: _Pstbtt_pack_range; num_ranges: Integer): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_PackFontRanges';
 
 procedure _stbtt_PackSetOversampling(spc: _Pstbtt_pack_context; h_oversample: Cardinal; v_oversample: Cardinal); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_PackSetOversampling';
+
+procedure _stbtt_PackSetSkipMissingCodepoints(spc: _Pstbtt_pack_context; skip: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_PackSetSkipMissingCodepoints';
 
 procedure _stbtt_GetPackedQuad(const chardata: _Pstbtt_packedchar; pw: Integer; ph: Integer; char_index: Integer; xpos: PSingle; ypos: PSingle; q: _Pstbtt_aligned_quad; align_to_integer: Integer); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_GetPackedQuad';
@@ -4297,6 +4336,9 @@ function _stbtt_ScaleForMappingEmToPixels(const info: _Pstbtt_fontinfo; pixels: 
 procedure _stbtt_GetFontVMetrics(const info: _Pstbtt_fontinfo; ascent: PInteger; descent: PInteger; lineGap: PInteger); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_GetFontVMetrics';
 
+function _stbtt_GetFontVMetricsOS2(const info: _Pstbtt_fontinfo; typoAscent: PInteger; typoDescent: PInteger; typoLineGap: PInteger): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_GetFontVMetricsOS2';
+
 procedure _stbtt_GetFontBoundingBox(const info: _Pstbtt_fontinfo; x0: PInteger; y0: PInteger; x1: PInteger; y1: PInteger); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_GetFontBoundingBox';
 
@@ -4318,6 +4360,12 @@ function _stbtt_GetGlyphKernAdvance(const info: _Pstbtt_fontinfo; glyph1: Intege
 function _stbtt_GetGlyphBox(const info: _Pstbtt_fontinfo; glyph_index: Integer; x0: PInteger; y0: PInteger; x1: PInteger; y1: PInteger): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_GetGlyphBox';
 
+function _stbtt_GetKerningTableLength(const info: _Pstbtt_fontinfo): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_GetKerningTableLength';
+
+function _stbtt_GetKerningTable(const info: _Pstbtt_fontinfo; table: _Pstbtt_kerningentry; table_length: Integer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_GetKerningTable';
+
 function _stbtt_IsGlyphEmpty(const info: _Pstbtt_fontinfo; glyph_index: Integer): Integer; cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_IsGlyphEmpty';
 
@@ -4329,6 +4377,15 @@ function _stbtt_GetGlyphShape(const info: _Pstbtt_fontinfo; glyph_index: Integer
 
 procedure _stbtt_FreeShape(const info: _Pstbtt_fontinfo; vertices: _Pstbtt_vertex); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_FreeShape';
+
+function _stbtt_FindSVGDoc(const info: _Pstbtt_fontinfo; gl: Integer): PByte; cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_FindSVGDoc';
+
+function _stbtt_GetCodepointSVG(const info: _Pstbtt_fontinfo; unicode_codepoint: Integer; svg: PPUTF8Char): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_GetCodepointSVG';
+
+function _stbtt_GetGlyphSVG(const info: _Pstbtt_fontinfo; gl: Integer; svg: PPUTF8Char): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_GetGlyphSVG';
 
 //////////////////////////////////////////////////////////////////////////////
 procedure _stbtt_FreeBitmap(bitmap: PByte; userdata: Pointer); cdecl;
@@ -4345,6 +4402,9 @@ procedure _stbtt_MakeCodepointBitmap(const info: _Pstbtt_fontinfo; output: PByte
 
 procedure _stbtt_MakeCodepointBitmapSubpixel(const info: _Pstbtt_fontinfo; output: PByte; out_w: Integer; out_h: Integer; out_stride: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; codepoint: Integer); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_MakeCodepointBitmapSubpixel';
+
+procedure _stbtt_MakeCodepointBitmapSubpixelPrefilter(const info: _Pstbtt_fontinfo; output: PByte; out_w: Integer; out_h: Integer; out_stride: Integer; scale_x: Single; scale_y: Single; shift_x: Single; shift_y: Single; oversample_x: Integer; oversample_y: Integer; sub_x: PSingle; sub_y: PSingle; codepoint: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbtt_MakeCodepointBitmapSubpixelPrefilter';
 
 procedure _stbtt_GetCodepointBitmapBox(const font: _Pstbtt_fontinfo; codepoint: Integer; scale_x: Single; scale_y: Single; ix0: PInteger; iy0: PInteger; ix1: PInteger; iy1: PInteger); cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_GetCodepointBitmapBox';
@@ -4394,6 +4454,137 @@ function _stbtt_CompareUTF8toUTF16_bigendian(const s1: PUTF8Char; len1: Integer;
 
 function _stbtt_GetFontNameString(const font: _Pstbtt_fontinfo; length: PInteger; platformID: Integer; encodingID: Integer; languageID: Integer; nameID: Integer): PUTF8Char; cdecl;
   external _LIB_SOKOL name _PU + 'stbtt_GetFontNameString';
+
+////////////////////////////////////
+function _stbi_load_from_memory(const buffer: _Pstbi_uc; len: Integer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): _Pstbi_uc; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load_from_memory';
+
+function _stbi_load_from_callbacks(const clbk: _Pstbi_io_callbacks; user: Pointer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): _Pstbi_uc; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load_from_callbacks';
+
+function _stbi_load(const filename: PUTF8Char; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): _Pstbi_uc; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load';
+
+function _stbi_load_from_file(f: PPointer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): _Pstbi_uc; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load_from_file';
+
+function _stbi_load_gif_from_memory(const buffer: _Pstbi_uc; len: Integer; delays: PPInteger; x: PInteger; y: PInteger; z: PInteger; comp: PInteger; req_comp: Integer): _Pstbi_uc; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load_gif_from_memory';
+
+////////////////////////////////////
+function _stbi_load_16_from_memory(const buffer: _Pstbi_uc; len: Integer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): _Pstbi_us; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load_16_from_memory';
+
+function _stbi_load_16_from_callbacks(const clbk: _Pstbi_io_callbacks; user: Pointer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): _Pstbi_us; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load_16_from_callbacks';
+
+function _stbi_load_16(const filename: PUTF8Char; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): _Pstbi_us; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load_16';
+
+function _stbi_load_from_file_16(f: PPointer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): _Pstbi_us; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_load_from_file_16';
+
+function _stbi_loadf_from_memory(const buffer: _Pstbi_uc; len: Integer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): PSingle; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_loadf_from_memory';
+
+function _stbi_loadf_from_callbacks(const clbk: _Pstbi_io_callbacks; user: Pointer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): PSingle; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_loadf_from_callbacks';
+
+function _stbi_loadf(const filename: PUTF8Char; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): PSingle; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_loadf';
+
+function _stbi_loadf_from_file(f: PPointer; x: PInteger; y: PInteger; channels_in_file: PInteger; desired_channels: Integer): PSingle; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_loadf_from_file';
+
+procedure _stbi_hdr_to_ldr_gamma(gamma: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_hdr_to_ldr_gamma';
+
+procedure _stbi_hdr_to_ldr_scale(scale: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_hdr_to_ldr_scale';
+
+procedure _stbi_ldr_to_hdr_gamma(gamma: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_ldr_to_hdr_gamma';
+
+procedure _stbi_ldr_to_hdr_scale(scale: Single); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_ldr_to_hdr_scale';
+
+function _stbi_is_hdr_from_callbacks(const clbk: _Pstbi_io_callbacks; user: Pointer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_is_hdr_from_callbacks';
+
+function _stbi_is_hdr_from_memory(const buffer: _Pstbi_uc; len: Integer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_is_hdr_from_memory';
+
+function _stbi_is_hdr(const filename: PUTF8Char): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_is_hdr';
+
+function _stbi_is_hdr_from_file(f: PPointer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_is_hdr_from_file';
+
+function _stbi_failure_reason(): PUTF8Char; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_failure_reason';
+
+procedure _stbi_image_free(retval_from_stbi_load: Pointer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_image_free';
+
+function _stbi_info_from_memory(const buffer: _Pstbi_uc; len: Integer; x: PInteger; y: PInteger; comp: PInteger): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_info_from_memory';
+
+function _stbi_info_from_callbacks(const clbk: _Pstbi_io_callbacks; user: Pointer; x: PInteger; y: PInteger; comp: PInteger): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_info_from_callbacks';
+
+function _stbi_is_16_bit_from_memory(const buffer: _Pstbi_uc; len: Integer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_is_16_bit_from_memory';
+
+function _stbi_is_16_bit_from_callbacks(const clbk: _Pstbi_io_callbacks; user: Pointer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_is_16_bit_from_callbacks';
+
+function _stbi_info(const filename: PUTF8Char; x: PInteger; y: PInteger; comp: PInteger): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_info';
+
+function _stbi_info_from_file(f: PPointer; x: PInteger; y: PInteger; comp: PInteger): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_info_from_file';
+
+function _stbi_is_16_bit(const filename: PUTF8Char): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_is_16_bit';
+
+function _stbi_is_16_bit_from_file(f: PPointer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_is_16_bit_from_file';
+
+procedure _stbi_set_unpremultiply_on_load(flag_true_if_should_unpremultiply: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_set_unpremultiply_on_load';
+
+procedure _stbi_convert_iphone_png_to_rgb(flag_true_if_should_convert: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_convert_iphone_png_to_rgb';
+
+procedure _stbi_set_flip_vertically_on_load(flag_true_if_should_flip: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_set_flip_vertically_on_load';
+
+procedure _stbi_set_unpremultiply_on_load_thread(flag_true_if_should_unpremultiply: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_set_unpremultiply_on_load_thread';
+
+procedure _stbi_convert_iphone_png_to_rgb_thread(flag_true_if_should_convert: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_convert_iphone_png_to_rgb_thread';
+
+procedure _stbi_set_flip_vertically_on_load_thread(flag_true_if_should_flip: Integer); cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_set_flip_vertically_on_load_thread';
+
+function _stbi_zlib_decode_malloc_guesssize(const buffer: PUTF8Char; len: Integer; initial_size: Integer; outlen: PInteger): PUTF8Char; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_zlib_decode_malloc_guesssize';
+
+function _stbi_zlib_decode_malloc_guesssize_headerflag(const buffer: PUTF8Char; len: Integer; initial_size: Integer; outlen: PInteger; parse_header: Integer): PUTF8Char; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_zlib_decode_malloc_guesssize_headerflag';
+
+function _stbi_zlib_decode_malloc(const buffer: PUTF8Char; len: Integer; outlen: PInteger): PUTF8Char; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_zlib_decode_malloc';
+
+function _stbi_zlib_decode_buffer(obuffer: PUTF8Char; olen: Integer; const ibuffer: PUTF8Char; ilen: Integer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_zlib_decode_buffer';
+
+function _stbi_zlib_decode_noheader_malloc(const buffer: PUTF8Char; len: Integer; outlen: PInteger): PUTF8Char; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_zlib_decode_noheader_malloc';
+
+function _stbi_zlib_decode_noheader_buffer(obuffer: PUTF8Char; olen: Integer; const ibuffer: PUTF8Char; ilen: Integer): Integer; cdecl;
+  external _LIB_SOKOL name _PU + 'stbi_zlib_decode_noheader_buffer';
 
 procedure _sg_setup(const desc: _Psg_desc); cdecl;
   external _LIB_SOKOL name _PU + 'sg_setup';

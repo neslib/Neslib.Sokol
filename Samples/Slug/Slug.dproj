@@ -5,10 +5,11 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">DebugUI</Config>
-        <Platform Condition="'$(Platform)'==''">iOSDevice64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>168979</TargetedPlatforms>
         <AppType>Application</AppType>
         <MainSource>Slug.dpr</MainSource>
+        <ProjectName Condition="'$(ProjectName)'==''">Slug</ProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
         <Base>true</Base>
@@ -373,6 +374,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         </DelphiCompile>
         <DCCReference Include="..\..\Neslib.Sokol.App.pas"/>
         <DCCReference Include="SlugApp.pas"/>
+        <DCCReference Include="..\..\Neslib.Stb.TrueType.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

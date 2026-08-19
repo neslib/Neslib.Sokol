@@ -18,13 +18,14 @@ To update Neslib.Sokol:
     **Note**: we don't use "sokol_fetch.h" since we use a pure Delphi implementation of this.
 4. Update the "libs\\basisu" subdirectory with the contents from the "libs" directory of the samples repo.
 5. Update the "deps" subdirectory with the contents from the "libs\\fontstash" and ".fibs\\imports\\dcimgui\\src" directories of the samples repo.
-6. Update the "spine" subdirectory with the contents from the "libs\\spine-c\\include\\spine" directory of the samples repo.
-7. Update the "spine\\src" subdirectory with the contents from the "libs\\spine-c\\src\\spine" directory of the samples repo.
-8. Both FontStash and ImGui use "stb_truetype.h", however ImGui uses a slightly customized (and new) version named "imstb_truetype.h". To avoid duplication:
+6. Update "deps\\stb_image.h" from ".fibs\\imports\\stb\\stb_image.h".
+7. Update the "spine" subdirectory with the contents from the "libs\\spine-c\\include\\spine" directory of the samples repo.
+8. Update the "spine\\src" subdirectory with the contents from the "libs\\spine-c\\src\\spine" directory of the samples repo.
+9. Both FontStash and ImGui use "stb_truetype.h", however ImGui uses a slightly customized (and new) version named "imstb_truetype.h". To avoid duplication:
 
     * open "fontstash.h" 
     * replace "stb_truetype.h" with "imstb_truetype.h"
-    * comment out the lines above that (from `#define STB_TRUETYPE_IMPLEMENTATION` through `#define STBTT_free(x,u) fons__tmpfree(x,u)`)
+    * comment out the 6 lines above that (from `#define STB_TRUETYPE_IMPLEMENTATION` through `#define STBTT_free(x,u) fons__tmpfree(x,u)`)
     * you should delete any "stb_truetype.h" files
 10. If there are new or renamed APIs in sokol\deps\fontstash.h or sokol\libs\basisu\sokol_basisu.h, then update the "sokol.def" accordingly.
 11. Update the subdirectories in the "chet" directory accordingly, but only with those header files we want to translate to be accessible from Delphi.
@@ -54,7 +55,8 @@ This requires Visual Studio (the Community edition suffices).
   * util/sokol_fontstash.h
   * util/sokol_shape.h
   * util/sokol_spine.h
-
+  * deps/stb_image.h
+  
 * Open a terminal window on macOS
 * Enter `> ./BuildMacOSIntel.sh`
 * Enter `> ./BuildMacOSArm.sh`

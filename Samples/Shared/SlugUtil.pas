@@ -10,9 +10,8 @@ uses
   System.Generics.Defaults,
   System.Generics.Collections,
   Neslib.FastMath,
-  Neslib.Sokol.Api,
-  Neslib.Sokol.Gfx,
-  Neslib.Stb.Api;
+  Neslib.Stb.TrueType,
+  Neslib.Sokol.Gfx;
 
 const
   SLUG_TEX_SHIFT = 12;
@@ -117,7 +116,7 @@ type
     FGlyphLoc: array [0..1] of Integer;
   {$ENDREGION 'Internal Declarations'}
   public
-    constructor Create(const AInfo: _Pstbtt_fontinfo; const AGlyphIndex: Integer;
+    constructor Create(const AFont: TStbFont; const AGlyphIndex: Integer;
       const AEMScale: Single);
     destructor Destroy; override;
 
@@ -139,7 +138,7 @@ type
   private
     FValid: Boolean;
     FGlyphs: TList<TSlugGlyph>;
-    FInfo: _stbtt_fontinfo;
+    FFont: TStbFont;
     FCurve: TCurveOrBand;
     FBand: TCurveOrBand;
     FCPalColors: TList<TVector4>;
@@ -183,6 +182,9 @@ type
   end;
 
 implementation
+
+uses
+  Neslib.Sokol.Api;
 
 type
   TU16Vector2 = packed record
@@ -302,7 +304,7 @@ begin
     FVerticalBands[I].Sort(TSlugBandEntry.GComparer);
 end;
 
-constructor TSlugGlyphBuild.Create(const AInfo: _Pstbtt_fontinfo;
+constructor TSlugGlyphBuild.Create(const AFont: TStbFont;
   const AGlyphIndex: Integer; const AEMScale: Single);
 const
   T = 1 / 3;
@@ -313,131 +315,122 @@ begin
   FHorizontalBands := TObjectList<TList<TSlugBandEntry>>.Create;
   FVerticalBands := TObjectList<TList<TSlugBandEntry>>.Create;
 
-  var Adv, LsbRaw: Integer;
-  _stbtt_GetGlyphHMetrics(AInfo, AGlyphIndex, @Adv, @LsbRaw);
-  FAdvance := Adv * AEMScale;
-  FLsb := LsbRaw * AEMScale;
+  var Metrics := AFont.GetGlyphHMetrics(AGlyphIndex);
+  FAdvance := Metrics.AdvanceWidth * AEMScale;
+  FLsb := Metrics.LeftSideBearing * AEMScale;
 
-  var IX0, IY0, IX1, IY1: Integer;
-  if (_stbtt_GetGlyphBox(AInfo, AGlyphIndex, @IX0, @IY0, @IX1, @IY1) = 0) then
-    Exit;
+  var Box := AFont.GetGlyphBox(AGlyphIndex);
+  FBBox.X0 := Box.X0 * AEMScale;
+  FBBox.Y0 := Box.Y0 * AEMScale;
+  FBBox.X1 := Box.X1 * AEMScale;
+  FBBox.Y1 := Box.Y1 * AEMScale;
 
-  FBBox.X0 := IX0 * AEMScale;
-  FBBox.Y0 := IY0 * AEMScale;
-  FBBox.X1 := IX1 * AEMScale;
-  FBBox.Y1 := IY1 * AEMScale;
-
-  var Verts: _Pstbtt_vertex;
-  var NV := _stbtt_GetGlyphShape(AInfo, AGlyphIndex, @Verts);
-  if (NV <= 0) then
-    Exit;
-
+  var Shape := AFont.GetGlyphShape(AGlyphIndex);
   try
     var InContour := False;
     var ContourStart := 0;
     var Previous := TVector2.Zero;
 
-    var Vert := Verts;
     var Curve: TSlugCurve;
     var ContourRange: TSlugContourRange;
 
-    for var I := 0 to NV - 1 do
+    for var I := 0 to Shape.Count - 1 do
     begin
-      case Vert.&type of
-        1: begin
-             { VMove }
-             if (InContour) then
-             begin
-               var Count := FCurves.Count - ContourStart;
-               if (Count > 0) then
-               begin
-                 ContourRange.Start := ContourStart;
-                 ContourRange.Count := Count;
-                 FContours.Add(ContourRange);
-               end;
-             end;
-
+      var Vert := Shape[I];
+      case Vert.Kind of
+        TStbVertexKind.MoveTo:
+          begin
+            if (InContour) then
+            begin
+              var Count := FCurves.Count - ContourStart;
+              if (Count > 0) then
+              begin
+                ContourRange.Start := ContourStart;
+                ContourRange.Count := Count;
+                FContours.Add(ContourRange);
+              end;
+            end;
              Previous.Init(Vert.x * AEMScale, Vert.y * AEMScale);
-             ContourStart := FCurves.Count;
-             InContour := True;
-           end;
+            ContourStart := FCurves.Count;
+            InContour := True;
+          end;
 
-        2: begin
-             { VLine }
-             var Current := Vector2(Vert.x * AEMScale, Vert.y * AEMScale);
-             Curve.P[0] := Previous;
-             Curve.P[1] := (Previous + Current) * 0.5;
-             Curve.P[2] := Current;
-             FCurves.Add(Curve);
-             Previous := Current;
-           end;
+        TStbVertexKind.LineTo:
+          begin
+            var Current := Vector2(Vert.x * AEMScale, Vert.y * AEMScale);
+            Curve.P[0] := Previous;
+            Curve.P[1] := (Previous + Current) * 0.5;
+            Curve.P[2] := Current;
+            FCurves.Add(Curve);
+            Previous := Current;
+          end;
 
-        3: begin
-             { VCurve }
-             var Current := Vector2(Vert.x * AEMScale, Vert.y * AEMScale);
-             Curve.P[0] := Previous;
-             Curve.P[1] := Vector2(Vert.cx * AEMScale, Vert.cy * AEMScale);
-             Curve.P[2] := Current;
-             FCurves.Add(Curve);
-             Previous := Current;
-           end;
+        TStbVertexKind.CurveTo:
+          begin
+            var Current := Vector2(Vert.x * AEMScale, Vert.y * AEMScale);
+            Curve.P[0] := Previous;
+            Curve.P[1] := Vector2(Vert.cx * AEMScale, Vert.cy * AEMScale);
+            Curve.P[2] := Current;
+            FCurves.Add(Curve);
+            Previous := Current;
+          end;
 
-        4: begin
-             { VCubic. Approximate with three quadratic Beziers:
-               Split cubic P0,C1,C2,P3 at t=1/3 and t=2/3 via de Casteljau.
-               Then approximate each sub-cubic as a quadratic with ctrl=(c1+c2)/2. }
-             var P3 := Vector2(Vert.x * AEMScale, Vert.y * AEMScale);
-             var C1 := Vector2(Vert.cx * AEMScale, Vert.cy * AEMScale);
-             var C2 := Vector2(Vert.cx1 * AEMScale, Vert.cy1 * AEMScale);
-             var P0 := Previous;
+        TStbVertexKind.CubicTo:
+          begin
+            { Approximate with three quadratic Beziers:
+              Split cubic P0,C1,C2,P3 at t=1/3 and t=2/3 via de Casteljau.
+              Then approximate each sub-cubic as a quadratic with ctrl=(c1+c2)/2. }
+            var P3 := Vector2(Vert.x * AEMScale, Vert.y * AEMScale);
+            var C1 := Vector2(Vert.cx * AEMScale, Vert.cy * AEMScale);
+            var C2 := Vector2(Vert.cx1 * AEMScale, Vert.cy1 * AEMScale);
+            var P0 := Previous;
 
-             { De Casteljau split at t=1/3 }
-             var AB := P0 + ((C1 - P0) * T);
-             var BC := C1 + ((C2 - C1) * T);
-             var CD := C2 + ((P3 - C2) * T);
-             var ABC := AB + ((BC - AB) * T);
-             var BCD := BC + ((CD - BC) * T);
+            { De Casteljau split at t=1/3 }
+            var AB := P0 + ((C1 - P0) * T);
+            var BC := C1 + ((C2 - C1) * T);
+            var CD := C2 + ((P3 - C2) * T);
+            var ABC := AB + ((BC - AB) * T);
+            var BCD := BC + ((CD - BC) * T);
 
-             { Point on curve at T=1/3 }
-             var E1 := ABC + ((BCD - ABC) * T);
+            { Point on curve at T=1/3 }
+            var E1 := ABC + ((BCD - ABC) * T);
 
-             { Sub-cubic 1: p0, ab, abc, e1 -> quadratic ctrl = (ab + abc) * 0.5 }
-             var Q1 := (AB + ABC) * 0.5;
+            { Sub-cubic 1: p0, ab, abc, e1 -> quadratic ctrl = (ab + abc) * 0.5 }
+            var Q1 := (AB + ABC) * 0.5;
 
-             { De Casteljau split remaining cubic (e1, bcd, cd, p3) at t=0.5
-               (= t=2/3 of original) }
-             var AB2 := E1 + ((BCD - E1) * 0.5);
-             var BC2 := BCD + ((CD - BCD) * 0.5);
-             var CD2 := CD + ((P3 - CD) * 0.5);
-             var ABC2 := AB2 + ((BC2 - AB2) * 0.5);
-             var BCD2 := BC2 + ((CD2 - BC2) * 0.5);
+            { De Casteljau split remaining cubic (e1, bcd, cd, p3) at t=0.5
+              (= t=2/3 of original) }
+            var AB2 := E1 + ((BCD - E1) * 0.5);
+            var BC2 := BCD + ((CD - BCD) * 0.5);
+            var CD2 := CD + ((P3 - CD) * 0.5);
+            var ABC2 := AB2 + ((BC2 - AB2) * 0.5);
+            var BCD2 := BC2 + ((CD2 - BC2) * 0.5);
 
-             { point on curve at t=2/3 }
-             var E2 := ABC2 + ((BCD2 - ABC2) * 0.5);
+            { point on curve at t=2/3 }
+            var E2 := ABC2 + ((BCD2 - ABC2) * 0.5);
 
-             { Sub-cubic 2: e1, ab2, abc2, e2 -> quadratic ctrl = (ab2 + abc2) * 0.5 }
-             var Q2 := (AB2 + ABC2) * 0.5;
-             var Q3 := (BCD2 + CD2) * 0.5;
+            { Sub-cubic 2: e1, ab2, abc2, e2 -> quadratic ctrl = (ab2 + abc2) * 0.5 }
+            var Q2 := (AB2 + ABC2) * 0.5;
+            var Q3 := (BCD2 + CD2) * 0.5;
 
-             Curve.P[0] := P0;
-             Curve.P[1] := Q1;
-             Curve.P[2] := E1;
-             FCurves.Add(Curve);
+            Curve.P[0] := P0;
+            Curve.P[1] := Q1;
+            Curve.P[2] := E1;
+            FCurves.Add(Curve);
 
-             Curve.P[0] := E1;
-             Curve.P[1] := Q2;
-             Curve.P[2] := E2;
-             FCurves.Add(Curve);
+            Curve.P[0] := E1;
+            Curve.P[1] := Q2;
+            Curve.P[2] := E2;
+            FCurves.Add(Curve);
 
-             Curve.P[0] := E2;
-             Curve.P[1] := Q3;
-             Curve.P[2] := P3;
-             FCurves.Add(Curve);
+            Curve.P[0] := E2;
+            Curve.P[1] := Q3;
+            Curve.P[2] := P3;
+            FCurves.Add(Curve);
 
-             Previous := P3;
-           end;
+            Previous := P3;
+          end;
       end;
-      Inc(Vert);
     end;
 
     if (InContour) then
@@ -451,7 +444,7 @@ begin
       end;
     end;
   finally
-    _stbtt_FreeShape(AInfo, Verts);
+    AFont.FreeShape(Shape);
   end;
 end;
 
@@ -469,6 +462,7 @@ end;
 constructor TSlugFont.Create;
 begin
   inherited;
+  FFont := TStbFont.Create;
   FGlyphs := TList<TSlugGlyph>.Create;
   FCPalColors := TList<TVector4>.Create;
   FColorBases := TList<TSlugColorBase>.Create;
@@ -482,12 +476,13 @@ begin
   FColorBases.Free;
   FCPalColors.Free;
   FGlyphs.Free;
+  FFont.Free;
   inherited;
 end;
 
 function TSlugFont.FindColorBase(const ACodepoint: UInt32): PSlugColorBase;
 begin
-  var Idx := _stbtt_FindGlyphIndex(@FInfo, ACodepoint);
+  var Idx := FFont.FindGlyphIndex(ACodepoint);
   if (Idx <= 0) then
     Exit(nil);
 
@@ -534,7 +529,7 @@ end;
 
 function TSlugFont.GetGlyph(const ACodepoint: UInt32): PSlugGlyph;
 begin
-  var Idx := _stbtt_FindGlyphIndex(@FInfo, ACodepoint);
+  var Idx := FFont.FindGlyphIndex(ACodepoint);
   if (Cardinal(Idx) < Cardinal(FGlyphs.Count)) then
   begin
     Result := PSlugGlyph(FGlyphs.List);
@@ -570,13 +565,19 @@ begin
   Assert((AData.Ptr <> nil) and (AData.Size > 0));
   Assert(not FValid);
 
-  if (_stbtt_InitFont(@FInfo, AData.Ptr, 0) = 0) then
+  if (not FFont.Load(AData.Ptr, AData.Size)) then
   begin
     Unload;
     Exit(False);
   end;
 
-  var EMScale: Single := _stbtt_ScaleForMappingEmToPixels(@FInfo, 1);
+  if (not FFont.Open) then
+  begin
+    Unload;
+    Exit(False);
+  end;
+
+  var EMScale: Single := FFont.ScaleForMappingEmToPixels(1);
 
   { Colored emoji-fonts... }
   if (not ParseColrV0(AData)) then
@@ -593,10 +594,10 @@ begin
 
   var BuildGlyphs := TObjectList<TSlugGlyphBuild>.Create;
   try
-    BuildGlyphs.Count := FInfo.numGlyphs;
+    BuildGlyphs.Count := FFont.GlyphCount;
     for var I := 0 to BuildGlyphs.Count - 1 do
     begin
-      BuildGlyphs[I] := TSlugGlyphBuild.Create(@FInfo, I, EMScale);
+      BuildGlyphs[I] := TSlugGlyphBuild.Create(FFont, I, EMScale);
       BuildGlyphs[I].BuildBands;
     end;
 

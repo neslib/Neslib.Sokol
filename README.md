@@ -20,6 +20,8 @@ It consists of the following independent modules (units):
 
 ## Utility units
 
+Note that units that are *not* in the Neslib.Sokol namespace are *not* part of the official Sokol library but can be used with Sokol (for example to load images or fonts).
+
 * [Neslib.ImGui](Doc/Neslib.ImGui.md): Delphi wrapper for the immediate-mode user interface library [Dear ImGui](https://github.com/ocornut/imgui).
 * [Neslib.Sokol.ImGui](Doc/Neslib.Sokol.ImGui.md): drop-in Dear ImGui renderer and event handler for Neslib.Sokol.App and Neslib.Sokol.Gfx.
 * [Neslib.Sokol.Gfx.ImGui](Doc/Neslib.Sokol.Gfx.ImGui.md): debug-inspection UI for Neslib.Sokol.Gfx using Dear ImGui.
@@ -32,6 +34,8 @@ It consists of the following independent modules (units):
 * [Neslib.Sokol.Letterbox](Doc/Neslib.Sokol.Letterbox.md): fixed-aspect viewport for random-aspect framebuffer.
 * [Neslib.Sokol.Spine](Doc/Neslib.Sokol.Spine.md): A Neslib.Sokol.Gfx renderer for the spine-c runtime.
 * [Neslib.Sokol.MemTrack](Doc/Neslib.Sokol.MemTrack.md): memory allocation wrapper to track memory usage of Sokol libraries.
+* [Neslib.Stb.Image](Doc/Neslib.Stb.Image.md): loading images from different file formats.
+* [Neslib.Stb.TrueType](Doc/Neslib.Stb.TrueType.md): loading, rasterizing and retrieving information from TrueType and OpenType fonts.
 
 ## Requirements
 

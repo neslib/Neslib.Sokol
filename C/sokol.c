@@ -47,11 +47,18 @@ extern "C" {
 #include "sokol/spine/spine.h"
 #include "sokol/util/sokol_spine.h"
     
-#if defined(__APPLE__)
-}
-#endif
-
 // Must be included *after* fontstash.h
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "sokol/deps/imstb_truetype.h"
 #undef STB_TRUETYPE_IMPLEMENTATION
+
+#define STB_IMAGE_IMPLEMENTATION
+#if defined(_WIN32)
+#define STBIDEF __declspec(dllexport)
+#endif
+
+#include "sokol/deps/stb_image.h"  
+
+#if defined(__APPLE__)
+}
+#endif

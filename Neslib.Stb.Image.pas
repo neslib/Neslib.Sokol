@@ -1,11 +1,11 @@
 unit Neslib.Stb.Image;
-{ Delphi wrapper for stb_image.h (https://github.com/nothings/stb) }
+{ Delphi wrapper for stb_image.h 2.30 (https://github.com/nothings/stb) }
 
 interface
 
 uses
   System.SysUtils,
-  Neslib.Stb.Api;
+  Neslib.Sokol.Api;
 
 type
   TStbChannelCount = 0..4;
@@ -28,7 +28,7 @@ type
   end;
 
 type
-  { An image that can be loaded from different file formats:
+  { Class for loading images from different file formats:
     * JPEG baseline & progressive (12 bpc/arithmetic not supported, same as
       stock IJG lib)
     * PNG 1/2/4/8/16-bit-per-channel
@@ -70,6 +70,14 @@ type
 
     Paletted PNG, BMP, GIF, and PIC images are automatically depalettized.
 
+    To query the width, height and component count of an image without having to
+    decode the full file, you can use one of the GetInfo methods:
+
+      var Width, Height: Integer;
+      var NumChannels: TStbChannelCount;
+      if (TStbImage.GetInfo('SomeFile.png', Width, Height, NumChannels)) then
+        ...
+
     I/O Callbacks
     -------------
     I/O callbacks allow you to read from arbitrary sources, like packaged
@@ -97,16 +105,13 @@ type
     Finally, given a filename containing image data, you can query for the "most
     appropriate" interface to use (that is, whether the image is HDR or not)
     using the IsHdr method.
+
     iOS PNG support
     ---------------
-    By default we convert iOS-formatted PNGs back to RGB, even though they are
-    internally encoded differently. You can disable this conversion by calling
-    SetConvertIOSPngToRgb(False), in which case you will always just get the
-    native iOS "format" through (which is BGR stored in RGB).
-    Call SetUnpremultiplyOnLoad(True) as well to force a divide per pixel to
-    remove any premultiplied alpha *only* if the image file explicitly says
-    there's premultiplied data (currently only happens in iOS images, and only
-    if iOS ConvertToRgb processing is on). }
+    We optionally support converting iPhone-formatted PNGs (which store
+    premultiplied BGRA) back to RGB, even though they're internally encoded
+    differently. To enable this conversion, call
+    TStbImage.SetConvertIOSPngToRgb(True). }
   TStbImage = class
   {$REGION 'Internal Declarations'}
   private class var
