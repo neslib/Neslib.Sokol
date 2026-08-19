@@ -1,3 +1,8 @@
+// [DEAR IMGUI]
+// This is a slightly modified version of stb_truetype.h 1.26.
+// Mostly fixing for compiler and static analyzer warnings.
+// Grep for [DEAR IMGUI] to find the changes.
+
 // stb_truetype.h - v1.26 - public domain
 // authored from 2009-2021 by Sean Barrett / RAD Game Tools
 //
@@ -54,7 +59,7 @@
 //       Hou Qiming                 Derek Vinyard
 //       Rob Loach                  Cort Stratton
 //       Kenney Phillis Jr.         Brian Costabile
-//       Ken Voskuil (kaesve)       Yakov Galka
+//       Ken Voskuil (kaesve)
 //
 // VERSION HISTORY
 //
@@ -499,11 +504,11 @@ int main(int arg, char **argv)
 #ifndef __STB_INCLUDE_STB_TRUETYPE_H__
 #define __STB_INCLUDE_STB_TRUETYPE_H__
 
-//#ifdef STBTT_STATIC
-//#define STBTT_DEF static
-//#else
-//#define STBTT_DEF extern
-//#endif
+#ifdef STBTT_STATIC
+#define STBTT_DEF static
+#else
+#define STBTT_DEF extern
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -651,7 +656,7 @@ STBTT_DEF void stbtt_PackSetOversampling(stbtt_pack_context *spc, unsigned int h
 STBTT_DEF void stbtt_PackSetSkipMissingCodepoints(stbtt_pack_context *spc, int skip);
 // If skip != 0, this tells stb_truetype to skip any codepoints for which
 // there is no corresponding glyph. If skip=0, which is the default, then
-// codepoints without a glyph recived the font's "missing character" glyph,
+// codepoints without a glyph received the font's "missing character" glyph,
 // typically an empty box by convention.
 
 STBTT_DEF void stbtt_GetPackedQuad(const stbtt_packedchar *chardata, int pw, int ph,  // same data as above
@@ -881,7 +886,7 @@ STBTT_DEF unsigned char *stbtt_GetCodepointBitmap(const stbtt_fontinfo *info, fl
 // xoff/yoff are the offset it pixel space from the glyph origin to the top-left of the bitmap
 
 STBTT_DEF unsigned char *stbtt_GetCodepointBitmapSubpixel(const stbtt_fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint, int *width, int *height, int *xoff, int *yoff);
-// the same as stbtt_GetCodepoitnBitmap, but you can specify a subpixel
+// the same as stbtt_GetCodepointBitmap, but you can specify a subpixel
 // shift for the character
 
 STBTT_DEF void stbtt_MakeCodepointBitmap(const stbtt_fontinfo *info, unsigned char *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int codepoint);
@@ -2003,7 +2008,7 @@ static stbtt__buf stbtt__cid_get_glyph_subrs(const stbtt_fontinfo *info, int gly
          start = end;
       }
    }
-   if (fdselector == -1) stbtt__new_buf(NULL, 0);
+   if (fdselector == -1) return stbtt__new_buf(NULL, 0); // [DEAR IMGUI] fixed, see #6007 and nothings/stb#1422
    return stbtt__get_subrs(info->cff, stbtt__cff_index_get(info->fontdicts, fdselector));
 }
 
@@ -3195,8 +3200,11 @@ static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill, 
 
                // check if final y_crossing is blown up; no test case for this
                if (y_final > y_bottom) {
+                  int denom = (x2 - (x1+1));
                   y_final = y_bottom;
-                  dy = (y_final - y_crossing ) / (x2 - (x1+1)); // if denom=0, y_final = y_crossing, so y_final <= y_bottom
+                  if (denom != 0) { // [DEAR IMGUI] Avoid div by zero (https://github.com/nothings/stb/issues/1316)
+                     dy = (y_final - y_crossing ) / denom; // if denom=0, y_final = y_crossing, so y_final <= y_bottom
+                  }
                }
 
                // in second pixel, area covered by line segment found in first pixel
@@ -4302,7 +4310,7 @@ STBTT_DEF void stbtt_PackFontRangesPackRects(stbtt_pack_context *spc, stbrp_rect
 STBTT_DEF int stbtt_PackFontRanges(stbtt_pack_context *spc, const unsigned char *fontdata, int font_index, stbtt_pack_range *ranges, int num_ranges)
 {
    stbtt_fontinfo info;
-   int i,j,n, return_value = 1;
+   int i, j, n, return_value; // [DEAR IMGUI] removed = 1;
    //stbrp_context *context = (stbrp_context *) spc->pack_info;
    stbrp_rect    *rects;
 
@@ -4508,8 +4516,8 @@ static int stbtt__compute_crossings_x(float x, float y, int nverts, stbtt_vertex
             q2[0] = (float)x2;
             q2[1] = (float)y2;
             if (equal(q0,q1) || equal(q1,q2)) {
-               x0 = (int)verts[i-1].x;
-               y0 = (int)verts[i-1].y;
+               x0 = (int)verts[i-1].x; //-V1048
+               y0 = (int)verts[i-1].y; //-V1048
                x1 = (int)verts[i  ].x;
                y1 = (int)verts[i  ].y;
                if (y > STBTT_min(y0,y1) && y < STBTT_max(y0,y1) && x > STBTT_min(x0,x1)) {
@@ -4604,8 +4612,6 @@ STBTT_DEF unsigned char * stbtt_GetGlyphSDF(const stbtt_fontinfo *info, float sc
    scale_y = -scale_y;
 
    {
-      // distance from singular values (in the same units as the pixel grid)
-      const float eps = 1./1024, eps2 = eps*eps;
       int x,y,i,j;
       float *precompute;
       stbtt_vertex *verts;
@@ -4618,15 +4624,15 @@ STBTT_DEF unsigned char * stbtt_GetGlyphSDF(const stbtt_fontinfo *info, float sc
             float x0 = verts[i].x*scale_x, y0 = verts[i].y*scale_y;
             float x1 = verts[j].x*scale_x, y1 = verts[j].y*scale_y;
             float dist = (float) STBTT_sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
-            precompute[i] = (dist < eps) ? 0.0f : 1.0f / dist;
+            precompute[i] = (dist == 0) ? 0.0f : 1.0f / dist;
          } else if (verts[i].type == STBTT_vcurve) {
             float x2 = verts[j].x *scale_x, y2 = verts[j].y *scale_y;
             float x1 = verts[i].cx*scale_x, y1 = verts[i].cy*scale_y;
             float x0 = verts[i].x *scale_x, y0 = verts[i].y *scale_y;
             float bx = x0 - 2*x1 + x2, by = y0 - 2*y1 + y2;
             float len2 = bx*bx + by*by;
-            if (len2 >= eps2)
-               precompute[i] = 1.0f / len2;
+            if (len2 != 0.0f)
+               precompute[i] = 1.0f / (bx*bx + by*by);
             else
                precompute[i] = 0.0f;
          } else
@@ -4691,8 +4697,8 @@ STBTT_DEF unsigned char * stbtt_GetGlyphSDF(const stbtt_fontinfo *info, float sc
                         float a = 3*(ax*bx + ay*by);
                         float b = 2*(ax*ax + ay*ay) + (mx*bx+my*by);
                         float c = mx*ax+my*ay;
-                        if (STBTT_fabs(a) < eps2) { // if a is 0, it's linear
-                           if (STBTT_fabs(b) >= eps2) {
+                        if (a == 0.0) { // if a is 0, it's linear
+                           if (b != 0.0) {
                               res[num++] = -c/b;
                            }
                         } else {

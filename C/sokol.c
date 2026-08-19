@@ -13,14 +13,11 @@
 #define SOKOL_DLL
 #define SOKOL_IMPL
 #define FONTSTASH_IMPLEMENTATION
+#define STBTT_DEF extern
 
 // To enable Debug UI
 #define SOKOL_TRACE_HOOKS
 
-/* TODO:
-   Symbols from these files are not exported from the DLL:
-   * stb_truetype.h
-*/
 #include "sokol/sokol_app.h"
 #include "sokol/sokol_args.h"
 #include "sokol/sokol_audio.h"
@@ -33,8 +30,8 @@
 #include "sokol/util/sokol_gl.h"
 #include "sokol/util/sokol_framebuffer.h"
 #include "sokol/util/sokol_letterbox.h"
-#include "sokol/deps/cimgui.h"
 #include "sokol/util/sokol_memtrack.h"
+#include "sokol/deps/cimgui.h"
 
 #if defined(__APPLE__)
 #undef __cplusplus
@@ -53,3 +50,8 @@ extern "C" {
 #if defined(__APPLE__)
 }
 #endif
+
+// Must be included *after* fontstash.h
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "sokol/deps/imstb_truetype.h"
+#undef STB_TRUETYPE_IMPLEMENTATION

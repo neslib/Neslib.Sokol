@@ -24,8 +24,8 @@ To update Neslib.Sokol:
 
     * open "fontstash.h" 
     * replace "stb_truetype.h" with "imstb_truetype.h"
-    * a few lines above that, comment out "#define STBTT_STATIC"
-    * You should delete any "stb_truetype.h" files
+    * comment out the lines above that (from `#define STB_TRUETYPE_IMPLEMENTATION` through `#define STBTT_free(x,u) fons__tmpfree(x,u)`)
+    * you should delete any "stb_truetype.h" files
 10. If there are new or renamed APIs in sokol\deps\fontstash.h or sokol\libs\basisu\sokol_basisu.h, then update the "sokol.def" accordingly.
 11. Update the subdirectories in the "chet" directory accordingly, but only with those header files we want to translate to be accessible from Delphi.
 12. Open the "chet\\sokol\\deps\\fontstash.h" file and copy the `fonsAddFontMem` signature in the "implementation" section to the "interface" section (under the `fonsDrawDebug` signature). Make sure the line ends with a semicolon.
