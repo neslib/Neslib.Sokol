@@ -1,5 +1,4 @@
-<img src="Doc/logo_full_large.png" alt="sokol" style="zoom:60%;" />
-
+<table style="border:none;"><tr style="border:none;"><td style="border:none;"><img src="Doc/logo_full_large.png" alt="sokol" style="height:100px;" /></td><td style="border:none;text-align:right;"><img src="Doc/noai.png" alt="no AI" style="height:100px;" /></td></tr></table>
 # Neslib.Sokol
 
 Simple libraries for creating cross-platform applications with Delphi without the VCL or FMX frameworks.
@@ -90,7 +89,6 @@ On Windows, you need to deploy the sokol32.dll or sokol64.dll file, depending on
 * Neslib.ModPlug: modplug32.dll or modplug64.dll
 * Neslib.PLMpeg: pl_mpeg32.dll or pl_mpeg64.dll
 * Neslib.OzzAnim: ozzanim32.dll or ozzanim64.dll
-* Neslib.Stb.Image: stb32.dll or stb64.dll
 
 ## Samples
 
