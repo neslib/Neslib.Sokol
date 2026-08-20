@@ -1,4 +1,5 @@
-<table style="border:none;"><tr style="border:none;"><td style="border:none;"><img src="Doc/logo_full_large.png" alt="sokol" style="height:100px;" /></td><td style="border:none;text-align:right;"><img src="Doc/noai.png" alt="no AI" style="height:100px;" /></td></tr></table>
+<img src="Doc/logo_full_large.png" alt="Sokol" height="100" /><img src="Doc/noai.png" alt="no AI" height="100" align="right" />
+
 # Neslib.Sokol
 
 Simple libraries for creating cross-platform applications with Delphi without the VCL or FMX frameworks.
