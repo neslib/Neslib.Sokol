@@ -542,13 +542,7 @@ end;
 
 function TShapeBuffer.GetElementRange: TShapeElementRange;
 begin
-  {$IFDEF ANDROID32}
   Result.FHandle := _sshape_element_range(@FHandle);
-  {$ELSE}
-  var Res := _sshape_element_range(@FHandle);
-  Result.FHandle.base_element := Integer(Res);
-  Result.FHandle.num_elements := Integer(Res shr 32);
-  {$ENDIF}
 end;
 
 function TShapeBuffer.GetIndexBufferDesc: TBufferDesc;

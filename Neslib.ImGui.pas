@@ -2670,7 +2670,7 @@ type
     FontLoaderData: Pointer;         // Font loader opaque storage (per font config) 
   public
     // Initialize with default values
-    procedure Initialize; inline;
+    procedure Initialize;
   end; 
 
   // Hold rendering data for one glyph.
